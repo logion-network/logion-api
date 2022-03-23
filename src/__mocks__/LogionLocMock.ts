@@ -1,4 +1,4 @@
-import { DEFAULT_LEGAL_OFFICER, TEST_WALLET_USER } from '../../common/TestData';
+import { DEFAULT_LEGAL_OFFICER, TEST_WALLET_USER } from '../TestData';
 import { LegalOfficerCase } from '../Types';
 import { signAndSend } from './SignatureMock';
 

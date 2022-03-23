@@ -9,7 +9,7 @@ import {
     ScientificNumber,
     MEGA,
     ATTO, PICO, convertToPrefixed,
-} from '../../src/logion-api/numbers';
+} from './numbers';
 
 test("amount given balance", () => {
     const result = balance("3", 4);

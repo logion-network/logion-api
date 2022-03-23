@@ -1,4 +1,4 @@
-import { toHex, fromHex} from '../../src/logion-api/Codec';
+import { toHex, fromHex} from './Codec';
 
 test("toHex", () => {
     const data = "test";

@@ -1,5 +1,5 @@
 import { v4, parse } from 'uuid';
-import { UUID } from "../../src/logion-api/UUID";
+import { UUID } from "./UUID";
 
 describe("UUID", () => {
     const uuidString = v4();

@@ -16,5 +16,5 @@ export {
 
 import {
     SignedTransaction as RealSignedTransaction
-} from '../../../src/logion-api/Signature';
+} from '../Signature';
 export type SignedTransaction = RealSignedTransaction;

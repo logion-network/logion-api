@@ -1,5 +1,4 @@
-**/__mocks__/**/*.js
-**/__mocks__/**/*.d.ts
+**/__mocks__/**
 **/*.test.js
 **/*.test.d.ts
 src
@@ -7,3 +6,4 @@ node_modules
 jest.config.js
 TestData.js
 TestData.d.ts
+*.tgz

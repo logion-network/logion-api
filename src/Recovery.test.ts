@@ -1,12 +1,12 @@
-import { DEFAULT_LEGAL_OFFICER } from "../common/TestData";
+import { DEFAULT_LEGAL_OFFICER } from "./TestData";
 
 jest.mock('@polkadot/api');
-jest.mock('../../src/logion-api/Signature');
+jest.mock('./Signature');
 
 import { setSignAndSend } from './__mocks__/SignatureMock';
 import { ApiPromise } from '@polkadot/api';
-import { setQueryRecoveryRecoverable, setQueryRecoveryActiveRecoveries } from '../__mocks__/PolkadotApiMock';
-import { createRecovery, getRecoveryConfig, initiateRecovery, getActiveRecovery } from '../../src/logion-api/Recovery';
+import { setQueryRecoveryRecoverable, setQueryRecoveryActiveRecoveries } from './__mocks__/PolkadotApiMock';
+import { createRecovery, getRecoveryConfig, initiateRecovery, getActiveRecovery } from './Recovery';
 
 test("recovery creation", () => {
     const api = new ApiPromise();

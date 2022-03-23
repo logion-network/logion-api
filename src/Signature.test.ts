@@ -1,6 +1,6 @@
 jest.mock('@polkadot/extension-dapp');
 jest.mock('@polkadot/api');
-jest.mock('../../src/logion-api/Codec');
+jest.mock('./Codec');
 
 import {
     createHash,
@@ -13,10 +13,10 @@ import {
     AttributesSignatureParameters,
     sign,
     isSuccessful
-} from '../../src/logion-api/Signature';
+} from './Signature';
 import { mockSubmittableResult } from './__mocks__/SignatureMock';
-import { mockSubmittable, mockSigner } from '../__mocks__/PolkadotApiMock';
-import { setSigner } from '../__mocks__/PolkadotExtensionDappMock';
+import { mockSubmittable, mockSigner } from './__mocks__/PolkadotApiMock';
+import { setSigner } from './__mocks__/PolkadotExtensionDappMock';
 import moment from 'moment';
 
 describe("Signature", () => {

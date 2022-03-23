@@ -1,6 +1,6 @@
-import { getVaultAddress } from "../../src/logion-api/Vault";
-import { RecoveryConfig } from "../../src/logion-api/Recovery";
-import { DEFAULT_LEGAL_OFFICER, ANOTHER_LEGAL_OFFICER } from "../common/TestData";
+import { getVaultAddress } from "./Vault";
+import { RecoveryConfig } from "./Recovery";
+import { DEFAULT_LEGAL_OFFICER, ANOTHER_LEGAL_OFFICER } from "./TestData";
 
 describe("Vault", () => {
 

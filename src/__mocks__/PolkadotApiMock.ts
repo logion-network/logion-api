@@ -1,5 +1,5 @@
 import { BN } from "bn.js";
-import { UUID } from "../../src/logion-api/UUID";
+import { UUID } from "../UUID";
 
 export class WsProvider {
     constructor(socket: string) {

@@ -1,12 +1,12 @@
 jest.mock('@polkadot/api');
-jest.mock('../../src/logion-api/Signature');
+jest.mock('./Signature');
 
 import { stringToHex } from '@polkadot/util';
 import { setSignAndSend } from './__mocks__/SignatureMock';
 import { ApiPromise } from '@polkadot/api';
-import { createPolkadotTransactionLoc, addMetadata, getLegalOfficerCase, addFile } from '../../src/logion-api/LogionLoc';
-import { UUID } from '../../src/logion-api/UUID';
-import { DEFAULT_LOC } from '../__mocks__/PolkadotApiMock';
+import { createPolkadotTransactionLoc, addMetadata, getLegalOfficerCase, addFile } from './LogionLoc';
+import { UUID } from './UUID';
+import { DEFAULT_LOC } from './__mocks__/PolkadotApiMock';
 
 describe("LogionLoc", () => {
 

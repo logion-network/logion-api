@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { toIsoString, ISO_DATETIME_PATTERN, fromIsoString } from '../../src/logion-api/datetime';
+import { toIsoString, ISO_DATETIME_PATTERN, fromIsoString } from './datetime';
 
 test("toIsoString produces date with valid pattern", () => {
     const dateTime = moment();

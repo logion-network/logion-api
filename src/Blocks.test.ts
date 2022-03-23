@@ -2,7 +2,7 @@ jest.mock('@polkadot/api');
 
 import { ApiPromise } from '@polkadot/api';
 import { Block, Hash } from '@polkadot/types/interfaces';
-import { apiMock, hashMock, TOTAL_BLOCKS, blockMock, extrinsicsMock, ApiPromise as ApiPromiseMock } from '../__mocks__/PolkadotApiMock';
+import { apiMock, hashMock, TOTAL_BLOCKS, blockMock, extrinsicsMock, ApiPromise as ApiPromiseMock } from './__mocks__/PolkadotApiMock';
 import {
     fetchExtrinsics,
     BlockAggregatingVisitor,
@@ -14,7 +14,7 @@ import {
     isLimitReached,
     hashEquals,
     ExtrinsicFetchSpecification,
-} from '../../src/logion-api/Blocks';
+} from './Blocks';
 
 test("Fetch at most 10 extrinsics", async () => {
     const specification: unknown = {
