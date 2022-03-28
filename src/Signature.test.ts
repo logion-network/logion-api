@@ -18,6 +18,10 @@ import { mockSubmittableResult } from './__mocks__/SignatureMock';
 import { mockSubmittable, mockSigner } from './__mocks__/PolkadotApiMock';
 import { setSigner } from './__mocks__/PolkadotExtensionDappMock';
 import moment from 'moment';
+import PeerId from 'peer-id';
+import crypto from 'libp2p-crypto';
+import * as ed from '@noble/ed25519';
+import { toHex } from './Codec';
 
 describe("Signature", () => {
 
@@ -129,4 +133,27 @@ describe("Signature", () => {
         const result = isSuccessful(mockSubmittableResult(true, "InBlock", true));
         expect(result).toBe(false);
     });
+
+    test("Test libp2p", async () => {
+        const peerId = PeerId.createFromB58String("12D3KooWDCuGU7WY3VaWjBS1E44x4EnmTgK3HRxWFqYG3dqXDfP1");
+        const nodeKey = "1c482e5368b84abe08e1a27d0670d303351989b3aa281cb1abfc2f48e4530b57";
+
+        const publicKey = peerId.pubKey;
+        const privateKeyBytes = Buffer.from(nodeKey, "hex");
+        const privateKey = await crypto.keys.supportedKeys.ed25519.unmarshalEd25519PrivateKey(concatKeys(privateKeyBytes, publicKey.bytes));
+
+        const message = Buffer.from("test", "utf-8");
+        const signature = await privateKey.sign(message);
+
+        expect(await publicKey.verify(message, signature)).toBe(true);
+    });
 });
+
+function concatKeys(privateKeyRaw: Uint8Array, publicKey: Uint8Array) {
+    const privateKey = new Uint8Array(64);
+    for (let i = 0; i < 32; i++) {
+        privateKey[i] = privateKeyRaw[i];
+        privateKey[32 + i] = publicKey[i];
+    }
+    return privateKey;
+}
