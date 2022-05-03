@@ -1,37 +1,18 @@
 import { DEFAULT_LEGAL_OFFICER } from "./TestData";
-
-jest.mock('@polkadot/api');
-jest.mock('./Signature');
-
-import { setSignAndSend } from './__mocks__/SignatureMock';
 import { ApiPromise } from '@polkadot/api';
 import { setQueryRecoveryRecoverable, setQueryRecoveryActiveRecoveries } from './__mocks__/PolkadotApiMock';
 import { createRecovery, getRecoveryConfig, initiateRecovery, getActiveRecovery } from './Recovery';
 
+jest.mock('@polkadot/api');
+
 test("recovery creation", () => {
     const api = new ApiPromise();
-    const callback = jest.fn();
-    const errorCallback = jest.fn();
-
-    const signAndSend = jest.fn();
-    setSignAndSend(signAndSend);
-
     const legalOfficers = ["1", "2"];
+
     createRecovery({
         api,
-        signerId: "signerId",
-        callback,
-        errorCallback,
         legalOfficers,
     });
-
-    expect(signAndSend).toBeCalledWith(
-        expect.objectContaining({
-            signerId: "signerId",
-            callback,
-            errorCallback,
-        })
-    );
 
     expect(api.tx.verifiedRecovery.createRecovery).toBeCalledWith(legalOfficers);
 });
@@ -63,28 +44,12 @@ test("get recovery config", async () => {
 
 test("initiate recovery", () => {
     const api = new ApiPromise();
-    const callback = jest.fn();
-    const errorCallback = jest.fn();
-
-    const signAndSend = jest.fn();
-    setSignAndSend(signAndSend);
-
     const addressToRecover = "address";
+    
     initiateRecovery({
         api,
-        signerId: "signerId",
-        callback,
-        errorCallback,
         addressToRecover
     });
-
-    expect(signAndSend).toBeCalledWith(
-        expect.objectContaining({
-            signerId: "signerId",
-            callback,
-            errorCallback,
-        })
-    );
 
     expect(api.tx.recovery.initiateRecovery).toBeCalledWith(addressToRecover);
 });

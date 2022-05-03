@@ -1,29 +1,20 @@
 import { ApiPromise } from '@polkadot/api';
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { Call } from '@polkadot/types/interfaces';
 
-import { ExtrinsicSubmissionParameters, signAndSend, Unsubscriber } from './Signature';
-
-export interface RecoveryCreationParameters extends ExtrinsicSubmissionParameters {
+export interface RecoveryCreationParameters {
     api: ApiPromise,
     legalOfficers: string[]
 }
 
-export function createRecovery(parameters: RecoveryCreationParameters): Unsubscriber {
+export function createRecovery(parameters: RecoveryCreationParameters): SubmittableExtrinsic {
     const {
         api,
-        signerId,
-        callback,
-        errorCallback,
         legalOfficers,
     } = parameters;
 
     const sortedLegalOfficers = [ ...legalOfficers ].sort();
-    return signAndSend({
-        signerId,
-        submittable: api.tx.verifiedRecovery.createRecovery(sortedLegalOfficers),
-        callback,
-        errorCallback,
-    });
+    return api.tx.verifiedRecovery.createRecovery(sortedLegalOfficers);
 }
 
 export interface GetRecoveryConfigParameters {
@@ -72,50 +63,34 @@ export type ActiveRecovery = {
     legalOfficers: string[]
 }
 
-export interface InitiateRecoveryParameters extends ExtrinsicSubmissionParameters {
+export interface InitiateRecoveryParameters {
     api: ApiPromise,
     addressToRecover: string,
 }
 
-export function initiateRecovery(parameters: InitiateRecoveryParameters): Unsubscriber {
+export function initiateRecovery(parameters: InitiateRecoveryParameters): SubmittableExtrinsic {
     const {
         api,
-        signerId,
-        callback,
-        errorCallback,
         addressToRecover,
     } = parameters;
 
-    return signAndSend({
-        signerId,
-        submittable: api.tx.recovery.initiateRecovery(addressToRecover),
-        callback,
-        errorCallback,
-    });
+    return api.tx.recovery.initiateRecovery(addressToRecover);
 }
 
-export interface VouchRecoveryParameters extends ExtrinsicSubmissionParameters {
+export interface VouchRecoveryParameters {
     api: ApiPromise,
     lost: string,
     rescuer: string,
 }
 
-export function vouchRecovery(parameters: VouchRecoveryParameters): Unsubscriber {
+export function vouchRecovery(parameters: VouchRecoveryParameters): SubmittableExtrinsic {
     const {
         api,
-        signerId,
-        callback,
-        errorCallback,
         lost,
         rescuer,
     } = parameters;
 
-    return signAndSend({
-        signerId,
-        submittable: api.tx.recovery.vouchRecovery(lost, rescuer),
-        callback,
-        errorCallback,
-    });
+    return api.tx.recovery.vouchRecovery(lost, rescuer);
 }
 
 export interface GetProxyParameters {
@@ -136,48 +111,32 @@ export async function getProxy(parameters: GetProxyParameters): Promise<string |
     return proxy.unwrap().toString();
 }
 
-export interface ClaimRecoveryParameters extends ExtrinsicSubmissionParameters {
+export interface ClaimRecoveryParameters {
     api: ApiPromise,
     addressToRecover: string,
 }
 
-export function claimRecovery(parameters: ClaimRecoveryParameters): Unsubscriber {
+export function claimRecovery(parameters: ClaimRecoveryParameters): SubmittableExtrinsic {
     const {
         api,
-        signerId,
-        callback,
-        errorCallback,
         addressToRecover,
     } = parameters;
 
-    return signAndSend({
-        signerId,
-        submittable: api.tx.recovery.claimRecovery(addressToRecover),
-        callback,
-        errorCallback,
-    });
+    return api.tx.recovery.claimRecovery(addressToRecover);
 }
 
-export interface SignAndSendAsRecoveredParameters extends ExtrinsicSubmissionParameters {
+export interface SignAndSendAsRecoveredParameters {
     api: ApiPromise,
     recoveredAccountId: string,
     call: Call,
 }
 
-export function signAndSendAsRecovered(parameters: SignAndSendAsRecoveredParameters): Unsubscriber {
+export function asRecovered(parameters: SignAndSendAsRecoveredParameters): SubmittableExtrinsic {
     const {
         api,
         recoveredAccountId,
-        signerId,
-        callback,
-        errorCallback,
         call,
     } = parameters;
 
-    return signAndSend({
-        signerId,
-        submittable: api.tx.recovery.asRecovered(recoveredAccountId, call),
-        callback,
-        errorCallback,
-    });
+    return api.tx.recovery.asRecovered(recoveredAccountId, call);
 }

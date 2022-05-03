@@ -1,106 +1,75 @@
 import { ApiPromise } from '@polkadot/api';
 import { stringToHex } from '@polkadot/util';
-import { ExtrinsicSubmissionParameters, signAndSend, Unsubscriber } from './Signature';
+import { Option } from "@polkadot/types-codec";
+
 import { UUID } from './UUID';
 import { LegalOfficerCase, LocType, MetadataItem, VoidInfo, CollectionItem } from './Types';
 import { LegalOfficerCaseOf, CollectionSize } from './interfaces';
-import { Option } from "@polkadot/types-codec";
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
-export interface LogionIdentityLocCreationParameters extends ExtrinsicSubmissionParameters {
+export interface LogionIdentityLocCreationParameters {
     api: ApiPromise;
     locId: UUID;
 }
 
-export function createLogionIdentityLoc(parameters: LogionIdentityLocCreationParameters): Unsubscriber {
+export function createLogionIdentityLoc(parameters: LogionIdentityLocCreationParameters): SubmittableExtrinsic {
     const {
         api,
-        signerId,
-        callback,
-        errorCallback,
         locId,
     } = parameters;
 
-    return signAndSend({
-        signerId,
-        submittable: api.tx.logionLoc.createLogionIdentityLoc(locId.toHexString()),
-        callback,
-        errorCallback,
-    });
+    return api.tx.logionLoc.createLogionIdentityLoc(locId.toHexString());
 }
 
-export interface LogionTransactionLocCreationParameters extends ExtrinsicSubmissionParameters {
+export interface LogionTransactionLocCreationParameters {
     api: ApiPromise;
     locId: UUID;
     requesterLocId: UUID;
 }
 
-export function createLogionTransactionLoc(parameters: LogionTransactionLocCreationParameters): Unsubscriber {
+export function createLogionTransactionLoc(parameters: LogionTransactionLocCreationParameters): SubmittableExtrinsic {
     const {
         api,
-        signerId,
-        callback,
-        errorCallback,
         locId,
         requesterLocId,
     } = parameters;
 
-    return signAndSend({
-        signerId,
-        submittable: api.tx.logionLoc.createLogionTransactionLoc(locId.toHexString(), requesterLocId.toHexString()),
-        callback,
-        errorCallback,
-    });
+    return api.tx.logionLoc.createLogionTransactionLoc(locId.toHexString(), requesterLocId.toHexString());
 }
 
-export interface PolkadotIdentityLocCreationParameters extends ExtrinsicSubmissionParameters {
+export interface PolkadotIdentityLocCreationParameters {
     api: ApiPromise;
     locId: UUID;
     requester: string;
 }
 
-export function createPolkadotIdentityLoc(parameters: PolkadotIdentityLocCreationParameters): Unsubscriber {
+export function createPolkadotIdentityLoc(parameters: PolkadotIdentityLocCreationParameters): SubmittableExtrinsic {
     const {
         api,
-        signerId,
-        callback,
-        errorCallback,
         locId,
         requester,
     } = parameters;
 
-    return signAndSend({
-        signerId,
-        submittable: api.tx.logionLoc.createPolkadotIdentityLoc(locId.toHexString(), requester),
-        callback,
-        errorCallback,
-    });
+    return api.tx.logionLoc.createPolkadotIdentityLoc(locId.toHexString(), requester);
 }
 
-export interface PolkadotTransactionLocCreationParameters extends ExtrinsicSubmissionParameters {
+export interface PolkadotTransactionLocCreationParameters {
     api: ApiPromise;
     locId: UUID;
     requester: string;
 }
 
-export function createPolkadotTransactionLoc(parameters: PolkadotTransactionLocCreationParameters): Unsubscriber {
+export function createPolkadotTransactionLoc(parameters: PolkadotTransactionLocCreationParameters): SubmittableExtrinsic {
     const {
         api,
-        signerId,
-        callback,
-        errorCallback,
         locId,
         requester,
     } = parameters;
 
-    return signAndSend({
-        signerId,
-        submittable: api.tx.logionLoc.createPolkadotTransactionLoc(locId.toHexString(), requester),
-        callback,
-        errorCallback,
-    });
+    return api.tx.logionLoc.createPolkadotTransactionLoc(locId.toHexString(), requester);
 }
 
-export interface CollectionLocCreationParameters extends ExtrinsicSubmissionParameters {
+export interface CollectionLocCreationParameters {
     api: ApiPromise;
     locId: UUID;
     requester: string;
@@ -108,51 +77,35 @@ export interface CollectionLocCreationParameters extends ExtrinsicSubmissionPara
     maxSize?: string;
 }
 
-export function createCollectionLoc(parameters: CollectionLocCreationParameters): Unsubscriber {
+export function createCollectionLoc(parameters: CollectionLocCreationParameters): SubmittableExtrinsic {
     const {
         api,
-        signerId,
-        callback,
-        errorCallback,
         locId,
         requester,
         lastBlock,
         maxSize
     } = parameters;
 
-    return signAndSend({
-        signerId,
-        submittable: api.tx.logionLoc.createCollectionLoc(locId.toHexString(), requester, lastBlock || null, maxSize || null),
-        callback,
-        errorCallback,
-    });
+    return api.tx.logionLoc.createCollectionLoc(locId.toHexString(), requester, lastBlock || null, maxSize || null);
 }
 
-export interface AddMetadataParameters extends ExtrinsicSubmissionParameters {
+export interface AddMetadataParameters {
     api: ApiPromise;
     locId: UUID;
     item: MetadataItem;
 }
 
-export function addMetadata(parameters: AddMetadataParameters): Unsubscriber {
+export function addMetadata(parameters: AddMetadataParameters): SubmittableExtrinsic {
     const {
         api,
-        signerId,
-        callback,
-        errorCallback,
         locId,
         item,
     } = parameters;
 
-    return signAndSend({
-        signerId,
-        submittable: api.tx.logionLoc.addMetadata(locId.toHexString(), {
-            name: stringToHex(item.name),
-            value: stringToHex(item.value),
-            submitter: item.submitter,
-        }),
-        callback,
-        errorCallback,
+    return api.tx.logionLoc.addMetadata(locId.toHexString(), {
+        name: stringToHex(item.name),
+        value: stringToHex(item.value),
+        submitter: item.submitter,
     });
 }
 
@@ -248,7 +201,7 @@ export async function getLegalOfficerCasesMap(
     return map;
 }
 
-export interface AddFileParameters extends ExtrinsicSubmissionParameters {
+export interface AddFileParameters {
     api: ApiPromise;
     locId: UUID;
     hash: string;
@@ -256,111 +209,74 @@ export interface AddFileParameters extends ExtrinsicSubmissionParameters {
     submitter: string;
 }
 
-export function addFile(parameters: AddFileParameters): Unsubscriber {
+export function addFile(parameters: AddFileParameters): SubmittableExtrinsic {
     const {
         api,
-        signerId,
-        callback,
-        errorCallback,
         locId,
         hash,
         nature,
         submitter,
     } = parameters;
 
-    return signAndSend({
-        signerId,
-        submittable: api.tx.logionLoc.addFile(locId.toHexString(), {
-            hash,
-            nature: stringToHex(nature),
-            submitter
-        }),
-        callback,
-        errorCallback,
+    return api.tx.logionLoc.addFile(locId.toHexString(), {
+        hash,
+        nature: stringToHex(nature),
+        submitter
     });
 }
 
-export interface CloseLocParameters extends ExtrinsicSubmissionParameters {
+export interface CloseLocParameters {
     api: ApiPromise;
     locId: UUID;
 }
 
-export function closeLoc(parameters: CloseLocParameters): Unsubscriber {
+export function closeLoc(parameters: CloseLocParameters): SubmittableExtrinsic {
     const {
         api,
-        signerId,
-        callback,
-        errorCallback,
         locId,
     } = parameters;
 
-    return signAndSend({
-        signerId,
-        submittable: api.tx.logionLoc.close(locId.toHexString()),
-        callback,
-        errorCallback,
-    });
+    return api.tx.logionLoc.close(locId.toHexString());
 }
 
-export interface AddLinkParameters extends ExtrinsicSubmissionParameters {
+export interface AddLinkParameters {
     api: ApiPromise;
     locId: UUID;
     target: UUID;
     nature: string;
 }
 
-export function addLink(parameters: AddLinkParameters): Unsubscriber {
+export function addLink(parameters: AddLinkParameters): SubmittableExtrinsic {
     const {
         api,
-        signerId,
-        callback,
-        errorCallback,
         locId,
         target,
         nature,
     } = parameters;
 
-    return signAndSend({
-        signerId,
-        submittable: api.tx.logionLoc.addLink(locId.toHexString(), {
-            id: target.toHexString(),
-            nature: stringToHex(nature)
-        }),
-        callback,
-        errorCallback,
+    return api.tx.logionLoc.addLink(locId.toHexString(), {
+        id: target.toHexString(),
+        nature: stringToHex(nature)
     });
 }
 
-export interface VoidLocParameters extends ExtrinsicSubmissionParameters {
+export interface VoidLocParameters {
     api: ApiPromise;
     locId: UUID;
     voidInfo: VoidInfo;
 }
 
-export function voidLoc(parameters: VoidLocParameters): Unsubscriber {
+export function voidLoc(parameters: VoidLocParameters): SubmittableExtrinsic {
     const {
         api,
-        signerId,
-        callback,
-        errorCallback,
         locId,
         voidInfo,
     } = parameters;
 
     if(voidInfo.replacer === undefined) {
-        return signAndSend({
-            signerId,
-            submittable: api.tx.logionLoc.makeVoid(locId.toHexString()),
-            callback,
-            errorCallback,
-        });
+        return api.tx.logionLoc.makeVoid(locId.toHexString());
     } else {
-        return signAndSend({
-            signerId,
-            submittable: api.tx.logionLoc.makeVoidAndReplace(locId.toHexString(), voidInfo.replacer.toHexString()),
-            callback,
-            errorCallback,
-        });
+        return api.tx.logionLoc.makeVoidAndReplace(locId.toHexString(), voidInfo.replacer.toHexString());
     }
 }
 
@@ -411,4 +327,22 @@ export async function getCollectionSize(
     } else {
         return undefined;
     }
+}
+
+export interface AddCollectionItemParameters {
+    api: ApiPromise;
+    collectionId: UUID;
+    itemId: string;
+    itemDescription: string;
+}
+
+export function addCollectionItem(parameters: AddCollectionItemParameters): SubmittableExtrinsic {
+    const {
+        api,
+        collectionId,
+        itemId,
+        itemDescription,
+    } = parameters;
+
+    return api.tx.logionLoc.addCollectionItem(collectionId.toHexString(), itemId, itemDescription);
 }

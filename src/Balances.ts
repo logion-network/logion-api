@@ -1,8 +1,8 @@
 import { ApiPromise } from '@polkadot/api';
-import { PrefixedNumber, ScientificNumber, convertToPrefixed, NONE, ATTO } from "./numbers";
-import { ExtrinsicSubmissionParameters, Unsubscriber, signAndSend } from './Signature';
 import { Call } from "@polkadot/types/interfaces";
-import { SubmittableExtrinsic } from "@polkadot/api/submittable/types";
+import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
+
+import { PrefixedNumber, ScientificNumber, convertToPrefixed, NONE, ATTO } from "./numbers";
 
 const LGNT_DECIMALS = 18;
 export const LGNT_SMALLEST_UNIT = ATTO;
@@ -116,31 +116,13 @@ export function getCoin(coinId: string): Coin {
     }
 }
 
-export interface TransferParameters extends ExtrinsicSubmissionParameters, BuildTransferCallParameters {
-}
-
-export function transfer(parameters: TransferParameters): Unsubscriber {
-    const {
-        signerId,
-        callback,
-        errorCallback,
-    } = parameters;
-
-    return signAndSend({
-        signerId,
-        submittable: transferSubmittable(parameters),
-        callback,
-        errorCallback,
-    });
-}
-
 export interface BuildTransferCallParameters {
     api: ApiPromise;
     destination: string;
     amount: PrefixedNumber;
 }
 
-function transferSubmittable(parameters: BuildTransferCallParameters): SubmittableExtrinsic<'promise'> {
+export function transferSubmittable(parameters: BuildTransferCallParameters): SubmittableExtrinsic {
     const {
         api,
         destination,

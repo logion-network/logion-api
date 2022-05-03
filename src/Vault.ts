@@ -1,13 +1,12 @@
 import { ApiPromise } from "@polkadot/api";
 import { Weight } from '@polkadot/types/interfaces/runtime';
 import { createKeyMulti, encodeAddress } from '@polkadot/util-crypto';
+import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
+import { Call } from "@polkadot/types/interfaces";
 
-import { ExtrinsicSubmissionParameters, signAndSend, Unsubscriber } from "./Signature";
 import { getRecoveryConfig, RecoveryConfig } from "./Recovery";
 import { PrefixedNumber } from "./numbers";
 import { LGNT_SMALLEST_UNIT } from './Balances';
-import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
-import { Call } from "@polkadot/types/interfaces";
 
 const THRESHOLD = 2;
 
@@ -23,29 +22,12 @@ export interface BuildRequestVaultTransferParameters {
     destination: string;
 }
 
-export interface RequestVaultTransferParameters extends ExtrinsicSubmissionParameters, BuildRequestVaultTransferParameters {
+export interface RequestVaultTransferParameters extends BuildRequestVaultTransferParameters {
+    signerId: string;
 }
 
-export async function requestVaultTransfer(parameters: RequestVaultTransferParameters): Promise<{ unsubscriber: Unsubscriber }> {
-    const {
-        signerId,
-        callback,
-        errorCallback,
-    } = parameters;
-
-    try {
-        const unsubscriber = signAndSend({
-            signerId,
-            submittable: await buildRequestCallSubmittable({ ...parameters, requesterAddress: signerId }),
-            callback,
-            errorCallback,
-        });
-        return { unsubscriber };
-    } catch(error) {
-        const message = (error instanceof Error) ? error.message : String(error)
-        errorCallback(message)
-        return { unsubscriber: Promise.resolve(() => {}) };
-    }
+export async function requestVaultTransfer(parameters: RequestVaultTransferParameters): Promise<SubmittableExtrinsic> {
+    return await buildRequestCallSubmittable({ ...parameters, requesterAddress: parameters.signerId });
 }
 
 async function buildRequestCallSubmittable(parameters: BuildRequestVaultTransferParameters & { requesterAddress: string }): Promise<SubmittableExtrinsic> {
@@ -99,21 +81,20 @@ function transferCall(
     return api.tx.balances.transfer(destination, amount);
 }
 
-export interface VaultTransferApprovalParameters extends ExtrinsicSubmissionParameters {
+export interface VaultTransferApprovalParameters {
     api: ApiPromise,
     requester: string,
     amount: PrefixedNumber;
     destination: string;
     block: bigint,
-    index: number
+    index: number,
+    signerId: string,
 }
 
-export async function approveVaultTransfer(parameters: VaultTransferApprovalParameters): Promise<{ unsubscriber: Unsubscriber }> {
+export async function approveVaultTransfer(parameters: VaultTransferApprovalParameters): Promise<SubmittableExtrinsic> {
     const {
         api,
         signerId,
-        callback,
-        errorCallback,
         requester,
         amount,
         destination,
@@ -131,16 +112,10 @@ export async function approveVaultTransfer(parameters: VaultTransferApprovalPara
     const { call, weight } = await transferCallAndWeight(api, requester, recoveryConfig!, BigInt(actualAmount), destination);
 
     const otherSignatories = [ requester, otherLegalOfficer ].sort();
-    const unsubscriber = signAndSend({
-        signerId,
-        submittable: api.tx.vault.approveCall(otherSignatories, call.method.toHex(), {height: block, index}, weight),
-        callback,
-        errorCallback,
-    });
-    return { unsubscriber };
+    return api.tx.vault.approveCall(otherSignatories, call.method.toHex(), {height: block, index}, weight);
 }
 
-export interface BuildCancelVaultTransferParameters {
+export interface CancelVaultTransferParameters {
     api: ApiPromise;
     recoveryConfig: RecoveryConfig;
     amount: PrefixedNumber;
@@ -149,31 +124,14 @@ export interface BuildCancelVaultTransferParameters {
     index: number
 }
 
-export interface CancelVaultTransferParameters extends BuildCancelVaultTransferParameters, ExtrinsicSubmissionParameters {
+export function buildCancelVaultTransferCall(parameters: CancelVaultTransferParameters): Call {
+    return parameters.api.createType('Call', cancelVaultTransfer(parameters))
 }
 
-export function buildCancelVaultTransferCall(parameters: BuildCancelVaultTransferParameters): Call {
-    return parameters.api.createType('Call', buildCancelCallSubmittable(parameters))
-}
-
-function buildCancelCallSubmittable(parameters: BuildCancelVaultTransferParameters): SubmittableExtrinsic {
+export function cancelVaultTransfer(parameters: CancelVaultTransferParameters): SubmittableExtrinsic {
     const { api, amount, destination, recoveryConfig, block, index } = parameters
     const actualAmount = amount.convertTo(LGNT_SMALLEST_UNIT).coefficient.unnormalize();
     const call = transferCall(api, destination, BigInt(actualAmount));
     const sortedLegalOfficers = [ ...recoveryConfig.legalOfficers ].sort();
     return api.tx.multisig.cancelAsMulti(2, sortedLegalOfficers, {height: block, index}, call.method.hash)
-}
-
-export function cancelVaultTransfer(parameters: CancelVaultTransferParameters): Unsubscriber {
-    const {
-        signerId,
-        callback,
-        errorCallback,
-    } = parameters;
-    return signAndSend({
-        signerId,
-        submittable: buildCancelCallSubmittable(parameters),
-        callback,
-        errorCallback,
-    });
 }
