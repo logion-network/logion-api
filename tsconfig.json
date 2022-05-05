@@ -1,16 +1,13 @@
 {
-  "extends": "@tsconfig/node14/tsconfig.json",
+  "extends": "@tsconfig/node16/tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "baseUrl": ".",
-    "paths": {
-        "@polkadot/api/augment": ["src/logion-api/interfaces/augment-api.ts"],
-        "@polkadot/types/augment": ["src/logion-api/interfaces/augment-types.ts"]
-    },
+    "baseUrl": "./packages",
     "declaration": true
   },
-  "compileOnSave": false,
   "include": [
-      "src"
+      "**/src/**/*"
+  ],
+  "exclude": [
+    "**/node_modules/**/*"
   ]
 }

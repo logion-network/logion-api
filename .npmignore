@@ -1,9 +1,0 @@
-**/__mocks__/**
-**/*.test.js
-**/*.test.d.ts
-src
-node_modules
-jest.config.js
-TestData.js
-TestData.d.ts
-*.tgz
