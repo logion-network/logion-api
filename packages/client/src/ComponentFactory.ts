@@ -9,7 +9,7 @@ export interface ComponentFactory {
     buildAuthenticationClient: (directoryEndpoint: string, legalOfficers: LegalOfficer[], axiosFactory: AxiosFactory) => AuthenticationClient;
 }
 
-export const DefaultComponentFactory = {
+export const DefaultComponentFactory: ComponentFactory = {
     buildAxiosFactory: () => new AxiosFactory(),
     buildDirectoryClient: (directoryEndpoint: string, axiosFactory: AxiosFactory, token?: string) => new DirectoryClient(directoryEndpoint, axiosFactory, token),
     buildAuthenticationClient: (directoryEndpoint: string, legalOfficers: LegalOfficer[], axiosFactory: AxiosFactory) => new AuthenticationClient(directoryEndpoint, legalOfficers, axiosFactory),
