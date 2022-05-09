@@ -728,7 +728,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@logion/node-api@workspace:packages/node-api":
+"@logion/client@workspace:packages/client":
+  version: 0.0.0-use.local
+  resolution: "@logion/client@workspace:packages/client"
+  dependencies:
+    "@logion/node-api": ^0.1.0
+    "@tsconfig/node16": ^1.0.1
+    "@types/jest": ^27.4.1
+    "@types/luxon": ^2.3.2
+    "@types/node": ^17.0.21
+    axios: ^0.27.2
+    jasmine: ^4.1.0
+    jasmine-spec-reporter: ^7.0.0
+    luxon: ^2.3.2
+    moq.ts: ^7.3.4
+    ts-jest: ^28.0.0
+    ts-node: ^10.7.0
+    typescript: ^4.6.2
+  languageName: unknown
+  linkType: soft
+
+"@logion/node-api@^0.1.0, @logion/node-api@workspace:packages/node-api":
   version: 0.0.0-use.local
   resolution: "@logion/node-api@workspace:packages/node-api"
   dependencies:
@@ -736,7 +756,7 @@ __metadata:
     "@polkadot/typegen": ^8.3.1
     "@polkadot/util": ^9.1.1
     "@polkadot/util-crypto": ^9.1.1
-    "@tsconfig/node14": ^1.0.1
+    "@tsconfig/node16": ^1.0.1
     "@types/jest": ^27.4.1
     "@types/node": ^17.0.21
     "@types/uuid": ^8.3.4
@@ -1267,14 +1287,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tsconfig/node14@npm:^1.0.0, @tsconfig/node14@npm:^1.0.1":
+"@tsconfig/node14@npm:^1.0.0":
   version: 1.0.1
   resolution: "@tsconfig/node14@npm:1.0.1"
   checksum: 976345e896c0f059867f94f8d0f6ddb8b1844fb62bf36b727de8a9a68f024857e5db97ed51d3325e23e0616a5e48c034ff51a8d595b3fe7e955f3587540489be
   languageName: node
   linkType: hard
 
-"@tsconfig/node16@npm:^1.0.2":
+"@tsconfig/node16@npm:^1.0.1, @tsconfig/node16@npm:^1.0.2":
   version: 1.0.2
   resolution: "@tsconfig/node16@npm:1.0.2"
   checksum: ca94d3639714672bbfd55f03521d3f56bb6a25479bd425da81faf21f13e1e9d15f40f97377dedbbf477a5841c5b0c8f4cd1b391f33553d750b9202c54c2c07aa
@@ -1372,6 +1392,13 @@ __metadata:
     jest-matcher-utils: ^27.0.0
     pretty-format: ^27.0.0
   checksum: ca09ac3a17972e18683c57b681a6866c7a56c67f429810ece00425d948da62f207d271becb5cc759da3630f120596ec3c8e0ceb0eecefbe26daffba168b82879
+  languageName: node
+  linkType: hard
+
+"@types/luxon@npm:^2.3.2":
+  version: 2.3.2
+  resolution: "@types/luxon@npm:2.3.2"
+  checksum: b9fe79118681f4bb9f2e37696a7df992a82683ba4448e7ad1af8cc241443ffc64ef08fdeaad749de9e6259b42b0d4b6540d7e880bca39bb504e0f3863d503c98
   languageName: node
   linkType: hard
 
@@ -1579,6 +1606,16 @@ __metadata:
   version: 0.4.0
   resolution: "asynckit@npm:0.4.0"
   checksum: 7b78c451df768adba04e2d02e63e2d0bf3b07adcd6e42b4cf665cb7ce899bedd344c69a1dcbce355b5f972d597b25aaa1c1742b52cffd9caccb22f348114f6be
+  languageName: node
+  linkType: hard
+
+"axios@npm:^0.27.2":
+  version: 0.27.2
+  resolution: "axios@npm:0.27.2"
+  dependencies:
+    follow-redirects: ^1.14.9
+    form-data: ^4.0.0
+  checksum: 38cb7540465fe8c4102850c4368053c21683af85c5fdf0ea619f9628abbcb59415d1e22ebc8a6390d2bbc9b58a9806c874f139767389c862ec9b772235f06854
   languageName: node
   linkType: hard
 
@@ -1951,6 +1988,13 @@ __metadata:
   bin:
     color-support: bin.js
   checksum: 9b7356817670b9a13a26ca5af1c21615463b500783b739b7634a0c2047c16cef4b2865d7576875c31c3cddf9dd621fa19285e628f20198b233a5cfdda6d0793b
+  languageName: node
+  linkType: hard
+
+"colors@npm:1.4.0":
+  version: 1.4.0
+  resolution: "colors@npm:1.4.0"
+  checksum: 98aa2c2418ad87dedf25d781be69dc5fc5908e279d9d30c34d8b702e586a0474605b3a189511482b9d5ed0d20c867515d22749537f7bc546256c6014f3ebdcec
   languageName: node
   linkType: hard
 
@@ -2345,6 +2389,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"follow-redirects@npm:^1.14.9":
+  version: 1.15.0
+  resolution: "follow-redirects@npm:1.15.0"
+  peerDependenciesMeta:
+    debug:
+      optional: true
+  checksum: eaec81c3e0ae57aae2422e38ad3539d0e7279b3a63f9681eeea319bb683dea67502c4e097136b8ce9721542b4e236e092b6b49e34e326cdd7733c274f0a3f378
+  languageName: node
+  linkType: hard
+
 "form-data@npm:^3.0.0":
   version: 3.0.1
   resolution: "form-data@npm:3.0.1"
@@ -2353,6 +2407,17 @@ __metadata:
     combined-stream: ^1.0.8
     mime-types: ^2.1.12
   checksum: b019e8d35c8afc14a2bd8a7a92fa4f525a4726b6d5a9740e8d2623c30e308fbb58dc8469f90415a856698933c8479b01646a9dff33c87cc4e76d72aedbbf860d
+  languageName: node
+  linkType: hard
+
+"form-data@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "form-data@npm:4.0.0"
+  dependencies:
+    asynckit: ^0.4.0
+    combined-stream: ^1.0.8
+    mime-types: ^2.1.12
+  checksum: 01135bf8675f9d5c61ff18e2e2932f719ca4de964e3be90ef4c36aacfc7b9cb2fceb5eca0b7e0190e3383fe51c5b37f4cb80b62ca06a99aaabfcfd6ac7c9328c
   languageName: node
   linkType: hard
 
@@ -2442,7 +2507,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^7.1.3, glob@npm:^7.1.4":
+"glob@npm:^7.1.3, glob@npm:^7.1.4, glob@npm:^7.1.6":
   version: 7.2.0
   resolution: "glob@npm:7.2.0"
   dependencies:
@@ -2793,6 +2858,34 @@ __metadata:
     html-escaper: ^2.0.0
     istanbul-lib-report: ^3.0.0
   checksum: 2132983355710c522f6b26808015cab9a0ee8b9f5ae0db0d3edeff40b886dd83cb670fb123cb7b32dbe59473d7c00cdde2ba6136bc0acdb20a865fccea64dfe1
+  languageName: node
+  linkType: hard
+
+"jasmine-core@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "jasmine-core@npm:4.1.0"
+  checksum: da9f995991273d3c2b7681329e3ac16f4605769de607a573e3c6501729ff95da426d2fe91a8ad78dc7e37107bdedf68983ea7a8d638cdba6b9c82a0ad4ede0a4
+  languageName: node
+  linkType: hard
+
+"jasmine-spec-reporter@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "jasmine-spec-reporter@npm:7.0.0"
+  dependencies:
+    colors: 1.4.0
+  checksum: d5dd5ee26aad98158653776111231889b21b6cffa136d712a814058ad099301045fa2b95f887fcdeaa20e2a82c3896ffd43b47e25190ddfc921782b09088224e
+  languageName: node
+  linkType: hard
+
+"jasmine@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "jasmine@npm:4.1.0"
+  dependencies:
+    glob: ^7.1.6
+    jasmine-core: ^4.1.0
+  bin:
+    jasmine: bin/jasmine.js
+  checksum: 1654ad3de46c5575c1fcfbf0bd8f84c01dd468f03035431254e4efea8cb98cd74f9444307ac5f6ca2bd3821e6f0f6343ee739de1b891de39283bb0f17cae1621
   languageName: node
   linkType: hard
 
@@ -3393,6 +3486,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"luxon@npm:^2.3.2":
+  version: 2.3.2
+  resolution: "luxon@npm:2.3.2"
+  checksum: ba4f9daa56d03771c2ddf00e3bf996ec7937badfdc2f85f5b58d63c75bb511369b3316f54ab9ce5ab42bfc9118513971f6599128529b68620b876a4b7c16570b
+  languageName: node
+  linkType: hard
+
 "make-dir@npm:^2.0.0, make-dir@npm:^2.1.0":
   version: 2.1.0
   resolution: "make-dir@npm:2.1.0"
@@ -3607,6 +3707,15 @@ __metadata:
   version: 2.29.3
   resolution: "moment@npm:2.29.3"
   checksum: 2e780e36d9a1823c08a1b6313cbb08bd01ecbb2a9062095820a34f42c878991ccba53abaa6abb103fd5c01e763724f295162a8c50b7e95b4f1c992ef0772d3f0
+  languageName: node
+  linkType: hard
+
+"moq.ts@npm:^7.3.4":
+  version: 7.4.1
+  resolution: "moq.ts@npm:7.4.1"
+  dependencies:
+    tslib: 2.1.0
+  checksum: 8c3c52ef8dea9f4c1075d689ad9918395062c75e03b612f85a83023e094869427bb3e3c12b8a61fed7b5098a95473d7c0cbb1af5d0116ac38494eb5fc3f5fb03
   languageName: node
   linkType: hard
 
@@ -4535,6 +4644,13 @@ __metadata:
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
   checksum: 2a379e43f7478d0b79e1e63af91fe222d83857727957df4bd3bdf3c0a884de5097b12feb9bbf530074526b8874c0338b0e6328cf334f3a5e2c49c71e837273f7
+  languageName: node
+  linkType: hard
+
+"tslib@npm:2.1.0":
+  version: 2.1.0
+  resolution: "tslib@npm:2.1.0"
+  checksum: aa189c8179de0427b0906da30926fd53c59d96ec239dff87d6e6bc831f608df0cbd6f77c61dabc074408bd0aa0b9ae4ec35cb2c15f729e32f37274db5730cb78
   languageName: node
   linkType: hard
 

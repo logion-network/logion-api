@@ -6,5 +6,8 @@
         "@polkadot/api/augment": ["src/logion-api/interfaces/augment-api.ts"],
         "@polkadot/types/augment": ["src/logion-api/interfaces/augment-types.ts"]
     }
-  }
+  },
+  "include": [
+    "./src/**/*"
+  ]
 }
