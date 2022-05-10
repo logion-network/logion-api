@@ -2,17 +2,14 @@
   "name": "@logion/node-api",
   "version": "0.1.0",
   "description": "logion API",
-  "main": "index.js",
+  "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
   "scripts": {
     "build": "tsc",
     "test": "jest",
     "generate:defs-meta": "yarn generate:defs && yarn generate:meta",
     "generate:defs": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --input ./src/interfaces/ --package ../interfaces",
-    "generate:meta": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ws://localhost:9944 --output src/interfaces/ --package ../interfaces",
-    "do-dry-publish": "yarn prepare-publish && cd ./dist && npm publish --access public --dry-run",
-    "prepare-publish": "cp package.json README.md .npmignore ../../LICENSE ./dist",
-    "do-publish": "yarn prepare-publish && cd ./dist && npm publish --access public"
+    "generate:meta": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ws://localhost:9944 --output src/interfaces/ --package ../interfaces"
   },
   "repository": {
     "type": "git",

@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 import { AccountTokens } from "../src/AuthenticationClient";
-import { LogionClientConfig, SharedState } from "../src/SharedClient";
+import { Token } from "../src/Http";
+import { AuthenticatedSharedState, LogionClientConfig, SharedState } from "../src/SharedClient";
 import { LegalOfficer, PostalAddress, UserIdentity } from "../src/Types";
 import { TestConfigFactory } from "./TestConfigFactory";
 
@@ -59,19 +60,48 @@ export function buildTestConfig(setupComponentFactory: (factory: TestConfigFacto
     return testConfigFactory.buildTestConfig(LOGION_CLIENT_CONFIG);
 }
 
-export function buildTestSharedSate(setupComponentFactory: (factory: TestConfigFactory) => void): SharedState {
+export async function buildTestSharedSate(setupComponentFactory: (factory: TestConfigFactory) => void): Promise<SharedState> {
     const config = buildTestConfig(setupComponentFactory);
     return buildSharedStateUsingTestConfig(config);
 }
 
-export function buildSharedStateUsingTestConfig(config: LogionClientConfig): SharedState {
+export async function buildSharedStateUsingTestConfig(config: LogionClientConfig): Promise<SharedState> {
     const componentFactory = (config as any).__componentFactory;
     const axiosFactory = componentFactory.buildAxiosFactory();
     const directoryClient = componentFactory.buildDirectoryClient(config.directoryEndpoint, axiosFactory);
+    const networkState = componentFactory.buildNetworkState();
+    const nodeApi = await componentFactory.buildNodeApi(config.rpcEndpoints);
     return {
         config,
         componentFactory,
         axiosFactory,
         directoryClient,
-    }
+        networkState,
+        nodeApi,
+    };
+}
+
+export async function buildAuthenticatedSharedStateUsingTestConfig(
+    config: LogionClientConfig,
+    currentAddress: string,
+    token: Token,
+    legalOfficers: LegalOfficer[],
+): Promise<AuthenticatedSharedState> {
+    const sharedState = await buildSharedStateUsingTestConfig(config);
+    return {
+        ...sharedState,
+        currentAddress,
+        token,
+        legalOfficers,
+    };
+}
+
+export async function buildTestAuthenticatedSharedSate(
+    setupComponentFactory: (factory: TestConfigFactory) => void,
+    currentAddress: string,
+    token: Token,
+    legalOfficers: LegalOfficer[],
+): Promise<AuthenticatedSharedState> {
+    const config = buildTestConfig(setupComponentFactory);
+    return buildAuthenticatedSharedStateUsingTestConfig(config, currentAddress, token, legalOfficers);
 }

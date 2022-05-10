@@ -1,20 +1,26 @@
 import { AuthenticatedLogionClient } from "./AuthenticatedLogionClient";
 import { AccountTokens } from "./AuthenticationClient";
 import { ComponentFactory, DefaultComponentFactory } from "./ComponentFactory";
-import { LogionClientConfig, SharedState } from "./SharedClient";
+import { LegalOfficerEndpoint, LogionClientConfig, SharedState } from "./SharedClient";
 import { RawSigner } from "./Signer";
 import { LegalOfficer } from "./Types";
 
 export class LogionClient {
 
-    static create(config: LogionClientConfig): LogionClient {
+    static async create(config: LogionClientConfig): Promise<LogionClient> {
         const componentFactory = getComponentFactory(config);
         const axiosFactory = componentFactory.buildAxiosFactory();
-        const sharedState = {
+        const nodeApi = await componentFactory.buildNodeApi(config.rpcEndpoints);
+        const directoryClient = componentFactory.buildDirectoryClient(config.directoryEndpoint, axiosFactory);
+        const legalOfficers = await directoryClient.getLegalOfficers();
+        const nodesUp: LegalOfficerEndpoint[] = legalOfficers.map(legalOfficer => ({url: legalOfficer.node, legalOfficer: legalOfficer.address}));
+        const sharedState: SharedState = {
             config,
             componentFactory,
             axiosFactory,
-            directoryClient: componentFactory.buildDirectoryClient(config.directoryEndpoint, axiosFactory),
+            directoryClient,
+            nodeApi,
+            networkState: componentFactory.buildNetworkState(nodesUp, []),
         };
         return new LogionClient(sharedState);
     }

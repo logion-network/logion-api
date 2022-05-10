@@ -5,7 +5,9 @@ import jsonrpc from '@polkadot/types/interfaces/jsonrpc';
 
 import * as definitions from './interfaces/definitions';
 
-export async function buildApi(endpoint: string | string[]): Promise<ApiPromise> {
+export type LogionNodeApi = ApiPromise;
+
+export async function buildApi(endpoint: string | string[]): Promise<LogionNodeApi> {
     const provider = buildProvider(endpoint);
     const types = Object.values(definitions).reduce((res, { types }): object => ({ ...res, ...types }), {});
     return await ApiPromise.create({ provider, types, rpc: { ...jsonrpc } });
