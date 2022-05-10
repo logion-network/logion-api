@@ -6,11 +6,7 @@ export class DirectoryClient {
 
     constructor(directoryEndpoint: string, axiosFactory: AxiosFactory, token?: string) {
         this.authenticated = token !== undefined;
-        if(token) {
-            this.axios = axiosFactory.buildAxiosInstance(directoryEndpoint, token);
-        } else {
-            this.axios = axios.create({ baseURL: directoryEndpoint });
-        }
+        this.axios = axiosFactory.buildAxiosInstance(directoryEndpoint, token);
     }
 
     private authenticated: boolean;

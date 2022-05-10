@@ -2,11 +2,12 @@
   "name": "@logion/client",
   "version": "0.1.0",
   "description": "logion SDK for client applications",
-  "main": "index.js",
+  "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
   "scripts": {
     "build": "tsc",
     "test": "jasmine --config=jasmine.json",
+    "integration-test": "docker-compose up -d && ./scripts/integration_test_db_setup.sh && jasmine --config=jasmine-integration.json ; docker-compose down",
     "do-dry-publish": "yarn prepare-publish && cd ./dist && npm publish --access public --dry-run",
     "prepare-publish": "cp package.json README.md .npmignore ../../LICENSE ./dist",
     "do-publish": "yarn prepare-publish && cd ./dist && npm publish --access public"
