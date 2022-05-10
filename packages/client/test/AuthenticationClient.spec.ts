@@ -26,7 +26,7 @@ describe("AuthenticationClient", () => {
         const axiosInstance = new Mock<AxiosInstance>();
         const tokens = buildAliceTokens(DateTime.now().plus({hours: 1}));
         const token = tokens.get(ALICE.address)!.value;
-        axiosFactory.setup(instance => instance.buildAxiosInstance(DIRECTORY_ENDPOINT, token)).returns(axiosInstance.object());
+        axiosFactory.setup(instance => instance.buildAxiosInstance(ALICE.node)).returns(axiosInstance.object());
 
         const refreshResponse = new Mock<AxiosResponse<any, any>>();
         const newToken = "new-token";
@@ -77,7 +77,7 @@ async function testAuthentication(legalOfficers: LegalOfficer[], expectedEndpoin
 }
 
 function setupSignIn(axiosInstance: Mock<AxiosInstance>, addresses: string[], sessionId: string) {
-    
+
     const signInResponse = new Mock<AxiosResponse<any, any>>();
     signInResponse.setup(instance => instance.data).returns({
         sessionId
@@ -130,7 +130,7 @@ describe("AccountTokens", () => {
     const now = DateTime.now();
 
     const ADDRESS_WITH_VALID_TOKEN = "1";
-    
+
     const ADDRESS_WITH_EXPIRED_TOKEN = "2";
 
     const addresses = [ ADDRESS_WITH_VALID_TOKEN, ADDRESS_WITH_EXPIRED_TOKEN ];
