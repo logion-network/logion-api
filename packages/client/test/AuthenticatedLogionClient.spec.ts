@@ -5,7 +5,6 @@ import { ALICE, BOB, buildAliceAndBobTokens, buildAliceTokens, buildSharedStateU
 import { AuthenticatedLogionClient } from "../src/AuthenticatedLogionClient";
 import { AuthenticationClient } from "../src/AuthenticationClient";
 import { LegalOfficer } from "../src/Types";
-import { DirectoryClient } from "../src/DirectoryClient";
 import { TestConfigFactory } from "./TestConfigFactory";
 
 describe("AuthenticatedLogionClient", () => {
@@ -13,17 +12,14 @@ describe("AuthenticatedLogionClient", () => {
     it("refreshes tokens", async () => {
         const legalOfficers: LegalOfficer[] = [ ALICE ];
         const tokens = buildAliceTokens(DateTime.now().plus({hours: 1}));
-        const authenticationClient = new Mock<AuthenticationClient>();
-        const sharedState = buildTestSharedSate(testConfigFactory => {
+        let authenticationClient: Mock<AuthenticationClient>;
+        const sharedState = await buildTestSharedSate(testConfigFactory => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
-
-            const authenticatedDirectoryClient = new Mock<DirectoryClient>();
-            testConfigFactory.setupComponentFactory(instance => instance.buildDirectoryClient(DIRECTORY_ENDPOINT, It.IsAny(), tokens.get(ALICE.address)!.value))
-                .returns(authenticatedDirectoryClient.object());
-
+            testConfigFactory.setupDefaultNetworkState();
+            testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
+            testConfigFactory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, tokens.get(ALICE.address)!.value);
+            authenticationClient = testConfigFactory.setupAuthenticationClientMock(LOGION_CLIENT_CONFIG, legalOfficers);
             authenticationClient.setup(instance => instance.refresh(tokens)).returns(Promise.resolve(tokens));
-            testConfigFactory.setupComponentFactory(instance => instance.buildAuthenticationClient(DIRECTORY_ENDPOINT, legalOfficers, It.IsAny()))
-                .returns(authenticationClient.object());
         });
         const client = new AuthenticatedLogionClient({
             sharedState,
@@ -34,7 +30,7 @@ describe("AuthenticatedLogionClient", () => {
 
         await client.refreshTokens();
 
-        authenticationClient.verify(instance => instance.refresh(tokens), Times.Once());
+        authenticationClient!.verify(instance => instance.refresh(tokens), Times.Once());
     });
 
     it("changes current address", async () => {
@@ -43,15 +39,14 @@ describe("AuthenticatedLogionClient", () => {
         const testConfigFactory = new TestConfigFactory();
 
         testConfigFactory.setupDefaultAxiosInstanceFactory();
-
-        const authenticatedDirectoryClient = new Mock<DirectoryClient>();
-        testConfigFactory.setupComponentFactory(instance => instance.buildDirectoryClient(DIRECTORY_ENDPOINT, It.IsAny(), tokens.get(ALICE.address)!.value))
-            .returns(authenticatedDirectoryClient.object());
-        testConfigFactory.setupComponentFactory(instance => instance.buildDirectoryClient(DIRECTORY_ENDPOINT, It.IsAny(), tokens.get(BOB.address)!.value))
-            .returns(authenticatedDirectoryClient.object());
+        testConfigFactory.setupDefaultNetworkState();
+        testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
+        testConfigFactory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, tokens.get(ALICE.address)!.value);
+        testConfigFactory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, tokens.get(BOB.address)!.value);
+        testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
 
         const config = testConfigFactory.buildTestConfig(LOGION_CLIENT_CONFIG);
-        const sharedState = buildSharedStateUsingTestConfig(config);
+        const sharedState = await buildSharedStateUsingTestConfig(config);
         const aliceClient = new AuthenticatedLogionClient({
             sharedState,
             tokens,
@@ -65,20 +60,16 @@ describe("AuthenticatedLogionClient", () => {
         testConfigFactory.verifyComponentFactory(instance => instance.buildDirectoryClient(DIRECTORY_ENDPOINT, It.IsAny(), tokens.get(BOB.address)!.value));
     });
 
-    it("logs out", () => {
+    it("logs out", async () => {
         const legalOfficers: LegalOfficer[] = [ ALICE ];
         const tokens = buildAliceTokens(DateTime.now().plus({hours: 1}));
-        const authenticationClient = new Mock<AuthenticationClient>();
-        const sharedState = buildTestSharedSate(testConfigFactory => {
+
+        const sharedState = await buildTestSharedSate(testConfigFactory => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
-
-            const authenticatedDirectoryClient = new Mock<DirectoryClient>();
-            testConfigFactory.setupComponentFactory(instance => instance.buildDirectoryClient(DIRECTORY_ENDPOINT, It.IsAny(), tokens.get(ALICE.address)!.value))
-                .returns(authenticatedDirectoryClient.object());
-
-            authenticationClient.setup(instance => instance.refresh(tokens)).returns(Promise.resolve(tokens));
-            testConfigFactory.setupComponentFactory(instance => instance.buildAuthenticationClient(DIRECTORY_ENDPOINT, legalOfficers, It.IsAny()))
-                .returns(authenticationClient.object());
+            testConfigFactory.setupDefaultNetworkState();
+            testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
+            testConfigFactory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, tokens.get(ALICE.address)!.value);
+            testConfigFactory.setupAuthenticationClientMock(LOGION_CLIENT_CONFIG, legalOfficers);
         });
         const authenticatedClient = new AuthenticatedLogionClient({
             sharedState,

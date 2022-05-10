@@ -1,13 +1,10 @@
 import { DateTime } from 'luxon';
-import { It, Mock } from 'moq.ts';
-import { AuthenticationClient } from '../src/AuthenticationClient';
+import { Mock } from 'moq.ts';
 
-import { DirectoryClient } from '../src/DirectoryClient';
 import { LogionClient } from '../src/LogionClient';
 import { RawSigner } from '../src/Signer';
 import { LegalOfficer } from '../src/Types';
-import { ALICE, buildAliceTokens, buildTestConfig, DIRECTORY_ENDPOINT } from './Utils';
-
+import { ALICE, buildAliceTokens, buildTestConfig, LOGION_CLIENT_CONFIG } from './Utils';
 
 describe("LogionClient", () => {
 
@@ -16,13 +13,12 @@ describe("LogionClient", () => {
 
         const config = buildTestConfig(testConfigFactory => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
-
-            const directoryClient = new Mock<DirectoryClient>();
+            testConfigFactory.setupDefaultNetworkState();
+            testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
+            const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
             directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve(clientLegalOfficers));
-            testConfigFactory.setupComponentFactory(instance => instance.buildDirectoryClient(DIRECTORY_ENDPOINT, It.IsAny()))
-                .returns(directoryClient.object());
         });
-        const client = LogionClient.create(config);
+        const client = await LogionClient.create(config);
 
         const legalOfficers = await client.getLegalOfficers();
 
@@ -31,20 +27,16 @@ describe("LogionClient", () => {
 
     it("uses tokens", async () => {
         const clientLegalOfficers: LegalOfficer[] = [ ALICE ];
-        const authenticatedDirectoryClient = new Mock<DirectoryClient>();
         const token = 'token';
         const config = buildTestConfig(testConfigFactory => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
-
-            const directoryClient = new Mock<DirectoryClient>();
+            testConfigFactory.setupDefaultNetworkState();
+            testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
+            const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
             directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve(clientLegalOfficers));
-            testConfigFactory.setupComponentFactory(instance => instance.buildDirectoryClient(DIRECTORY_ENDPOINT, It.IsAny()))
-                .returns(directoryClient.object());
-
-            testConfigFactory.setupComponentFactory(instance => instance.buildDirectoryClient(DIRECTORY_ENDPOINT, It.IsAny(), token))
-                .returns(authenticatedDirectoryClient.object());
+            testConfigFactory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
         });
-        const client = LogionClient.create(config);
+        const client = await LogionClient.create(config);
 
         const tokens = buildAliceTokens(DateTime.now().plus({hours: 1}));
 
@@ -61,22 +53,19 @@ describe("LogionClient", () => {
         const tokens = buildAliceTokens(DateTime.now().plus({hours: 1}));
         const config = buildTestConfig(testConfigFactory => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
+            testConfigFactory.setupDefaultNetworkState();
+            testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
 
-            const directoryClient = new Mock<DirectoryClient>();
+            const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
             directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve(clientLegalOfficers));
-            testConfigFactory.setupComponentFactory(instance => instance.buildDirectoryClient(DIRECTORY_ENDPOINT, It.IsAny()))
-                .returns(directoryClient.object());
 
-            const authenticationClient = new Mock<AuthenticationClient>();
+            const authenticationClient = testConfigFactory.setupAuthenticationClientMock(LOGION_CLIENT_CONFIG, clientLegalOfficers);
             authenticationClient.setup(instance => instance.authenticate(addresses, signer.object()))
                 .returns(Promise.resolve(tokens));
-            testConfigFactory.setupComponentFactory(instance => instance.buildAuthenticationClient(DIRECTORY_ENDPOINT, clientLegalOfficers, It.IsAny()))
-                .returns(authenticationClient.object());
-            const authenticatedDirectoryClient = new Mock<DirectoryClient>();
-            testConfigFactory.setupComponentFactory(instance => instance.buildDirectoryClient(DIRECTORY_ENDPOINT, It.IsAny(), token))
-                .returns(authenticatedDirectoryClient.object());
+
+                testConfigFactory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
         });
-        const client = LogionClient.create(config);
+        const client = await LogionClient.create(config);
 
         const authenticatedClient = await client.authenticate(addresses, signer.object());
 

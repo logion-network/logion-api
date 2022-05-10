@@ -1,4 +1,5 @@
 import { DateTime } from "luxon";
+import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 export interface SignRawParameters {
     signerId: string;
@@ -11,4 +12,12 @@ export interface SignRawParameters {
 export interface RawSigner {
 
     signRaw(parameters: SignRawParameters): Promise<string>;
+}
+
+export interface Signer {
+
+    signAndSend(parameters: {
+        signerId: string,
+        submittable: SubmittableExtrinsic,
+    }): Promise<void>;
 }

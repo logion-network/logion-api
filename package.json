@@ -10,5 +10,13 @@
   "workspaces": [
     "packages/*"
   ],
-  "packageManager": "yarn@3.2.0"
+  "packageManager": "yarn@3.2.0",
+  "scripts": {
+    "build": "yarn build-client && yarn build-node-api",
+    "build-client": "cd packages/client && yarn build",
+    "build-node-api": "cd packages/node-api && yarn build",
+    "test": "yarn test-client && yarn test-node-api",
+    "test-client": "cd packages/client && yarn test",
+    "test-node-api": "cd packages/node-api && yarn test"
+  }
 }

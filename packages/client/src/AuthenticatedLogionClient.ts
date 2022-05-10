@@ -1,7 +1,9 @@
 import { AccountTokens } from "./AuthenticationClient";
 import { DirectoryClient } from "./DirectoryClient";
 import { LogionClient } from "./LogionClient";
-import { SharedState } from "./SharedClient";
+import { getInitialState, ProtectionState } from "./Recovery";
+import { RecoveryClient } from "./RecoveryClient";
+import { AuthenticatedSharedState, SharedState } from "./SharedClient";
 import { LegalOfficer } from "./Types";
 
 export class AuthenticatedLogionClient {
@@ -12,7 +14,6 @@ export class AuthenticatedLogionClient {
         legalOfficers: LegalOfficer[],
         currentAddress: string,
     }) {
-        this._currentAddress = params.currentAddress;
         const token = params.tokens.get(params.currentAddress);
         if(token === undefined) {
             throw new Error(`Address ${params.currentAddress} is not authenticated`);
@@ -25,19 +26,19 @@ export class AuthenticatedLogionClient {
         );
         this.sharedState = {
             ...params.sharedState,
-            directoryClient
+            directoryClient,
+            token,
+            currentAddress: params.currentAddress,
+            legalOfficers: params.legalOfficers,
         };
 
         this._tokens = params.tokens;
-        this.legalOfficers = params.legalOfficers;
     }
 
-    private sharedState: SharedState;
-
-    private _currentAddress: string;
+    private sharedState: AuthenticatedSharedState;
 
     get currentAddress(): string {
-        return this._currentAddress;
+        return this.sharedState.currentAddress;
     }
 
     private _tokens: AccountTokens;
@@ -50,12 +51,10 @@ export class AuthenticatedLogionClient {
         return this.sharedState.directoryClient;
     }
 
-    private legalOfficers: LegalOfficer[];
-
     async refreshTokens(): Promise<void> {
         const client = this.sharedState.componentFactory.buildAuthenticationClient(
             this.sharedState.config.directoryEndpoint,
-            this.legalOfficers,
+            this.sharedState.legalOfficers,
             this.sharedState.axiosFactory
         );
         this._tokens = await client.refresh(this._tokens);
@@ -64,7 +63,7 @@ export class AuthenticatedLogionClient {
     withCurrentAddress(currentAddress: string): AuthenticatedLogionClient {
         return new AuthenticatedLogionClient({
             sharedState: this.sharedState,
-            legalOfficers: this.legalOfficers,
+            legalOfficers: this.sharedState.legalOfficers,
             tokens: this._tokens,
             currentAddress
         });
@@ -72,5 +71,17 @@ export class AuthenticatedLogionClient {
 
     logout(): LogionClient {
         return new LogionClient(this.sharedState);
+    }
+
+    async protectionState(): Promise<ProtectionState> {
+        const recoveryClient = new RecoveryClient({
+            axiosFactory: this.sharedState.axiosFactory,
+            currentAddress: this.currentAddress,
+            networkState: this.sharedState.networkState,
+            token: this.sharedState.token.value,
+            nodeApi: this.sharedState.nodeApi,
+        });
+        const data = await recoveryClient.fetchAll();
+        return getInitialState(data, this.sharedState);
     }
 }
