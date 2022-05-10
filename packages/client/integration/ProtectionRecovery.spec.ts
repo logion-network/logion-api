@@ -4,7 +4,7 @@ import { UUID } from '@logion/node-api/dist/UUID';
 
 import { LogionClient } from '../src/';
 import { AxiosFactory } from '../src/AxiosFactory';
-import { AcceptedProtection, ActiveProtection, NoProtection, PendingProtection, PendingRecovery } from '../src/Recovery';
+import { AcceptedProtection, ActiveProtection, NoProtection } from '../src/Recovery';
 import { LogionClientConfig } from '../src/SharedClient';
 import { KeyringSigner, FullSigner, Signer } from '../src/Signer';
 import { LegalOfficer } from '../src/Types';
@@ -23,6 +23,9 @@ describe("Recovery SDK", () => {
         };
         const client = await LogionClient.create(config);
         const signer = buildSigner();
+
+        await initRequesterBalance(config, signer);
+
         const authenticatedClient = await client.authenticate([ REQUESTER_ADDRESS ], signer);
 
         const legalOfficers = await client.getLegalOfficers();
@@ -49,7 +52,6 @@ describe("Recovery SDK", () => {
         });
 
         await acceptRequest(config, client, signer, alice);
-        await transferTokens(config, signer, alice.address, REQUESTER_ADDRESS, 1000000000);
         await acceptRequest(config, client, signer, bob);
 
         const accepted = (await pending.refresh()) as AcceptedProtection;
@@ -71,6 +73,10 @@ const REQUESTER_ADDRESS = "5DPLBrBxniGbGdFe1Lmdpkt6K3aNjhoNPJrSJ51rwcmhH2Tn";
 const REQUESTER_SECRET_SEED = "unique chase zone team upset caution match west enter eyebrow limb wrist";
 const ALICE_SECRET_SEED = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a";
 const BOB_SECRET_SEED = "0x398f0c28f98885e046333d4a41c19cee4c37368a9832c6502f6cfd182e2aef89";
+
+async function initRequesterBalance(config: LogionClientConfig, signer: Signer): Promise<void> {
+    await transferTokens(config, signer, ALICE.address, REQUESTER_ADDRESS, 1000000000);
+}
 
 async function acceptRequest(
     config: LogionClientConfig,
