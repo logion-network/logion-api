@@ -32,23 +32,32 @@ export class AuthenticationClient {
         if(this.legalOfficers.length === 0) {
             return await this.authenticateWithAxios(this.axiosFactory.buildAxiosInstance(this.directoryEndpoint), addresses, signer);
         } else {
-            for(let i = 0; i < this.legalOfficers.length; ++i) {
-                const legalOfficer = this.legalOfficers[i];
-                try {
-                    return this.authenticateWithAxios(this.axiosFactory.buildAxiosInstance(legalOfficer.node), addresses, signer);
-                } catch(error) {
-                    console.log(error);
-                }
+            try {
+                return this.doWithFirstAvailableNode(axios => this.authenticateWithAxios(axios, addresses, signer))
+            } catch (error) {
+                throw new Error(`Unable to authenticate: ${error}`);
             }
-            throw new Error("Unable to authenticate");
         }
+    }
+
+    private async doWithFirstAvailableNode<T>(axiosConsumer: (axios: AxiosInstance) => Promise<T>): Promise<T> {
+        for(let i = 0; i < this.legalOfficers.length; ++i) {
+            const legalOfficer = this.legalOfficers[i];
+            try {
+                const axios = this.axiosFactory.buildAxiosInstance(legalOfficer.node);
+                return axiosConsumer(axios);
+            } catch(error) {
+                console.log(error);
+            }
+        }
+        throw new Error("Unable to find an available node");
     }
 
     private async authenticateWithAxios(axios: AxiosInstance, addresses: string[], signer: RawSigner): Promise<AccountTokens> {
         const signInResponse = await axios.post("/api/auth/sign-in", { addresses });
         const sessionId = signInResponse.data.sessionId;
         const attributes = [ sessionId ];
-    
+
         const signatures: Record<string, AuthenticationSignature> = {};
         for(const address of addresses) {
             const signedOn = DateTime.now();
@@ -64,7 +73,7 @@ export class AuthenticationClient {
                 signedOn: toIsoString(signedOn)
             };
         }
-    
+
         const authenticateResponse = await axios.post(`/api/auth/${sessionId}/authenticate`, {
             signatures
         });
@@ -89,17 +98,18 @@ export class AuthenticationClient {
         if(!token) {
             throw new Error(`Cannot refresh with address ${address}`);
         }
-        const axios = this.axiosFactory.buildAxiosInstance(this.directoryEndpoint, token.value);
         const tokens: Record<string, string> = {};
         const addresses = accountTokens.addresses;
         for(let i = 0; i < addresses.length; ++i) {
             const address = addresses[i];
             tokens[address] = accountTokens.get(address)!.value;
         }
-    
-        const authenticateResponse = await axios.put(`/api/auth/refresh`, {
-            tokens
-        });
+
+        const authenticateResponse = await this.doWithFirstAvailableNode(axios =>
+            axios.put(`/api/auth/refresh`, {
+                tokens
+            })
+        )
         const authenticatedAddresses: AuthenticationResponse = authenticateResponse.data.tokens;
         return this.buildAccountTokens(authenticatedAddresses);
     }
