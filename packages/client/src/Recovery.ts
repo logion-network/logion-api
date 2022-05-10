@@ -297,7 +297,7 @@ export class PendingRecovery implements WithLegalOfficers {
         if(this.sharedState.recoveredAddress === undefined) {
             throw new Error("No recovery was request");
         }
-        signer.signAndSend({
+        await signer.signAndSend({
             signerId: this.sharedState.currentAddress,
             submittable: claimRecovery({
                 api: this.sharedState.nodeApi,

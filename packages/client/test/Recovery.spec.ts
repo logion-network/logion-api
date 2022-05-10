@@ -26,7 +26,7 @@ describe("Recovery's getInitialState", () => {
             recoveryConfig: undefined,
             recoveredAddress: undefined,
         };
-        testGetInitialState(data, NoProtection);
+        await testGetInitialState(data, NoProtection);
     });
 
     it("builds an initial active state", async () => {
@@ -42,7 +42,7 @@ describe("Recovery's getInitialState", () => {
             },
             recoveredAddress: undefined,
         };
-        testGetInitialState(data, ActiveProtection);
+        await testGetInitialState(data, ActiveProtection);
     });
 
     it("builds an initial claimed recovery", async () => {
@@ -58,7 +58,7 @@ describe("Recovery's getInitialState", () => {
             },
             recoveredAddress: RECOVERED_ADDRESS,
         };
-        testGetInitialState(data, ClaimedRecovery);
+        await testGetInitialState(data, ClaimedRecovery);
     });
 
     it("builds an initial accepted protection", async () => {
@@ -72,7 +72,7 @@ describe("Recovery's getInitialState", () => {
             recoveryConfig: undefined,
             recoveredAddress: undefined,
         };
-        testGetInitialState(data, AcceptedProtection);
+        await testGetInitialState(data, AcceptedProtection);
     });
 
     it("builds an initial pending protection if both requests pending", async () => {
@@ -86,7 +86,7 @@ describe("Recovery's getInitialState", () => {
             recoveryConfig: undefined,
             recoveredAddress: undefined,
         };
-        testGetInitialState(data, PendingProtection);
+        await testGetInitialState(data, PendingProtection);
     });
 
     it("builds an initial pending protection if one request pending", async () => {
@@ -101,7 +101,7 @@ describe("Recovery's getInitialState", () => {
             recoveryConfig: undefined,
             recoveredAddress: undefined,
         };
-        testGetInitialState(data, PendingProtection);
+        await testGetInitialState(data, PendingProtection);
     });
 
     it("builds an initial pending recovery", async () => {
@@ -115,7 +115,7 @@ describe("Recovery's getInitialState", () => {
             recoveryConfig: undefined,
             recoveredAddress: undefined,
         };
-        testGetInitialState(data, PendingRecovery);
+        await testGetInitialState(data, PendingRecovery);
     });
 
     it("builds an initial claimed recovery", async () => {
@@ -131,7 +131,7 @@ describe("Recovery's getInitialState", () => {
             },
             recoveredAddress: RECOVERED_ADDRESS,
         };
-        testGetInitialState(data, ClaimedRecovery);
+        await testGetInitialState(data, ClaimedRecovery);
     });
 });
 
@@ -360,13 +360,8 @@ describe("NoProtection", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const activeRecovery = {
-                    isEmpty: true,
-                    isNone: true,
-                    unwrap: () => ({})
-                };
                 nodeApi.setup(instance => instance.query.recovery.activeRecoveries(RECOVERED_ADDRESS, currentAddress))
-                    .returns(Promise.resolve(activeRecovery as Option<ActiveRecovery>));
+                    .returns(Promise.resolve(EMPTY_OPTION as Option<ActiveRecovery>));
                 const submittable = new Mock<SubmittableExtrinsic>();
                 nodeApi.setup(instance => instance.tx.recovery.initiateRecovery(RECOVERED_ADDRESS))
                     .returns(submittable.object());
@@ -468,15 +463,10 @@ describe("PendingProtection", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const emptyOption = {
-                    isEmpty: true,
-                    isNone: true,
-                    unwrap: () => ({})
-                };
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(emptyOption as Option<RecoveryConfig>));
+                    .returns(Promise.resolve(EMPTY_OPTION as Option<RecoveryConfig>));
                 nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
-                    .returns(Promise.resolve(emptyOption as Option<AccountId>));
+                    .returns(Promise.resolve(EMPTY_OPTION as Option<AccountId>));
             },
             currentAddress,
             token,
@@ -516,15 +506,10 @@ describe("PendingProtection", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const emptyOption = {
-                    isEmpty: true,
-                    isNone: true,
-                    unwrap: () => ({})
-                };
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(emptyOption as Option<RecoveryConfig>));
+                    .returns(Promise.resolve(EMPTY_OPTION as Option<RecoveryConfig>));
                 nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
-                    .returns(Promise.resolve(emptyOption as Option<AccountId>));
+                    .returns(Promise.resolve(EMPTY_OPTION as Option<AccountId>));
             },
             currentAddress,
             token,
@@ -546,6 +531,12 @@ describe("PendingProtection", () => {
         expect(nextState).toBeInstanceOf(AcceptedProtection);
     });
 });
+
+const EMPTY_OPTION = {
+    isEmpty: true,
+    isNone: true,
+    unwrap: () => ({})
+};
 
 function setupAliceBobAxios(factory: TestConfigFactory, token: string): ({
     aliceAxios: Mock<AxiosInstance>,
@@ -613,15 +604,10 @@ describe("AcceptedProtection", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const emptyOption = {
-                    isEmpty: true,
-                    isNone: true,
-                    unwrap: () => ({})
-                };
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(emptyOption as Option<RecoveryConfig>));
+                    .returns(Promise.resolve(EMPTY_OPTION as Option<RecoveryConfig>));
                 nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
-                    .returns(Promise.resolve(emptyOption as Option<AccountId>));
+                    .returns(Promise.resolve(EMPTY_OPTION as Option<AccountId>));
 
                 const legalOfficersAddresses = legalOfficers.map(legalOfficer => legalOfficer.address);
                 nodeApi.setup(instance => instance.tx.verifiedRecovery.createRecovery(It.Is<string[]>(
@@ -671,15 +657,10 @@ describe("AcceptedProtection", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const emptyOption = {
-                    isEmpty: true,
-                    isNone: true,
-                    unwrap: () => ({})
-                };
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(emptyOption as Option<RecoveryConfig>));
+                    .returns(Promise.resolve(EMPTY_OPTION as Option<RecoveryConfig>));
                 nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
-                    .returns(Promise.resolve(emptyOption as Option<AccountId>));
+                    .returns(Promise.resolve(EMPTY_OPTION as Option<AccountId>));
 
                 const legalOfficersAddresses = legalOfficers.map(legalOfficer => legalOfficer.address);
                 nodeApi.setup(instance => instance.tx.verifiedRecovery.createRecovery(It.Is<string[]>(
