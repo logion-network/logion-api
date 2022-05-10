@@ -2,8 +2,8 @@ node_modules
 dist/
 *.tgz
 .idea
-.yarn
-!.yarn/cache
+.pnp.*
+.yarn/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
