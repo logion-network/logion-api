@@ -7,14 +7,31 @@ import { It, Mock } from 'moq.ts';
 
 import { CreateProtectionRequest, FetchAllResult, ProtectionRequest } from '../src/RecoveryClient';
 import { AuthenticatedSharedState } from '../src/SharedClient';
-import { AcceptedProtection, ActiveProtection, ClaimedRecovery, getInitialState, NoProtection, PendingProtection, PendingRecovery } from '../src/Recovery';
-import { ALICE, BOB, buildTestAuthenticatedSharedSate, LOGION_CLIENT_CONFIG } from './Utils';
+import {
+    AcceptedProtection,
+    ActiveProtection,
+    ClaimedRecovery,
+    getInitialState,
+    NoProtection,
+    PendingProtection,
+    PendingRecovery
+} from '../src/Recovery';
+import {
+    ALICE,
+    BOB,
+    buildTestAuthenticatedSharedSate,
+    LOGION_CLIENT_CONFIG,
+    mockOption,
+    mockEmptyOption
+} from './Utils';
 import { Token } from '../src/Http';
 import { TestConfigFactory } from './TestConfigFactory';
 import { LegalOfficer, PostalAddress, UserIdentity } from '../src/Types';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { AxiosFactory } from '../src/AxiosFactory';
 import { Signer } from '../src/Signer';
+import { PrefixedNumber, PICO } from "@logion/node-api/dist/numbers";
+import { Call } from '@polkadot/types/interfaces';
 
 describe("Recovery's getInitialState", () => {
 
@@ -361,7 +378,7 @@ describe("NoProtection", () => {
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.activeRecoveries(RECOVERED_ADDRESS, currentAddress))
-                    .returns(Promise.resolve(EMPTY_OPTION as Option<ActiveRecovery>));
+                    .returns(Promise.resolve(mockEmptyOption<ActiveRecovery>()));
                 const submittable = new Mock<SubmittableExtrinsic>();
                 nodeApi.setup(instance => instance.tx.recovery.initiateRecovery(RECOVERED_ADDRESS))
                     .returns(submittable.object());
@@ -429,7 +446,7 @@ function setupCreateProtectionRequest(
     }
     const response = new Mock<AxiosResponse<any>>();
     response.setup(instance => instance.data).returns(request);
-    axios.setup(instance => instance.post("/api/protection-request", It.Is<CreateProtectionRequest>(body => 
+    axios.setup(instance => instance.post("/api/protection-request", It.Is<CreateProtectionRequest>(body =>
         body.otherLegalOfficerAddress === otherLegalOfficer.address
         && ((body.isRecovery && addressToRecover !== null) || (!body.isRecovery && addressToRecover === null))
         && body.requesterAddress === requester
@@ -464,9 +481,9 @@ describe("PendingProtection", () => {
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(EMPTY_OPTION as Option<RecoveryConfig>));
+                    .returns(Promise.resolve(mockEmptyOption<RecoveryConfig>()));
                 nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
-                    .returns(Promise.resolve(EMPTY_OPTION as Option<AccountId>));
+                    .returns(Promise.resolve(mockEmptyOption<AccountId>()));
             },
             currentAddress,
             token,
@@ -507,9 +524,9 @@ describe("PendingProtection", () => {
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(EMPTY_OPTION as Option<RecoveryConfig>));
+                    .returns(Promise.resolve(mockEmptyOption<RecoveryConfig>()));
                 nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
-                    .returns(Promise.resolve(EMPTY_OPTION as Option<AccountId>));
+                    .returns(Promise.resolve(mockEmptyOption<AccountId>()));
             },
             currentAddress,
             token,
@@ -531,12 +548,6 @@ describe("PendingProtection", () => {
         expect(nextState).toBeInstanceOf(AcceptedProtection);
     });
 });
-
-const EMPTY_OPTION = {
-    isEmpty: true,
-    isNone: true,
-    unwrap: () => ({})
-};
 
 function setupAliceBobAxios(factory: TestConfigFactory, token: string): ({
     aliceAxios: Mock<AxiosInstance>,
@@ -605,9 +616,9 @@ describe("AcceptedProtection", () => {
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(EMPTY_OPTION as Option<RecoveryConfig>));
+                    .returns(Promise.resolve(mockEmptyOption<RecoveryConfig>()));
                 nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
-                    .returns(Promise.resolve(EMPTY_OPTION as Option<AccountId>));
+                    .returns(Promise.resolve(mockEmptyOption<AccountId>()));
 
                 const legalOfficersAddresses = legalOfficers.map(legalOfficer => legalOfficer.address);
                 nodeApi.setup(instance => instance.tx.verifiedRecovery.createRecovery(It.Is<string[]>(
@@ -658,9 +669,9 @@ describe("AcceptedProtection", () => {
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(EMPTY_OPTION as Option<RecoveryConfig>));
+                    .returns(Promise.resolve(mockEmptyOption<RecoveryConfig>()));
                 nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
-                    .returns(Promise.resolve(EMPTY_OPTION as Option<AccountId>));
+                    .returns(Promise.resolve(mockEmptyOption<AccountId>()));
 
                 const legalOfficersAddresses = legalOfficers.map(legalOfficer => legalOfficer.address);
                 nodeApi.setup(instance => instance.tx.verifiedRecovery.createRecovery(It.Is<string[]>(
@@ -714,23 +725,15 @@ describe("PendingRecovery", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const recoveryConfig = {
-                    isEmpty: false,
-                    isNone: false,
-                    unwrap: () => ({
-                        friends: [
-                            ALICE.address,
-                            BOB.address
-                        ]
-                    } as unknown as RecoveryConfig)
-                };
+                const recoveryConfig = mockOption<RecoveryConfig>({
+                    friends: [
+                        ALICE.address,
+                        BOB.address
+                    ]
+                } as unknown as RecoveryConfig)
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
                     .returns(Promise.resolve(recoveryConfig as Option<RecoveryConfig>));
-                const proxy = {
-                    isEmpty: false,
-                    isNone: false,
-                    unwrap: () => RECOVERED_ADDRESS as unknown as AccountId
-                };
+                const proxy = mockOption<AccountId>(RECOVERED_ADDRESS as unknown as AccountId)
                 nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
                     .returns(Promise.resolve(proxy as Option<AccountId>));
 
@@ -762,3 +765,59 @@ describe("PendingRecovery", () => {
         expect(nextState).toBeInstanceOf(ClaimedRecovery);
     });
 });
+
+describe("ClaimedRecovery", () => {
+    it("transfers from recovered account", async () => {
+        const aliceRequest: ProtectionRequest = buildAcceptedAliceRecoveryRequest();
+        const bobRequest: ProtectionRequest = buildAcceptedBobRecoveryRequest();
+        const currentAddress = REQUESTER;
+        const token: Token = {
+            value: "some-token",
+            expirationDateTime: DateTime.now().plus({hours: 1})
+        };
+        const asRecoveredSubmittable = new Mock<SubmittableExtrinsic>();
+        const transferSubmittable = new Mock<SubmittableExtrinsic>();
+        const sharedState = await buildTestAuthenticatedSharedSate(
+            (factory: TestConfigFactory) => {
+                const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token.value);
+                setupFetchProtectionRequests(aliceAxios, [], [ aliceRequest ], []);
+                setupFetchProtectionRequests(bobAxios, [], [ bobRequest ], []);
+
+                factory.setupDefaultNetworkState();
+                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
+
+                const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
+                const call = new Mock<Call>();
+                nodeApi.setup(instance => instance.tx.recovery.asRecovered(RECOVERED_ADDRESS, call.object()))
+                    .returns(asRecoveredSubmittable.object());
+                nodeApi.setup(instance => instance.tx.balances.transfer(currentAddress, 10000000))
+                    .returns(transferSubmittable.object())
+                nodeApi.setup(instance => instance.createType('Call', transferSubmittable.object()))
+                    .returns(call.object())
+            },
+            currentAddress,
+            token,
+            legalOfficers
+        );
+        const state = new ClaimedRecovery({
+            ...sharedState,
+            recoveredAddress: RECOVERED_ADDRESS,
+            legalOfficer1: ALICE,
+            legalOfficer2: BOB,
+            legalOfficers,
+            pendingProtectionRequests: [],
+            acceptedProtectionRequests: [ aliceRequest, bobRequest ],
+            rejectedProtectionRequests: []
+        });
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
+            params.signerId === currentAddress
+            && params.submittable === asRecoveredSubmittable.object()))
+        ).returns(Promise.resolve());
+
+        const nextState = await state.transferRecoveredAccount(signer.object(), currentAddress, new PrefixedNumber("10", PICO));
+
+        expect(nextState).toBeInstanceOf(ClaimedRecovery);
+
+    })
+})
