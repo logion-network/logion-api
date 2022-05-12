@@ -1,9 +1,17 @@
-import { claimRecovery, createRecovery, getActiveRecovery, initiateRecovery } from "@logion/node-api/dist/Recovery";
+import {
+    claimRecovery,
+    createRecovery,
+    getActiveRecovery,
+    initiateRecovery,
+    asRecovered
+} from "@logion/node-api/dist/Recovery";
 import { FetchAllResult, ProtectionRequest, RecoveryClient } from "./RecoveryClient";
 
 import { AuthenticatedSharedState } from "./SharedClient";
 import { Signer } from "./Signer";
 import { LegalOfficer, PostalAddress, UserIdentity } from "./Types";
+import { buildTransferCall } from "@logion/node-api/dist/Balances";
+import { PrefixedNumber } from "@logion/node-api/dist/numbers";
 
 export type ProtectionState = NoProtection | PendingProtection | AcceptedProtection | ActiveProtection | PendingRecovery | ClaimedRecovery;
 
@@ -28,7 +36,7 @@ export function getInitialState(data: FetchAllResult, sharedState: Authenticated
         recoveredAddress
     } = data;
 
-    if(recoveryConfig !== undefined && recoveredAddress === undefined) {
+    if(recoveryConfig !== undefined && recoveredAddress === undefined && !data.acceptedProtectionRequests[0].isRecovery) {
         return new ActiveProtection({
             ...sharedState,
             pendingProtectionRequests,
@@ -37,6 +45,18 @@ export function getInitialState(data: FetchAllResult, sharedState: Authenticated
             recoveredAddress,
             legalOfficer1: sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === recoveryConfig.legalOfficers[0])!,
             legalOfficer2: sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === recoveryConfig.legalOfficers[1])!,
+        });
+    } else if(recoveryConfig !== undefined && recoveredAddress === undefined && data.acceptedProtectionRequests[0].isRecovery) {
+        const legalOfficer1 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === data.acceptedProtectionRequests[0].legalOfficerAddress)!;
+        const legalOfficer2 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === data.acceptedProtectionRequests[1].legalOfficerAddress)!;
+        return new PendingRecovery({
+            ...sharedState,
+            pendingProtectionRequests,
+            acceptedProtectionRequests,
+            rejectedProtectionRequests,
+            recoveredAddress,
+            legalOfficer1,
+            legalOfficer2,
         });
     } else if(recoveryConfig !== undefined && recoveredAddress !== undefined) {
         return new ClaimedRecovery({
@@ -48,7 +68,7 @@ export function getInitialState(data: FetchAllResult, sharedState: Authenticated
             legalOfficer1: sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === recoveryConfig.legalOfficers[0])!,
             legalOfficer2: sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === recoveryConfig.legalOfficers[1])!,
         });
-    } else if(data.acceptedProtectionRequests.length === 2 && !data.acceptedProtectionRequests[0].isRecovery) {
+    } else if(data.acceptedProtectionRequests.length === 2) {
         const legalOfficer1 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === data.acceptedProtectionRequests[0].legalOfficerAddress)!;
         const legalOfficer2 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === data.acceptedProtectionRequests[1].legalOfficerAddress)!;
         return new AcceptedProtection({
@@ -56,19 +76,7 @@ export function getInitialState(data: FetchAllResult, sharedState: Authenticated
             pendingProtectionRequests,
             acceptedProtectionRequests,
             rejectedProtectionRequests,
-            recoveredAddress,
-            legalOfficer1,
-            legalOfficer2,
-        });
-    } else if(data.acceptedProtectionRequests.length === 2 && data.acceptedProtectionRequests[0].isRecovery) {
-        const legalOfficer1 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === data.acceptedProtectionRequests[0].legalOfficerAddress)!;
-        const legalOfficer2 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === data.acceptedProtectionRequests[1].legalOfficerAddress)!;
-        return new PendingRecovery({
-            ...sharedState,
-            pendingProtectionRequests,
-            acceptedProtectionRequests,
-            rejectedProtectionRequests,
-            recoveredAddress,
+            recoveredAddress: data.acceptedProtectionRequests[0].addressToRecover || undefined,
             legalOfficer1,
             legalOfficer2,
         });
@@ -337,5 +345,21 @@ export class ClaimedRecovery implements WithLegalOfficers {
 
     get legalOfficer2(): LegalOfficer {
         return this.sharedState.legalOfficer2;
+    }
+
+    async transferRecoveredAccount(signer: Signer, destination: string, amount: PrefixedNumber): Promise<ClaimedRecovery> {
+        await signer.signAndSend({
+            signerId: this.sharedState.currentAddress,
+            submittable: asRecovered({
+                api: this.sharedState.nodeApi,
+                recoveredAccountId: this.recoveredAddress,
+                call: buildTransferCall({
+                    api: this.sharedState.nodeApi,
+                    amount,
+                    destination,
+                })
+            })
+        })
+        return this;
     }
 }

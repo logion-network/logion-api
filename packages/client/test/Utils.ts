@@ -4,6 +4,8 @@ import { Token } from "../src/Http";
 import { AuthenticatedSharedState, LogionClientConfig, SharedState } from "../src/SharedClient";
 import { LegalOfficer, PostalAddress, UserIdentity } from "../src/Types";
 import { TestConfigFactory } from "./TestConfigFactory";
+import { Option } from "@polkadot/types-codec";
+import type { Codec } from '@polkadot/types-codec/types';
 
 export const ALICE: LegalOfficer = {
     name: "Alice",
@@ -104,4 +106,21 @@ export async function buildTestAuthenticatedSharedSate(
 ): Promise<AuthenticatedSharedState> {
     const config = buildTestConfig(setupComponentFactory);
     return buildAuthenticatedSharedStateUsingTestConfig(config, currentAddress, token, legalOfficers);
+}
+
+export function mockEmptyOption<T extends Codec>(): Option<T> {
+    return {
+        isEmpty: true,
+        isNone: true,
+    } as unknown as Option<T>;
+}
+
+export function mockOption<T extends Codec>(value: Partial<T>): Option<T> {
+    return {
+        isEmpty: false,
+        isNone: false,
+        unwrap(): T {
+            return value as T;
+        },
+    } as unknown as Option<T>;
 }
