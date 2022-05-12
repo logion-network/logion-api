@@ -5,6 +5,7 @@ import { getInitialState, ProtectionState } from "./Recovery";
 import { RecoveryClient } from "./RecoveryClient";
 import { AuthenticatedSharedState, SharedState } from "./SharedClient";
 import { LegalOfficer } from "./Types";
+import { BalanceState, getBalanceState } from "./Balance";
 
 export class AuthenticatedLogionClient {
 
@@ -83,5 +84,9 @@ export class AuthenticatedLogionClient {
         });
         const data = await recoveryClient.fetchAll();
         return getInitialState(data, this.sharedState);
+    }
+
+    async balanceState(): Promise<BalanceState> {
+        return getBalanceState(this.sharedState);
     }
 }

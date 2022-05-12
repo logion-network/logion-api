@@ -1,35 +1,37 @@
 import { buildApi } from '@logion/node-api';
-import { Keyring } from '@polkadot/api';
 import { UUID } from '@logion/node-api/dist/UUID';
 
 import { LogionClient } from '../src/';
 import { AxiosFactory } from '../src/AxiosFactory';
 import { AcceptedProtection, ActiveProtection, NoProtection, PendingRecovery } from '../src/Recovery';
 import { LogionClientConfig } from '../src/SharedClient';
-import { KeyringSigner, FullSigner, Signer } from '../src/Signer';
+import { FullSigner, Signer } from '../src/Signer';
 import { LegalOfficer } from '../src/Types';
 
 import { ALICE, BOB } from '../test/Utils';
 import { ProtectionRequest } from '../src/RecoveryClient';
 import { PrefixedNumber, ATTO } from "@logion/node-api/dist/numbers";
+import { ALICE_SECRET_SEED, BOB_SECRET_SEED, buildSigner, TEST_LOGION_CLIENT_CONFIG } from "./Utils";
 
 describe("Recovery SDK", () => {
 
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 300000;
 
-    const config = {
-        directoryEndpoint: "http://localhost:8090",
-        rpcEndpoints: [ 'ws://localhost:9944', 'ws://localhost:9945' ]
-    };
-
     let signer: FullSigner;
     let client: LogionClient;
     let alice: LegalOfficer
     let bob: LegalOfficer;
+    const config = TEST_LOGION_CLIENT_CONFIG
 
     beforeAll(async () => {
         client = await LogionClient.create(config);
-        signer = buildSigner();
+        signer = buildSigner([
+            REQUESTER_SECRET_SEED,
+            LOST_SECRET_SEED,
+            NEW_SECRET_SEED,
+            ALICE_SECRET_SEED,
+            BOB_SECRET_SEED,
+        ]);
         const legalOfficers = await client.getLegalOfficers();
         alice = legalOfficers.find(legalOfficer => legalOfficer.address === ALICE.address)!;
         bob = legalOfficers.find(legalOfficer => legalOfficer.address === BOB.address)!;
@@ -119,19 +121,12 @@ describe("Recovery SDK", () => {
 
         console.log("Claiming")
         const claimed = await pendingRecovery.claimRecovery(signer);
-        await claimed.transferRecoveredAccount(signer, NEW_ADDRESS, new PrefixedNumber("800000000", ATTO))
+        await claimed.transferRecoveredAccount(signer, {
+            destination: NEW_ADDRESS,
+            amount: new PrefixedNumber("800000000", ATTO)
+        })
     })
 });
-
-function buildSigner(): FullSigner {
-    const keyring = new Keyring({ type: 'sr25519' });
-    keyring.addFromUri(REQUESTER_SECRET_SEED);
-    keyring.addFromUri(LOST_SECRET_SEED);
-    keyring.addFromUri(NEW_SECRET_SEED);
-    keyring.addFromUri(ALICE_SECRET_SEED);
-    keyring.addFromUri(BOB_SECRET_SEED);
-    return new KeyringSigner(keyring);
-}
 
 const REQUESTER_ADDRESS = "5DPLBrBxniGbGdFe1Lmdpkt6K3aNjhoNPJrSJ51rwcmhH2Tn";
 const REQUESTER_SECRET_SEED = "unique chase zone team upset caution match west enter eyebrow limb wrist";
@@ -139,8 +134,6 @@ const LOST_ADDRESS = "5Dq1HJYRo78vHbragE38iQEcxjJNcB5zSQfEhn8ECYHnQk7W";
 const LOST_SECRET_SEED = "session crane fabric person monitor enrich speak motor snap floor face harvest"
 const NEW_ADDRESS = "5FWP7ha7wBpRomanrgCFuV8c7gBTsyexzWZR42umqGv8Rpx4";
 const NEW_SECRET_SEED = "inquiry nose frog devote demand main front caution excess bridge mom voice";
-const ALICE_SECRET_SEED = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a";
-const BOB_SECRET_SEED = "0x398f0c28f98885e046333d4a41c19cee4c37368a9832c6502f6cfd182e2aef89";
 
 async function initRequesterBalance(config: LogionClientConfig, signer: Signer, requester: string): Promise<void> {
     await transferTokens(config, signer, ALICE.address, requester, 1000000000);
