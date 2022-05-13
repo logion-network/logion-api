@@ -8,6 +8,7 @@ import { RecoveryClient } from "./RecoveryClient";
 import { AuthenticatedSharedState, SharedState } from "./SharedClient";
 import { RawSigner } from "./Signer";
 import { LegalOfficer } from "./Types";
+import { BalanceState, getBalanceState } from "./Balance";
 
 export class AuthenticatedLogionClient {
 
@@ -140,5 +141,12 @@ export class AuthenticatedLogionClient {
 
     buildAxios(legalOfficer: LegalOfficer): AxiosInstance {
         return this.sharedState.axiosFactory.buildAxiosInstance(legalOfficer.node, this.sharedState.token?.value);
+    }
+
+    async balanceState(): Promise<BalanceState> {
+        if(!this.sharedState.currentAddress) {
+            throw new Error("Current address was not selected");
+        }
+        return getBalanceState(this.sharedState);
     }
 }

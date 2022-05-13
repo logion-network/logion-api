@@ -11,6 +11,30 @@ describe("AuthenticatedLogionClient", () => {
 
     it("refreshes tokens", async () => {
         const legalOfficers: LegalOfficer[] = [ ALICE ];
+        const tokens = buildAliceTokens(DateTime.now().plus({minutes: 10}));
+        let authenticationClient: Mock<AuthenticationClient>;
+        const sharedState = await buildTestSharedSate(testConfigFactory => {
+            testConfigFactory.setupDefaultAxiosInstanceFactory();
+            testConfigFactory.setupDefaultNetworkState();
+            testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
+            testConfigFactory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, tokens.get(ALICE.address)!.value);
+            authenticationClient = testConfigFactory.setupAuthenticationClientMock(LOGION_CLIENT_CONFIG, legalOfficers);
+            authenticationClient.setup(instance => instance.refresh(tokens)).returns(Promise.resolve(tokens));
+        });
+        const client = new AuthenticatedLogionClient({
+            sharedState,
+            tokens,
+            currentAddress: ALICE.address,
+            legalOfficers,
+        });
+
+        await client.refreshTokens(DateTime.now(), {minutes: 15});
+
+        authenticationClient!.verify(instance => instance.refresh(tokens), Times.Once());
+    });
+
+    it("skips token refresh if earliest above threshold", async () => {
+        const legalOfficers: LegalOfficer[] = [ ALICE ];
         const tokens = buildAliceTokens(DateTime.now().plus({hours: 1}));
         let authenticationClient: Mock<AuthenticationClient>;
         const sharedState = await buildTestSharedSate(testConfigFactory => {
@@ -28,9 +52,9 @@ describe("AuthenticatedLogionClient", () => {
             legalOfficers,
         });
 
-        await client.refreshTokens(DateTime.now());
+        await client.refreshTokens(DateTime.now(), {minutes: 30});
 
-        authenticationClient!.verify(instance => instance.refresh(tokens), Times.Once());
+        authenticationClient!.verify(instance => instance.refresh(tokens), Times.Never());
     });
 
     it("changes current address", async () => {
