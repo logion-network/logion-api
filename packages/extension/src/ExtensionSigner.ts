@@ -1,4 +1,4 @@
-import { buildMessage, FullSigner, signerCallback, SignParameters, SignRawParameters } from '@logion/client/dist/Signer';
+import { buildMessage, FullSigner, signerCallback, SignParameters, SignRawParameters } from '@logion/client';
 import { web3FromAddress } from '@polkadot/extension-dapp';
 
 export class ExtensionSigner implements FullSigner {
