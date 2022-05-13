@@ -8,18 +8,6 @@ export interface Token {
     readonly expirationDateTime: DateTime;
 }
 
-export interface Account {
-    readonly name: string,
-    readonly address: string,
-    readonly isLegalOfficer: boolean,
-    readonly token?: Token,
-}
-
-export default interface Accounts {
-    readonly all: Account[],
-    readonly current?: Account,
-}
-
 export interface Endpoint {
     url: string;
 }

@@ -27,7 +27,7 @@ export interface SharedState {
 }
 
 export interface AuthenticatedSharedState extends SharedState {
-    currentAddress: string;
-    token: Token;
+    currentAddress?: string;
+    token?: Token;
     legalOfficers: LegalOfficer[];
 }

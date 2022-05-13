@@ -1,6 +1,3 @@
-import { AxiosInstance } from "axios";
-import { AxiosFactory } from "./AxiosFactory";
-
 export interface UserIdentity {
     firstName: string,
     lastName: string,

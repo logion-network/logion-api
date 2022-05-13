@@ -1,3 +1,3 @@
-# Logion Chain API
+# Logion API
 
-This project provides a JS/TypeScript API enabling an application to interact with a logion node.
+This project provides different packages which may be used by developers to interact with the logion network.

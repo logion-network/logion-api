@@ -12,14 +12,14 @@ export interface TransferParam {
 export async function getBalanceState(sharedState: AuthenticatedSharedState): Promise<BalanceState> {
     const client = newTransactionClient(sharedState);
     const transactions = await client.fetchTransactions();
-    const balances = await getBalances({ api: sharedState.nodeApi, accountId: sharedState.currentAddress });
+    const balances = await getBalances({ api: sharedState.nodeApi, accountId: sharedState.currentAddress! });
     return new BalanceState(balances, transactions, sharedState);
 }
 
 function newTransactionClient(sharedState: AuthenticatedSharedState): TransactionClient {
     return new TransactionClient({
         axiosFactory: sharedState.axiosFactory,
-        currentAddress: sharedState.currentAddress,
+        currentAddress: sharedState.currentAddress!,
         networkState: sharedState.networkState,
     })
 }
@@ -38,7 +38,7 @@ export class BalanceState {
 
     async transfer(signer: Signer, params: TransferParam): Promise<BalanceState> {
         await signer.signAndSend({
-            signerId: this.sharedState.currentAddress,
+            signerId: this.sharedState.currentAddress!,
             submittable: transferSubmittable({
                 api: this.sharedState.nodeApi,
                 ...params,
