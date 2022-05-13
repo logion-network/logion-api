@@ -28,7 +28,7 @@ describe("AuthenticatedLogionClient", () => {
             legalOfficers,
         });
 
-        await client.refreshTokens();
+        await client.refreshTokens(DateTime.now());
 
         authenticationClient!.verify(instance => instance.refresh(tokens), Times.Once());
     });

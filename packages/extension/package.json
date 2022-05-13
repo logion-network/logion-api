@@ -1,0 +1,41 @@
+{
+  "name": "@logion/extension",
+  "version": "0.1.0",
+  "description": "logion SDK for Polkadot JS extension",
+  "main": "dist/index.js",
+  "packageManager": "yarn@3.2.0",
+  "scripts": {
+    "build": "tsc",
+    "test": "jasmine --config=jasmine.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logion-network/logion-api.git",
+    "directory": "packages/extension"
+  },
+  "keywords": [
+    "logion"
+  ],
+  "author": "Logion Team",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@logion/client": "workspace:^",
+    "@polkadot/extension-dapp": "^0.43.1"
+  },
+  "bugs": {
+    "url": "https://github.com/logion-network/logion-api/issues"
+  },
+  "homepage": "https://github.com/logion-network/logion-api/packages/extension#readme",
+  "devDependencies": {
+    "@tsconfig/node16": "^1.0.1",
+    "@types/node": "^17.0.21",
+    "jasmine": "^4.1.0",
+    "jasmine-spec-reporter": "^7.0.0",
+    "moq.ts": "^7.3.4",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.2"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

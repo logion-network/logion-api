@@ -127,7 +127,7 @@ export class NoProtection {
     }): Promise<PendingProtection> {
         const recoveryClient = newRecoveryClient(this.sharedState);
         const protection1 = await recoveryClient.createProtectionRequest(params.legalOfficer1, {
-            requesterAddress: this.sharedState.currentAddress,
+            requesterAddress: this.sharedState.currentAddress!,
             otherLegalOfficerAddress: params.legalOfficer2.address,
             userIdentity: params.userIdentity,
             userPostalAddress: params.postalAddress,
@@ -135,7 +135,7 @@ export class NoProtection {
             addressToRecover: params.recoveredAddress || "",
         });
         const protection2 = await recoveryClient.createProtectionRequest(params.legalOfficer2, {
-            requesterAddress: this.sharedState.currentAddress,
+            requesterAddress: this.sharedState.currentAddress!,
             otherLegalOfficerAddress: params.legalOfficer1.address,
             userIdentity: params.userIdentity,
             userPostalAddress: params.postalAddress,
@@ -168,11 +168,11 @@ export class NoProtection {
         const activeRecovery = await getActiveRecovery({
             api: this.sharedState.nodeApi,
             sourceAccount: params.recoveredAddress,
-            destinationAccount: this.sharedState.currentAddress,
+            destinationAccount: this.sharedState.currentAddress!,
         });
         if(activeRecovery === undefined) {
             await params.signer.signAndSend({
-                signerId: this.sharedState.currentAddress,
+                signerId: this.sharedState.currentAddress!,
                 submittable: initiateRecovery({
                     api: this.sharedState.nodeApi,
                     addressToRecover: params.recoveredAddress,
@@ -186,9 +186,9 @@ export class NoProtection {
 function newRecoveryClient(sharedState: AuthenticatedSharedState): RecoveryClient {
     return new RecoveryClient({
         axiosFactory: sharedState.axiosFactory,
-        currentAddress: sharedState.currentAddress,
+        currentAddress: sharedState.currentAddress!,
         networkState: sharedState.networkState,
-        token: sharedState.token.value,
+        token: sharedState.token!.value,
         nodeApi: sharedState.nodeApi,
     });
 }
@@ -242,7 +242,7 @@ export class AcceptedProtection implements WithLegalOfficers {
 
     async activate(signer: Signer): Promise<ActiveProtection | PendingRecovery> {
         await signer.signAndSend({
-            signerId: this.sharedState.currentAddress,
+            signerId: this.sharedState.currentAddress!,
             submittable: createRecovery({
                 api: this.sharedState.nodeApi,
                 legalOfficers: [ this.sharedState.legalOfficer1.address, this.sharedState.legalOfficer2.address ],
@@ -298,7 +298,7 @@ export class PendingRecovery implements WithLegalOfficers {
             throw new Error("No recovery was request");
         }
         await signer.signAndSend({
-            signerId: this.sharedState.currentAddress,
+            signerId: this.sharedState.currentAddress!,
             submittable: claimRecovery({
                 api: this.sharedState.nodeApi,
                 addressToRecover: this.sharedState.recoveredAddress!,
