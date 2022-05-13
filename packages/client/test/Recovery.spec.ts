@@ -132,7 +132,7 @@ describe("Recovery's getInitialState", () => {
             recoveryConfig: undefined,
             recoveredAddress: undefined,
         };
-        await testGetInitialState(data, PendingRecovery);
+        await testGetInitialState(data, AcceptedProtection);
     });
 
     it("builds an initial claimed recovery", async () => {
@@ -162,10 +162,10 @@ const legalOfficers: LegalOfficer[] = [ ALICE, BOB ];
 
 async function buildSharedState(): Promise<AuthenticatedSharedState> {
     const currentAddress = ALICE.address;
-        const token: Token = {
-            value: "",
-            expirationDateTime: DateTime.now().plus({hours: 1})
-        };
+    const token: Token = {
+        value: "",
+        expirationDateTime: DateTime.now().plus({hours: 1})
+    };
     return await buildTestAuthenticatedSharedSate(
         (factory: TestConfigFactory) => {
             factory.setupDefaultAxiosInstanceFactory();
@@ -815,7 +815,10 @@ describe("ClaimedRecovery", () => {
             && params.submittable === asRecoveredSubmittable.object()))
         ).returns(Promise.resolve());
 
-        const nextState = await state.transferRecoveredAccount(signer.object(), currentAddress, new PrefixedNumber("10", PICO));
+        const nextState = await state.transferRecoveredAccount(signer.object(), {
+            destination: currentAddress,
+            amount: new PrefixedNumber("10", PICO)
+        });
 
         expect(nextState).toBeInstanceOf(ClaimedRecovery);
 

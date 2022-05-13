@@ -11,7 +11,7 @@ import { AuthenticatedSharedState } from "./SharedClient";
 import { Signer } from "./Signer";
 import { LegalOfficer, PostalAddress, UserIdentity } from "./Types";
 import { buildTransferCall } from "@logion/node-api/dist/Balances";
-import { PrefixedNumber } from "@logion/node-api/dist/numbers";
+import { TransferParam } from "./Balance";
 
 export type ProtectionState = NoProtection | PendingProtection | AcceptedProtection | ActiveProtection | PendingRecovery | ClaimedRecovery;
 
@@ -347,7 +347,7 @@ export class ClaimedRecovery implements WithLegalOfficers {
         return this.sharedState.legalOfficer2;
     }
 
-    async transferRecoveredAccount(signer: Signer, destination: string, amount: PrefixedNumber): Promise<ClaimedRecovery> {
+    async transferRecoveredAccount(signer: Signer, params: TransferParam): Promise<ClaimedRecovery> {
         await signer.signAndSend({
             signerId: this.sharedState.currentAddress,
             submittable: asRecovered({
@@ -355,8 +355,7 @@ export class ClaimedRecovery implements WithLegalOfficers {
                 recoveredAccountId: this.recoveredAddress,
                 call: buildTransferCall({
                     api: this.sharedState.nodeApi,
-                    amount,
-                    destination,
+                    ...params,
                 })
             })
         })
