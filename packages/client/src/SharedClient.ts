@@ -1,4 +1,5 @@
 import { LogionNodeApi } from "@logion/node-api";
+import { AccountTokens } from "./AuthenticationClient";
 
 import { AxiosFactory } from "./AxiosFactory";
 import { ComponentFactory } from "./ComponentFactory";
@@ -24,10 +25,7 @@ export interface SharedState {
     directoryClient: DirectoryClient;
     networkState: NetworkState<LegalOfficerEndpoint>;
     nodeApi: LogionNodeApi;
-}
-
-export interface AuthenticatedSharedState extends SharedState {
-    currentAddress?: string;
-    token?: Token;
     legalOfficers: LegalOfficer[];
+    tokens: AccountTokens;
+    currentAddress?: string;
 }

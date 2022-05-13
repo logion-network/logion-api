@@ -32,7 +32,7 @@ describe("Recovery SDK", () => {
             ALICE_SECRET_SEED,
             BOB_SECRET_SEED,
         ]);
-        const legalOfficers = await client.getLegalOfficers();
+        const legalOfficers = client.getLegalOfficers();
         alice = legalOfficers.find(legalOfficer => legalOfficer.address === ALICE.address)!;
         bob = legalOfficers.find(legalOfficer => legalOfficer.address === BOB.address)!;
     })

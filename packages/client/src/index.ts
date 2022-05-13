@@ -1,5 +1,4 @@
 import { LogionClient } from './LogionClient';
-import { AuthenticatedLogionClient } from './AuthenticatedLogionClient';
 import { LegalOfficer } from './Types';
 import { Token } from './Http';
 import { AccountTokens } from './AuthenticationClient';
@@ -8,7 +7,6 @@ import { buildMessage, FullSigner, signerCallback, SignParameters, SignRawParame
 
 export {
     LogionClient,
-    AuthenticatedLogionClient,
     LegalOfficer,
     Token,
     AccountTokens,
