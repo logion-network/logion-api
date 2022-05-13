@@ -164,15 +164,13 @@ export class LogionClient {
         );
         const newTokens = await client.authenticate(addresses, signer);
         const tokens = this.tokens.merge(newTokens);
-        let currentAddress = undefined;
-        if(addresses.length === 1) {
+
+        let currentAddress = this.sharedState.currentAddress;
+        if(!currentAddress && addresses.length === 1) {
             currentAddress = addresses[0];
         }
-        return new LogionClient({
-            ...this.sharedState,
-            tokens,
-            currentAddress,
-        });
+
+        return this.useTokens(tokens).withCurrentAddress(currentAddress);
     }
 
     isLegalOfficer(address: string): boolean {
