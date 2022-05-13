@@ -1,11 +1,11 @@
 import { DateTime } from "luxon";
-import { AccountTokens } from "../src/AuthenticationClient";
-import { Token } from "../src/Http";
-import { AuthenticatedSharedState, LogionClientConfig, SharedState } from "../src/SharedClient";
-import { LegalOfficer, PostalAddress, UserIdentity } from "../src/Types";
-import { TestConfigFactory } from "./TestConfigFactory";
 import { Option } from "@polkadot/types-codec";
 import type { Codec } from '@polkadot/types-codec/types';
+
+import { AccountTokens } from "../src/AuthenticationClient";
+import { LogionClientConfig, SharedState } from "../src/SharedClient";
+import { LegalOfficer, PostalAddress, UserIdentity } from "../src/Types";
+import { TestConfigFactory } from "./TestConfigFactory";
 
 export const ALICE: LegalOfficer = {
     name: "Alice",
@@ -62,12 +62,12 @@ export function buildTestConfig(setupComponentFactory: (factory: TestConfigFacto
     return testConfigFactory.buildTestConfig(LOGION_CLIENT_CONFIG);
 }
 
-export async function buildTestSharedSate(setupComponentFactory: (factory: TestConfigFactory) => void): Promise<SharedState> {
-    const config = buildTestConfig(setupComponentFactory);
-    return buildSharedStateUsingTestConfig(config);
-}
-
-export async function buildSharedStateUsingTestConfig(config: LogionClientConfig): Promise<SharedState> {
+export async function buildAuthenticatedSharedStateUsingTestConfig(
+    config: LogionClientConfig,
+    currentAddress: string,
+    legalOfficers: LegalOfficer[],
+    tokens: AccountTokens,
+): Promise<SharedState> {
     const componentFactory = (config as any).__componentFactory;
     const axiosFactory = componentFactory.buildAxiosFactory();
     const directoryClient = componentFactory.buildDirectoryClient(config.directoryEndpoint, axiosFactory);
@@ -80,32 +80,20 @@ export async function buildSharedStateUsingTestConfig(config: LogionClientConfig
         directoryClient,
         networkState,
         nodeApi,
-    };
-}
-
-export async function buildAuthenticatedSharedStateUsingTestConfig(
-    config: LogionClientConfig,
-    currentAddress: string,
-    token: Token,
-    legalOfficers: LegalOfficer[],
-): Promise<AuthenticatedSharedState> {
-    const sharedState = await buildSharedStateUsingTestConfig(config);
-    return {
-        ...sharedState,
         currentAddress,
-        token,
         legalOfficers,
+        tokens,
     };
 }
 
 export async function buildTestAuthenticatedSharedSate(
     setupComponentFactory: (factory: TestConfigFactory) => void,
     currentAddress: string,
-    token: Token,
     legalOfficers: LegalOfficer[],
-): Promise<AuthenticatedSharedState> {
+    tokens: AccountTokens,
+): Promise<SharedState> {
     const config = buildTestConfig(setupComponentFactory);
-    return buildAuthenticatedSharedStateUsingTestConfig(config, currentAddress, token, legalOfficers);
+    return buildAuthenticatedSharedStateUsingTestConfig(config, currentAddress, legalOfficers, tokens);
 }
 
 export function mockEmptyOption<T extends Codec>(): Option<T> {

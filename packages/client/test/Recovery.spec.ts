@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 import { It, Mock } from 'moq.ts';
 
 import { CreateProtectionRequest, FetchAllResult, ProtectionRequest } from '../src/RecoveryClient';
-import { AuthenticatedSharedState } from '../src/SharedClient';
+import { SharedState } from '../src/SharedClient';
 import {
     AcceptedProtection,
     ActiveProtection,
@@ -24,7 +24,6 @@ import {
     mockOption,
     mockEmptyOption
 } from './Utils';
-import { Token } from '../src/Http';
 import { TestConfigFactory } from './TestConfigFactory';
 import { LegalOfficer, PostalAddress, UserIdentity } from '../src/Types';
 import { AxiosInstance, AxiosResponse } from 'axios';
@@ -32,6 +31,7 @@ import { AxiosFactory } from '../src/AxiosFactory';
 import { Signer } from '../src/Signer';
 import { PrefixedNumber, PICO } from "@logion/node-api/dist/numbers";
 import { Call } from '@polkadot/types/interfaces';
+import { AccountTokens } from '../src/AuthenticationClient';
 
 describe("Recovery's getInitialState", () => {
 
@@ -160,22 +160,25 @@ async function testGetInitialState(data: FetchAllResult, expectedStateClass: any
 
 const legalOfficers: LegalOfficer[] = [ ALICE, BOB ];
 
-async function buildSharedState(): Promise<AuthenticatedSharedState> {
+async function buildSharedState(): Promise<SharedState> {
     const currentAddress = ALICE.address;
-    const token: Token = {
-        value: "",
-        expirationDateTime: DateTime.now().plus({hours: 1})
-    };
+    const token = "some-token";
+    const tokens = new AccountTokens({
+        [ALICE.address]: {
+            value: token,
+            expirationDateTime: DateTime.now().plus({hours: 1})
+        }
+    });
     return await buildTestAuthenticatedSharedSate(
         (factory: TestConfigFactory) => {
             factory.setupDefaultAxiosInstanceFactory();
             factory.setupDefaultNetworkState();
-            factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
+            factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
             factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
         },
         currentAddress,
-        token,
-        legalOfficers
+        legalOfficers,
+        tokens,
     );
 }
 
@@ -325,14 +328,17 @@ describe("NoProtection", () => {
 
     it("requests protection", async () => {
         const currentAddress = REQUESTER;
-        const token: Token = {
-            value: "some-token",
-            expirationDateTime: DateTime.now().plus({hours: 1})
-        };
+        const token = "some-token";
+        const tokens = new AccountTokens({
+            [REQUESTER]: {
+                value: token,
+                expirationDateTime: DateTime.now().plus({hours: 1})
+            }
+        });
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
                 factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
+                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
                 factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 const axiosFactory = factory.setupAxiosFactoryMock();
                 setupCreateProtectionRequest(
@@ -341,7 +347,7 @@ describe("NoProtection", () => {
                     currentAddress,
                     ALICE,
                     BOB,
-                    token.value,
+                    token,
                     null
                 );
                 setupCreateProtectionRequest(
@@ -350,13 +356,13 @@ describe("NoProtection", () => {
                     currentAddress,
                     BOB,
                     ALICE,
-                    token.value,
+                    token,
                     null
                 );
             },
             currentAddress,
-            token,
-            legalOfficers
+            legalOfficers,
+            tokens,
         );
         const state = new NoProtection(sharedState);
 
@@ -367,14 +373,17 @@ describe("NoProtection", () => {
 
     it("requests recovery", async () => {
         const currentAddress = REQUESTER;
-        const token: Token = {
-            value: "some-token",
-            expirationDateTime: DateTime.now().plus({hours: 1})
-        };
+        const token = "some-token";
+        const tokens = new AccountTokens({
+            [REQUESTER]: {
+                value: token,
+                expirationDateTime: DateTime.now().plus({hours: 1})
+            }
+        });
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
                 factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
+                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.activeRecoveries(RECOVERED_ADDRESS, currentAddress))
@@ -390,7 +399,7 @@ describe("NoProtection", () => {
                     currentAddress,
                     ALICE,
                     BOB,
-                    token.value,
+                    token,
                     RECOVERED_ADDRESS,
                 );
                 setupCreateProtectionRequest(
@@ -399,13 +408,13 @@ describe("NoProtection", () => {
                     currentAddress,
                     BOB,
                     ALICE,
-                    token.value,
+                    token,
                     RECOVERED_ADDRESS,
                 );
             },
             currentAddress,
-            token,
-            legalOfficers
+            legalOfficers,
+            tokens,
         );
         const state = new NoProtection(sharedState);
         const signer = new Mock<Signer>();
@@ -461,23 +470,26 @@ describe("PendingProtection", () => {
         const aliceRequest: ProtectionRequest = buildPendingAliceRequest();
         const bobRequest: ProtectionRequest = buildPendingBobRequest();
         const currentAddress = REQUESTER;
-        const token: Token = {
-            value: "some-token",
-            expirationDateTime: DateTime.now().plus({hours: 1})
-        };
+        const token = "some-token";
+        const tokens = new AccountTokens({
+            [REQUESTER]: {
+                value: token,
+                expirationDateTime: DateTime.now().plus({hours: 1})
+            }
+        });
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
                 const axiosFactory = factory.setupAxiosFactoryMock();
                 const aliceAxios = new Mock<AxiosInstance>();
-                axiosFactory.setup(instance => instance.buildAxiosInstance(ALICE.node, token.value)).returns(aliceAxios.object());
+                axiosFactory.setup(instance => instance.buildAxiosInstance(ALICE.node, token)).returns(aliceAxios.object());
                 const bobAxios = new Mock<AxiosInstance>();
-                axiosFactory.setup(instance => instance.buildAxiosInstance(BOB.node, token.value)).returns(bobAxios.object());
+                axiosFactory.setup(instance => instance.buildAxiosInstance(BOB.node, token)).returns(bobAxios.object());
 
                 setupFetchProtectionRequests(aliceAxios, [ aliceRequest ], [], []);
                 setupFetchProtectionRequests(bobAxios, [ bobRequest ], [], []);
 
                 factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
+                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
@@ -486,8 +498,8 @@ describe("PendingProtection", () => {
                     .returns(Promise.resolve(mockEmptyOption<AccountId>()));
             },
             currentAddress,
-            token,
-            legalOfficers
+            legalOfficers,
+            tokens,
         );
 
         const state = new PendingProtection({
@@ -509,18 +521,21 @@ describe("PendingProtection", () => {
         const aliceRequest: ProtectionRequest = buildPendingAliceRequest();
         const bobRequest: ProtectionRequest = buildPendingBobRequest();
         const currentAddress = REQUESTER;
-        const token: Token = {
-            value: "some-token",
-            expirationDateTime: DateTime.now().plus({hours: 1})
-        };
+        const token = "some-token";
+        const tokens = new AccountTokens({
+            [REQUESTER]: {
+                value: token,
+                expirationDateTime: DateTime.now().plus({hours: 1})
+            }
+        });
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
-                const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token.value);
+                const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token);
                 setupFetchProtectionRequests(aliceAxios, [], [ aliceRequest ], []);
                 setupFetchProtectionRequests(bobAxios, [], [ bobRequest ], []);
 
                 factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
+                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
@@ -529,8 +544,8 @@ describe("PendingProtection", () => {
                     .returns(Promise.resolve(mockEmptyOption<AccountId>()));
             },
             currentAddress,
-            token,
-            legalOfficers
+            legalOfficers,
+            tokens,
         );
 
         const state = new PendingProtection({
@@ -600,19 +615,22 @@ describe("AcceptedProtection", () => {
         const aliceRequest: ProtectionRequest = buildAcceptedAliceRequest();
         const bobRequest: ProtectionRequest = buildAcceptedBobRequest();
         const currentAddress = REQUESTER;
-        const token: Token = {
-            value: "some-token",
-            expirationDateTime: DateTime.now().plus({hours: 1})
-        };
+        const token = "some-token";
+        const tokens = new AccountTokens({
+            [REQUESTER]: {
+                value: token,
+                expirationDateTime: DateTime.now().plus({hours: 1})
+            }
+        });
         const submittable = new Mock<SubmittableExtrinsic>();
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
-                const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token.value);
+                const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token);
                 setupFetchProtectionRequests(aliceAxios, [], [ aliceRequest ], []);
                 setupFetchProtectionRequests(bobAxios, [], [ bobRequest ], []);
 
                 factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
+                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
@@ -626,8 +644,8 @@ describe("AcceptedProtection", () => {
                     .returns(submittable.object());
             },
             currentAddress,
-            token,
-            legalOfficers
+            legalOfficers,
+            tokens,
         );
         const state = new AcceptedProtection({
             ...sharedState,
@@ -653,19 +671,22 @@ describe("AcceptedProtection", () => {
         const aliceRequest: ProtectionRequest = buildAcceptedAliceRecoveryRequest();
         const bobRequest: ProtectionRequest = buildAcceptedBobRecoveryRequest();
         const currentAddress = REQUESTER;
-        const token: Token = {
-            value: "some-token",
-            expirationDateTime: DateTime.now().plus({hours: 1})
-        };
+        const token = "some-token";
+        const tokens = new AccountTokens({
+            [REQUESTER]: {
+                value: token,
+                expirationDateTime: DateTime.now().plus({hours: 1})
+            }
+        });
         const submittable = new Mock<SubmittableExtrinsic>();
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
-                const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token.value);
+                const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token);
                 setupFetchProtectionRequests(aliceAxios, [], [ aliceRequest ], []);
                 setupFetchProtectionRequests(bobAxios, [], [ bobRequest ], []);
 
                 factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
+                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
@@ -679,8 +700,8 @@ describe("AcceptedProtection", () => {
                     .returns(submittable.object());
             },
             currentAddress,
-            token,
-            legalOfficers
+            legalOfficers,
+            tokens,
         );
         const state = new AcceptedProtection({
             ...sharedState,
@@ -710,19 +731,22 @@ describe("PendingRecovery", () => {
         const aliceRequest: ProtectionRequest = buildAcceptedAliceRecoveryRequest();
         const bobRequest: ProtectionRequest = buildAcceptedBobRecoveryRequest();
         const currentAddress = REQUESTER;
-        const token: Token = {
-            value: "some-token",
-            expirationDateTime: DateTime.now().plus({hours: 1})
-        };
+        const token = "some-token";
+        const tokens = new AccountTokens({
+            [REQUESTER]: {
+                value: token,
+                expirationDateTime: DateTime.now().plus({hours: 1})
+            }
+        });
         const submittable = new Mock<SubmittableExtrinsic>();
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
-                const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token.value);
+                const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token);
                 setupFetchProtectionRequests(aliceAxios, [], [ aliceRequest ], []);
                 setupFetchProtectionRequests(bobAxios, [], [ bobRequest ], []);
 
                 factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
+                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 const recoveryConfig = mockOption<RecoveryConfig>({
@@ -741,8 +765,8 @@ describe("PendingRecovery", () => {
                     .returns(submittable.object());
             },
             currentAddress,
-            token,
-            legalOfficers
+            legalOfficers,
+            tokens,
         );
         const state = new PendingRecovery({
             ...sharedState,
@@ -771,20 +795,23 @@ describe("ClaimedRecovery", () => {
         const aliceRequest: ProtectionRequest = buildAcceptedAliceRecoveryRequest();
         const bobRequest: ProtectionRequest = buildAcceptedBobRecoveryRequest();
         const currentAddress = REQUESTER;
-        const token: Token = {
-            value: "some-token",
-            expirationDateTime: DateTime.now().plus({hours: 1})
-        };
+        const token = "some-token";
+        const tokens = new AccountTokens({
+            [REQUESTER]: {
+                value: token,
+                expirationDateTime: DateTime.now().plus({hours: 1})
+            }
+        });
         const asRecoveredSubmittable = new Mock<SubmittableExtrinsic>();
         const transferSubmittable = new Mock<SubmittableExtrinsic>();
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
-                const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token.value);
+                const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token);
                 setupFetchProtectionRequests(aliceAxios, [], [ aliceRequest ], []);
                 setupFetchProtectionRequests(bobAxios, [], [ bobRequest ], []);
 
                 factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token.value);
+                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 const call = new Mock<Call>();
@@ -796,8 +823,8 @@ describe("ClaimedRecovery", () => {
                     .returns(call.object())
             },
             currentAddress,
-            token,
-            legalOfficers
+            legalOfficers,
+            tokens,
         );
         const state = new ClaimedRecovery({
             ...sharedState,

@@ -7,7 +7,7 @@ import {
 } from "@logion/node-api/dist/Recovery";
 import { FetchAllResult, ProtectionRequest, RecoveryClient } from "./RecoveryClient";
 
-import { AuthenticatedSharedState } from "./SharedClient";
+import { SharedState } from "./SharedClient";
 import { Signer } from "./Signer";
 import { LegalOfficer, PostalAddress, UserIdentity } from "./Types";
 import { buildTransferCall } from "@logion/node-api/dist/Balances";
@@ -15,7 +15,7 @@ import { TransferParam } from "./Balance";
 
 export type ProtectionState = NoProtection | PendingProtection | AcceptedProtection | ActiveProtection | PendingRecovery | ClaimedRecovery;
 
-export interface RecoverySharedState extends AuthenticatedSharedState {
+export interface RecoverySharedState extends SharedState {
     pendingProtectionRequests: ProtectionRequest[];
     acceptedProtectionRequests: ProtectionRequest[];
     rejectedProtectionRequests: ProtectionRequest[];
@@ -27,7 +27,7 @@ export interface SharedStateWithLegalOfficers extends RecoverySharedState {
     legalOfficer2: LegalOfficer;
 }
 
-export function getInitialState(data: FetchAllResult, sharedState: AuthenticatedSharedState): ProtectionState {
+export function getInitialState(data: FetchAllResult, sharedState: SharedState): ProtectionState {
     const {
         pendingProtectionRequests,
         acceptedProtectionRequests,
@@ -111,11 +111,11 @@ export function getInitialState(data: FetchAllResult, sharedState: Authenticated
 
 export class NoProtection {
 
-    constructor(sharedState: AuthenticatedSharedState) {
+    constructor(sharedState: SharedState) {
         this.sharedState = sharedState;
     }
 
-    private sharedState: AuthenticatedSharedState;
+    private sharedState: SharedState;
 
     async requestProtection(params: {
         legalOfficer1: LegalOfficer,
@@ -191,12 +191,12 @@ export class NoProtection {
     }
 }
 
-function newRecoveryClient(sharedState: AuthenticatedSharedState): RecoveryClient {
+function newRecoveryClient(sharedState: SharedState): RecoveryClient {
     return new RecoveryClient({
         axiosFactory: sharedState.axiosFactory,
         currentAddress: sharedState.currentAddress!,
         networkState: sharedState.networkState,
-        token: sharedState.token!.value,
+        token: sharedState.tokens.get(sharedState.currentAddress!)!.value,
         nodeApi: sharedState.nodeApi,
     });
 }
