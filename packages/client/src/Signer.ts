@@ -24,10 +24,12 @@ export interface RawSigner {
     signRaw(parameters: SignRawParameters): Promise<string>;
 }
 
+export type SignCallback = (result: ISubmittableResult) => void;
+
 export interface SignParameters {
     signerId: string;
     submittable: SubmittableExtrinsic;
-    callback?: (result: ISubmittableResult) => void;
+    callback?: SignCallback;
 }
 
 export interface Signer {
@@ -113,4 +115,8 @@ export function signerCallback(params: {
             params.resolve();
         }
     }
+}
+
+export function isSuccessful(result: ISubmittableResult): boolean {
+    return result.status.isInBlock && !result.dispatchError;
 }

@@ -9,7 +9,7 @@ import { ATTO } from "@logion/node-api/dist/numbers";
 
 const REQUESTER_ADDRESS = "5ERRWWYABvYjyUG2oLCNifkmcCQT44ijPpQNxtwZZFj86Jjd";
 
-fdescribe("Balance", () => {
+describe("Balance", () => {
 
     it("gets balances", async () => {
 
