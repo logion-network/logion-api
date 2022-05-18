@@ -369,6 +369,9 @@ describe("NoProtection", () => {
         const nextState = await state.requestProtection({legalOfficer1: ALICE, legalOfficer2: BOB, userIdentity: {} as UserIdentity, postalAddress: {} as PostalAddress});
 
         expect(nextState).toBeInstanceOf(PendingProtection);
+        expect(nextState.protectionParameters.isActive).toBe(false);
+        expect(nextState.protectionParameters.isClaimed).toBe(false);
+        expect(nextState.protectionParameters.isRecovery).toBe(false);
     });
 
     it("requests recovery", async () => {
@@ -430,6 +433,9 @@ describe("NoProtection", () => {
         });
 
         expect(nextState).toBeInstanceOf(PendingProtection);
+        expect(nextState.protectionParameters.isActive).toBe(false);
+        expect(nextState.protectionParameters.isClaimed).toBe(false);
+        expect(nextState.protectionParameters.isRecovery).toBe(true);
     });
 });
 
@@ -504,17 +510,20 @@ describe("PendingProtection", () => {
 
         const state = new PendingProtection({
             ...sharedState,
-            legalOfficer1: ALICE,
-            legalOfficer2: BOB,
+            selectedLegalOfficers: [ ALICE, BOB ],
             legalOfficers,
             pendingProtectionRequests: [ aliceRequest, bobRequest ],
             acceptedProtectionRequests: [],
-            rejectedProtectionRequests: []
+            rejectedProtectionRequests: [],
+            allRequests: [ aliceRequest, bobRequest ],
         });
 
         const nextState = await state.refresh();
 
         expect(nextState).toBeInstanceOf(PendingProtection);
+        expect(nextState.protectionParameters.isActive).toBe(false);
+        expect(nextState.protectionParameters.isClaimed).toBe(false);
+        expect(nextState.protectionParameters.isRecovery).toBe(false);
     });
 
     it("refreshes and becomes accepted", async () => {
@@ -550,17 +559,20 @@ describe("PendingProtection", () => {
 
         const state = new PendingProtection({
             ...sharedState,
-            legalOfficer1: ALICE,
-            legalOfficer2: BOB,
+            selectedLegalOfficers: [ ALICE, BOB ],
             legalOfficers,
             pendingProtectionRequests: [ aliceRequest, bobRequest ],
             acceptedProtectionRequests: [],
-            rejectedProtectionRequests: []
+            rejectedProtectionRequests: [],
+            allRequests: [ aliceRequest, bobRequest ],
         });
 
         const nextState = await state.refresh();
 
         expect(nextState).toBeInstanceOf(AcceptedProtection);
+        expect(nextState.protectionParameters.isActive).toBe(false);
+        expect(nextState.protectionParameters.isClaimed).toBe(false);
+        expect(nextState.protectionParameters.isRecovery).toBe(false);
     });
 });
 
@@ -649,12 +661,12 @@ describe("AcceptedProtection", () => {
         );
         const state = new AcceptedProtection({
             ...sharedState,
-            legalOfficer1: ALICE,
-            legalOfficer2: BOB,
+            selectedLegalOfficers: [ ALICE, BOB ],
             legalOfficers,
             pendingProtectionRequests: [],
             acceptedProtectionRequests: [ aliceRequest, bobRequest ],
-            rejectedProtectionRequests: []
+            rejectedProtectionRequests: [],
+            allRequests: [ aliceRequest, bobRequest ],
         });
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
@@ -665,6 +677,9 @@ describe("AcceptedProtection", () => {
         const nextState = await state.activate(signer.object());
 
         expect(nextState).toBeInstanceOf(ActiveProtection);
+        expect(nextState.protectionParameters.isActive).toBe(true);
+        expect(nextState.protectionParameters.isClaimed).toBe(false);
+        expect(nextState.protectionParameters.isRecovery).toBe(false);
     });
 
     it("activates recovery", async () => {
@@ -705,13 +720,12 @@ describe("AcceptedProtection", () => {
         );
         const state = new AcceptedProtection({
             ...sharedState,
-            recoveredAddress: RECOVERED_ADDRESS,
-            legalOfficer1: ALICE,
-            legalOfficer2: BOB,
+            selectedLegalOfficers: [ ALICE, BOB ],
             legalOfficers,
             pendingProtectionRequests: [],
             acceptedProtectionRequests: [ aliceRequest, bobRequest ],
-            rejectedProtectionRequests: []
+            rejectedProtectionRequests: [],
+            allRequests: [ aliceRequest, bobRequest ],
         });
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
@@ -722,6 +736,9 @@ describe("AcceptedProtection", () => {
         const nextState = await state.activate(signer.object());
 
         expect(nextState).toBeInstanceOf(PendingRecovery);
+        expect(nextState.protectionParameters.isActive).toBe(true);
+        expect(nextState.protectionParameters.isClaimed).toBe(false);
+        expect(nextState.protectionParameters.isRecovery).toBe(true);
     });
 });
 
@@ -770,13 +787,15 @@ describe("PendingRecovery", () => {
         );
         const state = new PendingRecovery({
             ...sharedState,
-            recoveredAddress: RECOVERED_ADDRESS,
-            legalOfficer1: ALICE,
-            legalOfficer2: BOB,
+            selectedLegalOfficers: [ ALICE, BOB ],
             legalOfficers,
             pendingProtectionRequests: [],
             acceptedProtectionRequests: [ aliceRequest, bobRequest ],
-            rejectedProtectionRequests: []
+            rejectedProtectionRequests: [],
+            allRequests: [ aliceRequest, bobRequest ],
+            recoveryConfig: {
+                legalOfficers: [ ALICE.address, BOB.address ]
+            }
         });
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
@@ -787,6 +806,9 @@ describe("PendingRecovery", () => {
         const nextState = await state.claimRecovery(signer.object());
 
         expect(nextState).toBeInstanceOf(ClaimedRecovery);
+        expect(nextState.protectionParameters.isActive).toBe(true);
+        expect(nextState.protectionParameters.isClaimed).toBe(true);
+        expect(nextState.protectionParameters.isRecovery).toBe(true);
     });
 });
 
@@ -829,12 +851,15 @@ describe("ClaimedRecovery", () => {
         const state = new ClaimedRecovery({
             ...sharedState,
             recoveredAddress: RECOVERED_ADDRESS,
-            legalOfficer1: ALICE,
-            legalOfficer2: BOB,
+            selectedLegalOfficers: [ ALICE, BOB ],
             legalOfficers,
             pendingProtectionRequests: [],
             acceptedProtectionRequests: [ aliceRequest, bobRequest ],
-            rejectedProtectionRequests: []
+            rejectedProtectionRequests: [],
+            allRequests: [ aliceRequest, bobRequest ],
+            recoveryConfig: {
+                legalOfficers: [ ALICE.address, BOB.address ]
+            }
         });
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
@@ -848,6 +873,8 @@ describe("ClaimedRecovery", () => {
         });
 
         expect(nextState).toBeInstanceOf(ClaimedRecovery);
-
+        expect(nextState.protectionParameters.isActive).toBe(true);
+        expect(nextState.protectionParameters.isClaimed).toBe(true);
+        expect(nextState.protectionParameters.isRecovery).toBe(true);
     })
 })

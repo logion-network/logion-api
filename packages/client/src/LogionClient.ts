@@ -1,5 +1,7 @@
 import { AxiosInstance } from "axios";
 import { DateTime, DurationLike } from "luxon";
+import { getRecoveryConfig } from "@logion/node-api/dist/Recovery";
+import { isValidAccountId } from '@logion/node-api/dist/Accounts';
 
 import { AccountTokens } from "./AuthenticationClient";
 import { BalanceState, getBalanceState } from "./Balance";
@@ -186,6 +188,18 @@ export class LogionClient {
             throw new Error("Current address was not selected");
         }
         return getBalanceState(this.sharedState);
+    }
+
+    async isProtected(address: string): Promise<boolean> {
+        const config = await getRecoveryConfig({
+            api: this.sharedState.nodeApi,
+            accountId: address
+        });
+        return config !== undefined;
+    }
+
+    isValidAddress(address: string): boolean {
+        return isValidAccountId(this.sharedState.nodeApi, address);
     }
 }
 

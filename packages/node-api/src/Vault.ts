@@ -10,14 +10,14 @@ import { LGNT_SMALLEST_UNIT } from './Balances';
 
 const THRESHOLD = 2;
 
-export function getVaultAddress(requesterAddress: string, recoveryConfig: RecoveryConfig): string {
-    const signatories: string[] = [ requesterAddress, ...recoveryConfig.legalOfficers ].sort()
+export function getVaultAddress(requesterAddress: string, legalOfficers: string[]): string {
+    const signatories: string[] = [ requesterAddress, ...legalOfficers ].sort()
     return encodeAddress(createKeyMulti(signatories, THRESHOLD));
 }
 
 export interface BuildRequestVaultTransferParameters {
     api: ApiPromise;
-    recoveryConfig: RecoveryConfig;
+    legalOfficers: string[];
     amount: PrefixedNumber;
     destination: string;
 }
@@ -34,20 +34,20 @@ async function buildRequestCallSubmittable(parameters: BuildRequestVaultTransfer
     const {
         api,
         requesterAddress,
-        recoveryConfig,
+        legalOfficers,
         destination,
         amount,
     } = parameters;
 
     const actualAmount = amount.convertTo(LGNT_SMALLEST_UNIT).coefficient.unnormalize();
-    const { call, weight, multisigOrigin } = await transferCallAndWeight(api, requesterAddress, recoveryConfig, BigInt(actualAmount), destination);
+    const { call, weight, multisigOrigin } = await transferCallAndWeight(api, requesterAddress, legalOfficers, BigInt(actualAmount), destination);
 
     const existingMultisig = await api.query.multisig.multisigs(multisigOrigin, call.method.hash);
     if(existingMultisig.isSome) {
         throw new Error("A similar transfer has already been requested and is pending");
     }
 
-    const sortedLegalOfficers = [ ...recoveryConfig.legalOfficers ].sort();
+    const sortedLegalOfficers = [ ...legalOfficers ].sort();
     return api.tx.vault.requestCall(sortedLegalOfficers, call.method.hash, weight)
 }
 
@@ -58,11 +58,11 @@ export async function buildVaultTransferCall(parameters: BuildRequestVaultTransf
 async function transferCallAndWeight(
     api: ApiPromise,
     requesterAddress: string,
-    recoveryConfig: RecoveryConfig,
+    legalOfficers: string[],
     amount: bigint,
     destination: string,
 ): Promise<{ call: SubmittableExtrinsic, weight: Weight, multisigOrigin: string }> {
-    const multisigOrigin = getVaultAddress(requesterAddress, recoveryConfig);
+    const multisigOrigin = getVaultAddress(requesterAddress, legalOfficers);
     const call = transferCall(api, destination, amount);
     const dispatchInfo = await call.paymentInfo(multisigOrigin);
     const maxWeight = dispatchInfo.weight;
@@ -109,7 +109,7 @@ export async function approveVaultTransfer(parameters: VaultTransferApprovalPara
     const otherLegalOfficer = recoveryConfig!.legalOfficers.find(accountId => accountId !== signerId)!;
 
     const actualAmount = amount.convertTo(LGNT_SMALLEST_UNIT).coefficient.unnormalize();
-    const { call, weight } = await transferCallAndWeight(api, requester, recoveryConfig!, BigInt(actualAmount), destination);
+    const { call, weight } = await transferCallAndWeight(api, requester, recoveryConfig!.legalOfficers, BigInt(actualAmount), destination);
 
     const otherSignatories = [ requester, otherLegalOfficer ].sort();
     return api.tx.vault.approveCall(otherSignatories, call.method.toHex(), {height: block, index}, weight);

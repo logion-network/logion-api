@@ -4,7 +4,7 @@ import { AccountTokens } from "./AuthenticationClient";
 import { AxiosFactory } from "./AxiosFactory";
 import { ComponentFactory } from "./ComponentFactory";
 import { DirectoryClient } from "./DirectoryClient";
-import { Endpoint, Token } from "./Http";
+import { Endpoint } from "./Http";
 import { NetworkState } from "./NetworkState";
 import { LegalOfficer } from "./Types";
 
