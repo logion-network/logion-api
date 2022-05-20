@@ -1,5 +1,6 @@
 import { buildMessage, FullSigner, signerCallback, SignParameters, SignRawParameters } from '@logion/client';
 import { web3FromAddress } from '@polkadot/extension-dapp';
+import { SuccessfulSubmission } from 'client/dist/Signer';
 
 export class ExtensionSigner implements FullSigner {
 
@@ -14,7 +15,7 @@ export class ExtensionSigner implements FullSigner {
         return result.signature;
     }
 
-    async signAndSend(parameters: SignParameters): Promise<void> {
+    async signAndSend(parameters: SignParameters): Promise<SuccessfulSubmission> {
         const extension = await web3FromAddress(parameters.signerId);
         const registry = parameters.submittable.registry;
         const next = parameters.callback;

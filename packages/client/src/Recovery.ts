@@ -3,7 +3,6 @@ import {
     createRecovery,
     getActiveRecovery,
     initiateRecovery,
-    asRecovered,
     RecoveryConfig
 } from "@logion/node-api/dist/Recovery";
 import { FetchAllResult, LegalOfficerDecision, ProtectionRequest, ProtectionRequestStatus, RecoveryClient } from "./RecoveryClient";
@@ -11,8 +10,10 @@ import { FetchAllResult, LegalOfficerDecision, ProtectionRequest, ProtectionRequ
 import { SharedState } from "./SharedClient";
 import { SignCallback, Signer } from "./Signer";
 import { LegalOfficer, PostalAddress, UserIdentity } from "./Types";
-import { buildTransferCall } from "@logion/node-api/dist/Balances";
-import { TransferParam } from "./Balance";
+import { BalanceState, getBalanceState } from "./Balance";
+import { VaultState } from "./Vault";
+import { Duration } from "luxon";
+import { PollingParameters, waitFor } from "./Polling";
 
 export type ProtectionState = NoProtection | PendingProtection | AcceptedProtection | ActiveProtection | PendingRecovery | ClaimedRecovery | UnavailableProtection;
 
@@ -377,7 +378,21 @@ export class AcceptedProtection implements WithProtectionParameters {
     }
 }
 
-export class ActiveProtection implements WithProtectionParameters {
+export interface WithActiveProtection<T extends ProtectionState> {
+
+    isFullyReady(): boolean;
+
+    refresh(): Promise<WithActiveProtection<T>>;
+
+    waitForFullyReady(pollingParameters?: PollingParameters): Promise<T>;
+}
+
+export interface WithRefresh<T extends ProtectionState> {
+
+    refresh(): Promise<T>;
+}
+
+export class ActiveProtection implements WithProtectionParameters, WithActiveProtection<ActiveProtection>, WithRefresh<ActiveProtection> {
 
     constructor(sharedState: RecoverySharedState) {
         this.sharedState = sharedState;
@@ -388,9 +403,67 @@ export class ActiveProtection implements WithProtectionParameters {
     get protectionParameters(): ProtectionParameters {
         return buildProtectionParameters(this.sharedState);
     }
+
+    isFullyReady(): boolean {
+        return isProtectionFullyReady(this.sharedState);
+    }
+
+    async vaultState(): Promise<VaultState> {
+        return vaultState(this.sharedState);
+    }
+
+    async refresh(): Promise<ActiveProtection> {
+        return refreshWithActiveProtection(this.sharedState, ActiveProtection);
+    }
+
+    async waitForFullyReady(pollingParameters?: PollingParameters): Promise<ActiveProtection> {
+        return waitForProtectionFullyReady(this.sharedState, this, pollingParameters);
+    }
 }
 
-export class PendingRecovery implements WithProtectionParameters {
+function isProtectionFullyReady(sharedState: RecoverySharedState): boolean {
+    return sharedState.acceptedProtectionRequests.every(request => request.status === "ACTIVATED");
+}
+
+async function vaultState(sharedState: RecoverySharedState): Promise<VaultState> {
+    if(!isProtectionFullyReady(sharedState)) {
+        throw new Error("Protection is not yet fully ready, please wait a couple of seconds");
+    }
+    return VaultState.create({
+        ...sharedState,
+        isRecovery: false
+    });
+}
+
+async function refreshWithActiveProtection<T>(
+    sharedState: RecoverySharedState,
+    stateConstructor: new (sharedState: RecoverySharedState) => T
+): Promise<T> {
+    const recoveryClient = newRecoveryClient(sharedState);
+    const acceptedProtectionRequests = await recoveryClient.fetchAccepted(sharedState.selectedLegalOfficers);
+    return new stateConstructor({
+        ...sharedState,
+        acceptedProtectionRequests,
+    });
+}
+
+async function waitForProtectionFullyReady<T extends ProtectionState, S extends WithActiveProtection<T> & WithRefresh<T>>(
+    sharedState: RecoverySharedState,
+    state: S,
+    pollingParameters?: PollingParameters,
+): Promise<S> {
+    if(isProtectionFullyReady(sharedState)) {
+        return state;
+    } else {
+        return waitFor<S>({
+            predicate: newState => newState.isFullyReady(),
+            producer: async () => await state.refresh() as S,
+            pollingParameters,
+        });
+    }
+}
+
+export class PendingRecovery implements WithProtectionParameters, WithActiveProtection<PendingRecovery>, WithRefresh<PendingRecovery> {
 
     constructor(sharedState: RecoverySharedState) {
         this.sharedState = sharedState;
@@ -402,6 +475,9 @@ export class PendingRecovery implements WithProtectionParameters {
         signer: Signer,
         callback?: SignCallback,
     ): Promise<ClaimedRecovery> {
+        if(!this.isFullyReady()) {
+            throw new Error("Protection is not yet fully ready, please wait a couple of seconds");
+        }
         const addressToRecover = this.protectionParameters.recoveredAddress!;
         await signer.signAndSend({
             signerId: this.sharedState.currentAddress!,
@@ -420,6 +496,22 @@ export class PendingRecovery implements WithProtectionParameters {
     get protectionParameters(): ProtectionParameters {
         return buildProtectionParameters(this.sharedState);
     }
+
+    isFullyReady(): boolean {
+        return isProtectionFullyReady(this.sharedState);
+    }
+
+    async vaultState(): Promise<VaultState> {
+        return vaultState(this.sharedState);
+    }
+
+    async refresh(): Promise<PendingRecovery> {
+        return refreshWithActiveProtection(this.sharedState, PendingRecovery);
+    }
+
+    async waitForFullyReady(pollingParameters?: PollingParameters): Promise<PendingRecovery> {
+        return waitForProtectionFullyReady(this.sharedState, this, pollingParameters);
+    }
 }
 
 export class ClaimedRecovery implements WithProtectionParameters {
@@ -433,23 +525,24 @@ export class ClaimedRecovery implements WithProtectionParameters {
         return buildProtectionParameters(this.sharedState);
     }
 
-    async transferRecoveredAccount(
-        signer: Signer,
-        params: TransferParam,
-        callback?: SignCallback,
-    ): Promise<ClaimedRecovery> {
-        await signer.signAndSend({
-            signerId: this.sharedState.currentAddress!,
-            submittable: asRecovered({
-                api: this.sharedState.nodeApi,
-                recoveredAccountId: this.sharedState.recoveredAddress!,
-                call: buildTransferCall({
-                    api: this.sharedState.nodeApi,
-                    ...params,
-                })
-            }),
-            callback
-        })
-        return this;
+    async vaultState(): Promise<VaultState> {
+        return VaultState.create({
+            ...this.sharedState,
+            isRecovery: false
+        });
+    }
+
+    async recoveredVaultState(): Promise<VaultState> {
+        return VaultState.create({
+            ...this.sharedState,
+            isRecovery: true
+        });
+    }
+
+    async recoveredBalanceState(): Promise<BalanceState> {
+        return getBalanceState({
+            ...this.sharedState,
+            isRecovery: true,
+        });
     }
 }

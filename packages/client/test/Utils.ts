@@ -3,9 +3,11 @@ import { Option } from "@polkadot/types-codec";
 import type { Codec } from '@polkadot/types-codec/types';
 
 import { AccountTokens } from "../src/AuthenticationClient";
-import { LogionClientConfig, SharedState } from "../src/SharedClient";
+import { LegalOfficerEndpoint, LogionClientConfig, SharedState } from "../src/SharedClient";
 import { LegalOfficer, PostalAddress, UserIdentity } from "../src/Types";
 import { TestConfigFactory } from "./TestConfigFactory";
+import { SuccessfulSubmission } from "../src/Signer";
+import { It } from "moq.ts";
 
 export const ALICE: LegalOfficer = {
     name: "Alice",
@@ -26,6 +28,8 @@ export const BOB: LegalOfficer = {
     postalAddress: {} as PostalAddress,
     userIdentity: {} as UserIdentity,
 };
+
+export const LEGAL_OFFICERS = [ ALICE, BOB ];
 
 export const DIRECTORY_ENDPOINT = "https://directory.logion.network";
 
@@ -71,7 +75,8 @@ export async function buildAuthenticatedSharedStateUsingTestConfig(
     const componentFactory = (config as any).__componentFactory;
     const axiosFactory = componentFactory.buildAxiosFactory();
     const directoryClient = componentFactory.buildDirectoryClient(config.directoryEndpoint, axiosFactory);
-    const networkState = componentFactory.buildNetworkState();
+    const nodesUp: LegalOfficerEndpoint[] = legalOfficers.map(legalOfficer => ({ url: legalOfficer.node, legalOfficer: legalOfficer.address }));
+    const networkState = componentFactory.buildNetworkState(nodesUp, []);
     const nodeApi = await componentFactory.buildNodeApi(config.rpcEndpoints);
     return {
         config,
@@ -111,4 +116,17 @@ export function mockOption<T extends Codec>(value: Partial<T>): Option<T> {
             return value as T;
         },
     } as unknown as Option<T>;
+}
+
+export const SUCCESSFULL_SUBMISSION: SuccessfulSubmission = {
+    block: "0x1234567890abcdef",
+    index: 1,
+};
+
+export const RECOVERED_ADDRESS = "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb";
+
+export const REQUESTER = "5EBxoSssqNo23FvsDeUxjyQScnfEiGxJaNwuwqBH2Twe35BX";
+
+export function itSpies<T>(): T {
+    return It.Is<T>(value => { console.log(value); return false });
 }
