@@ -32,9 +32,14 @@ export interface SignParameters {
     callback?: SignCallback;
 }
 
+export interface SuccessfulSubmission {
+    readonly block: string;
+    readonly index: number;
+}
+
 export interface Signer {
 
-    signAndSend(parameters: SignParameters): Promise<void>;
+    signAndSend(parameters: SignParameters): Promise<SuccessfulSubmission>;
 }
 
 export type FullSigner = RawSigner & Signer;
@@ -54,11 +59,11 @@ export class KeyringSigner implements FullSigner {
         return '0x' + Buffer.from(bytes).toString('hex');
     }
 
-    signAndSend(parameters: SignParameters): Promise<void> {
+    signAndSend(parameters: SignParameters): Promise<SuccessfulSubmission> {
         const keypair = this.keyring.getPair(parameters.signerId);
         const registry = parameters.submittable.registry;
         const next = parameters.callback;
-        return new Promise(async (resolve, reject) => {
+        return new Promise<SuccessfulSubmission>(async (resolve, reject) => {
             try {
                 const unsub = await parameters.submittable.signAndSend(keypair, (result) => {
                     signerCallback({
@@ -99,7 +104,7 @@ export function hashAttributes(attributes: any[]): string {
 export function signerCallback(params: {
     next?: (result: ISubmittableResult) => void;
     unsub: () => void;
-    resolve: () => void;
+    resolve: (result: SuccessfulSubmission) => void;
     reject: (error: any) => void;
     registry: Registry;
     result: ISubmittableResult;
@@ -112,7 +117,10 @@ export function signerCallback(params: {
         if(params.result.dispatchError) {
             params.reject(new Error(buildErrorMessage(params.registry, params.result.dispatchError)));
         } else {
-            params.resolve();
+            params.resolve({
+                block: params.result!.status.asInBlock.toString(),
+                index: params.result!.txIndex!
+            });
         }
     }
 }

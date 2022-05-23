@@ -4,7 +4,7 @@ import { createKeyMulti, encodeAddress } from '@polkadot/util-crypto';
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { Call } from "@polkadot/types/interfaces";
 
-import { getRecoveryConfig, RecoveryConfig } from "./Recovery";
+import { getRecoveryConfig } from "./Recovery";
 import { PrefixedNumber } from "./numbers";
 import { LGNT_SMALLEST_UNIT } from './Balances';
 
@@ -117,7 +117,7 @@ export async function approveVaultTransfer(parameters: VaultTransferApprovalPara
 
 export interface CancelVaultTransferParameters {
     api: ApiPromise;
-    recoveryConfig: RecoveryConfig;
+    legalOfficers: string[];
     amount: PrefixedNumber;
     destination: string;
     block: bigint,
@@ -129,9 +129,9 @@ export function buildCancelVaultTransferCall(parameters: CancelVaultTransferPara
 }
 
 export function cancelVaultTransfer(parameters: CancelVaultTransferParameters): SubmittableExtrinsic {
-    const { api, amount, destination, recoveryConfig, block, index } = parameters
+    const { api, amount, destination, legalOfficers, block, index } = parameters
     const actualAmount = amount.convertTo(LGNT_SMALLEST_UNIT).coefficient.unnormalize();
     const call = transferCall(api, destination, BigInt(actualAmount));
-    const sortedLegalOfficers = [ ...recoveryConfig.legalOfficers ].sort();
+    const sortedLegalOfficers = [ ...legalOfficers ].sort();
     return api.tx.multisig.cancelAsMulti(2, sortedLegalOfficers, {height: block, index}, call.method.hash)
 }

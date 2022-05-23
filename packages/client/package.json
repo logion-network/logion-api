@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.app.json",
     "test": "jasmine --config=jasmine.json",
     "integration-test": "docker-compose up -d && ./scripts/integration_test_db_setup.sh && jasmine --config=jasmine-integration.json ; docker-compose down",
     "do-dry-publish": "yarn prepare-publish && cd ./dist && npm publish --access public --dry-run",

@@ -22,15 +22,16 @@ import {
     buildTestAuthenticatedSharedSate,
     LOGION_CLIENT_CONFIG,
     mockOption,
-    mockEmptyOption
+    mockEmptyOption,
+    SUCCESSFULL_SUBMISSION,
+    REQUESTER,
+    RECOVERED_ADDRESS,
 } from './Utils';
 import { TestConfigFactory } from './TestConfigFactory';
 import { LegalOfficer, PostalAddress, UserIdentity } from '../src/Types';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { AxiosFactory } from '../src/AxiosFactory';
 import { Signer } from '../src/Signer';
-import { PrefixedNumber, PICO } from "@logion/node-api/dist/numbers";
-import { Call } from '@polkadot/types/interfaces';
 import { AccountTokens } from '../src/AuthenticationClient';
 
 describe("Recovery's getInitialState", () => {
@@ -255,8 +256,6 @@ function buildAcceptedAliceRecoveryRequest(): ProtectionRequest {
     };
 }
 
-const RECOVERED_ADDRESS = "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb";
-
 function buildAcceptedBobRecoveryRequest(): ProtectionRequest {
     return {
         ...buildPartialBobRequest(),
@@ -269,8 +268,6 @@ function buildAcceptedBobRecoveryRequest(): ProtectionRequest {
         },
     };
 }
-
-const REQUESTER = "5EBxoSssqNo23FvsDeUxjyQScnfEiGxJaNwuwqBH2Twe35BX";
 
 function buildPendingAliceRequest(): ProtectionRequest {
     return {
@@ -421,7 +418,8 @@ describe("NoProtection", () => {
         );
         const state = new NoProtection(sharedState);
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string }>(params => params.signerId === currentAddress))).returns(Promise.resolve());
+        signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string }>(params => params.signerId === currentAddress)))
+            .returns(Promise.resolve(SUCCESSFULL_SUBMISSION));
 
         const nextState = await state.requestRecovery({
             legalOfficer1: ALICE,
@@ -672,7 +670,7 @@ describe("AcceptedProtection", () => {
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
             params.signerId === currentAddress
             && params.submittable === submittable.object()))
-        ).returns(Promise.resolve());
+        ).returns(Promise.resolve({block: "hash", index: 1}));
 
         const nextState = await state.activate(signer.object());
 
@@ -731,7 +729,7 @@ describe("AcceptedProtection", () => {
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
             params.signerId === currentAddress
             && params.submittable === submittable.object()))
-        ).returns(Promise.resolve());
+        ).returns(Promise.resolve(SUCCESSFULL_SUBMISSION));
 
         const nextState = await state.activate(signer.object());
 
@@ -746,7 +744,9 @@ describe("PendingRecovery", () => {
 
     it("claims", async () => {
         const aliceRequest: ProtectionRequest = buildAcceptedAliceRecoveryRequest();
+        aliceRequest.status = "ACTIVATED";
         const bobRequest: ProtectionRequest = buildAcceptedBobRecoveryRequest();
+        bobRequest.status = "ACTIVATED";
         const currentAddress = REQUESTER;
         const token = "some-token";
         const tokens = new AccountTokens({
@@ -801,7 +801,7 @@ describe("PendingRecovery", () => {
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
             params.signerId === currentAddress
             && params.submittable === submittable.object()))
-        ).returns(Promise.resolve());
+        ).returns(Promise.resolve(SUCCESSFULL_SUBMISSION));
 
         const nextState = await state.claimRecovery(signer.object());
 
@@ -811,70 +811,3 @@ describe("PendingRecovery", () => {
         expect(nextState.protectionParameters.isRecovery).toBe(true);
     });
 });
-
-describe("ClaimedRecovery", () => {
-    it("transfers from recovered account", async () => {
-        const aliceRequest: ProtectionRequest = buildAcceptedAliceRecoveryRequest();
-        const bobRequest: ProtectionRequest = buildAcceptedBobRecoveryRequest();
-        const currentAddress = REQUESTER;
-        const token = "some-token";
-        const tokens = new AccountTokens({
-            [REQUESTER]: {
-                value: token,
-                expirationDateTime: DateTime.now().plus({hours: 1})
-            }
-        });
-        const asRecoveredSubmittable = new Mock<SubmittableExtrinsic>();
-        const transferSubmittable = new Mock<SubmittableExtrinsic>();
-        const sharedState = await buildTestAuthenticatedSharedSate(
-            (factory: TestConfigFactory) => {
-                const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token);
-                setupFetchProtectionRequests(aliceAxios, [], [ aliceRequest ], []);
-                setupFetchProtectionRequests(bobAxios, [], [ bobRequest ], []);
-
-                factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
-
-                const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const call = new Mock<Call>();
-                nodeApi.setup(instance => instance.tx.recovery.asRecovered(RECOVERED_ADDRESS, call.object()))
-                    .returns(asRecoveredSubmittable.object());
-                nodeApi.setup(instance => instance.tx.balances.transfer(currentAddress, 10000000))
-                    .returns(transferSubmittable.object())
-                nodeApi.setup(instance => instance.createType('Call', transferSubmittable.object()))
-                    .returns(call.object())
-            },
-            currentAddress,
-            legalOfficers,
-            tokens,
-        );
-        const state = new ClaimedRecovery({
-            ...sharedState,
-            recoveredAddress: RECOVERED_ADDRESS,
-            selectedLegalOfficers: [ ALICE, BOB ],
-            legalOfficers,
-            pendingProtectionRequests: [],
-            acceptedProtectionRequests: [ aliceRequest, bobRequest ],
-            rejectedProtectionRequests: [],
-            allRequests: [ aliceRequest, bobRequest ],
-            recoveryConfig: {
-                legalOfficers: [ ALICE.address, BOB.address ]
-            }
-        });
-        const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
-            params.signerId === currentAddress
-            && params.submittable === asRecoveredSubmittable.object()))
-        ).returns(Promise.resolve());
-
-        const nextState = await state.transferRecoveredAccount(signer.object(), {
-            destination: currentAddress,
-            amount: new PrefixedNumber("10", PICO)
-        });
-
-        expect(nextState).toBeInstanceOf(ClaimedRecovery);
-        expect(nextState.protectionParameters.isActive).toBe(true);
-        expect(nextState.protectionParameters.isClaimed).toBe(true);
-        expect(nextState.protectionParameters.isRecovery).toBe(true);
-    })
-})

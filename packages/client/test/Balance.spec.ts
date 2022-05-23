@@ -1,11 +1,17 @@
-import { buildTestConfig, LOGION_CLIENT_CONFIG, ALICE, BOB } from "./Utils";
-import { LogionClient } from "../src";
+import { PrefixedNumber, ATTO } from "@logion/node-api";
 import { AccountInfo } from "@polkadot/types/interfaces/system/types";
-import { Transaction } from "../src/TransactionClient";
-import { It, Mock } from 'moq.ts';
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
+import { Call } from "@polkadot/types/interfaces";
 import { AxiosInstance, AxiosResponse } from 'axios';
+import { DateTime } from "luxon";
+import { It, Mock, Times } from 'moq.ts';
+
+import { buildTestConfig, LOGION_CLIENT_CONFIG, ALICE, BOB, buildTestAuthenticatedSharedSate, SUCCESSFULL_SUBMISSION } from "./Utils";
+import { AccountTokens, LogionClient } from "../src";
+import { Transaction } from "../src/TransactionClient";
 import { AxiosFactory } from "../src/AxiosFactory";
-import { ATTO } from "@logion/node-api/dist/numbers";
+import { BalanceState } from "../src/Balance";
+import { Signer } from "../src/Signer";
 
 const REQUESTER_ADDRESS = "5ERRWWYABvYjyUG2oLCNifkmcCQT44ijPpQNxtwZZFj86Jjd";
 
@@ -72,7 +78,7 @@ describe("Balance", () => {
             const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
             const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
 
-            setupFetchTransactions(axiosFactory, transactions)
+            setupFetchTransactions(axiosFactory, transactions, REQUESTER_ADDRESS)
 
             directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([ ALICE ]));
 
@@ -85,15 +91,135 @@ describe("Balance", () => {
         const balanceState = await client.balanceState();
         expect(balanceState.transactions).toEqual(transactions)
     })
+
+    it("transfers from account", async () => {
+        const token = "some-token";
+        const tokens = new AccountTokens({
+            [REQUESTER_ADDRESS]: {
+                value: token,
+                expirationDateTime: DateTime.now().plus({hours: 1})
+            }
+        });
+        const amount = new PrefixedNumber("200", ATTO);
+        const transfer = new Mock<SubmittableExtrinsic>();
+        const sharedState = await buildTestAuthenticatedSharedSate(
+            testConfigFactory => {
+                const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
+                testConfigFactory.setupDefaultNetworkState();
+                const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
+                const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+
+                directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
+
+                const accountInfo = mockAccountInfo(1000000n);
+                nodeApi.setup(instance => instance.query.system.account(REQUESTER_ADDRESS))
+                    .returns(Promise.resolve(accountInfo));
+
+                nodeApi.setup(instance => instance.tx.balances.transfer(REQUESTER_ADDRESS, "200"))
+                    .returns(transfer.object());
+
+                setupFetchTransactions(axiosFactory, [], REQUESTER_ADDRESS);
+            },
+            REQUESTER_ADDRESS,
+            [ ALICE, BOB ],
+            tokens,
+        );
+
+        const balanceState = new BalanceState({
+            ...sharedState,
+            balances: [],
+            transactions: [],
+            isRecovery: false,
+        });
+
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
+            params.signerId === REQUESTER_ADDRESS
+            && params.submittable === transfer.object()))
+        ).returns(Promise.resolve(SUCCESSFULL_SUBMISSION));
+
+        await balanceState.transfer({
+            signer: signer.object(),
+            amount,
+            destination: REQUESTER_ADDRESS,
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+    })
+
+    it("transfers from recovered account", async () => {
+        const token = "some-token";
+        const tokens = new AccountTokens({
+            [REQUESTER_ADDRESS]: {
+                value: token,
+                expirationDateTime: DateTime.now().plus({hours: 1})
+            }
+        });
+        const recoveredAddress = "5EBxoSssqNo23FvsDeUxjyQScnfEiGxJaNwuwqBH2Twe35BX";
+        const asRecovered = new Mock<SubmittableExtrinsic>();
+        const amount = new PrefixedNumber("200", ATTO);
+        const transfer = new Mock<SubmittableExtrinsic>();
+        const call = new Mock<Call>();
+        const sharedState = await buildTestAuthenticatedSharedSate(
+            testConfigFactory => {
+                const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
+                testConfigFactory.setupDefaultNetworkState();
+                const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
+                const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+
+                directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
+
+                const accountInfo = mockAccountInfo(1000000n);
+                nodeApi.setup(instance => instance.query.system.account(REQUESTER_ADDRESS))
+                    .returns(Promise.resolve(accountInfo));
+
+                nodeApi.setup(instance => instance.tx.balances.transfer(REQUESTER_ADDRESS, "200"))
+                    .returns(transfer.object());
+
+                nodeApi.setup(instance => instance.createType("Call", transfer.object()))
+                    .returns(call.object());
+
+                nodeApi.setup(instance => instance.tx.recovery.asRecovered(recoveredAddress, call.object()))
+                    .returns(asRecovered.object());
+
+                setupFetchTransactions(axiosFactory, [], recoveredAddress);
+            },
+            REQUESTER_ADDRESS,
+            [ ALICE, BOB ],
+            tokens,
+        );
+
+        const balanceState = new BalanceState({
+            ...sharedState,
+            balances: [],
+            transactions: [],
+            isRecovery: true,
+            recoveredAddress,
+        });
+
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
+            params.signerId === REQUESTER_ADDRESS
+            && params.submittable === asRecovered.object()))
+        ).returns(Promise.resolve(SUCCESSFULL_SUBMISSION));
+
+        await balanceState.transfer({
+            signer: signer.object(),
+            amount,
+            destination: REQUESTER_ADDRESS,
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+    })
 })
 
-function setupFetchTransactions(axiosFactory: Mock<AxiosFactory>, transactions: Transaction []) {
+function setupFetchTransactions(axiosFactory: Mock<AxiosFactory>, transactions: Transaction [], address: string) {
     const axios = new Mock<AxiosInstance>();
     const response = new Mock<AxiosResponse<any>>();
     response.setup(instance => instance.data).returns({
         transactions
     })
-    axios.setup(instance => instance.put("/api/transaction", It.Is<{address: string}>(body => body.address === REQUESTER_ADDRESS)))
+    axios.setup(instance => instance.put("/api/transaction", It.Is<{address: string}>(body => body.address === address)))
         .returns(Promise.resolve(response.object()))
     axiosFactory.setup(instance => instance.buildAxiosInstance(It.IsAny<string>(), It.IsAny()))
         .returns(axios.object());

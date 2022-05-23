@@ -169,4 +169,25 @@ export class RecoveryClient {
         const response = await axios.post("/api/protection-request", request);
         return response.data;
     }
+
+    async fetchAccepted(legalOfficers: LegalOfficer[]): Promise<ProtectionRequest[]> {
+        const initialState = {
+            nodesUp: legalOfficers.map(legalOfficer => ({
+                url: legalOfficer.node,
+                legalOfficer: legalOfficer.address
+            })),
+            nodesDown: [],
+        };
+        const multiClient = new MultiSourceHttpClient<LegalOfficerEndpoint, ProtectionRequest[]>(
+            initialState,
+            this.axiosFactory,
+            this.token
+        );
+        const result = await multiClient.fetch(axios => this.fetchProtectionRequests(axios, {
+            requesterAddress: this.currentAddress,
+            statuses: [ "ACCEPTED", "ACTIVATED" ],
+            kind: "ANY",
+        }));
+        return aggregateArrays(result);
+    }
 }

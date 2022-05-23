@@ -115,7 +115,7 @@ export class NormalizedNumber {
     }
 
     toNumber() {
-        return Number(this._normalized);
+        return Number(this.unnormalize());
     }
 
     isZero() {
@@ -250,7 +250,7 @@ export class ScientificNumber {
 
     toNumber() {
         const optimalThis = this.optimizeScale(1);
-        return Number(optimalThis.coefficient) * Math.pow(10, optimalThis._tenExponent);
+        return optimalThis.coefficient.toNumber() * Math.pow(10, optimalThis._tenExponent);
     }
 
     negate() {

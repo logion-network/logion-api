@@ -170,6 +170,13 @@ test("optimizeScale if already optimal", () => {
     const optimized = scientific.optimizeScale(3);
     expect(optimized.coefficient.toString()).toBe("110.0000999374998932");
     expect(optimized.tenExponent).toBe(-2);
+});
+
+test("optimizeScale if zero", () => {
+    const scientific = new ScientificNumber("0", -18);
+    const optimized = scientific.optimizeScale(3);
+    expect(optimized.coefficient.toString()).toBe(".");
+    expect(optimized.tenExponent).toBe(-18);
 })
 
 test("divide", () => {
@@ -266,4 +273,9 @@ test("convertToPrefixed finds atto with smaller", () => {
     const prefixed = convertToPrefixed(scientific);
     expect(prefixed.coefficient.toString()).toBe("42.");
     expect(prefixed.prefix.symbol).toBe("a");
+})
+
+test("toNumber of zero", () => {
+    const zero = new NormalizedNumber("0.00");
+    expect(zero.toNumber()).toBe(0);
 })

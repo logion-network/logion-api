@@ -1,19 +1,35 @@
+import { PrefixedNumber } from "@logion/node-api";
+import { asRecovered } from "@logion/node-api/dist/Recovery";
+import { CoinBalance, transferSubmittable, getBalances, buildTransferCall } from "@logion/node-api/dist/Balances";
+import type { SubmittableExtrinsic } from '@polkadot/api/promise/types'; 
+
 import { Transaction, TransactionClient } from "./TransactionClient";
-import { PrefixedNumber } from "@logion/node-api/dist/numbers";
-import { CoinBalance, transferSubmittable, getBalances } from "@logion/node-api/dist/Balances";
-import { Signer } from "./Signer";
+import { SignCallback, Signer } from "./Signer";
 import { SharedState } from "./SharedClient";
 
 export interface TransferParam {
-    destination: string
-    amount: PrefixedNumber
+    signer: Signer;
+    destination: string;
+    amount: PrefixedNumber;
+    callback?: SignCallback;
 }
 
-export async function getBalanceState(sharedState: SharedState): Promise<BalanceState> {
+export interface BalanceSharedState extends SharedState {
+    readonly balances: CoinBalance[];
+    readonly transactions: Transaction[];
+    readonly isRecovery: boolean;
+    readonly recoveredAddress?: string;
+}
+
+export async function getBalanceState(sharedState: SharedState & { isRecovery: boolean, recoveredAddress?: string }): Promise<BalanceState> {
     const client = newTransactionClient(sharedState);
     const transactions = await client.fetchTransactions();
     const balances = await getBalances({ api: sharedState.nodeApi, accountId: sharedState.currentAddress! });
-    return new BalanceState(balances, transactions, sharedState);
+    return new BalanceState({
+        ...sharedState,
+        transactions,
+        balances,
+    });
 }
 
 function newTransactionClient(sharedState: SharedState): TransactionClient {
@@ -26,24 +42,48 @@ function newTransactionClient(sharedState: SharedState): TransactionClient {
 
 export class BalanceState {
 
-    constructor(balances: CoinBalance[], transactions: Transaction[], sharedState: SharedState) {
-        this.balances = balances;
-        this.transactions = transactions;
-        this.sharedState = sharedState;
+    constructor(state: BalanceSharedState) {
+        this.sharedState = state;
     }
 
-    readonly balances: CoinBalance[];
-    readonly transactions: Transaction[];
-    private readonly sharedState: SharedState;
+    private sharedState: BalanceSharedState;
 
-    async transfer(signer: Signer, params: TransferParam): Promise<BalanceState> {
+    get transactions(): Transaction[] {
+        return this.sharedState.transactions;
+    }
+
+    get balances(): CoinBalance[] {
+        return this.sharedState.balances;
+    }
+
+    async transfer(params: TransferParam): Promise<BalanceState> {
+        const { signer, destination, amount, callback } = params;
+
+        let submittable: SubmittableExtrinsic;
+        if(this.sharedState.isRecovery) {
+            submittable = asRecovered({
+                api: this.sharedState.nodeApi,
+                recoveredAccountId: this.sharedState.recoveredAddress!,
+                call: buildTransferCall({
+                    api: this.sharedState.nodeApi,
+                    destination,
+                    amount,
+                })
+            });
+        } else {
+            submittable = transferSubmittable({
+                api: this.sharedState.nodeApi,
+                destination,
+                amount,
+            });
+        }
+
         await signer.signAndSend({
             signerId: this.sharedState.currentAddress!,
-            submittable: transferSubmittable({
-                api: this.sharedState.nodeApi,
-                ...params,
-            })
+            submittable,
+            callback,
         })
+
         return this.refresh();
     }
 

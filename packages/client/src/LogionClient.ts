@@ -46,6 +46,10 @@ export class LogionClient {
 
     private sharedState: SharedState;
 
+    get config(): LogionClientConfig {
+        return this.sharedState.config;
+    }
+
     getLegalOfficers(): LegalOfficer[] {
         return this.sharedState.legalOfficers;
     }
@@ -187,7 +191,10 @@ export class LogionClient {
         if(!this.sharedState.currentAddress) {
             throw new Error("Current address was not selected");
         }
-        return getBalanceState(this.sharedState);
+        return getBalanceState({
+            ...this.sharedState,
+            isRecovery: false,
+        });
     }
 
     async isProtected(address: string): Promise<boolean> {
