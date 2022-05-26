@@ -12,7 +12,6 @@ import { SignCallback, Signer } from "./Signer";
 import { LegalOfficer, PostalAddress, UserIdentity } from "./Types";
 import { BalanceState, getBalanceState } from "./Balance";
 import { VaultState } from "./Vault";
-import { Duration } from "luxon";
 import { PollingParameters, waitFor } from "./Polling";
 
 export type ProtectionState = NoProtection | PendingProtection | AcceptedProtection | ActiveProtection | PendingRecovery | ClaimedRecovery | UnavailableProtection;
@@ -426,12 +425,9 @@ function isProtectionFullyReady(sharedState: RecoverySharedState): boolean {
 }
 
 async function vaultState(sharedState: RecoverySharedState): Promise<VaultState> {
-    if(!isProtectionFullyReady(sharedState)) {
-        throw new Error("Protection is not yet fully ready, please wait a couple of seconds");
-    }
     return VaultState.create({
         ...sharedState,
-        isRecovery: false
+        isRecovery: false,
     });
 }
 
@@ -475,9 +471,6 @@ export class PendingRecovery implements WithProtectionParameters, WithActiveProt
         signer: Signer,
         callback?: SignCallback,
     ): Promise<ClaimedRecovery> {
-        if(!this.isFullyReady()) {
-            throw new Error("Protection is not yet fully ready, please wait a couple of seconds");
-        }
         const addressToRecover = this.protectionParameters.recoveredAddress!;
         await signer.signAndSend({
             signerId: this.sharedState.currentAddress!,
@@ -525,17 +518,26 @@ export class ClaimedRecovery implements WithProtectionParameters {
         return buildProtectionParameters(this.sharedState);
     }
 
+    isFullyReady(): boolean {
+        return isProtectionFullyReady(this.sharedState);
+    }
+
     async vaultState(): Promise<VaultState> {
-        return VaultState.create({
-            ...this.sharedState,
-            isRecovery: false
-        });
+        return vaultState(this.sharedState);
+    }
+
+    async refresh(): Promise<ClaimedRecovery> {
+        return refreshWithActiveProtection(this.sharedState, ClaimedRecovery);
+    }
+
+    async waitForFullyReady(pollingParameters?: PollingParameters): Promise<ClaimedRecovery> {
+        return waitForProtectionFullyReady(this.sharedState, this, pollingParameters);
     }
 
     async recoveredVaultState(): Promise<VaultState> {
         return VaultState.create({
             ...this.sharedState,
-            isRecovery: true
+            isRecovery: true,
         });
     }
 

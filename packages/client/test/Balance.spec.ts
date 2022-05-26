@@ -170,7 +170,7 @@ describe("Balance", () => {
                 directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
                 const accountInfo = mockAccountInfo(1000000n);
-                nodeApi.setup(instance => instance.query.system.account(REQUESTER_ADDRESS))
+                nodeApi.setup(instance => instance.query.system.account(recoveredAddress))
                     .returns(Promise.resolve(accountInfo));
 
                 nodeApi.setup(instance => instance.tx.balances.transfer(REQUESTER_ADDRESS, "200"))

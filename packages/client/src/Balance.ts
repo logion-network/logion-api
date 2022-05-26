@@ -22,9 +22,15 @@ export interface BalanceSharedState extends SharedState {
 }
 
 export async function getBalanceState(sharedState: SharedState & { isRecovery: boolean, recoveredAddress?: string }): Promise<BalanceState> {
-    const client = newTransactionClient(sharedState);
+    let targetAddress;
+    if(sharedState.isRecovery) {
+        targetAddress = sharedState.recoveredAddress!;
+    } else {
+        targetAddress = sharedState.currentAddress!;
+    }
+    const client = newTransactionClient(targetAddress, sharedState);
     const transactions = await client.fetchTransactions();
-    const balances = await getBalances({ api: sharedState.nodeApi, accountId: sharedState.currentAddress! });
+    const balances = await getBalances({ api: sharedState.nodeApi, accountId: targetAddress });
     return new BalanceState({
         ...sharedState,
         transactions,
@@ -32,11 +38,11 @@ export async function getBalanceState(sharedState: SharedState & { isRecovery: b
     });
 }
 
-function newTransactionClient(sharedState: SharedState): TransactionClient {
+function newTransactionClient(currentAddress: string, sharedState: SharedState): TransactionClient {
     return new TransactionClient({
         axiosFactory: sharedState.axiosFactory,
-        currentAddress: sharedState.currentAddress!,
         networkState: sharedState.networkState,
+        currentAddress,
     })
 }
 

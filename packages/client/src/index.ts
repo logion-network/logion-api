@@ -16,6 +16,8 @@ import {
     ClaimedRecovery,
     UnavailableProtection
 } from './Recovery';
+import { VaultState } from './Vault';
+import { VaultTransferRequest } from './VaultClient';
 
 export {
     LogionClient,
@@ -41,4 +43,7 @@ export {
     SignCallback,
     ISubmittableResult,
     isSuccessful,
+    VaultState,
+    VaultTransferRequest,
 };
+ 

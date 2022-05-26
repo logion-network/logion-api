@@ -23,7 +23,11 @@ export interface VaultSharedState extends SharedState {
     transactions: Transaction[],
 }
 
-export type VaultStateCreationParameters = SharedState & { selectedLegalOfficers: LegalOfficer[], isRecovery: boolean, recoveredAddress?: string };
+export type VaultStateCreationParameters = SharedState & {
+    selectedLegalOfficers: LegalOfficer[],
+    isRecovery: boolean,
+    recoveredAddress?: string,
+};
 
 export class VaultState {
 
@@ -44,14 +48,12 @@ export class VaultState {
         const transactions = await transactionClient.fetchTransactions();
         const balances = await getBalances({ api: sharedState.nodeApi, accountId: vaultAddress });
 
-        const isRecovery = sharedState.isRecovery;
         return new VaultState({
             ...sharedState,
             ...result,
             transactions,
             balances,
             client,
-            isRecovery,
         });
     }
 
@@ -91,6 +93,13 @@ export class VaultState {
 
     get acceptedVaultTransferRequests() {
         return this.sharedState.acceptedVaultTransferRequests;
+    }
+
+    get vaultTransferRequestsHistory() {
+        return this.sharedState.acceptedVaultTransferRequests
+            .concat(this.sharedState.rejectedVaultTransferRequests)
+            .concat(this.sharedState.cancelledVaultTransferRequests)
+            .sort(requestSort);
     }
 
     async createVaultTransferRequest(params: {
