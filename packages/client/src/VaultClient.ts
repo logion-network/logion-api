@@ -1,6 +1,6 @@
 import { AxiosInstance } from "axios";
 import { AxiosFactory } from "./AxiosFactory";
-import { aggregateArrays, MultiSourceHttpClient, MultiSourceHttpClientState } from "./Http";
+import { aggregateArrays, MultiSourceHttpClient, initMultiSourceHttpClientState } from "./Http";
 import { NetworkState } from "./NetworkState";
 import { LegalOfficerEndpoint } from "./SharedClient";
 import { LegalOfficer, PostalAddress, UserIdentity } from "./Types";
@@ -78,21 +78,7 @@ export class VaultClient {
     private token: string;
 
     async fetchAll(legalOfficers?: LegalOfficer[]): Promise<FetchAllResult> {
-        let initialState: MultiSourceHttpClientState<LegalOfficerEndpoint>;
-        if(legalOfficers !== undefined) {
-            initialState = {
-                nodesUp: legalOfficers.map(legalOfficer => ({
-                    url: legalOfficer.node,
-                    legalOfficer: legalOfficer.address
-                })),
-                nodesDown: [],
-            };
-        } else {
-            initialState = {
-                nodesUp: this.networkState.nodesUp,
-                nodesDown: this.networkState.nodesDown,
-            };
-        }
+        let initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers)
 
         const vaultTransferRequestsMultiClient = new MultiSourceHttpClient<LegalOfficerEndpoint, VaultTransferRequest[]>(
             initialState,

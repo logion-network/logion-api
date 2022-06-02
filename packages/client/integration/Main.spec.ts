@@ -3,6 +3,7 @@ import { enablesProtection } from "./Protection";
 import { transfers } from "./Balance";
 import { providesVault } from "./Vault";
 import { recoverLostAccount } from "./Recovery";
+import { requestTransactionLoc } from "./Loc";
 
 describe("Logion SDK", () => {
 
@@ -29,4 +30,8 @@ describe("Logion SDK", () => {
     it("recovers a lost account", async () => {
         await recoverLostAccount(state);
     });
+
+    fit("requests a Transaction LOC", async () => {
+        await requestTransactionLoc(state);
+    })
 });

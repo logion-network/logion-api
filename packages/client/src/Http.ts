@@ -2,6 +2,9 @@ import { AxiosInstance } from 'axios';
 import { DateTime } from 'luxon';
 
 import { AxiosFactory } from './AxiosFactory';
+import { LegalOfficerEndpoint } from "./SharedClient";
+import { LegalOfficer } from "./Types";
+import { NetworkState } from "./NetworkState";
 
 export interface Token {
     readonly value: string;
@@ -13,7 +16,7 @@ export interface Endpoint {
 }
 
 export interface MultiResponse<R> extends Record<string, R> {
-    
+
 }
 
 export interface MultiSourceHttpClientState<E extends Endpoint> {
@@ -72,6 +75,25 @@ export class MultiSourceHttpClient<E extends Endpoint, R> {
             nodesDown: this.nodesDown.slice(0)
         };
     }
+}
+
+export function initMultiSourceHttpClientState(networkState: NetworkState<LegalOfficerEndpoint>, legalOfficers?: LegalOfficer[]): MultiSourceHttpClientState<LegalOfficerEndpoint> {
+    let initialState: MultiSourceHttpClientState<LegalOfficerEndpoint>;
+    if(legalOfficers !== undefined) {
+        initialState = {
+            nodesUp: legalOfficers.map(legalOfficer => ({
+                url: legalOfficer.node,
+                legalOfficer: legalOfficer.address
+            })),
+            nodesDown: [],
+        };
+    } else {
+        initialState = {
+            nodesUp: networkState.nodesUp,
+            nodesDown: networkState.nodesDown,
+        };
+    }
+    return initialState;
 }
 
 export class AnySourceHttpClient<E extends Endpoint, R> {

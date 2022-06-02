@@ -2,7 +2,7 @@ import { AxiosInstance } from "axios";
 import { LogionNodeApi } from "node-api/dist";
 import { getProxy, getRecoveryConfig, RecoveryConfig } from "@logion/node-api/dist/Recovery";
 import { AxiosFactory } from "./AxiosFactory";
-import { aggregateArrays, MultiResponse, MultiSourceHttpClient, MultiSourceHttpClientState } from "./Http";
+import { aggregateArrays, MultiResponse, MultiSourceHttpClient, initMultiSourceHttpClientState } from "./Http";
 import { NetworkState } from "./NetworkState";
 import { LegalOfficerEndpoint } from "./SharedClient";
 import { LegalOfficer, PostalAddress, UserIdentity } from "./Types";
@@ -70,32 +70,18 @@ export class RecoveryClient {
         this.nodeApi = params.nodeApi;
     }
 
-    private networkState: NetworkState<LegalOfficerEndpoint>;
+    private readonly networkState: NetworkState<LegalOfficerEndpoint>;
 
-    private axiosFactory: AxiosFactory;
+    private readonly axiosFactory: AxiosFactory;
 
-    private currentAddress: string;
+    private readonly currentAddress: string;
 
-    private token: string;
+    private readonly token: string;
 
-    private nodeApi: LogionNodeApi;
+    private readonly nodeApi: LogionNodeApi;
 
     async fetchAll(legalOfficers?: LegalOfficer[]): Promise<FetchAllResult> {
-        let initialState: MultiSourceHttpClientState<LegalOfficerEndpoint>;
-        if(legalOfficers !== undefined) {
-            initialState = {
-                nodesUp: legalOfficers.map(legalOfficer => ({
-                    url: legalOfficer.node,
-                    legalOfficer: legalOfficer.address
-                })),
-                nodesDown: [],
-            };
-        } else {
-            initialState = {
-                nodesUp: this.networkState.nodesUp,
-                nodesDown: this.networkState.nodesDown,
-            };
-        }
+        let initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers)
 
         const multiClient = new MultiSourceHttpClient<LegalOfficerEndpoint, ProtectionRequest[]>(
             initialState,
