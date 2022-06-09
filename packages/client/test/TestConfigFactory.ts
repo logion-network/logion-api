@@ -48,7 +48,7 @@ export class TestConfigFactory {
 
     setupAuthenticationClientMock(config: LogionClientConfig, legalOfficers: LegalOfficer[]): Mock<AuthenticationClient> {
         const authenticationClient = new Mock<AuthenticationClient>();
-        this._componentFactory.setup(instance => instance.buildAuthenticationClient(config.directoryEndpoint, legalOfficers, It.IsAny()))
+        this._componentFactory.setup(instance => instance.buildAuthenticationClient(config.directoryEndpoint, It.Is<LegalOfficer[]>(value => legalOfficers.every(item => value.includes(item))), It.IsAny()))
             .returns(authenticationClient.object());
         return authenticationClient;
     }

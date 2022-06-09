@@ -22,9 +22,9 @@ describe("LogionClient", () => {
         });
         const client = await LogionClient.create(config);
 
-        const legalOfficers = client.getLegalOfficers();
+        const legalOfficers = client.legalOfficers;
 
-        expect(legalOfficers).toBe(clientLegalOfficers);
+        expect(legalOfficers).toEqual(clientLegalOfficers);
     });
 
     it("uses tokens", async () => {

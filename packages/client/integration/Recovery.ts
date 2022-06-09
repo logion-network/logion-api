@@ -49,15 +49,7 @@ export async function recoverLostAccount(state: State) {
     console.log("Claiming")
     const claimed = await pendingRecovery.claimRecovery(signer);
 
-    // Transfer from recovered account
-    const recoveredBalance = await claimed.recoveredBalanceState();
-    await recoveredBalance.transfer({
-        signer,
-        destination: NEW_ADDRESS,
-        amount: recoveredBalance.balances[0].available,
-    });
-
-    // Transfer from recovered account
+    console.log("Transfer from recovered vault")
     const newVault = await claimed.vaultState();
     let recoveredVault = await claimed.recoveredVaultState();
     recoveredVault = await recoveredVault.createVaultTransferRequest({
@@ -67,7 +59,17 @@ export async function recoverLostAccount(state: State) {
         signer,
     });
     const pendingRequest = recoveredVault.pendingVaultTransferRequests[0];
+
+    console.log("Alice accepts transfer from recovered vault")
     await aliceAcceptsTransfer(state, pendingRequest);
+
+    console.log("Transfer from recovered account")
+    const recoveredBalance = await claimed.recoveredBalanceState();
+    await recoveredBalance.transfer({
+        signer,
+        destination: NEW_ADDRESS,
+        amount: recoveredBalance.balances[0].available,
+    });
 }
 
 async function acceptRequestAndVouch(

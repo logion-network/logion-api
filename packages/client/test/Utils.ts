@@ -87,6 +87,7 @@ export async function buildAuthenticatedSharedStateUsingTestConfig(
         nodeApi,
         currentAddress,
         legalOfficers,
+        allLegalOfficers: legalOfficers,
         tokens,
     };
 }

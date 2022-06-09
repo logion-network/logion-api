@@ -17,7 +17,6 @@ export class DirectoryClient {
         const legalOfficers = (await this.axios.get("/api/legal-officer")
             .then(response => response.data.legalOfficers)) as LegalOfficer[];
         return legalOfficers
-            .filter(data => data.node)
             .map(data => ({
                 ...data,
                 name: `${data.userIdentity.firstName} ${data.userIdentity.lastName}`
