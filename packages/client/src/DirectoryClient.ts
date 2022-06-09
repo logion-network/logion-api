@@ -16,10 +16,12 @@ export class DirectoryClient {
     async getLegalOfficers(): Promise<LegalOfficer[]> {
         const legalOfficers = (await this.axios.get("/api/legal-officer")
             .then(response => response.data.legalOfficers)) as LegalOfficer[];
-        return legalOfficers.map(data => ({
-            ...data,
-            name: `${data.userIdentity.firstName} ${data.userIdentity.lastName}`
-        }));
+        return legalOfficers
+            .filter(data => data.node)
+            .map(data => ({
+                ...data,
+                name: `${data.userIdentity.firstName} ${data.userIdentity.lastName}`
+            }));
     }
 
     async createOrUpdate(legalOfficer: LegalOfficer) {
