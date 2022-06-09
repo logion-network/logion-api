@@ -47,7 +47,7 @@ export async function setupInitialState(): Promise<State> {
         ALICE.address,
         BOB.address
     ], signer);
-    const legalOfficers = client.getLegalOfficers();
+    const legalOfficers = client.legalOfficers;
     const alice = legalOfficers.find(legalOfficer => legalOfficer.address === ALICE.address)!;
     const bob = legalOfficers.find(legalOfficer => legalOfficer.address === BOB.address)!;
     return {

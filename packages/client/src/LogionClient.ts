@@ -24,7 +24,8 @@ export class LogionClient {
             config.directoryEndpoint,
             axiosFactory
         );
-        const legalOfficers = await directoryClient.getLegalOfficers();
+        const allLegalOfficers = await directoryClient.getLegalOfficers();
+        const legalOfficers = allLegalOfficers.filter(legalOfficer => legalOfficer.node);
         const nodesUp: LegalOfficerEndpoint[] = legalOfficers.map(legalOfficer => ({ url: legalOfficer.node, legalOfficer: legalOfficer.address }));
         const sharedState: SharedState = {
             config,
@@ -33,6 +34,7 @@ export class LogionClient {
             directoryClient,
             nodeApi,
             legalOfficers,
+            allLegalOfficers,
             networkState: componentFactory.buildNetworkState(nodesUp, []),
             tokens: new AccountTokens({}),
             currentAddress: undefined,
@@ -50,10 +52,6 @@ export class LogionClient {
         return this.sharedState.config;
     }
 
-    getLegalOfficers(): LegalOfficer[] {
-        return this.sharedState.legalOfficers;
-    }
-
     get currentAddress(): string | undefined {
         return this.sharedState.currentAddress;
     }
@@ -68,6 +66,10 @@ export class LogionClient {
 
     get legalOfficers(): LegalOfficer[] {
         return this.sharedState.legalOfficers;
+    }
+
+    get allLegalOfficers(): LegalOfficer[] {
+        return this.sharedState.allLegalOfficers;
     }
 
     useTokens(tokens: AccountTokens): LogionClient {
@@ -180,10 +182,13 @@ export class LogionClient {
     }
 
     isLegalOfficer(address: string): boolean {
-        return this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === address) !== undefined;
+        return this.sharedState.allLegalOfficers.find(legalOfficer => legalOfficer.address === address) !== undefined;
     }
 
     buildAxios(legalOfficer: LegalOfficer): AxiosInstance {
+        if(!legalOfficer.node) {
+            throw new Error("Legal officer has currently no node");
+        }
         return this.sharedState.axiosFactory.buildAxiosInstance(legalOfficer.node, this.token?.value);
     }
 

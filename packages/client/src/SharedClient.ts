@@ -26,6 +26,7 @@ export interface SharedState {
     networkState: NetworkState<LegalOfficerEndpoint>;
     nodeApi: LogionNodeApi;
     legalOfficers: LegalOfficer[];
+    allLegalOfficers: LegalOfficer[];
     tokens: AccountTokens;
     currentAddress?: string;
 }
