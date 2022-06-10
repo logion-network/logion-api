@@ -164,6 +164,12 @@ export interface CreateSofRequestParams {
     itemId: string;
 }
 
+export interface CheckHashResult {
+    file?: MergedFile;
+    metadataItem?: MergedMetadataItem;
+    collectionItem?: CollectionItem;
+}
+
 class LocRequestState {
 
     protected readonly locSharedState: LocSharedState;
@@ -246,12 +252,23 @@ class LocRequestState {
         return loc.locType !== 'Identity' && (loc.requesterLocId !== undefined && loc.requesterLocId !== null);
     }
 
-    checkItem(): boolean {
-        return true;
-    }
+    async checkHash(hash: string): Promise<CheckHashResult> {
+        const loc = this.data();
+        const result: CheckHashResult = {};
 
-    checkFile(): boolean {
-        return true;
+        for(const file of loc.files) {
+            if(file.hash === hash) {
+                result.file = file;
+            }
+        }
+
+        for(const item of loc.metadata) {
+            if(item.value === hash) {
+                result.metadataItem = item;
+            }
+        }
+
+        return result;
     }
 
     private dataFromRequest(request: LocRequest): LocData {
@@ -330,12 +347,17 @@ export class OpenLoc extends LocRequestState {
         return await this.refresh() as OpenLoc;
     }
 
-    async addFile(params: AddFileParams): Promise<AddFileResult> {
+    async addFile(params: AddFileParams): Promise<{ state: OpenLoc, hash: string }> {
         const client = this.locSharedState.client;
-        return  await client.addFile({
+        const { hash } = await client.addFile({
             locId: this.locId,
             ...params
         });
+        const state = await this.refresh() as OpenLoc;
+        return {
+            state,
+            hash
+        }
     }
 
     async deleteMetadata(params: DeleteMetadataParams): Promise<OpenLoc> {
@@ -356,9 +378,10 @@ export class OpenLoc extends LocRequestState {
         return this;
     }
 
-    async requestSof(): Promise<LocRequest> {
+    async requestSof(): Promise<OpenLoc | ClosedLoc | ClosedCollectionLoc | VoidedLoc> {
         const client = this.locSharedState.client;
-        return await client.createSofRequest({ locId: this.locId })
+        await client.createSofRequest({ locId : this.locId });
+        return this.refresh();
     }
 
     override async refresh(): Promise<OpenLoc | ClosedLoc | ClosedCollectionLoc | VoidedLoc> {
@@ -368,9 +391,10 @@ export class OpenLoc extends LocRequestState {
 
 export class ClosedLoc extends LocRequestState {
 
-    async requestSof(): Promise<LocRequest> {
+    async requestSof(): Promise<ClosedLoc | VoidedLoc> {
         const client = this.locSharedState.client;
-        return await client.createSofRequest({ locId: this.locId })
+        await client.createSofRequest({ locId : this.locId });
+        return this.refresh();
     }
 
     override async refresh(): Promise<ClosedLoc | VoidedLoc> {
@@ -378,16 +402,7 @@ export class ClosedLoc extends LocRequestState {
     }
 }
 
-export class ClosedCollectionLoc extends LocRequestState {
-
-    async addCollectionItem(parameters: AddCollectionItemParams): Promise<ClosedCollectionLoc> {
-        const client = this.locSharedState.client;
-        await client.addCollectionItem({
-            locId: this.locId,
-            ...parameters
-        })
-        return this;
-    }
+class ClosedOrVoidCollectionLoc extends LocRequestState {
 
     async getCollectionItem(parameters: {itemId: string}): Promise<CollectionItem | undefined> {
         const { itemId } = parameters;
@@ -398,12 +413,34 @@ export class ClosedCollectionLoc extends LocRequestState {
         });
     }
 
-    async requestSof(params: CreateSofRequestParams): Promise<LocRequest> {
+    override async checkHash(hash: string): Promise<CheckHashResult> {
+        const result = await super.checkHash(hash);
+        const collectionItem = await this.getCollectionItem({ itemId: hash });
+        return {
+            ...result,
+            collectionItem
+        };
+    }
+}
+
+export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
+
+    async addCollectionItem(parameters: AddCollectionItemParams): Promise<ClosedCollectionLoc> {
         const client = this.locSharedState.client;
-        return await client.createSofRequest({
+        await client.addCollectionItem({
+            locId: this.locId,
+            ...parameters
+        })
+        return this;
+    }
+
+    async requestSof(params: CreateSofRequestParams): Promise<ClosedCollectionLoc | VoidedLoc> {
+        const client = this.locSharedState.client;
+        await client.createSofRequest({
             locId: this.locId,
             itemId: params.itemId
         })
+        return this.refresh();
     }
 
     async refresh(): Promise<ClosedCollectionLoc | VoidedLoc> {
@@ -423,6 +460,21 @@ export class VoidedLoc extends LocRequestState {
 
     async refresh(): Promise<VoidedLoc> {
         return await super.refresh() as VoidedLoc;
+    }
+}
+
+export class VoidedCollectionLoc extends ClosedOrVoidCollectionLoc {
+
+    async replacerLoc(): Promise<OpenLoc | ClosedCollectionLoc | VoidedCollectionLoc | undefined> {
+        const replacer = this.data().voidInfo?.replacer;
+        if (replacer) {
+            return await this.locSharedState.locsState.findById({ locId: replacer }) as OpenLoc | ClosedCollectionLoc | VoidedCollectionLoc;
+        }
+        return undefined;
+    }
+
+    async refresh(): Promise<VoidedCollectionLoc> {
+        return await super.refresh() as VoidedCollectionLoc;
     }
 }
 

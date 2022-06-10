@@ -35,12 +35,20 @@ export async function requestTransactionLoc(state: State) {
     await legalOfficer.accept(pendingRequest.locId);
     await legalOfficer.createLoc(pendingRequest.locId);
 
-    const openLoc = await pendingRequest.refresh() as OpenLoc;
+    let openLoc = await pendingRequest.refresh() as OpenLoc;
     expect(openLoc).toBeInstanceOf(OpenLoc)
 
     locsState = await locsState.refresh();
     checkData(locsState.openLocs["Transaction"][0].data(), "OPEN");
     checkData(openLoc.data(), "OPEN");
+
+    openLoc = await openLoc.addMetadata({
+        name: "Some name",
+        value: "Some value"
+    });
+    expect(openLoc.data().metadata[0].name).toBe("Some name");
+    expect(openLoc.data().metadata[0].value).toBe("Some value");
+    expect(openLoc.data().metadata[0].addedOn).toBeUndefined();
 }
 
 function checkData(data: LocData, locRequestStatus: LocRequestStatus) {
