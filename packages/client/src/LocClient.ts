@@ -5,7 +5,6 @@ import {
     CollectionItem,
     LocType,
     LegalOfficerCase,
-    VoidInfo,
 } from '@logion/node-api/dist/Types';
 import { UserIdentity, LegalOfficer } from "./Types";
 import { NetworkState } from "./NetworkState";
@@ -33,16 +32,10 @@ export interface LocFile extends BlockchainFile, Partial<AddedOn> {
     name: string;
 }
 
-export interface MergedFile extends LocFile, Published {
-}
-
 /**
  * Blockchain MetadataItem, extended with timestamp.
  */
 export interface LocMetadataItem extends MetadataItem, Partial<AddedOn> {
-}
-
-export interface MergedMetadataItem extends LocMetadataItem, Published {
 }
 
 /**
@@ -52,14 +45,9 @@ export interface LocLink extends Link, AddedOn {
     target: string; // is redundant with inherited "id: UUID"
 }
 
-export interface MergedLink extends LocLink, Published {
-}
-
 export interface LocCollectionItem extends AddedOn {
     itemId: string,
 }
-
-export type MergedCollectionItem = CollectionItem & Partial<AddedOn>
 
 export interface LocRequestVoidInfo {
     reason?: string; // undefined in public view
@@ -82,29 +70,6 @@ export interface LocRequest {
     files: LocFile[];
     metadata: LocMetadataItem[];
     links: LocLink[];
-}
-
-export interface LocData {
-    id: UUID
-    ownerAddress: string;
-    requesterAddress?: string;
-    requesterLocId?: UUID;
-    description: string;
-    locType: LocType;
-    closed: boolean;
-    createdOn: string;
-    decisionOn?: string;
-    closedOn?: string;
-    status: LocRequestStatus;
-    voidInfo?: LocRequestVoidInfo & VoidInfo
-    replacerOf?: UUID;
-    rejectReason?: string;
-    userIdentity?: UserIdentity;
-    collectionLastBlockSubmission?: bigint;
-    collectionMaxSize?: number;
-    files: MergedFile[];
-    metadata: MergedMetadataItem[];
-    links: MergedLink[];
 }
 
 export type LocRequestStatus = "OPEN" | "REQUESTED" | "REJECTED" | "CLOSED";

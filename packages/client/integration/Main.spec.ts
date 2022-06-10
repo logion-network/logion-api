@@ -31,7 +31,7 @@ describe("Logion SDK", () => {
         await recoverLostAccount(state);
     });
 
-    fit("requests a Transaction LOC", async () => {
+    it("requests a Transaction LOC", async () => {
         await requestTransactionLoc(state);
     })
 });

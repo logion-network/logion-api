@@ -1,11 +1,11 @@
-import { State, TEST_LOGION_CLIENT_CONFIG, REQUESTER_ADDRESS } from "./Utils";
+import { State, TEST_LOGION_CLIENT_CONFIG, NEW_ADDRESS } from "./Utils";
 import { LegalOfficer, LogionClient, FullSigner } from "../src";
 import { AxiosFactory } from "../src/AxiosFactory";
 import { UUID, buildApi } from "@logion/node-api";
-import { LocData, LocRequestStatus } from "../src/LocClient";
-import { OpenLoc, PendingRequest } from "../src/Loc";
+import { LocRequestStatus } from "../src/LocClient";
+import { OpenLoc, PendingRequest, LocData } from "../src/Loc";
 
-const USER_ADDRESS = REQUESTER_ADDRESS;
+const USER_ADDRESS = NEW_ADDRESS;
 
 export async function requestTransactionLoc(state: State) {
 

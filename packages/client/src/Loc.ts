@@ -1,26 +1,58 @@
-import { LegalOfficerCase, DataLocType, CollectionItem } from '@logion/node-api/dist/Types';
+import { LegalOfficerCase, DataLocType, CollectionItem, LocType, VoidInfo } from '@logion/node-api/dist/Types';
 import {
     LocRequest,
     LocClient,
     AddMetadataParams,
     DeleteMetadataParams,
     LocMultiClient,
-    LocData,
     LocLink,
     LocMetadataItem,
     LocFile,
     FetchParameters,
-    MergedMetadataItem,
-    MergedFile,
-    MergedLink,
     AddFileParams,
     DeleteFileParams,
     AddCollectionItemParams,
-    AddFileResult
+    AddFileResult,
+    LocRequestVoidInfo,
+    LocRequestStatus, Published, AddedOn
 } from "./LocClient";
 import { SharedState } from "./SharedClient";
 import { LegalOfficer, UserIdentity } from "./Types";
 import { UUID } from "@logion/node-api";
+
+export interface LocData {
+    id: UUID
+    ownerAddress: string;
+    requesterAddress?: string;
+    requesterLocId?: UUID;
+    description: string;
+    locType: LocType;
+    closed: boolean;
+    createdOn: string;
+    decisionOn?: string;
+    closedOn?: string;
+    status: LocRequestStatus;
+    voidInfo?: LocRequestVoidInfo & VoidInfo
+    replacerOf?: UUID;
+    rejectReason?: string;
+    userIdentity?: UserIdentity;
+    collectionLastBlockSubmission?: bigint;
+    collectionMaxSize?: number;
+    files: MergedFile[];
+    metadata: MergedMetadataItem[];
+    links: MergedLink[];
+}
+
+export type MergedCollectionItem = CollectionItem & Partial<AddedOn>
+
+export interface MergedLink extends LocLink, Published {
+}
+
+export interface MergedFile extends LocFile, Published {
+}
+
+export interface MergedMetadataItem extends LocMetadataItem, Published {
+}
 
 export class LocsState {
     private readonly sharedState: SharedState;
