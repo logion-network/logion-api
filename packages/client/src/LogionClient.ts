@@ -13,6 +13,7 @@ import { RecoveryClient } from "./RecoveryClient";
 import { LegalOfficerEndpoint, LogionClientConfig, SharedState } from "./SharedClient";
 import { RawSigner } from "./Signer";
 import { LegalOfficer } from "./Types";
+import { LocsState } from "./Loc";
 
 export class LogionClient {
 
@@ -212,6 +213,10 @@ export class LogionClient {
 
     isValidAddress(address: string): boolean {
         return isValidAccountId(this.sharedState.nodeApi, address);
+    }
+
+    async locsState(): Promise<LocsState> {
+        return LocsState.getInitialLocsState(this.sharedState);
     }
 }
 
