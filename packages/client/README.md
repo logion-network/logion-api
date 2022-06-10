@@ -173,3 +173,41 @@ const newBalance = newVault.balances[0];
 console.log("Balance :%s", `${newBalance.balance.coefficient.toInteger()}.${newBalance.balance.coefficient.toFixedPrecisionDecimals(2)}${newBalance.balance.prefix.symbol}`);
 
 ```
+
+### Legal Officer Case (LOC)
+
+```typescript
+let locsState = await authenticatedClient.locsState();
+
+// Request a Transaction LOC
+const pendingRequest = await locsState.requestTransactionLoc({
+    legalOfficer: alice,
+    description: "This is a Transaction LOC",
+    // Below field is required only if the legal officer you are sending the request to
+    // does not already protect you (see Protection or Recovery).
+    userIdentity: {
+        email: "john.doe@invalid.domain",
+        firstName: "John",
+        lastName: "Doe",
+        phoneNumber: "+1234",
+    },
+});
+
+// ... Wait for LO's acceptance ...
+let openLoc = await pendingRequest.refresh() as OpenLoc;
+
+// Submit new elements to the LO through the LOC
+openLoc = await openLoc.addMetadata({
+    name: "Some name",
+    value: "Some value"
+});
+const file: File = /* Some uploaded file */;
+openLoc = (await openLoc.addFile({
+    fileName: "id.jpeg",
+    nature: "ID",
+    file,
+})).state;
+
+// ... Wait for the LO to publish elements and close the LOC ...
+const closedLoc = await openLoc.refresh() as ClosedLoc;
+```
