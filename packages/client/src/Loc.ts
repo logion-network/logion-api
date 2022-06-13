@@ -12,7 +12,6 @@ import {
     AddFileParams,
     DeleteFileParams,
     AddCollectionItemParams,
-    AddFileResult,
     LocRequestVoidInfo,
     LocRequestStatus, Published, AddedOn
 } from "./LocClient";
@@ -57,8 +56,8 @@ export interface MergedMetadataItem extends LocMetadataItem, Published {
 export class LocsState {
     private readonly sharedState: SharedState;
     readonly openLocs: Record<DataLocType, OpenLoc[]>;
-    readonly closedLocs: Record<DataLocType, ClosedLoc[]>;
-    readonly voidedLocs: Record<DataLocType, VoidedLoc[]>;
+    readonly closedLocs: Record<DataLocType, (ClosedLoc | ClosedCollectionLoc)[]>;
+    readonly voidedLocs: Record<DataLocType, (VoidedLoc | VoidedCollectionLoc)[]>;
     readonly pendingRequests: Record<DataLocType, PendingRequest[]>;
     readonly rejectedRequests: Record<DataLocType, RejectedRequest[]>;
 
@@ -75,7 +74,7 @@ export class LocsState {
         return new LocsState(sharedState).refresh();
     }
 
-    async findById(params: FetchParameters): Promise<OpenLoc | ClosedLoc | ClosedCollectionLoc | VoidedLoc | undefined> {
+    async findById(params: FetchParameters): Promise<OpenLoc | ClosedLoc | ClosedCollectionLoc | VoidedLoc | VoidedCollectionLoc | undefined> {
         const locMultiClient = newLocMultiClient(this.sharedState);
         const loc = await locMultiClient.getLoc(params);
         const legalOfficer = this.sharedState.legalOfficers.find(lo => lo.address === loc.owner)
@@ -130,13 +129,13 @@ export class LocsState {
                 if (type) {
                     if (state instanceof OpenLoc) {
                         refreshed.openLocs[type].push(state);
-                    } else if (state instanceof ClosedLoc) {
+                    } else if (state instanceof ClosedLoc || state instanceof ClosedCollectionLoc) {
                         refreshed.closedLocs[type].push(state);
-                    } else if (state instanceof VoidedLoc) {
+                    } else if (state instanceof VoidedLoc || state instanceof VoidedCollectionLoc) {
                         refreshed.voidedLocs[type].push(state);
                     } else if (state instanceof PendingRequest) {
                         refreshed.pendingRequests[type].push(state);
-                    } else {
+                    } else if (state instanceof RejectedRequest) {
                         refreshed.rejectedRequests[type].push(state);
                     }
                 }
@@ -186,7 +185,7 @@ class LocRequestState {
         return new UUID(this.request.id);
     }
 
-    static async createFromRequest(locSharedState: LocSharedState, request: LocRequest): Promise<PendingRequest | RejectedRequest | OpenLoc | ClosedLoc | VoidedLoc> {
+    static async createFromRequest(locSharedState: LocSharedState, request: LocRequest): Promise<PendingRequest | RejectedRequest | OpenLoc | ClosedLoc | ClosedCollectionLoc | VoidedLoc | VoidedCollectionLoc> {
         switch (request.status) {
             case "REQUESTED":
                 return new PendingRequest(locSharedState, request)
@@ -197,14 +196,18 @@ class LocRequestState {
         }
     }
 
-    static async createFromLoc(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase): Promise<OpenLoc | ClosedLoc | ClosedCollectionLoc | VoidedLoc> {
+    static async createFromLoc(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase): Promise<OpenLoc | ClosedLoc | ClosedCollectionLoc | VoidedLoc | VoidedCollectionLoc> {
         return await new LocRequestState(locSharedState, request).refreshLoc(legalOfficerCase) as OpenLoc | ClosedLoc | ClosedCollectionLoc | VoidedLoc;
     }
 
-    private async refreshLoc(loc?: LegalOfficerCase): Promise<PendingRequest | RejectedRequest | OpenLoc | ClosedLoc | VoidedLoc> {
+    private async refreshLoc(loc?: LegalOfficerCase): Promise<OpenLoc | ClosedLoc | ClosedCollectionLoc | VoidedLoc | VoidedCollectionLoc> {
         const legalOfficerCase: LegalOfficerCase = loc ? loc : await this.locSharedState.client.getLoc({ locId: this.locId });
         if (legalOfficerCase.voidInfo) {
-            return new VoidedLoc(this.locSharedState, this.request, legalOfficerCase);
+            if (legalOfficerCase.locType === 'Collection') {
+                return new VoidedCollectionLoc(this.locSharedState, this.request, legalOfficerCase);
+            } else {
+                return new VoidedLoc(this.locSharedState, this.request, legalOfficerCase);
+            }
         } else if (legalOfficerCase.closed) {
             if (legalOfficerCase.locType === 'Collection') {
                 return new ClosedCollectionLoc(this.locSharedState, this.request, legalOfficerCase);
