@@ -11,7 +11,12 @@ import { NetworkState } from "./NetworkState";
 import { LegalOfficerEndpoint } from "./SharedClient";
 import { AxiosFactory } from "./AxiosFactory";
 import { LogionNodeApi, UUID } from "node-api/dist";
-import { getLegalOfficerCase, addCollectionItem, getCollectionItem } from "@logion/node-api/dist/LogionLoc";
+import {
+    getLegalOfficerCase,
+    addCollectionItem,
+    getCollectionItem,
+    getCollectionSize
+} from "@logion/node-api/dist/LogionLoc";
 import { AxiosInstance } from 'axios';
 import { requireDefined } from "./assertions";
 import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays } from "./Http";
@@ -225,7 +230,11 @@ export class LocClient {
     }
 
     async createSofRequest(request: CreateSofRequest & FetchParameters): Promise<LocRequest> {
-        const response = await this.backend().post(`/api/loc-request/sof`, request);
+        const { locId, itemId } = request;
+        const response = await this.backend().post(`/api/loc-request/sof`, {
+            locId: locId.toString(),
+            itemId
+        });
         return response.data;
     }
 
@@ -291,6 +300,14 @@ export class LocClient {
             api: this.nodeApi,
             locId,
             itemId
+        });
+    }
+
+    async getCollectionSize(parameters: FetchParameters): Promise<number | undefined> {
+        const { locId } = parameters;
+        return await getCollectionSize({
+            api: this.nodeApi,
+            locId,
         });
     }
 }
