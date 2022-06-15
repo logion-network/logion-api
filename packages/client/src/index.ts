@@ -5,7 +5,15 @@ import { LegalOfficer, PostalAddress, UserIdentity } from './Types';
 import { Token } from './Http';
 import { AccountTokens } from './AuthenticationClient';
 import { DirectoryClient } from './DirectoryClient';
-import { buildMessage, FullSigner, signerCallback, SignParameters, SignRawParameters, SignCallback, isSuccessful } from './Signer';
+import {
+    buildMessage,
+    FullSigner,
+    signerCallback,
+    SignParameters,
+    SignRawParameters,
+    SignCallback,
+    isSuccessful
+} from './Signer';
 import {
     ProtectionState,
     NoProtection,
@@ -18,7 +26,21 @@ import {
 } from './Recovery';
 import { VaultState } from './Vault';
 import { VaultTransferRequest } from './VaultClient';
-
+import {
+    LocsState,
+    ClosedCollectionLoc,
+    OpenLoc,
+    ClosedLoc,
+    VoidedLoc,
+    LocData,
+    PendingRequest,
+    VoidedCollectionLoc,
+    RejectedRequest,
+    MergedMetadataItem,
+    MergedFile,
+    MergedLink,
+} from './Loc';
+import { AddCollectionItemParams } from './LocClient';
 export {
     LogionClient,
     LegalOfficer,
@@ -45,5 +67,17 @@ export {
     isSuccessful,
     VaultState,
     VaultTransferRequest,
+    LocsState,
+    ClosedCollectionLoc,
+    OpenLoc,
+    ClosedLoc,
+    VoidedLoc,
+    LocData,
+    PendingRequest,
+    VoidedCollectionLoc,
+    RejectedRequest,
+    MergedMetadataItem,
+    MergedFile,
+    MergedLink,
+    AddCollectionItemParams,
 };
- 
