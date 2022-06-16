@@ -211,3 +211,9 @@ openLoc = (await openLoc.addFile({
 // ... Wait for the LO to publish elements and close the LOC ...
 const closedLoc = await openLoc.refresh() as ClosedLoc;
 ```
+
+## Publication
+In order to publish to [npm](https://www.npmjs.com/org/logion), you can use the following scripts:
+
+* `yarn check-publish` - to check the published package content.
+* `yarn do-publish` - to actually publish (require authentication with `npm adduser`) 
