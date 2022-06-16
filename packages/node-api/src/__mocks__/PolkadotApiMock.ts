@@ -169,21 +169,21 @@ export class ApiPromise {
                         isTrue: DEFAULT_LOC.closed,
                         isFalse: !DEFAULT_LOC.closed,
                     },
-                    loc_type: {
+                    locType: {
                         isTransaction: DEFAULT_LOC.locType === 'Transaction',
                         isIdentity: DEFAULT_LOC.locType === 'Identity',
                         toString: () => DEFAULT_LOC.locType,
                     },
-                    void_info: {
+                    voidInfo: {
                         isSome: false
                     },
-                    replacer_of: {
+                    replacerOf: {
                         isSome: false
                     },
-                    collection_last_block_submission: {
+                    collectionLastBlockSubmission: {
                         isSome: false
                     },
-                    collection_max_size: {
+                    collectionMaxSize: {
                         isSome: false
                     }
                 })

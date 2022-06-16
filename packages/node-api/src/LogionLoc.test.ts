@@ -80,7 +80,7 @@ describe("LogionLoc", () => {
         });
 
         expect(api.tx.logionLoc.addFile).toBeCalledWith(locId.toHexString(), {
-            hash,
+            hash_: hash,
             nature: "0x66696c652d6e6174757265",
             submitter,
         });

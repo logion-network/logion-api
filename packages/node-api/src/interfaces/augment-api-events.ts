@@ -1,81 +1,88 @@
 // Auto-generated via `yarn polkadot-types-from-chain`, do not edit
 /* eslint-disable */
 
-import type { CollectionItemId, LocId, PeerId } from '../interfaces/default';
 import type { ApiTypes } from '@polkadot/api-base/types';
-import type { Bytes, Vec, u32, u8 } from '@polkadot/types-codec';
+import type { Bytes, Null, Option, Result, U8aFixed, Vec, bool, u128, u32, u64, u8 } from '@polkadot/types-codec';
 import type { ITuple } from '@polkadot/types-codec/types';
-import type { TAssetBalance } from '@polkadot/types/interfaces/assets';
-import type { BalanceStatus } from '@polkadot/types/interfaces/balances';
-import type { AuthorityList } from '@polkadot/types/interfaces/grandpa';
-import type { AccountId, AssetId, Balance, CallHash } from '@polkadot/types/interfaces/runtime';
-import type { SessionIndex } from '@polkadot/types/interfaces/session';
-import type { DispatchError, DispatchInfo, DispatchResult } from '@polkadot/types/interfaces/system';
-import type { Timepoint } from '@polkadot/types/interfaces/utility';
+import type { AccountId32, H256 } from '@polkadot/types/interfaces/runtime';
+import type { FrameSupportTokensMiscBalanceStatus, FrameSupportWeightsDispatchInfo, PalletMultisigTimepoint, SpFinalityGrandpaAppPublic, SpRuntimeDispatchError } from '@polkadot/types/lookup';
 
 declare module '@polkadot/api-base/types/events' {
   export interface AugmentedEvents<ApiType extends ApiTypes> {
     assets: {
       /**
-       * Some asset `asset_id` was frozen. \[asset_id\]
+       * An approval for account `delegate` was cancelled by `owner`.
        **/
-      AssetFrozen: AugmentedEvent<ApiType, [AssetId]>;
+      ApprovalCancelled: AugmentedEvent<ApiType, [assetId: u64, owner: AccountId32, delegate: AccountId32], { assetId: u64, owner: AccountId32, delegate: AccountId32 }>;
       /**
-       * Some asset `asset_id` was thawed. \[asset_id\]
+       * (Additional) funds have been approved for transfer to a destination account.
        **/
-      AssetThawed: AugmentedEvent<ApiType, [AssetId]>;
+      ApprovedTransfer: AugmentedEvent<ApiType, [assetId: u64, source: AccountId32, delegate: AccountId32, amount: u128], { assetId: u64, source: AccountId32, delegate: AccountId32, amount: u128 }>;
       /**
-       * Some assets were destroyed. \[asset_id, owner, balance\]
+       * Some asset `asset_id` was frozen.
        **/
-      Burned: AugmentedEvent<ApiType, [AssetId, AccountId, TAssetBalance]>;
+      AssetFrozen: AugmentedEvent<ApiType, [assetId: u64], { assetId: u64 }>;
       /**
-       * Some asset class was created. \[asset_id, creator, owner\]
+       * An asset has had its attributes changed by the `Force` origin.
        **/
-      Created: AugmentedEvent<ApiType, [AssetId, AccountId, AccountId]>;
+      AssetStatusChanged: AugmentedEvent<ApiType, [assetId: u64], { assetId: u64 }>;
+      /**
+       * Some asset `asset_id` was thawed.
+       **/
+      AssetThawed: AugmentedEvent<ApiType, [assetId: u64], { assetId: u64 }>;
+      /**
+       * Some assets were destroyed.
+       **/
+      Burned: AugmentedEvent<ApiType, [assetId: u64, owner: AccountId32, balance: u128], { assetId: u64, owner: AccountId32, balance: u128 }>;
+      /**
+       * Some asset class was created.
+       **/
+      Created: AugmentedEvent<ApiType, [assetId: u64, creator: AccountId32, owner: AccountId32], { assetId: u64, creator: AccountId32, owner: AccountId32 }>;
       /**
        * An asset class was destroyed.
        **/
-      Destroyed: AugmentedEvent<ApiType, [AssetId]>;
+      Destroyed: AugmentedEvent<ApiType, [assetId: u64], { assetId: u64 }>;
       /**
-       * Some asset class was force-created. \[asset_id, owner\]
+       * Some asset class was force-created.
        **/
-      ForceCreated: AugmentedEvent<ApiType, [AssetId, AccountId]>;
+      ForceCreated: AugmentedEvent<ApiType, [assetId: u64, owner: AccountId32], { assetId: u64, owner: AccountId32 }>;
       /**
-       * Some assets was transferred by an admin. \[asset_id, from, to, amount\]
+       * Some account `who` was frozen.
        **/
-      ForceTransferred: AugmentedEvent<ApiType, [AssetId, AccountId, AccountId, TAssetBalance]>;
+      Frozen: AugmentedEvent<ApiType, [assetId: u64, who: AccountId32], { assetId: u64, who: AccountId32 }>;
       /**
-       * Some account `who` was frozen. \[asset_id, who\]
+       * Some assets were issued.
        **/
-      Frozen: AugmentedEvent<ApiType, [AssetId, AccountId]>;
+      Issued: AugmentedEvent<ApiType, [assetId: u64, owner: AccountId32, totalSupply: u128], { assetId: u64, owner: AccountId32, totalSupply: u128 }>;
       /**
-       * Some assets were issued. \[asset_id, owner, total_supply\]
+       * Metadata has been cleared for an asset.
        **/
-      Issued: AugmentedEvent<ApiType, [AssetId, AccountId, TAssetBalance]>;
+      MetadataCleared: AugmentedEvent<ApiType, [assetId: u64], { assetId: u64 }>;
       /**
-       * The maximum amount of zombies allowed has changed. \[asset_id, max_zombies\]
+       * New metadata has been set for an asset.
        **/
-      MaxZombiesChanged: AugmentedEvent<ApiType, [AssetId, u32]>;
+      MetadataSet: AugmentedEvent<ApiType, [assetId: u64, name: Bytes, symbol_: Bytes, decimals: u8, isFrozen: bool], { assetId: u64, name: Bytes, symbol: Bytes, decimals: u8, isFrozen: bool }>;
       /**
-       * New metadata has been set for an asset. \[asset_id, name, symbol, decimals\]
+       * The owner changed.
        **/
-      MetadataSet: AugmentedEvent<ApiType, [AssetId, Bytes, Bytes, u8]>;
+      OwnerChanged: AugmentedEvent<ApiType, [assetId: u64, owner: AccountId32], { assetId: u64, owner: AccountId32 }>;
       /**
-       * The owner changed \[asset_id, owner\]
+       * The management team changed.
        **/
-      OwnerChanged: AugmentedEvent<ApiType, [AssetId, AccountId]>;
+      TeamChanged: AugmentedEvent<ApiType, [assetId: u64, issuer: AccountId32, admin: AccountId32, freezer: AccountId32], { assetId: u64, issuer: AccountId32, admin: AccountId32, freezer: AccountId32 }>;
       /**
-       * The management team changed \[asset_id, issuer, admin, freezer\]
+       * Some account `who` was thawed.
        **/
-      TeamChanged: AugmentedEvent<ApiType, [AssetId, AccountId, AccountId, AccountId]>;
+      Thawed: AugmentedEvent<ApiType, [assetId: u64, who: AccountId32], { assetId: u64, who: AccountId32 }>;
       /**
-       * Some account `who` was thawed. \[asset_id, who\]
+       * Some assets were transferred.
        **/
-      Thawed: AugmentedEvent<ApiType, [AssetId, AccountId]>;
+      Transferred: AugmentedEvent<ApiType, [assetId: u64, from: AccountId32, to: AccountId32, amount: u128], { assetId: u64, from: AccountId32, to: AccountId32, amount: u128 }>;
       /**
-       * Some assets were transferred. \[asset_id, from, to, amount\]
+       * An `amount` was transferred in its entirety from `owner` to `destination` by
+       * the approved `delegate`.
        **/
-      Transferred: AugmentedEvent<ApiType, [AssetId, AccountId, AccountId, TAssetBalance]>;
+      TransferredApproved: AugmentedEvent<ApiType, [assetId: u64, owner: AccountId32, delegate: AccountId32, destination: AccountId32, amount: u128], { assetId: u64, owner: AccountId32, delegate: AccountId32, destination: AccountId32, amount: u128 }>;
       /**
        * Generic event
        **/
@@ -83,40 +90,47 @@ declare module '@polkadot/api-base/types/events' {
     };
     balances: {
       /**
-       * A balance was set by root. \[who, free, reserved\]
+       * A balance was set by root.
        **/
-      BalanceSet: AugmentedEvent<ApiType, [AccountId, Balance, Balance]>;
+      BalanceSet: AugmentedEvent<ApiType, [who: AccountId32, free: u128, reserved: u128], { who: AccountId32, free: u128, reserved: u128 }>;
       /**
-       * Some amount was deposited (e.g. for transaction fees). \[who, deposit\]
+       * Some amount was deposited (e.g. for transaction fees).
        **/
-      Deposit: AugmentedEvent<ApiType, [AccountId, Balance]>;
+      Deposit: AugmentedEvent<ApiType, [who: AccountId32, amount: u128], { who: AccountId32, amount: u128 }>;
       /**
        * An account was removed whose balance was non-zero but below ExistentialDeposit,
-       * resulting in an outright loss. \[account, balance\]
+       * resulting in an outright loss.
        **/
-      DustLost: AugmentedEvent<ApiType, [AccountId, Balance]>;
+      DustLost: AugmentedEvent<ApiType, [account: AccountId32, amount: u128], { account: AccountId32, amount: u128 }>;
       /**
-       * An account was created with some free balance. \[account, free_balance\]
+       * An account was created with some free balance.
        **/
-      Endowed: AugmentedEvent<ApiType, [AccountId, Balance]>;
+      Endowed: AugmentedEvent<ApiType, [account: AccountId32, freeBalance: u128], { account: AccountId32, freeBalance: u128 }>;
       /**
-       * Some balance was reserved (moved from free to reserved). \[who, value\]
+       * Some balance was reserved (moved from free to reserved).
        **/
-      Reserved: AugmentedEvent<ApiType, [AccountId, Balance]>;
+      Reserved: AugmentedEvent<ApiType, [who: AccountId32, amount: u128], { who: AccountId32, amount: u128 }>;
       /**
        * Some balance was moved from the reserve of the first account to the second account.
        * Final argument indicates the destination balance type.
-       * \[from, to, balance, destination_status\]
        **/
-      ReserveRepatriated: AugmentedEvent<ApiType, [AccountId, AccountId, Balance, BalanceStatus]>;
+      ReserveRepatriated: AugmentedEvent<ApiType, [from: AccountId32, to: AccountId32, amount: u128, destinationStatus: FrameSupportTokensMiscBalanceStatus], { from: AccountId32, to: AccountId32, amount: u128, destinationStatus: FrameSupportTokensMiscBalanceStatus }>;
       /**
-       * Transfer succeeded. \[from, to, value\]
+       * Some amount was removed from the account (e.g. for misbehavior).
        **/
-      Transfer: AugmentedEvent<ApiType, [AccountId, AccountId, Balance]>;
+      Slashed: AugmentedEvent<ApiType, [who: AccountId32, amount: u128], { who: AccountId32, amount: u128 }>;
       /**
-       * Some balance was unreserved (moved from reserved to free). \[who, value\]
+       * Transfer succeeded.
        **/
-      Unreserved: AugmentedEvent<ApiType, [AccountId, Balance]>;
+      Transfer: AugmentedEvent<ApiType, [from: AccountId32, to: AccountId32, amount: u128], { from: AccountId32, to: AccountId32, amount: u128 }>;
+      /**
+       * Some balance was unreserved (moved from reserved to free).
+       **/
+      Unreserved: AugmentedEvent<ApiType, [who: AccountId32, amount: u128], { who: AccountId32, amount: u128 }>;
+      /**
+       * Some amount was withdrawn from the account (e.g. for transaction fees).
+       **/
+      Withdraw: AugmentedEvent<ApiType, [who: AccountId32, amount: u128], { who: AccountId32, amount: u128 }>;
       /**
        * Generic event
        **/
@@ -124,9 +138,9 @@ declare module '@polkadot/api-base/types/events' {
     };
     grandpa: {
       /**
-       * New authority set has been applied. \[authority_set\]
+       * New authority set has been applied.
        **/
-      NewAuthorities: AugmentedEvent<ApiType, [AuthorityList]>;
+      NewAuthorities: AugmentedEvent<ApiType, [authoritySet: Vec<ITuple<[SpFinalityGrandpaAppPublic, u64]>>], { authoritySet: Vec<ITuple<[SpFinalityGrandpaAppPublic, u64]>> }>;
       /**
        * Current authority set has been paused.
        **/
@@ -144,11 +158,11 @@ declare module '@polkadot/api-base/types/events' {
       /**
        * Issued when an LO is added to the list. [accountId]
        **/
-      LoAdded: AugmentedEvent<ApiType, [AccountId]>;
+      LoAdded: AugmentedEvent<ApiType, [AccountId32]>;
       /**
        * Issued when an LO is removed from the list. [accountId]
        **/
-      LoRemoved: AugmentedEvent<ApiType, [AccountId]>;
+      LoRemoved: AugmentedEvent<ApiType, [AccountId32]>;
       /**
        * Generic event
        **/
@@ -158,19 +172,19 @@ declare module '@polkadot/api-base/types/events' {
       /**
        * Issued when an item was added to a collection. [locId, collectionItemId]
        **/
-      ItemAdded: AugmentedEvent<ApiType, [LocId, CollectionItemId]>;
+      ItemAdded: AugmentedEvent<ApiType, [u128, H256]>;
       /**
        * Issued when LOC is closed. [locId]
        **/
-      LocClosed: AugmentedEvent<ApiType, [LocId]>;
+      LocClosed: AugmentedEvent<ApiType, [u128]>;
       /**
        * Issued upon LOC creation. [locId]
        **/
-      LocCreated: AugmentedEvent<ApiType, [LocId]>;
+      LocCreated: AugmentedEvent<ApiType, [u128]>;
       /**
        * Issued when LOC is voided. [locId]
        **/
-      LocVoid: AugmentedEvent<ApiType, [LocId]>;
+      LocVoid: AugmentedEvent<ApiType, [u128]>;
       /**
        * Generic event
        **/
@@ -179,21 +193,20 @@ declare module '@polkadot/api-base/types/events' {
     multisig: {
       /**
        * A multisig operation has been approved by someone.
-       * \[approving, timepoint, multisig, call_hash\]
        **/
-      MultisigApproval: AugmentedEvent<ApiType, [AccountId, Timepoint, AccountId, CallHash]>;
+      MultisigApproval: AugmentedEvent<ApiType, [approving: AccountId32, timepoint: PalletMultisigTimepoint, multisig: AccountId32, callHash: U8aFixed], { approving: AccountId32, timepoint: PalletMultisigTimepoint, multisig: AccountId32, callHash: U8aFixed }>;
       /**
-       * A multisig operation has been cancelled. \[cancelling, timepoint, multisig, call_hash\]
+       * A multisig operation has been cancelled.
        **/
-      MultisigCancelled: AugmentedEvent<ApiType, [AccountId, Timepoint, AccountId, CallHash]>;
+      MultisigCancelled: AugmentedEvent<ApiType, [cancelling: AccountId32, timepoint: PalletMultisigTimepoint, multisig: AccountId32, callHash: U8aFixed], { cancelling: AccountId32, timepoint: PalletMultisigTimepoint, multisig: AccountId32, callHash: U8aFixed }>;
       /**
-       * A multisig operation has been executed. \[approving, timepoint, multisig, call_hash\]
+       * A multisig operation has been executed.
        **/
-      MultisigExecuted: AugmentedEvent<ApiType, [AccountId, Timepoint, AccountId, CallHash, DispatchResult]>;
+      MultisigExecuted: AugmentedEvent<ApiType, [approving: AccountId32, timepoint: PalletMultisigTimepoint, multisig: AccountId32, callHash: U8aFixed, result: Result<Null, SpRuntimeDispatchError>], { approving: AccountId32, timepoint: PalletMultisigTimepoint, multisig: AccountId32, callHash: U8aFixed, result: Result<Null, SpRuntimeDispatchError> }>;
       /**
-       * A new multisig operation has begun. \[approving, multisig, call_hash\]
+       * A new multisig operation has begun.
        **/
-      NewMultisig: AugmentedEvent<ApiType, [AccountId, AccountId, CallHash]>;
+      NewMultisig: AugmentedEvent<ApiType, [approving: AccountId32, multisig: AccountId32, callHash: U8aFixed], { approving: AccountId32, multisig: AccountId32, callHash: U8aFixed }>;
       /**
        * Generic event
        **/
@@ -203,40 +216,40 @@ declare module '@polkadot/api-base/types/events' {
       /**
        * The given claim was removed by its owner.
        **/
-      ClaimRemoved: AugmentedEvent<ApiType, [PeerId, AccountId]>;
+      ClaimRemoved: AugmentedEvent<ApiType, [peerId: Bytes, who: AccountId32], { peerId: Bytes, who: AccountId32 }>;
       /**
        * The allowed connections were added to a node.
        **/
-      ConnectionsAdded: AugmentedEvent<ApiType, [PeerId, Vec<PeerId>]>;
+      ConnectionsAdded: AugmentedEvent<ApiType, [peerId: Bytes, allowedConnections: Vec<Bytes>], { peerId: Bytes, allowedConnections: Vec<Bytes> }>;
       /**
        * The allowed connections were removed from a node.
        **/
-      ConnectionsRemoved: AugmentedEvent<ApiType, [PeerId, Vec<PeerId>]>;
+      ConnectionsRemoved: AugmentedEvent<ApiType, [peerId: Bytes, allowedConnections: Vec<Bytes>], { peerId: Bytes, allowedConnections: Vec<Bytes> }>;
       /**
        * The given well known node was added.
        **/
-      NodeAdded: AugmentedEvent<ApiType, [PeerId, AccountId]>;
+      NodeAdded: AugmentedEvent<ApiType, [peerId: Bytes, who: AccountId32], { peerId: Bytes, who: AccountId32 }>;
       /**
        * The given node was claimed by a user.
        **/
-      NodeClaimed: AugmentedEvent<ApiType, [PeerId, AccountId]>;
+      NodeClaimed: AugmentedEvent<ApiType, [peerId: Bytes, who: AccountId32], { peerId: Bytes, who: AccountId32 }>;
       /**
        * The given well known node was removed.
        **/
-      NodeRemoved: AugmentedEvent<ApiType, [PeerId]>;
+      NodeRemoved: AugmentedEvent<ApiType, [peerId: Bytes], { peerId: Bytes }>;
       /**
        * The given well known nodes were reset.
        **/
-      NodesReset: AugmentedEvent<ApiType, [Vec<ITuple<[PeerId, AccountId]>>]>;
+      NodesReset: AugmentedEvent<ApiType, [nodes: Vec<ITuple<[Bytes, AccountId32]>>], { nodes: Vec<ITuple<[Bytes, AccountId32]>> }>;
       /**
        * The given well known node was swapped; first item was removed,
        * the latter was added.
        **/
-      NodeSwapped: AugmentedEvent<ApiType, [PeerId, PeerId]>;
+      NodeSwapped: AugmentedEvent<ApiType, [removed: Bytes, added: Bytes], { removed: Bytes, added: Bytes }>;
       /**
        * The node was transferred to another account.
        **/
-      NodeTransferred: AugmentedEvent<ApiType, [PeerId, AccountId]>;
+      NodeTransferred: AugmentedEvent<ApiType, [peerId: Bytes, target: AccountId32], { peerId: Bytes, target: AccountId32 }>;
       /**
        * Generic event
        **/
@@ -245,32 +258,28 @@ declare module '@polkadot/api-base/types/events' {
     recovery: {
       /**
        * Lost account has been successfully recovered by rescuer account.
-       * \[lost, rescuer\]
        **/
-      AccountRecovered: AugmentedEvent<ApiType, [AccountId, AccountId]>;
+      AccountRecovered: AugmentedEvent<ApiType, [lostAccount: AccountId32, rescuerAccount: AccountId32], { lostAccount: AccountId32, rescuerAccount: AccountId32 }>;
       /**
        * A recovery process for lost account by rescuer account has been closed.
-       * \[lost, rescuer\]
        **/
-      RecoveryClosed: AugmentedEvent<ApiType, [AccountId, AccountId]>;
+      RecoveryClosed: AugmentedEvent<ApiType, [lostAccount: AccountId32, rescuerAccount: AccountId32], { lostAccount: AccountId32, rescuerAccount: AccountId32 }>;
       /**
-       * A recovery process has been set up for an \[account\].
+       * A recovery process has been set up for an account.
        **/
-      RecoveryCreated: AugmentedEvent<ApiType, [AccountId]>;
+      RecoveryCreated: AugmentedEvent<ApiType, [account: AccountId32], { account: AccountId32 }>;
       /**
        * A recovery process has been initiated for lost account by rescuer account.
-       * \[lost, rescuer\]
        **/
-      RecoveryInitiated: AugmentedEvent<ApiType, [AccountId, AccountId]>;
+      RecoveryInitiated: AugmentedEvent<ApiType, [lostAccount: AccountId32, rescuerAccount: AccountId32], { lostAccount: AccountId32, rescuerAccount: AccountId32 }>;
       /**
-       * A recovery process has been removed for an \[account\].
+       * A recovery process has been removed for an account.
        **/
-      RecoveryRemoved: AugmentedEvent<ApiType, [AccountId]>;
+      RecoveryRemoved: AugmentedEvent<ApiType, [lostAccount: AccountId32], { lostAccount: AccountId32 }>;
       /**
        * A recovery process for lost account by rescuer account has been vouched for by sender.
-       * \[lost, rescuer, sender\]
        **/
-      RecoveryVouched: AugmentedEvent<ApiType, [AccountId, AccountId, AccountId]>;
+      RecoveryVouched: AugmentedEvent<ApiType, [lostAccount: AccountId32, rescuerAccount: AccountId32, sender: AccountId32], { lostAccount: AccountId32, rescuerAccount: AccountId32, sender: AccountId32 }>;
       /**
        * Generic event
        **/
@@ -278,10 +287,10 @@ declare module '@polkadot/api-base/types/events' {
     };
     session: {
       /**
-       * New session has happened. Note that the argument is the \[session_index\], not the block
-       * number as the type might suggest.
+       * New session has happened. Note that the argument is the session index, not the
+       * block number as the type might suggest.
        **/
-      NewSession: AugmentedEvent<ApiType, [SessionIndex]>;
+      NewSession: AugmentedEvent<ApiType, [sessionIndex: u32], { sessionIndex: u32 }>;
       /**
        * Generic event
        **/
@@ -289,17 +298,17 @@ declare module '@polkadot/api-base/types/events' {
     };
     sudo: {
       /**
-       * The \[sudoer\] just switched identity; the old key is supplied.
+       * The \[sudoer\] just switched identity; the old key is supplied if one existed.
        **/
-      KeyChanged: AugmentedEvent<ApiType, [AccountId]>;
+      KeyChanged: AugmentedEvent<ApiType, [oldSudoer: Option<AccountId32>], { oldSudoer: Option<AccountId32> }>;
       /**
        * A sudo just took place. \[result\]
        **/
-      Sudid: AugmentedEvent<ApiType, [DispatchResult]>;
+      Sudid: AugmentedEvent<ApiType, [sudoResult: Result<Null, SpRuntimeDispatchError>], { sudoResult: Result<Null, SpRuntimeDispatchError> }>;
       /**
        * A sudo just took place. \[result\]
        **/
-      SudoAsDone: AugmentedEvent<ApiType, [DispatchResult]>;
+      SudoAsDone: AugmentedEvent<ApiType, [sudoResult: Result<Null, SpRuntimeDispatchError>], { sudoResult: Result<Null, SpRuntimeDispatchError> }>;
       /**
        * Generic event
        **/
@@ -311,29 +320,39 @@ declare module '@polkadot/api-base/types/events' {
        **/
       CodeUpdated: AugmentedEvent<ApiType, []>;
       /**
-       * An extrinsic failed. \[error, info\]
+       * An extrinsic failed.
        **/
-      ExtrinsicFailed: AugmentedEvent<ApiType, [DispatchError, DispatchInfo]>;
+      ExtrinsicFailed: AugmentedEvent<ApiType, [dispatchError: SpRuntimeDispatchError, dispatchInfo: FrameSupportWeightsDispatchInfo], { dispatchError: SpRuntimeDispatchError, dispatchInfo: FrameSupportWeightsDispatchInfo }>;
       /**
-       * An extrinsic completed successfully. \[info\]
+       * An extrinsic completed successfully.
        **/
-      ExtrinsicSuccess: AugmentedEvent<ApiType, [DispatchInfo]>;
+      ExtrinsicSuccess: AugmentedEvent<ApiType, [dispatchInfo: FrameSupportWeightsDispatchInfo], { dispatchInfo: FrameSupportWeightsDispatchInfo }>;
       /**
-       * An \[account\] was reaped.
+       * An account was reaped.
        **/
-      KilledAccount: AugmentedEvent<ApiType, [AccountId]>;
+      KilledAccount: AugmentedEvent<ApiType, [account: AccountId32], { account: AccountId32 }>;
       /**
-       * A new \[account\] was created.
+       * A new account was created.
        **/
-      NewAccount: AugmentedEvent<ApiType, [AccountId]>;
+      NewAccount: AugmentedEvent<ApiType, [account: AccountId32], { account: AccountId32 }>;
+      /**
+       * On on-chain remark happened.
+       **/
+      Remarked: AugmentedEvent<ApiType, [sender: AccountId32, hash_: H256], { sender: AccountId32, hash_: H256 }>;
       /**
        * Generic event
        **/
       [key: string]: AugmentedEvent<ApiType>;
     };
     validatorSet: {
-      ValidatorAdded: AugmentedEvent<ApiType, [AccountId]>;
-      ValidatorRemoved: AugmentedEvent<ApiType, [AccountId]>;
+      /**
+       * New validator addition initiated. Effective in ~2 sessions.
+       **/
+      ValidatorAdditionInitiated: AugmentedEvent<ApiType, [AccountId32]>;
+      /**
+       * Validator removal initiated. Effective in ~2 sessions.
+       **/
+      ValidatorRemovalInitiated: AugmentedEvent<ApiType, [AccountId32]>;
       /**
        * Generic event
        **/

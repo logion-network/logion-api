@@ -6,6 +6,7 @@ import { UUID } from './UUID';
 import { LegalOfficerCase, LocType, MetadataItem, VoidInfo, CollectionItem } from './Types';
 import { LegalOfficerCaseOf, CollectionSize } from './interfaces';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
+import { PalletLogionLocLegalOfficerCase } from '@polkadot/types/lookup';
 
 export interface LogionIdentityLocCreationParameters {
     api: ApiPromise;
@@ -130,7 +131,7 @@ export async function getLegalOfficerCase(
     }
 }
 
-function toModel(rawLoc: LegalOfficerCaseOf): LegalOfficerCase {
+function toModel(rawLoc: PalletLogionLocLegalOfficerCase): LegalOfficerCase {
     return {
         owner: rawLoc.owner.toString(),
         requesterAddress: rawLoc.requester.isAccount ? rawLoc.requester.asAccount.toString() : undefined,
@@ -150,13 +151,13 @@ function toModel(rawLoc: LegalOfficerCaseOf): LegalOfficerCase {
             nature: rawLink.nature.toUtf8()
         })),
         closed: rawLoc.closed.isTrue,
-        locType: rawLoc.loc_type.toString() as LocType,
-        voidInfo: rawLoc.void_info.isSome ? {
-            replacer: rawLoc.void_info.unwrap().replacer.isSome ? UUID.fromDecimalString(rawLoc.void_info.unwrap().replacer.toString()) : undefined
+        locType: rawLoc.locType.toString() as LocType,
+        voidInfo: rawLoc.voidInfo.isSome ? {
+            replacer: rawLoc.voidInfo.unwrap().replacer.isSome ? UUID.fromDecimalString(rawLoc.voidInfo.unwrap().replacer.toString()) : undefined
         } : undefined,
-        replacerOf: rawLoc.replacer_of.isSome ? UUID.fromDecimalString(rawLoc.replacer_of.toString()) : undefined,
-        collectionLastBlockSubmission: rawLoc.collection_last_block_submission.isSome ? rawLoc.collection_last_block_submission.unwrap().toBigInt() : undefined,
-        collectionMaxSize: rawLoc.collection_max_size.isSome ? rawLoc.collection_max_size.unwrap().toNumber() : undefined,
+        replacerOf: rawLoc.replacerOf.isSome ? UUID.fromDecimalString(rawLoc.replacerOf.toString()) : undefined,
+        collectionLastBlockSubmission: rawLoc.collectionLastBlockSubmission.isSome ? rawLoc.collectionLastBlockSubmission.unwrap().toBigInt() : undefined,
+        collectionMaxSize: rawLoc.collectionMaxSize.isSome ? rawLoc.collectionMaxSize.unwrap().toNumber() : undefined,
     };
 }
 
@@ -219,7 +220,7 @@ export function addFile(parameters: AddFileParameters): SubmittableExtrinsic {
     } = parameters;
 
     return api.tx.logionLoc.addFile(locId.toHexString(), {
-        hash,
+        hash_: hash,
         nature: stringToHex(nature),
         submitter
     });

@@ -7,17 +7,13 @@ declare module '@polkadot/api-base/types/errors' {
   export interface AugmentedErrors<ApiType extends ApiTypes> {
     assets: {
       /**
-       * Transfer amount should be non-zero.
+       * The asset-account already exists.
        **/
-      AmountZero: AugmentedError<ApiType>;
+      AlreadyExists: AugmentedError<ApiType>;
       /**
        * Invalid metadata given.
        **/
       BadMetadata: AugmentedError<ApiType>;
-      /**
-       * Some internal state is broken.
-       **/
-      BadState: AugmentedError<ApiType>;
       /**
        * Invalid witness data given.
        **/
@@ -26,10 +22,6 @@ declare module '@polkadot/api-base/types/errors' {
        * Account balance must be greater than or equal to the transfer amount.
        **/
       BalanceLow: AugmentedError<ApiType>;
-      /**
-       * Balance should be non-zero.
-       **/
-      BalanceZero: AugmentedError<ApiType>;
       /**
        * The origin account is frozen.
        **/
@@ -43,25 +35,39 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       MinBalanceZero: AugmentedError<ApiType>;
       /**
+       * The account to alter does not exist.
+       **/
+      NoAccount: AugmentedError<ApiType>;
+      /**
+       * The asset-account doesn't have an associated deposit.
+       **/
+      NoDeposit: AugmentedError<ApiType>;
+      /**
        * The signing account has no permission to do the operation.
        **/
       NoPermission: AugmentedError<ApiType>;
       /**
-       * A mint operation lead to an overflow.
+       * Unable to increment the consumer reference counters on the account. Either no provider
+       * reference exists to allow a non-zero balance of a non-self-sufficient asset, or the
+       * maximum number of consumers has been reached.
        **/
-      Overflow: AugmentedError<ApiType>;
+      NoProvider: AugmentedError<ApiType>;
       /**
-       * Attempt to destroy an asset class when non-zombie, reference-bearing accounts exist.
+       * No approval exists that would allow the transfer.
        **/
-      RefsLeft: AugmentedError<ApiType>;
-      /**
-       * Too many zombie accounts in use.
-       **/
-      TooManyZombies: AugmentedError<ApiType>;
+      Unapproved: AugmentedError<ApiType>;
       /**
        * The given asset ID is unknown.
        **/
       Unknown: AugmentedError<ApiType>;
+      /**
+       * The operation would result in funds being burned.
+       **/
+      WouldBurn: AugmentedError<ApiType>;
+      /**
+       * The source account would not survive the transfer and it needs to stay alive.
+       **/
+      WouldDie: AugmentedError<ApiType>;
       /**
        * Generic error
        **/
@@ -93,9 +99,9 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       LiquidityRestrictions: AugmentedError<ApiType>;
       /**
-       * Got an overflow after adding
+       * Number of named reserves exceed MaxReserves
        **/
-      Overflow: AugmentedError<ApiType>;
+      TooManyReserves: AugmentedError<ApiType>;
       /**
        * Vesting balance too high to send value
        **/
@@ -259,6 +265,10 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       AlreadyStored: AugmentedError<ApiType>;
       /**
+       * The maximum weight information provided was too low.
+       **/
+      MaxWeightTooLow: AugmentedError<ApiType>;
+      /**
        * Threshold must be 2 or greater.
        **/
       MinimumThreshold: AugmentedError<ApiType>;
@@ -298,10 +308,6 @@ declare module '@polkadot/api-base/types/errors' {
        * A timepoint was given, yet no multisig operation is underway.
        **/
       UnexpectedTimepoint: AugmentedError<ApiType>;
-      /**
-       * The maximum weight information provided was too low.
-       **/
-      WeightTooLow: AugmentedError<ApiType>;
       /**
        * A different timepoint was given to the multisig operation that is underway.
        **/
@@ -403,10 +409,6 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       NotStarted: AugmentedError<ApiType>;
       /**
-       * There was an overflow in a calculation
-       **/
-      Overflow: AugmentedError<ApiType>;
-      /**
        * There are still active recovery attempts that need to be closed
        **/
       StillActive: AugmentedError<ApiType>;
@@ -461,6 +463,10 @@ declare module '@polkadot/api-base/types/errors' {
     };
     system: {
       /**
+       * The origin filter prevent the call to be dispatched.
+       **/
+      CallFiltered: AugmentedError<ApiType>;
+      /**
        * Failed to extract the runtime version from the new runtime.
        * 
        * Either calling `Core_version` or decoding `RuntimeVersion` failed.
@@ -490,7 +496,22 @@ declare module '@polkadot/api-base/types/errors' {
       [key: string]: AugmentedError<ApiType>;
     };
     validatorSet: {
-      NoValidators: AugmentedError<ApiType>;
+      /**
+       * Only the validator can add itself back after coming online.
+       **/
+      BadOrigin: AugmentedError<ApiType>;
+      /**
+       * Validator is already in the validator set.
+       **/
+      Duplicate: AugmentedError<ApiType>;
+      /**
+       * Target (post-removal) validator count is below the minimum.
+       **/
+      TooLowValidatorCount: AugmentedError<ApiType>;
+      /**
+       * Validator is not approved for re-addition.
+       **/
+      ValidatorNotApproved: AugmentedError<ApiType>;
       /**
        * Generic error
        **/
