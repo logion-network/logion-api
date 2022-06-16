@@ -1,6 +1,6 @@
 {
   "name": "@logion/client",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "logion SDK for client applications",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
@@ -8,9 +8,8 @@
     "build": "tsc -p tsconfig.app.json",
     "test": "jasmine --config=jasmine.json",
     "integration-test": "docker-compose up -d && ./scripts/integration_test_db_setup.sh && jasmine --config=jasmine-integration.json ; docker-compose down",
-    "do-dry-publish": "yarn prepare-publish && cd ./dist && npm publish --access public --dry-run",
-    "prepare-publish": "cp package.json README.md .npmignore ../../LICENSE ./dist",
-    "do-publish": "yarn prepare-publish && cd ./dist && npm publish --access public"
+    "check-publish": "yarn build && yarn pack -n",
+    "do-publish": "yarn build && npm publish --access public"
   },
   "repository": {
     "type": "git",

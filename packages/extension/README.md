@@ -21,3 +21,9 @@ register((accounts: InjectedAccount[]) => {
     // Use authenticated to use logion features
 });
 ```
+
+## Publication
+In order to publish to [npm](https://www.npmjs.com/org/logion), you can use the following scripts:
+
+`yarn check-publish` - to check the published package content 
+`yarn do-publish` - to actually publish (require authentication with `npm adduser`) 
