@@ -142,7 +142,7 @@ function toModel(rawLoc: PalletLogionLocLegalOfficerCase): LegalOfficerCase {
             submitter: rawItem.submitter.toString(),
         })),
         files: rawLoc.files.toArray().map(rawFile => ({
-            hash: rawFile.get('hash')!.toHex(),
+            hash: rawFile.hash_.toHex(),
             nature: rawFile.nature.toUtf8(),
             submitter: rawFile.submitter.toString(),
         })),
