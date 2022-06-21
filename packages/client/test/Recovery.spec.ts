@@ -14,7 +14,8 @@ import {
     getInitialState,
     NoProtection,
     PendingProtection,
-    PendingRecovery
+    PendingRecovery,
+    RejectedProtection
 } from '../src/Recovery';
 import {
     ALICE,
@@ -41,6 +42,7 @@ describe("Recovery's getInitialState", () => {
             pendingProtectionRequests: [],
             acceptedProtectionRequests: [],
             rejectedProtectionRequests: [],
+            cancelledProtectionRequests: [],
             recoveryConfig: undefined,
             recoveredAddress: undefined,
         };
@@ -55,6 +57,7 @@ describe("Recovery's getInitialState", () => {
                 buildAcceptedBobRequest()
             ],
             rejectedProtectionRequests: [],
+            cancelledProtectionRequests: [],
             recoveryConfig: {
                 legalOfficers: legalOfficers.map(legalOfficer => legalOfficer.address)
             },
@@ -71,6 +74,7 @@ describe("Recovery's getInitialState", () => {
                 buildAcceptedBobRecoveryRequest(),
             ],
             rejectedProtectionRequests: [],
+            cancelledProtectionRequests: [],
             recoveryConfig: {
                 legalOfficers: legalOfficers.map(legalOfficer => legalOfficer.address)
             },
@@ -87,6 +91,7 @@ describe("Recovery's getInitialState", () => {
                 buildAcceptedBobRequest()
             ],
             rejectedProtectionRequests: [],
+            cancelledProtectionRequests: [],
             recoveryConfig: undefined,
             recoveredAddress: undefined,
         };
@@ -101,6 +106,7 @@ describe("Recovery's getInitialState", () => {
             ],
             acceptedProtectionRequests: [],
             rejectedProtectionRequests: [],
+            cancelledProtectionRequests: [],
             recoveryConfig: undefined,
             recoveredAddress: undefined,
         };
@@ -116,6 +122,7 @@ describe("Recovery's getInitialState", () => {
                 buildAcceptedAliceRecoveryRequest()
             ],
             rejectedProtectionRequests: [],
+            cancelledProtectionRequests: [],
             recoveryConfig: undefined,
             recoveredAddress: undefined,
         };
@@ -130,6 +137,7 @@ describe("Recovery's getInitialState", () => {
                 buildAcceptedBobRecoveryRequest(),
             ],
             rejectedProtectionRequests: [],
+            cancelledProtectionRequests: [],
             recoveryConfig: undefined,
             recoveredAddress: undefined,
         };
@@ -144,6 +152,7 @@ describe("Recovery's getInitialState", () => {
                 buildAcceptedBobRecoveryRequest(),
             ],
             rejectedProtectionRequests: [],
+            cancelledProtectionRequests: [],
             recoveryConfig: {
                 legalOfficers: legalOfficers.map(legalOfficer => legalOfficer.address)
             },
@@ -151,6 +160,23 @@ describe("Recovery's getInitialState", () => {
         };
         await testGetInitialState(data, ClaimedRecovery);
     });
+
+    it("builds an initial rejected protection", async () => {
+        const data: FetchAllResult = {
+            pendingProtectionRequests: [],
+            acceptedProtectionRequests: [
+                buildAcceptedBobRequest(),
+            ],
+            rejectedProtectionRequests: [
+                buildRejectedAliceRequest(),
+            ],
+            cancelledProtectionRequests: [],
+            recoveryConfig: undefined,
+            recoveredAddress: undefined,
+        };
+        await testGetInitialState(data, RejectedProtection);
+    });
+
 });
 
 async function testGetInitialState(data: FetchAllResult, expectedStateClass: any) {
@@ -218,6 +244,19 @@ function buildPartialBobRequest(): PartialProtectionRequest {
 }
 
 function buildAcceptedAliceRequest(): ProtectionRequest {
+    return {
+        ...buildPartialAliceRequest(),
+        status: 'ACCEPTED',
+        isRecovery: false,
+        addressToRecover: null,
+        decision: {
+            decisionOn: DateTime.now().minus({minutes: 1}).toISO(),
+            rejectReason: null,
+        },
+    };
+}
+
+function buildRejectedAliceRequest(): ProtectionRequest {
     return {
         ...buildPartialAliceRequest(),
         status: 'ACCEPTED',
@@ -513,6 +552,7 @@ describe("PendingProtection", () => {
             pendingProtectionRequests: [ aliceRequest, bobRequest ],
             acceptedProtectionRequests: [],
             rejectedProtectionRequests: [],
+            cancelledProtectionRequests: [],
             allRequests: [ aliceRequest, bobRequest ],
         });
 
@@ -562,6 +602,7 @@ describe("PendingProtection", () => {
             pendingProtectionRequests: [ aliceRequest, bobRequest ],
             acceptedProtectionRequests: [],
             rejectedProtectionRequests: [],
+            cancelledProtectionRequests: [],
             allRequests: [ aliceRequest, bobRequest ],
         });
 
@@ -664,6 +705,7 @@ describe("AcceptedProtection", () => {
             pendingProtectionRequests: [],
             acceptedProtectionRequests: [ aliceRequest, bobRequest ],
             rejectedProtectionRequests: [],
+            cancelledProtectionRequests: [],
             allRequests: [ aliceRequest, bobRequest ],
         });
         const signer = new Mock<Signer>();
@@ -723,6 +765,7 @@ describe("AcceptedProtection", () => {
             pendingProtectionRequests: [],
             acceptedProtectionRequests: [ aliceRequest, bobRequest ],
             rejectedProtectionRequests: [],
+            cancelledProtectionRequests: [],
             allRequests: [ aliceRequest, bobRequest ],
         });
         const signer = new Mock<Signer>();
@@ -792,6 +835,7 @@ describe("PendingRecovery", () => {
             pendingProtectionRequests: [],
             acceptedProtectionRequests: [ aliceRequest, bobRequest ],
             rejectedProtectionRequests: [],
+            cancelledProtectionRequests: [],
             allRequests: [ aliceRequest, bobRequest ],
             recoveryConfig: {
                 legalOfficers: [ ALICE.address, BOB.address ]
