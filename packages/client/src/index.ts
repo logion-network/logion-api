@@ -20,8 +20,10 @@ import {
     PendingProtection,
     AcceptedProtection,
     ActiveProtection,
+    RejectedProtection,
     PendingRecovery,
     ClaimedRecovery,
+    RejectedRecovery,
     UnavailableProtection
 } from './Recovery';
 import { VaultState } from './Vault';
@@ -57,8 +59,10 @@ export {
     PendingProtection,
     AcceptedProtection,
     ActiveProtection,
+    RejectedProtection,
     PendingRecovery,
     ClaimedRecovery,
+    RejectedRecovery,
     UnavailableProtection,
     PostalAddress,
     UserIdentity,

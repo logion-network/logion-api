@@ -5,7 +5,15 @@ import {
     initiateRecovery,
     RecoveryConfig
 } from "@logion/node-api/dist/Recovery";
-import { FetchAllResult, LegalOfficerDecision, ProtectionRequest, ProtectionRequestStatus, RecoveryClient } from "./RecoveryClient";
+import {
+    FetchAllResult,
+    LegalOfficerDecision,
+    ProtectionRequest,
+    ProtectionRequestStatus,
+    RecoveryClient,
+    LoRecoveryClient,
+    UpdateParameters
+} from "./RecoveryClient";
 
 import { SharedState } from "./SharedClient";
 import { SignCallback, Signer } from "./Signer";
@@ -14,123 +22,136 @@ import { BalanceState, getBalanceState } from "./Balance";
 import { VaultState } from "./Vault";
 import { PollingParameters, waitFor } from "./Polling";
 
-export type ProtectionState = NoProtection | PendingProtection | AcceptedProtection | ActiveProtection | PendingRecovery | ClaimedRecovery | UnavailableProtection;
+export type ProtectionState =
+    NoProtection
+    | PendingProtection
+    | AcceptedProtection
+    | ActiveProtection
+    | PendingRecovery
+    | ClaimedRecovery
+    | UnavailableProtection
+    | RejectedProtection
+    | RejectedRecovery;
 
 export interface RecoverySharedState extends SharedState {
     pendingProtectionRequests: ProtectionRequest[];
     acceptedProtectionRequests: ProtectionRequest[];
     rejectedProtectionRequests: ProtectionRequest[];
+    cancelledProtectionRequests: ProtectionRequest[];
     allRequests: ProtectionRequest[];
     recoveryConfig?: RecoveryConfig;
     recoveredAddress?: string;
     selectedLegalOfficers: LegalOfficer[];
 }
 
-export function getInitialState(data: FetchAllResult, sharedState: SharedState): ProtectionState {
-    const {
-        pendingProtectionRequests,
-        acceptedProtectionRequests,
-        rejectedProtectionRequests,
-        recoveryConfig,
-        recoveredAddress
-    } = data;
+
+function toActionableProtectionRequest(protectionRequest: ProtectionRequest, sharedState: SharedState): ProtectionRequest {
+    const legalOfficer = sharedState.legalOfficers.find(lo => lo.address === protectionRequest.legalOfficerAddress)
+    const loRecoveryClient = newLoRecoveryClient(sharedState, legalOfficer!);
+    if (protectionRequest.status === 'ACTIVATED' || protectionRequest.status.includes("CANCELLED")) {
+        return protectionRequest;
+    }
+    if (protectionRequest.status === 'REJECTED') {
+        if (protectionRequest.isRecovery) {
+            return new ReSubmittableRequest(protectionRequest, loRecoveryClient);
+        } else {
+            return new UpdatableReSubmittableRequest(protectionRequest, loRecoveryClient);
+        }
+    }
+    if (!protectionRequest.isRecovery) {
+        return new UpdatableRequest(protectionRequest, loRecoveryClient);
+    }
+    return new CancellableRequest(protectionRequest, loRecoveryClient);
+}
+
+export function getInitialState(data: FetchAllResult, pSharedState: SharedState): ProtectionState {
+    const { recoveryConfig, recoveredAddress } = data;
+    const toActionableRequest = (request:ProtectionRequest) => toActionableProtectionRequest(request, pSharedState)
+    const pendingProtectionRequests = data.pendingProtectionRequests.map(toActionableRequest);
+    const acceptedProtectionRequests = data.acceptedProtectionRequests.map(toActionableRequest);
+    const rejectedProtectionRequests = data.rejectedProtectionRequests.map(toActionableRequest);
+    const cancelledProtectionRequests = data.cancelledProtectionRequests.map(toActionableRequest);
 
     const numberOfRequests = pendingProtectionRequests.length + acceptedProtectionRequests.length + rejectedProtectionRequests.length;
     const isUnavailable = numberOfRequests === 1 || (recoveryConfig !== undefined && numberOfRequests < 2);
     const allRequests = pendingProtectionRequests.concat(acceptedProtectionRequests).concat(rejectedProtectionRequests);
 
-    if(isUnavailable) {
+    const sharedState: RecoverySharedState = {
+        ...pSharedState,
+        pendingProtectionRequests,
+        acceptedProtectionRequests,
+        rejectedProtectionRequests,
+        cancelledProtectionRequests,
+        allRequests,
+        recoveryConfig,
+        recoveredAddress,
+        selectedLegalOfficers: []
+    };
+
+    if (isUnavailable) {
         let selectedLegalOfficers: LegalOfficer[] = [];
-        if(recoveryConfig !== undefined) {
+        if (recoveryConfig !== undefined) {
             selectedLegalOfficers = sharedState.legalOfficers.filter(legalOfficer => recoveryConfig.legalOfficers.includes(legalOfficer.address));
-        } else if(allRequests.length > 0) {
+        } else if (allRequests.length > 0) {
             const selectedLegalOfficersAddresses = [ allRequests[0].legalOfficerAddress, allRequests[0].otherLegalOfficerAddress ];
             selectedLegalOfficers = sharedState.legalOfficers.filter(legalOfficer => selectedLegalOfficersAddresses.includes(legalOfficer.address));
         }
         return new UnavailableProtection({
             ...sharedState,
-            pendingProtectionRequests,
-            acceptedProtectionRequests,
-            rejectedProtectionRequests,
-            allRequests,
-            recoveryConfig,
-            recoveredAddress,
             selectedLegalOfficers,
         });
-    } else if(recoveryConfig !== undefined && recoveredAddress === undefined && !data.acceptedProtectionRequests[0].isRecovery) {
+    } else if (recoveryConfig !== undefined && recoveredAddress === undefined && !data.acceptedProtectionRequests[0].isRecovery) {
         return new ActiveProtection({
             ...sharedState,
-            pendingProtectionRequests,
-            acceptedProtectionRequests,
-            rejectedProtectionRequests,
-            allRequests,
-            recoveryConfig,
-            recoveredAddress,
             selectedLegalOfficers: sharedState.legalOfficers.filter(legalOfficer => recoveryConfig.legalOfficers.includes(legalOfficer.address)),
         });
-    } else if(recoveryConfig !== undefined && recoveredAddress === undefined && data.acceptedProtectionRequests[0].isRecovery) {
+    } else if (recoveryConfig !== undefined && recoveredAddress === undefined && data.acceptedProtectionRequests[0].isRecovery) {
         const legalOfficer1 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === data.acceptedProtectionRequests[0].legalOfficerAddress)!;
         const legalOfficer2 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === data.acceptedProtectionRequests[1].legalOfficerAddress)!;
         return new PendingRecovery({
             ...sharedState,
-            pendingProtectionRequests,
-            acceptedProtectionRequests,
-            rejectedProtectionRequests,
-            allRequests,
-            recoveryConfig,
-            recoveredAddress,
             selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
         });
-    } else if(recoveryConfig !== undefined && recoveredAddress !== undefined) {
+    } else if (recoveryConfig !== undefined && recoveredAddress !== undefined) {
         return new ClaimedRecovery({
             ...sharedState,
-            pendingProtectionRequests,
-            acceptedProtectionRequests,
-            rejectedProtectionRequests,
-            allRequests,
-            recoveryConfig,
-            recoveredAddress,
             selectedLegalOfficers: sharedState.legalOfficers.filter(legalOfficer => recoveryConfig.legalOfficers.includes(legalOfficer.address)),
         });
-    } else if(data.acceptedProtectionRequests.length === 2) {
+    } else if (data.acceptedProtectionRequests.length === 2) {
         const legalOfficer1 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === data.acceptedProtectionRequests[0].legalOfficerAddress)!;
         const legalOfficer2 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === data.acceptedProtectionRequests[1].legalOfficerAddress)!;
         return new AcceptedProtection({
             ...sharedState,
-            pendingProtectionRequests,
-            acceptedProtectionRequests,
-            rejectedProtectionRequests,
-            allRequests,
-            recoveryConfig,
-            recoveredAddress,
             selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
         });
-    } else if(pendingProtectionRequests.length === 2) {
+    } else if (pendingProtectionRequests.length === 2) {
         const legalOfficer1 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === data.pendingProtectionRequests[0].legalOfficerAddress)!;
         const legalOfficer2 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === data.pendingProtectionRequests[1].legalOfficerAddress)!;
         return new PendingProtection({
             ...sharedState,
-            pendingProtectionRequests,
-            acceptedProtectionRequests,
-            rejectedProtectionRequests,
-            allRequests,
-            recoveryConfig,
-            recoveredAddress,
             selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
         });
-    } else if(pendingProtectionRequests.length === 1 && acceptedProtectionRequests.length === 1) {
+    } else if (pendingProtectionRequests.length === 1 && acceptedProtectionRequests.length === 1) {
         const legalOfficer1 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === pendingProtectionRequests[0].legalOfficerAddress)!;
         const legalOfficer2 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === acceptedProtectionRequests[0].legalOfficerAddress)!;
         return new PendingProtection({
             ...sharedState,
-            pendingProtectionRequests,
-            acceptedProtectionRequests,
-            rejectedProtectionRequests,
-            allRequests,
-            recoveryConfig,
-            recoveredAddress,
             selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
         });
+    } else if (rejectedProtectionRequests.length > 0) {
+        const legalOfficer1 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === rejectedProtectionRequests[0].legalOfficerAddress)!;
+        const legalOfficer2 = sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === rejectedProtectionRequests[0].otherLegalOfficerAddress)!;
+        if (rejectedProtectionRequests[0].isRecovery) {
+            return new RejectedRecovery({
+                ...sharedState,
+                selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
+            })
+        } else {
+            return new RejectedProtection({
+                ...sharedState,
+                selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
+            });
+        }
     } else {
         return new NoProtection({ ...sharedState });
     }
@@ -142,7 +163,18 @@ export class NoProtection {
         this.sharedState = sharedState;
     }
 
-    private sharedState: SharedState;
+    private readonly sharedState: SharedState;
+
+    async refresh(): Promise<NoProtection> {
+        const recoveryClient = newRecoveryClient(this.sharedState);
+        const data = await recoveryClient.fetchAll(this.sharedState.legalOfficers);
+        const state = getInitialState(data, this.sharedState);
+        if (state instanceof NoProtection) {
+            return state;
+        } else {
+            throw new Error("Unexpected state " + state.constructor.name);
+        }
+    }
 
     async requestProtection(params: {
         legalOfficer1: LegalOfficer,
@@ -160,8 +192,8 @@ export class NoProtection {
         postalAddress: PostalAddress,
         recoveredAddress?: string,
     }): Promise<PendingProtection> {
-        const recoveryClient = newRecoveryClient(this.sharedState);
-        const protection1 = await recoveryClient.createProtectionRequest(params.legalOfficer1, {
+        const loRecoveryClient1 = newLoRecoveryClient(this.sharedState, params.legalOfficer1);
+        const protection1 = await loRecoveryClient1.createProtectionRequest({
             requesterAddress: this.sharedState.currentAddress!,
             otherLegalOfficerAddress: params.legalOfficer2.address,
             userIdentity: params.userIdentity,
@@ -169,7 +201,8 @@ export class NoProtection {
             isRecovery: params.recoveredAddress !== undefined,
             addressToRecover: params.recoveredAddress || "",
         });
-        const protection2 = await recoveryClient.createProtectionRequest(params.legalOfficer2, {
+        const loRecoveryClient2 = newLoRecoveryClient(this.sharedState, params.legalOfficer2);
+        const protection2 = await loRecoveryClient2.createProtectionRequest({
             requesterAddress: this.sharedState.currentAddress!,
             otherLegalOfficerAddress: params.legalOfficer1.address,
             userIdentity: params.userIdentity,
@@ -186,6 +219,7 @@ export class NoProtection {
             ],
             acceptedProtectionRequests: [],
             rejectedProtectionRequests: [],
+            cancelledProtectionRequests: [],
             allRequests: [
                 protection1,
                 protection2,
@@ -208,7 +242,7 @@ export class NoProtection {
             sourceAccount: params.recoveredAddress,
             destinationAccount: this.sharedState.currentAddress!,
         });
-        if(activeRecovery === undefined) {
+        if (activeRecovery === undefined) {
             await params.signer.signAndSend({
                 signerId: this.sharedState.currentAddress!,
                 submittable: initiateRecovery({
@@ -233,6 +267,14 @@ function newRecoveryClient(sharedState: SharedState): RecoveryClient {
         networkState: sharedState.networkState,
         token: sharedState.tokens.get(sharedState.currentAddress!)!.value,
         nodeApi: sharedState.nodeApi,
+    });
+}
+
+function newLoRecoveryClient(sharedState: SharedState, legalOfficer: LegalOfficer): LoRecoveryClient {
+    return new LoRecoveryClient({
+        axiosFactory: sharedState.axiosFactory,
+        token: sharedState.tokens.get(sharedState.currentAddress!)!.value,
+        legalOfficer,
     });
 }
 
@@ -321,13 +363,13 @@ export class PendingProtection implements WithProtectionParameters {
         this.sharedState = sharedState;
     }
 
-    private sharedState: RecoverySharedState;
+    private readonly sharedState: RecoverySharedState;
 
     async refresh(): Promise<PendingProtection | AcceptedProtection> {
         const recoveryClient = newRecoveryClient(this.sharedState);
         const data = await recoveryClient.fetchAll(this.sharedState.legalOfficers);
         const state = getInitialState(data, this.sharedState);
-        if(state instanceof PendingProtection || state instanceof AcceptedProtection) {
+        if (state instanceof PendingProtection || state instanceof AcceptedProtection) {
             return state;
         } else {
             throw new Error("Unexpected state " + state.constructor.name);
@@ -339,13 +381,162 @@ export class PendingProtection implements WithProtectionParameters {
     }
 }
 
+class ProtectionRequestImpl implements ProtectionRequest {
+
+    constructor(protectionRequest: ProtectionRequest, loRecoveryClient: LoRecoveryClient) {
+        this.id = protectionRequest.id;
+        this.requesterAddress = protectionRequest.requesterAddress;
+        this.decision = protectionRequest.decision;
+        this.userIdentity = protectionRequest.userIdentity;
+        this.userPostalAddress = protectionRequest.userPostalAddress;
+        this.createdOn = protectionRequest.createdOn;
+        this.isRecovery = protectionRequest.isRecovery;
+        this.addressToRecover = protectionRequest.addressToRecover;
+        this.status = protectionRequest.status;
+        this.legalOfficerAddress = protectionRequest.legalOfficerAddress;
+        this.otherLegalOfficerAddress = protectionRequest.otherLegalOfficerAddress;
+        this.loRecoveryClient = loRecoveryClient;
+    }
+
+    readonly id: string;
+    readonly requesterAddress: string;
+    readonly decision: LegalOfficerDecision;
+    readonly userIdentity: UserIdentity;
+    readonly userPostalAddress: PostalAddress;
+    readonly createdOn: string;
+    readonly isRecovery: boolean;
+    readonly addressToRecover: string | null;
+    readonly status: ProtectionRequestStatus;
+    readonly legalOfficerAddress: string;
+    readonly otherLegalOfficerAddress: string;
+
+    protected readonly loRecoveryClient: LoRecoveryClient;
+}
+
+export class CancellableRequest extends ProtectionRequestImpl {
+
+    cancel(): Promise<void> {
+        return this.loRecoveryClient.cancel({
+            id: this.id
+        })
+    }
+}
+
+export class UpdatableRequest extends CancellableRequest {
+
+    update(parameters: UpdateParameters): Promise<void> {
+        return this.loRecoveryClient.update({
+            id: this.id,
+            ...parameters
+        })
+    }
+}
+
+export class ReSubmittableRequest extends CancellableRequest {
+
+    resubmit(): Promise<void> {
+        return this.loRecoveryClient.resubmit({
+            id: this.id
+        })
+    }
+}
+
+export class UpdatableReSubmittableRequest extends UpdatableRequest {
+
+    resubmit(): Promise<void> {
+        return this.loRecoveryClient.resubmit({
+            id: this.id
+        })
+    }
+}
+
+export class RejectedRecovery implements WithProtectionParameters {
+
+    constructor(sharedState: RecoverySharedState) {
+        this.sharedState = sharedState;
+    }
+
+    protected readonly sharedState: RecoverySharedState;
+
+    get protectionParameters(): ProtectionParameters {
+        return buildProtectionParameters(this.sharedState);
+    }
+
+    async cancel(): Promise<NoProtection> {
+        return Promise.all(this.sharedState.allRequests.map(request => {
+            if (request instanceof CancellableRequest) {
+                request.cancel()
+            } else {
+                return Promise.reject("Request cannot be cancelled.")
+            }
+        })).then(() => {
+            return new NoProtection(this.sharedState).refresh();
+        })
+    }
+
+    async resubmit(currentLegalOfficer: LegalOfficer): Promise<PendingProtection> {
+        const request = this.sharedState.allRequests.find(request => request.legalOfficerAddress === currentLegalOfficer.address);
+        if (request && (request instanceof ReSubmittableRequest || request instanceof UpdatableReSubmittableRequest)) {
+            await request.resubmit();
+            return await new PendingProtection(this.sharedState).refresh() as PendingProtection
+        }
+        throw new Error("Unable to find the request to resubmit")
+    }
+
+}
+
+
+export class RejectedProtection extends RejectedRecovery {
+
+    async changeLegalOfficer(currentLegalOfficer: LegalOfficer, newLegalOfficer: LegalOfficer): Promise<PendingProtection> {
+
+        const cancel = this.cancelCurrentRequest(currentLegalOfficer)
+        const update = this.updateOtherRequest(cancel.request, newLegalOfficer);
+        const newProtection = this.createNewRequest(cancel.request, update.request, newLegalOfficer)
+
+        return Promise.all([ cancel.operation, update.operation, newProtection ])
+            .then(async () => {
+                const state = await new PendingProtection(this.sharedState).refresh();
+                return state as PendingProtection
+            })
+    }
+
+    private cancelCurrentRequest(currentLegalOfficer: LegalOfficer): { operation: Promise<void>, request: ProtectionRequest } {
+        const request = this.sharedState.allRequests.find(request => request.legalOfficerAddress === currentLegalOfficer.address);
+        if (request === undefined || !(request instanceof CancellableRequest)) {
+            throw new Error("Unable to find the request to cancel")
+        }
+        return { operation: request.cancel(), request }
+    }
+
+    private updateOtherRequest(requestToCancel: ProtectionRequest, newLegalOfficer: LegalOfficer): { operation: Promise<void>, request: ProtectionRequest } {
+        const request = this.sharedState.allRequests.find(request => request.id !== requestToCancel.id);
+        if (request === undefined || !(request instanceof UpdatableRequest)) {
+            throw Error("Unable to find the other request")
+        }
+        return { operation: request.update({ otherLegalOfficer: newLegalOfficer }), request }
+    }
+
+    private createNewRequest(requestToCancel: ProtectionRequest, otherRequest: ProtectionRequest, newLegalOfficer: LegalOfficer): Promise<ProtectionRequest> {
+        const loRecoveryClient = newLoRecoveryClient(this.sharedState, newLegalOfficer);
+        return loRecoveryClient.createProtectionRequest({
+            requesterAddress: this.sharedState.currentAddress!,
+            otherLegalOfficerAddress: otherRequest.legalOfficerAddress,
+            userIdentity: requestToCancel.userIdentity,
+            userPostalAddress: requestToCancel.userPostalAddress,
+            isRecovery: false,
+            addressToRecover: "",
+        });
+    }
+}
+
 export class AcceptedProtection implements WithProtectionParameters {
 
     constructor(sharedState: RecoverySharedState) {
         this.sharedState = sharedState;
     }
 
-    private sharedState: RecoverySharedState;
+    private readonly sharedState: RecoverySharedState;
 
     async activate(
         signer: Signer,
@@ -365,7 +556,7 @@ export class AcceptedProtection implements WithProtectionParameters {
                 legalOfficers: this.sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address)
             }
         };
-        if(this.protectionParameters.isRecovery) {
+        if (this.protectionParameters.isRecovery) {
             return new PendingRecovery(newSharedState);
         } else {
             return new ActiveProtection(newSharedState);
@@ -397,7 +588,7 @@ export class ActiveProtection implements WithProtectionParameters, WithActivePro
         this.sharedState = sharedState;
     }
 
-    private sharedState: RecoverySharedState;
+    private readonly sharedState: RecoverySharedState;
 
     get protectionParameters(): ProtectionParameters {
         return buildProtectionParameters(this.sharedState);
@@ -448,7 +639,7 @@ async function waitForProtectionFullyReady<T extends ProtectionState, S extends 
     state: S,
     pollingParameters?: PollingParameters,
 ): Promise<S> {
-    if(isProtectionFullyReady(sharedState)) {
+    if (isProtectionFullyReady(sharedState)) {
         return state;
     } else {
         return waitFor<S>({
@@ -465,7 +656,7 @@ export class PendingRecovery implements WithProtectionParameters, WithActiveProt
         this.sharedState = sharedState;
     }
 
-    private sharedState: RecoverySharedState;
+    private readonly sharedState: RecoverySharedState;
 
     async claimRecovery(
         signer: Signer,
@@ -512,7 +703,7 @@ export class ClaimedRecovery implements WithProtectionParameters {
         this.sharedState = sharedState;
     }
 
-    private sharedState: RecoverySharedState;
+    private readonly sharedState: RecoverySharedState;
 
     get protectionParameters(): ProtectionParameters {
         return buildProtectionParameters(this.sharedState);

@@ -13,7 +13,14 @@ export interface LegalOfficerDecision {
     locId?: string | null,
 }
 
-export type ProtectionRequestStatus = "PENDING" | "REJECTED" | "ACCEPTED" | "ACTIVATED";
+export type ProtectionRequestStatus =
+    "PENDING"
+    | "REJECTED"
+    | "ACCEPTED"
+    | "ACTIVATED"
+    | 'CANCELLED'
+    | 'REJECTED_CANCELLED'
+    | 'ACCEPTED_CANCELLED';
 
 export interface ProtectionRequest {
     id: string,
@@ -50,8 +57,17 @@ export interface FetchAllResult {
     pendingProtectionRequests: ProtectionRequest[];
     acceptedProtectionRequests: ProtectionRequest[];
     rejectedProtectionRequests: ProtectionRequest[];
+    cancelledProtectionRequests: ProtectionRequest[];
     recoveryConfig: RecoveryConfig | undefined;
     recoveredAddress: string | undefined;
+}
+
+export interface UserActionParameters {
+    id: string,
+}
+
+export interface UpdateParameters {
+    otherLegalOfficer: LegalOfficer
 }
 
 export class RecoveryClient {
@@ -111,7 +127,14 @@ export class RecoveryClient {
         }));
         const rejectedProtectionRequests = aggregateArrays(result);
 
-        if(legalOfficers === undefined) {
+        result = await multiClient.fetch(axios => this.fetchProtectionRequests(axios, {
+            requesterAddress: this.currentAddress,
+            statuses: [ "CANCELLED", "REJECTED_CANCELLED", "ACCEPTED_CANCELLED" ],
+            kind: "ANY",
+        }));
+        const cancelledProtectionRequests = aggregateArrays(result);
+
+        if (legalOfficers === undefined) {
             const newState = multiClient.getState();
             this.networkState.update({
                 nodesUp: newState.nodesUp,
@@ -134,6 +157,7 @@ export class RecoveryClient {
             pendingProtectionRequests,
             acceptedProtectionRequests,
             rejectedProtectionRequests,
+            cancelledProtectionRequests,
             recoveryConfig,
             recoveredAddress
         };
@@ -145,15 +169,6 @@ export class RecoveryClient {
     ): Promise<ProtectionRequest[]> {
         const response = await axios.put("/api/protection-request", specification);
         return response.data.requests;
-    }
-
-    async createProtectionRequest(
-        legalOfficer: LegalOfficer,
-        request: CreateProtectionRequest
-    ): Promise<ProtectionRequest> {
-        const axios = this.axiosFactory.buildAxiosInstance(legalOfficer.node, this.token);
-        const response = await axios.post("/api/protection-request", request);
-        return response.data;
     }
 
     async fetchAccepted(legalOfficers: LegalOfficer[]): Promise<ProtectionRequest[]> {
@@ -176,4 +191,48 @@ export class RecoveryClient {
         }));
         return aggregateArrays(result);
     }
+}
+
+export class LoRecoveryClient {
+
+    constructor(params: {
+        axiosFactory: AxiosFactory,
+        token: string,
+        legalOfficer: LegalOfficer,
+    }) {
+        this.axiosFactory = params.axiosFactory;
+        this.token = params.token;
+        this.legalOfficer = params.legalOfficer;
+    }
+
+    private readonly axiosFactory: AxiosFactory;
+    private readonly token: string;
+    private readonly legalOfficer: LegalOfficer;
+
+    async createProtectionRequest(request: CreateProtectionRequest): Promise<ProtectionRequest> {
+        const response = await this.backend().post("/api/protection-request", request);
+        return response.data;
+    }
+
+    async resubmit(params: UserActionParameters): Promise<void> {
+        const { id } = params;
+        this.backend().post(`/api/protection-request/${ id }/resubmit`)
+    }
+
+    async cancel(params: UserActionParameters): Promise<void> {
+        const { id } = params;
+        this.backend().post(`/api/protection-request/${ id }/cancel`)
+    }
+
+    async update(params: UserActionParameters & UpdateParameters): Promise<void> {
+        const { id, otherLegalOfficer } = params;
+        this.backend().put(`/api/protection-request/${ id }/update`, {
+            otherLegalOfficerAddress: otherLegalOfficer.address
+        })
+    }
+
+    private backend(): AxiosInstance {
+        return this.axiosFactory.buildAxiosInstance(this.legalOfficer.node, this.token);
+    }
+
 }
