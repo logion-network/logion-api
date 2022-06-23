@@ -490,23 +490,36 @@ export class RejectedProtection extends RejectedRecovery {
 
     async changeLegalOfficer(currentLegalOfficer: LegalOfficer, newLegalOfficer: LegalOfficer): Promise<PendingProtection> {
 
-        // 1. Cancel the current request
-        const requestToCancel = this.sharedState.allRequests.find(request => request.legalOfficerAddress === currentLegalOfficer.address);
-        if (requestToCancel === undefined || !(requestToCancel instanceof CancellableRequest)) {
+        const cancel = this.cancelCurrentRequest(currentLegalOfficer)
+        const update = this.updateOtherRequest(cancel.request, newLegalOfficer);
+        const newProtection = this.createNewRequest(cancel.request, update.request, newLegalOfficer)
+
+        return Promise.all([ cancel.operation, update.operation, newProtection ])
+            .then(async () => {
+                const state = await new PendingProtection(this.sharedState).refresh();
+                return state as PendingProtection
+            })
+    }
+
+    private cancelCurrentRequest(currentLegalOfficer: LegalOfficer): { operation: Promise<void>, request: ProtectionRequest } {
+        const request = this.sharedState.allRequests.find(request => request.legalOfficerAddress === currentLegalOfficer.address);
+        if (request === undefined || !(request instanceof CancellableRequest)) {
             throw new Error("Unable to find the request to cancel")
         }
-        const cancel = requestToCancel.cancel();
+        return { operation: request.cancel(), request }
+    }
 
-        // 2. Update the other request
-        const otherRequest = this.sharedState.allRequests.find(request => request.id !== requestToCancel.id);
-        if (otherRequest === undefined || !(otherRequest instanceof UpdatableRequest)) {
+    private updateOtherRequest(requestToCancel: ProtectionRequest, newLegalOfficer: LegalOfficer): { operation: Promise<void>, request: ProtectionRequest } {
+        const request = this.sharedState.allRequests.find(request => request.id !== requestToCancel.id);
+        if (request === undefined || !(request instanceof UpdatableRequest)) {
             throw Error("Unable to find the other request")
         }
-        const update = otherRequest.update({ otherLegalOfficer: newLegalOfficer })
+        return { operation: request.update({ otherLegalOfficer: newLegalOfficer }), request }
+    }
 
-        // 3. Create the new one
+    private createNewRequest(requestToCancel: ProtectionRequest, otherRequest: ProtectionRequest, newLegalOfficer: LegalOfficer): Promise<ProtectionRequest> {
         const loRecoveryClient = newLoRecoveryClient(this.sharedState, newLegalOfficer);
-        const newProtection = loRecoveryClient.createProtectionRequest({
+        return loRecoveryClient.createProtectionRequest({
             requesterAddress: this.sharedState.currentAddress!,
             otherLegalOfficerAddress: otherRequest.legalOfficerAddress,
             userIdentity: requestToCancel.userIdentity,
@@ -514,12 +527,6 @@ export class RejectedProtection extends RejectedRecovery {
             isRecovery: false,
             addressToRecover: "",
         });
-
-        return Promise.all([ cancel, update, newProtection ])
-            .then(async () => {
-                const state = await new PendingProtection(this.sharedState).refresh();
-                return state as PendingProtection
-            })
     }
 }
 
