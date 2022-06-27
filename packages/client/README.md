@@ -11,13 +11,19 @@ Use your favorite package manager (e.g. yarn) and install package `@logion/clien
 ### Authentication
 
 ```typescript
-import { LogionClient } from '@logion/client';
+import { LogionClient, KeyringSigner } from '@logion/client';
+import { Keyring } from '@polkadot/api';
+
+const keyring = new Keyring();
+keyring.addFromUri("0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a"); // Alice
+const signer = new KeyringSigner(keyring);
 
 const client = await LogionClient.create({
     rpcEndpoints: [ 'wss://rpc01.logion.network' ], // A list of websocket endpoints
     directoryEndpoint: 'https://directory.logion.network' // A logion directory
 });
 
+// Authenticate Alice
 const authenticatedClient = await client.authenticate([ "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" ], signer);
 
 // Use authenticatedClient to interact with the network
@@ -37,10 +43,10 @@ console.log("First transaction destination: %s", transactions[0].destination)
 
 // Transfer
 balanceState =  balanceState.transfer({
-        signer,
-        amount: new PrefixedNumber("2", KILO),
-        destination: ALICE.address
-    });
+    signer,
+    amount: new PrefixedNumber("2", KILO),
+    destination: ALICE.address
+});
 ```
 
 ### Protection
@@ -101,8 +107,6 @@ vaultState = await vaultState.refresh();
 // Check Vault balance
 const balance = vaultState.balances[0];
 console.log("Balance :%s", `${balance.balance.coefficient.toInteger()}.${balance.balance.coefficient.toFixedPrecisionDecimals(2)}${balance.balance.prefix.symbol}`)
-
-
 ```
 
 ### Recovery
@@ -171,10 +175,9 @@ newVault = await newVault.refresh();
 // Check Vault balance
 const newBalance = newVault.balances[0];
 console.log("Balance :%s", `${newBalance.balance.coefficient.toInteger()}.${newBalance.balance.coefficient.toFixedPrecisionDecimals(2)}${newBalance.balance.prefix.symbol}`);
-
 ```
 
-### Legal Officer Case (LOC)
+### Transaction Legal Officer Case (LOC)
 
 ```typescript
 let locsState = await authenticatedClient.locsState();
@@ -210,6 +213,40 @@ openLoc = (await openLoc.addFile({
 
 // ... Wait for the LO to publish elements and close the LOC ...
 const closedLoc = await openLoc.refresh() as ClosedLoc;
+```
+
+### Collection LOC and items
+
+```typescript
+let locsState = await authenticatedClient.locsState();
+
+// Request a collection LOC
+const pendingRequest = await locsState.requestCollectionLoc({
+    legalOfficer: alice,
+    description: "This is a Collection LOC",
+    userIdentity: {
+        email: "john.doe@invalid.domain",
+        firstName: "John",
+        lastName: "Doe",
+        phoneNumber: "+1234",
+    },
+});
+
+// ... Wait for the LO to open the LOC, fill-it in then close it ...
+
+let closedLoc = await openLoc.refresh() as ClosedCollectionLoc;
+
+// Add an item to the collection LOC
+const itemId = "0xc53447c3d4e9d94d6f4ab926378c5b14bd66e28af619d4dcb066c862f8aeb455"; // SHA256 hash of "first-collection-item" (without the quotes)
+const itemDescription = "First collection item";
+closedLoc = await closedLoc.addCollectionItem({
+    itemId,
+    itemDescription,
+    signer,
+});
+
+// Later, retrieve the item given its ID
+const item = await closedLoc.getCollectionItem({ itemId });
 ```
 
 ## Publication

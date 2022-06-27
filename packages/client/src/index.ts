@@ -12,7 +12,8 @@ import {
     SignParameters,
     SignRawParameters,
     SignCallback,
-    isSuccessful
+    isSuccessful,
+    KeyringSigner
 } from './Signer';
 import {
     ProtectionState,
@@ -84,4 +85,5 @@ export {
     MergedFile,
     MergedLink,
     AddCollectionItemParams,
+    KeyringSigner,
 };

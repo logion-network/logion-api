@@ -3,7 +3,7 @@ import { enablesProtection } from "./Protection";
 import { transfers } from "./Balance";
 import { providesVault } from "./Vault";
 import { recoverLostAccount } from "./Recovery";
-import { requestTransactionLoc } from "./Loc";
+import { requestTransactionLoc, collectionLoc } from "./Loc";
 
 describe("Logion SDK", () => {
 
@@ -33,5 +33,9 @@ describe("Logion SDK", () => {
 
     it("requests a Transaction LOC", async () => {
         await requestTransactionLoc(state);
+    })
+
+    it("provides Collection LOC", async () => {
+        await collectionLoc(state);
     })
 });
