@@ -1,44 +1,50 @@
 import { buildApi } from "@logion/node-api";
 
-import { AcceptedProtection, FullSigner, LegalOfficer, LogionClient, NoProtection, PendingRecovery } from "../src";
+import {
+    AcceptedProtection,
+    FullSigner,
+    LegalOfficer,
+    LogionClient,
+    NoProtection,
+    PendingRecovery,
+    PendingProtection,
+    RejectedProtection
+} from "../src";
 import { LogionClientConfig } from "../src/SharedClient";
-import { acceptRequest } from "./Protection";
+import { acceptRequest, rejectRequest } from "./Protection";
 import { aliceAcceptsTransfer } from './Vault';
 import { initRequesterBalance, NEW_ADDRESS, REQUESTER_ADDRESS, State } from "./Utils";
 
+export async function requestRecoveryAndCancel(state: State) {
+    const { client, signer, alice, charlie } = state;
+
+    const pending = await requestRecovery(state) as PendingProtection;
+
+    console.log("LO's - Alice and Bob Rejecting")
+    await rejectRequest(client, signer, charlie, NEW_ADDRESS, "Your protection request is not complete");
+    await rejectRequest(client, signer, alice, NEW_ADDRESS, "Some info is missing");
+
+    const rejected = await pending.refresh() as RejectedProtection;
+
+    const cancelled = await rejected.cancel();
+    expect(cancelled).toBeInstanceOf(NoProtection);
+}
+
 export async function recoverLostAccount(state: State) {
-    const { client, signer, alice, bob } = state;
+    const { client, signer, alice, charlie } = state;
 
-    await initRequesterBalance(client.config, signer, NEW_ADDRESS);
+    const requested = await requestRecovery(state);
 
-    const authenticatedClient = client.withCurrentAddress(NEW_ADDRESS)
+    console.log("LO's - Alice Rejecting")
+    await rejectRequest(client, signer, alice, NEW_ADDRESS, "for some reason");
 
-    const noProtection = await authenticatedClient.protectionState() as NoProtection;
-
-    console.log("Requesting recovery")
-    const pending = await noProtection.requestRecovery({
-        recoveredAddress: REQUESTER_ADDRESS,
-        signer,
-        legalOfficer1: alice,
-        legalOfficer2: bob,
-        userIdentity: {
-            email: "john.doe@invalid.domain",
-            firstName: "John",
-            lastName: "Doe",
-            phoneNumber: "+1234",
-        },
-        postalAddress: {
-            city: "",
-            country: "",
-            line1: "",
-            line2: "",
-            postalCode: "",
-        }
-    });
+    console.log("User resubmitting to Alice");
+    const rejected = await requested.refresh() as RejectedProtection;
+    const pending = await rejected.resubmit(alice);
 
     console.log("LO's - Accepting and vouching")
     await acceptRequestAndVouch(client.config, client, signer, alice, REQUESTER_ADDRESS, NEW_ADDRESS);
-    await acceptRequestAndVouch(client.config, client, signer, bob, REQUESTER_ADDRESS, NEW_ADDRESS);
+    await acceptRequestAndVouch(client.config, client, signer, charlie, REQUESTER_ADDRESS, NEW_ADDRESS);
 
     const accepted = (await pending.refresh()) as AcceptedProtection;
 
@@ -69,6 +75,37 @@ export async function recoverLostAccount(state: State) {
         signer,
         destination: NEW_ADDRESS,
         amount: recoveredBalance.balances[0].available,
+    });
+}
+
+async function requestRecovery(state: State): Promise<PendingProtection> {
+    const { client, signer, alice, charlie } = state;
+
+    await initRequesterBalance(client.config, signer, NEW_ADDRESS);
+
+    const authenticatedClient = client.withCurrentAddress(NEW_ADDRESS)
+
+    const noProtection = await authenticatedClient.protectionState() as NoProtection;
+
+    console.log("Requesting recovery")
+    return await noProtection.requestRecovery({
+        recoveredAddress: REQUESTER_ADDRESS,
+        signer,
+        legalOfficer1: alice,
+        legalOfficer2: charlie,
+        userIdentity: {
+            email: "john.doe@invalid.domain",
+            firstName: "John",
+            lastName: "Doe",
+            phoneNumber: "+1234",
+        },
+        postalAddress: {
+            city: "",
+            country: "",
+            line1: "",
+            line2: "",
+            postalCode: "",
+        }
     });
 }
 

@@ -3,7 +3,8 @@ import {
     createRecovery,
     getActiveRecovery,
     initiateRecovery,
-    RecoveryConfig
+    RecoveryConfig,
+    getRecoveryConfig
 } from "@logion/node-api/dist/Recovery";
 import {
     FetchAllResult,
@@ -66,7 +67,7 @@ function toActionableProtectionRequest(protectionRequest: ProtectionRequest, sha
 
 export function getInitialState(data: FetchAllResult, pSharedState: SharedState): ProtectionState {
     const { recoveryConfig, recoveredAddress } = data;
-    const toActionableRequest = (request:ProtectionRequest) => toActionableProtectionRequest(request, pSharedState)
+    const toActionableRequest = (request: ProtectionRequest) => toActionableProtectionRequest(request, pSharedState)
     const pendingProtectionRequests = data.pendingProtectionRequests.map(toActionableRequest);
     const acceptedProtectionRequests = data.acceptedProtectionRequests.map(toActionableRequest);
     const rejectedProtectionRequests = data.rejectedProtectionRequests.map(toActionableRequest);
@@ -243,14 +244,25 @@ export class NoProtection {
             destinationAccount: this.sharedState.currentAddress!,
         });
         if (activeRecovery === undefined) {
-            await params.signer.signAndSend({
-                signerId: this.sharedState.currentAddress!,
-                submittable: initiateRecovery({
-                    api: this.sharedState.nodeApi,
-                    addressToRecover: params.recoveredAddress,
-                }),
-                callback: params.callback,
+            const recoveryConfig = await getRecoveryConfig({
+                api: this.sharedState.nodeApi,
+                accountId: params.recoveredAddress,
             });
+            if (recoveryConfig &&
+                recoveryConfig.legalOfficers.includes(params.legalOfficer1.address) &&
+                recoveryConfig.legalOfficers.includes(params.legalOfficer2.address)
+            ) {
+                await params.signer.signAndSend({
+                    signerId: this.sharedState.currentAddress!,
+                    submittable: initiateRecovery({
+                        api: this.sharedState.nodeApi,
+                        addressToRecover: params.recoveredAddress,
+                    }),
+                    callback: params.callback,
+                });
+            } else {
+                throw Error("Unable to find a valid Recovery config.");
+            }
         }
         return this.requestProtectionOrRecovery({ ...params });
     }
@@ -365,11 +377,15 @@ export class PendingProtection implements WithProtectionParameters {
 
     private readonly sharedState: RecoverySharedState;
 
-    async refresh(): Promise<PendingProtection | AcceptedProtection> {
+    async refresh(): Promise<PendingProtection | AcceptedProtection | RejectedProtection | RejectedRecovery> {
         const recoveryClient = newRecoveryClient(this.sharedState);
         const data = await recoveryClient.fetchAll(this.sharedState.legalOfficers);
         const state = getInitialState(data, this.sharedState);
-        if (state instanceof PendingProtection || state instanceof AcceptedProtection) {
+        if (
+            state instanceof PendingProtection ||
+            state instanceof AcceptedProtection ||
+            state instanceof RejectedProtection ||
+            state instanceof RejectedRecovery) {
             return state;
         } else {
             throw new Error("Unexpected state " + state.constructor.name);
@@ -546,7 +562,7 @@ export class AcceptedProtection implements WithProtectionParameters {
             signerId: this.sharedState.currentAddress!,
             submittable: createRecovery({
                 api: this.sharedState.nodeApi,
-                legalOfficers: this.sharedState.legalOfficers.map(legalOfficer => legalOfficer.address),
+                legalOfficers: this.sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address),
             }),
             callback
         });

@@ -216,17 +216,17 @@ export class LoRecoveryClient {
 
     async resubmit(params: UserActionParameters): Promise<void> {
         const { id } = params;
-        this.backend().post(`/api/protection-request/${ id }/resubmit`)
+        return this.backend().post(`/api/protection-request/${ id }/resubmit`)
     }
 
     async cancel(params: UserActionParameters): Promise<void> {
         const { id } = params;
-        this.backend().post(`/api/protection-request/${ id }/cancel`)
+        return this.backend().post(`/api/protection-request/${ id }/cancel`)
     }
 
     async update(params: UserActionParameters & UpdateParameters): Promise<void> {
         const { id, otherLegalOfficer } = params;
-        this.backend().put(`/api/protection-request/${ id }/update`, {
+        return this.backend().put(`/api/protection-request/${ id }/update`, {
             otherLegalOfficerAddress: otherLegalOfficer.address
         })
     }
