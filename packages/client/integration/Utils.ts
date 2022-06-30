@@ -4,10 +4,11 @@ import { Keyring } from "@polkadot/api";
 import { FullSigner, KeyringSigner, Signer } from "../src/Signer";
 import { LogionClientConfig } from "../src/SharedClient";
 import { LegalOfficer, LogionClient } from "../src";
-import { ALICE, BOB } from "../test/Utils";
+import { ALICE, BOB, CHARLIE } from "../test/Utils";
 
 export const ALICE_SECRET_SEED = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a";
 export const BOB_SECRET_SEED = "0x398f0c28f98885e046333d4a41c19cee4c37368a9832c6502f6cfd182e2aef89";
+export const CHARLIE_SECRET_SEED = "0xbc1ede780f784bb6991a585e4f6e61522c14e1cae6ad0895fb57b9a205a8f938";
 
 export function buildSigner(seeds: string []): FullSigner {
     const keyring = new Keyring({ type: 'sr25519' });
@@ -31,30 +32,35 @@ export interface State {
     client: LogionClient;
     alice: LegalOfficer;
     bob: LegalOfficer;
+    charlie: LegalOfficer;
 }
 
 export async function setupInitialState(): Promise<State> {
-    const anonmymousClient = await LogionClient.create(TEST_LOGION_CLIENT_CONFIG);
+    const anonymousClient = await LogionClient.create(TEST_LOGION_CLIENT_CONFIG);
     const signer = buildSigner([
         REQUESTER_SECRET_SEED,
         NEW_SECRET_SEED,
         ALICE_SECRET_SEED,
         BOB_SECRET_SEED,
+        CHARLIE_SECRET_SEED
     ]);
-    const client = await anonmymousClient.authenticate([
+    const client = await anonymousClient.authenticate([
         REQUESTER_ADDRESS,
         NEW_ADDRESS,
         ALICE.address,
-        BOB.address
+        BOB.address,
+        CHARLIE.address
     ], signer);
     const legalOfficers = client.legalOfficers;
     const alice = legalOfficers.find(legalOfficer => legalOfficer.address === ALICE.address)!;
     const bob = legalOfficers.find(legalOfficer => legalOfficer.address === BOB.address)!;
+    const charlie = legalOfficers.find(legalOfficer => legalOfficer.address === CHARLIE.address)!;
     return {
         client,
         signer,
         alice,
-        bob
+        bob,
+        charlie
     };
 }
 

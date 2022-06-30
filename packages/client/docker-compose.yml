@@ -80,6 +80,47 @@ services:
       - CERTBOT_EMAIL=user2@invalid.domain
       - BACKEND_HOST_PORT=backend2:8080
       - NODE_HOST_PORT=node2:9944
+# ----------------------------------------- Logion node 3 --------------------------------------------------------------
+  private-database3:
+    image: logionnetwork/logion-postgres:${PG_TAG:-latest}
+    environment:
+      - POSTGRES_PASSWORD=secret
+  node3:
+    image: logionnetwork/logion-node:${NODE_TAG:-latest}
+    environment:
+      - NODE_KEY=3a9d5b35b9fb4c42aafadeca046f6bf56107bd2579687f069b42646684b94d9e
+      - CUSTOM_OPTIONS=--charlie --no-mdns --bootnodes /dns4/node1/tcp/30333/p2p/12D3KooWBmAwcd4PJNJvfV89HwE48nwkRmAgo8Vy3uQEyNNHBox2 --ws-external --rpc-cors all
+      - CHAIN_SPEC=test
+    depends_on:
+      - node1
+  backend3:
+    image: logionnetwork/logion-backend:${BACKEND_TAG:-latest}
+    environment:
+      - JWT_SECRET=3a9d5b35b9fb4c42aafadeca046f6bf56107bd2579687f069b42646684b94d9e
+      - JWT_ISSUER=12D3KooWJvyP3VJYymTqG7eH4PM5rN4T2agk5cdNCfNymAqwqcvZ
+      - TYPEORM_HOST=private-database3
+      - WS_PROVIDER_URL=ws://node3:9944
+      - OWNER=5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y
+      - DIRECTORY_URL=http://directory:8080
+      - SMTP_ENABLED=false
+    depends_on:
+      - node3
+      - private-database3
+  frontend3:
+    image: logionnetwork/logion-frontend:${FRONTEND_TAG:-latest}
+    ports:
+      - 127.0.0.1:8082:80
+      - 127.0.0.1:9946:9944
+    volumes:
+      - ./front_config.js:/usr/share/nginx/html/config.js
+      - ./front_web3.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend3
+      - node3
+    environment:
+      - CERTBOT_EMAIL=user3@invalid.domain
+      - BACKEND_HOST_PORT=backend3:8080
+      - NODE_HOST_PORT=node3:9944
 # ----------------------------------------- Logion directory --------------------------------------------------------------
   directory-database:
     image: postgres:12

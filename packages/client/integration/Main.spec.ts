@@ -1,8 +1,8 @@
 import { setupInitialState, State } from "./Utils";
-import { enablesProtection } from "./Protection";
+import { enablesProtection, requestsProtectionAndCancel } from "./Protection";
 import { transfers } from "./Balance";
 import { providesVault } from "./Vault";
-import { recoverLostAccount } from "./Recovery";
+import { recoverLostAccount, requestRecoveryAndCancel } from "./Recovery";
 import { requestTransactionLoc, collectionLoc } from "./Loc";
 
 describe("Logion SDK", () => {
@@ -20,6 +20,7 @@ describe("Logion SDK", () => {
     });
 
     it("enables protection", async () => {
+        await requestsProtectionAndCancel(state);
         await enablesProtection(state);
     });
 
@@ -28,6 +29,7 @@ describe("Logion SDK", () => {
     });
 
     it("recovers a lost account", async () => {
+        await requestRecoveryAndCancel(state);
         await recoverLostAccount(state);
     });
 

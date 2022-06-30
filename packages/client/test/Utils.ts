@@ -29,7 +29,17 @@ export const BOB: LegalOfficer = {
     userIdentity: {} as UserIdentity,
 };
 
-export const LEGAL_OFFICERS = [ ALICE, BOB ];
+export const CHARLIE: LegalOfficer = {
+    name: "Charlie",
+    address: "5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y",
+    additionalDetails: "",
+    logoUrl: "https://charlie.logion.network/logo.png",
+    node: "https://charlie.logion.network",
+    postalAddress: {} as PostalAddress,
+    userIdentity: {} as UserIdentity,
+};
+
+export const LEGAL_OFFICERS = [ ALICE, BOB, CHARLIE ];
 
 export const DIRECTORY_ENDPOINT = "https://directory.logion.network";
 

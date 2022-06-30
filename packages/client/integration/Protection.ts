@@ -2,7 +2,14 @@ import { buildApi, UUID } from '@logion/node-api';
 
 import { LogionClient } from '../src/';
 import { AxiosFactory } from '../src/AxiosFactory';
-import { AcceptedProtection, ActiveProtection, NoProtection, PendingRecovery } from '../src/Recovery';
+import {
+    AcceptedProtection,
+    ActiveProtection,
+    NoProtection,
+    PendingRecovery,
+    RejectedProtection,
+    PendingProtection
+} from '../src/Recovery';
 import { LogionClientConfig } from '../src/SharedClient';
 import { FullSigner } from '../src/Signer';
 import { LegalOfficer } from '../src/Types';
@@ -14,7 +21,26 @@ export async function enablesProtection(state: State) {
     expect(activate).toBeInstanceOf(ActiveProtection);
 }
 
-async function enableProtection(requester: string, state: State): Promise<ActiveProtection | PendingRecovery> {
+export async function requestsProtectionAndCancel(state: State) {
+    const cancelled = await requestProtectionAndCancel(REQUESTER_ADDRESS, state)
+    expect(cancelled).toBeInstanceOf(NoProtection);
+}
+
+async function requestProtectionAndCancel(requester: string, state: State): Promise<NoProtection> {
+    const { client, signer, alice, bob } = state;
+
+    const pending = await requestProtection(requester, state);
+
+    console.log("LO's - Alice and Bob Rejecting")
+    await rejectRequest(client, signer, bob, requester, "Your protection request is not complete");
+    await rejectRequest(client, signer, alice, requester, "Some info is missing");
+
+    const rejected = await pending.refresh() as RejectedProtection;
+
+    return rejected.cancel();
+}
+
+async function requestProtection(requester: string, state: State): Promise<PendingProtection> {
     const { client, signer, alice, bob } = state;
 
     console.log("Setting balance of %s", requester)
@@ -24,7 +50,7 @@ async function enableProtection(requester: string, state: State): Promise<Active
 
     console.log("Requesting protection")
     const noProtection = await authenticatedClient.protectionState() as NoProtection;
-    const pending = await noProtection.requestProtection({
+    return await noProtection.requestProtection({
         legalOfficer1: alice,
         legalOfficer2: bob,
         userIdentity: {
@@ -41,14 +67,54 @@ async function enableProtection(requester: string, state: State): Promise<Active
             postalCode: "",
         }
     });
+}
+
+async function enableProtection(requester: string, state: State): Promise<ActiveProtection | PendingRecovery | undefined> {
+    const { client, signer, alice, bob, charlie } = state;
+
+    const pending = await requestProtection(requester, state);
+
+    console.log("LO's - Bob Rejecting")
+    await rejectRequest(client, signer, bob, requester, "I dont speak your language");
+
+    console.log("User changing LO: Charlie instead of Bob");
+    const rejected = (await pending.refresh()) as RejectedProtection;
+    const pendingAgain = await rejected.changeLegalOfficer(bob, charlie);
+
+    console.log("LO's - Alice Rejecting")
+    await rejectRequest(client, signer, alice, requester, "Some info is missing");
+
+    console.log("User resubmitting to Alice");
+    const rejectedAgain = (await pendingAgain.refresh()) as RejectedProtection;
+    const stillPending = await rejectedAgain.resubmit(alice);
 
     console.log("LO's - Accepting")
     await acceptRequest(TEST_LOGION_CLIENT_CONFIG, client, signer, alice, requester);
-    await acceptRequest(TEST_LOGION_CLIENT_CONFIG, client, signer, bob, requester);
+    await acceptRequest(TEST_LOGION_CLIENT_CONFIG, client, signer, charlie, requester);
 
-    const accepted = (await pending.refresh()) as AcceptedProtection;
+    const accepted = (await stillPending.refresh()) as AcceptedProtection;
     console.log("Activating")
     return accepted.activate(signer);
+}
+
+export async function rejectRequest(
+    client: LogionClient,
+    signer: FullSigner,
+    legalOfficer: LegalOfficer,
+    requesterAddress: string,
+    reason: string,
+) {
+    const axios = await buildLegalOfficerAxios(client, signer, legalOfficer);
+
+    const response = await axios.put("/api/protection-request",{
+        statuses: ["PENDING"],
+        requesterAddress
+    });
+    const request: ProtectionRequest = response.data.requests[0];
+
+    await axios.post(`/api/protection-request/${request.id}/reject`, {
+        reason
+    });
 }
 
 export async function acceptRequest(
@@ -61,7 +127,10 @@ export async function acceptRequest(
     const legalOfficerAddress = legalOfficer.address;
     const axios = await buildLegalOfficerAxios(client, signer, legalOfficer);
 
-    const response = await axios.put("/api/protection-request", { requesterAddress });
+    const response = await axios.put("/api/protection-request", {
+        statuses: ["PENDING"],
+        requesterAddress
+    });
     const request: ProtectionRequest = response.data.requests[0];
 
     const identityLocId = await createAndCloseIdentityLoc(
