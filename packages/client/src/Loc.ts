@@ -39,6 +39,7 @@ export interface LocData {
     userIdentity?: UserIdentity;
     collectionLastBlockSubmission?: bigint;
     collectionMaxSize?: number;
+    collectionCanUpload?: boolean;
     files: MergedFile[];
     metadata: MergedMetadataItem[];
     links: MergedLink[];
