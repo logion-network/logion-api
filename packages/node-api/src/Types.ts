@@ -30,6 +30,7 @@ export interface LegalOfficerCase {
     replacerOf?: UUID;
     collectionLastBlockSubmission?: bigint;
     collectionMaxSize?: number;
+    collectionCanUpload: boolean;
 }
 
 export type DataLocType = 'Transaction' | 'Collection';
@@ -44,7 +45,15 @@ export interface VoidInfo {
 
 export interface CollectionItem {
     id: string,
-    description: string
+    description: string,
+    files: ItemFile[],
+}
+
+export interface ItemFile {
+    name: string;
+    contentType: string;
+    size: bigint;
+    hash: string;
 }
 
 export function isLogionIdentityLoc(loc: LegalOfficerCase): boolean {

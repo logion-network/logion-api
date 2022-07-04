@@ -34,7 +34,8 @@ export const CLOSED_IDENTITY_LOC: LegalOfficerCase = {
         }
     ],
     metadata: [],
-    links: []
+    links: [],
+    collectionCanUpload: false,
 }
 
 export function getLegalOfficerCase(parameters: any) {
@@ -56,7 +57,8 @@ export const OPEN_IDENTITY_LOC: LegalOfficerCase = {
     closed: false,
     files: [],
     metadata: [],
-    links: []
+    links: [],
+    collectionCanUpload: false,
 }
 
 export function addMetadata(parameters: any) {

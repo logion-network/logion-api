@@ -1,4 +1,4 @@
-import type { Option } from '@polkadot/types-codec';
+import type { Option, Vec } from '@polkadot/types-codec';
 import type { ActiveRecovery, RecoveryConfig } from '@polkadot/types/interfaces/recovery';
 import type { AccountId } from '@polkadot/types/interfaces/runtime';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
@@ -427,6 +427,21 @@ describe("NoProtection", () => {
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.activeRecoveries(RECOVERED_ADDRESS, currentAddress))
                     .returns(Promise.resolve(mockEmptyOption<ActiveRecovery>()));
+
+                const aliceAccountId = new Mock<AccountId>();
+                aliceAccountId.setup(instance => instance.toString()).returns(ALICE.address);
+                const bobAccountId = new Mock<AccountId>();
+                bobAccountId.setup(instance => instance.toString()).returns(BOB.address);
+                const friends = new Mock<Vec<AccountId>>();
+                friends.setup(instance => instance.toArray()).returns([
+                    aliceAccountId.object(),
+                    bobAccountId.object()
+                ]);
+                nodeApi.setup(instance => instance.query.recovery.recoverable(RECOVERED_ADDRESS))
+                    .returns(Promise.resolve(mockOption<RecoveryConfig>({
+                        friends: friends.object()
+                    })));
+
                 const submittable = new Mock<SubmittableExtrinsic>();
                 nodeApi.setup(instance => instance.tx.recovery.initiateRecovery(RECOVERED_ADDRESS))
                     .returns(submittable.object());
