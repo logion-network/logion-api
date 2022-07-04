@@ -5,7 +5,7 @@ import type { ApiTypes } from '@polkadot/api-base/types';
 import type { Bytes, Compact, Option, U8aFixed, Vec, WrapperKeepOpaque, bool, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
 import type { AccountId32, Call, H256, MultiAddress, Perbill } from '@polkadot/types/interfaces/runtime';
-import type { LogionNodeRuntimeOpaqueSessionKeys, PalletAssetsDestroyWitness, PalletLogionLocFile, PalletLogionLocLocLink, PalletLogionLocMetadataItem, PalletMultisigTimepoint, SpCoreVoid, SpFinalityGrandpaEquivocationProof } from '@polkadot/types/lookup';
+import type { LogionNodeRuntimeOpaqueSessionKeys, PalletAssetsDestroyWitness, PalletLogionLocCollectionItemFile, PalletLogionLocFile, PalletLogionLocLocLink, PalletLogionLocMetadataItem, PalletMultisigTimepoint, SpCoreVoid, SpFinalityGrandpaEquivocationProof } from '@polkadot/types/lookup';
 
 declare module '@polkadot/api-base/types/submittable' {
   export interface AugmentedSubmittables<ApiType extends ApiTypes> {
@@ -585,7 +585,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * Adds an item to a collection
        **/
-      addCollectionItem: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, itemId: H256 | string | Uint8Array, itemDescription: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, Bytes]>;
+      addCollectionItem: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, itemId: H256 | string | Uint8Array, itemDescription: Bytes | string | Uint8Array, itemFiles: Vec<PalletLogionLocCollectionItemFile> | (PalletLogionLocCollectionItemFile | { name?: any; contentType?: any; size_?: any; hash_?: any } | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, Bytes, Vec<PalletLogionLocCollectionItemFile>]>;
       /**
        * Add file to LOC
        **/
@@ -605,7 +605,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * Creates a new Collection LOC
        **/
-      createCollectionLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, requesterAccountId: AccountId32 | string | Uint8Array, collectionLastBlockSubmission: Option<u32> | null | object | string | Uint8Array, collectionMaxSize: Option<u32> | null | object | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, Option<u32>, Option<u32>]>;
+      createCollectionLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, requesterAccountId: AccountId32 | string | Uint8Array, collectionLastBlockSubmission: Option<u32> | null | object | string | Uint8Array, collectionMaxSize: Option<u32> | null | object | string | Uint8Array, collectionCanUpload: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, Option<u32>, Option<u32>, bool]>;
       /**
        * Creates a new logion Identity LOC i.e. a LOC describing a real identity not yet linked to an AccountId
        **/

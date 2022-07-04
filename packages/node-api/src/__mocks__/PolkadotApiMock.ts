@@ -1,4 +1,5 @@
 import { BN } from "bn.js";
+import { CollectionItem, LegalOfficerCase } from "../Types";
 import { UUID } from "../UUID";
 
 export class WsProvider {
@@ -32,9 +33,9 @@ export function setQueryRecoveryActiveRecoveries(mockFn: any) {
     queryRecoveryActiveRecoveries = mockFn;
 }
 
-export const DEFAULT_LOC = {
+export const DEFAULT_LOC: LegalOfficerCase = {
     owner: "owner",
-    requester: "requester",
+    requesterAddress: "requester",
     metadata: [
         {
             name: "meta_name",
@@ -59,6 +60,7 @@ export const DEFAULT_LOC = {
     locType: 'Transaction',
     collectionLastBlockSubmission: undefined,
     collectionMaxSize: undefined,
+    collectionCanUpload: false,
 }
 
 export const CURRENT_BLOCK_NUMBER = {
@@ -72,6 +74,19 @@ export const CURRENT_BLOCK = {
         }
     }
 };
+
+export const DEFAULT_ITEM: CollectionItem = {
+    id: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
+    description: "Some description",
+    files: [
+        {
+            name: "artwork.png",
+            contentType: "image/png",
+            size: 256000n,
+            hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
+        }
+    ],
+}
 
 export class ApiPromise {
     assetQueriesBeforeNone: number = 1;
@@ -121,7 +136,7 @@ export class ApiPromise {
                         isAccount: true,
                         isLoc: false,
                         asAccount: {
-                            toString: () => DEFAULT_LOC.requester
+                            toString: () => DEFAULT_LOC.requesterAddress
                         },
                         asLoc: {
                             toString: () => undefined
@@ -183,9 +198,25 @@ export class ApiPromise {
                     },
                     collectionMaxSize: {
                         isSome: false
-                    }
+                    },
+                    collectionCanUpload: {
+                        isTrue: DEFAULT_LOC.collectionCanUpload,
+                        isFalse: !DEFAULT_LOC.collectionCanUpload,
+                    },
                 })
-            })
+            }),
+            collectionItemsMap: () => Promise.resolve({
+                isSome: true,
+                unwrap: () => ({
+                    description: { toUtf8: () =>  DEFAULT_ITEM.description },
+                    files: DEFAULT_ITEM.files.map(item => ({
+                        name: { toUtf8: () => item.name },
+                        contentType: { toUtf8: () => item.contentType },
+                        hash_: { toHex: () => item.hash },
+                        size_: { toBigInt: () => item.size },
+                    }))
+                })
+            }),
         }
     }
 
@@ -228,6 +259,7 @@ export class ApiPromise {
             addMetadata: jest.fn().mockResolvedValue(() => {}),
             addFile: jest.fn().mockResolvedValue(() => {}),
             addLink: jest.fn().mockResolvedValue(() => {}),
+            addCollectionItem: jest.fn().mockResolvedValue(() => {}),
         },
         verifiedRecovery: {
             createRecovery: jest.fn().mockResolvedValue(() => {}),

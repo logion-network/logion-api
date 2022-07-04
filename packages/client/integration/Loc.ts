@@ -83,7 +83,7 @@ class LegalOfficerWorker {
         const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
         await this.state.signer.signAndSend({
             signerId: this.legalOfficer.address,
-            submittable: api.tx.logionLoc.createCollectionLoc(id.toDecimalString(), USER_ADDRESS, null, "100")
+            submittable: api.tx.logionLoc.createCollectionLoc(id.toDecimalString(), USER_ADDRESS, null, "100", false)
         });
 
         const axios = await this.buildLegalOfficerAxios(this.state.client, this.state.signer, this.legalOfficer);

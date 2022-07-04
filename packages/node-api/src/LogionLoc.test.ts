@@ -2,9 +2,17 @@ jest.mock('@polkadot/api');
 
 import { stringToHex } from '@polkadot/util';
 import { ApiPromise } from '@polkadot/api';
-import { createPolkadotTransactionLoc, addMetadata, getLegalOfficerCase, addFile } from './LogionLoc';
+import {
+    createPolkadotTransactionLoc,
+    addMetadata,
+    getLegalOfficerCase,
+    addFile,
+    addCollectionItem,
+    getCollectionItem,
+} from './LogionLoc';
 import { UUID } from './UUID';
-import { DEFAULT_LOC } from './__mocks__/PolkadotApiMock';
+import { DEFAULT_ITEM, DEFAULT_LOC } from './__mocks__/PolkadotApiMock';
+import { ItemFile } from './Types';
 
 describe("LogionLoc", () => {
 
@@ -53,7 +61,7 @@ describe("LogionLoc", () => {
         });
 
         expect(loc!.owner).toEqual(DEFAULT_LOC.owner);
-        expect(loc!.requesterAddress).toEqual(DEFAULT_LOC.requester);
+        expect(loc!.requesterAddress).toEqual(DEFAULT_LOC.requesterAddress);
         expect(loc!.metadata).toEqual(DEFAULT_LOC.metadata);
         expect(loc!.files).toEqual(DEFAULT_LOC.files);
         loc!.links.forEach((link, index) => {
@@ -62,6 +70,7 @@ describe("LogionLoc", () => {
         });
         expect(loc!.closed).toEqual(DEFAULT_LOC.closed);
         expect(loc!.locType).toEqual(DEFAULT_LOC.locType);
+        expect(loc!.collectionCanUpload).toBe(DEFAULT_LOC.collectionCanUpload);
     });
 
     it("submits addFile extrinsic", () => {
@@ -84,5 +93,58 @@ describe("LogionLoc", () => {
             nature: "0x66696c652d6e6174757265",
             submitter,
         });
+    });
+
+    it("fetches collection item", async () => {
+        const api = new ApiPromise();
+        const locId = new UUID();
+        const itemId = "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2";
+
+        const item = await getCollectionItem({
+            api,
+            locId,
+            itemId,
+        });
+
+        expect(item!.id).toEqual(DEFAULT_ITEM.id);
+        expect(item!.description).toEqual(DEFAULT_ITEM.description);
+        expect(item!.files).toEqual(expect.arrayContaining(DEFAULT_ITEM.files));
+    });
+
+    it("adds collection items", () => {
+        const api = new ApiPromise();
+        const collectionId = new UUID();
+        const itemId = "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2";
+        const itemDescription = "Some description";
+        const itemFiles: ItemFile[] = [
+            {
+                name: "artwork.png",
+                contentType: "image/png",
+                size: 256000n,
+                hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
+            }
+        ];
+
+        addCollectionItem({
+            api,
+            collectionId,
+            itemId,
+            itemDescription,
+            itemFiles,
+        });
+
+        expect(api.tx.logionLoc.addCollectionItem).toBeCalledWith(
+            collectionId.toHexString(),
+            itemId,
+            stringToHex(itemDescription),
+            expect.arrayContaining([
+                expect.objectContaining({
+                    name: stringToHex(itemFiles[0].name),
+                    contentType: stringToHex(itemFiles[0].contentType),
+                    size_: itemFiles[0].size,
+                    hash_: itemFiles[0].hash,
+                })
+            ])
+        );
     });
 });

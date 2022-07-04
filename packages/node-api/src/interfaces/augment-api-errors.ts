@@ -183,6 +183,10 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       CannotMutateVoid: AugmentedError<ApiType>;
       /**
+       * Cannot attach files to this item because the Collection LOC does not allow it
+       **/
+      CannotUpload: AugmentedError<ApiType>;
+      /**
        * A collection LOC must be limited in time and/or quantity of items
        **/
       CollectionHasNoLimit: AugmentedError<ApiType>;

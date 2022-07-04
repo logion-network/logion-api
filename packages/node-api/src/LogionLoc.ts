@@ -3,10 +3,10 @@ import { stringToHex } from '@polkadot/util';
 import { Option } from "@polkadot/types-codec";
 
 import { UUID } from './UUID';
-import { LegalOfficerCase, LocType, MetadataItem, VoidInfo, CollectionItem } from './Types';
+import { LegalOfficerCase, LocType, MetadataItem, VoidInfo, CollectionItem, ItemFile } from './Types';
 import { LegalOfficerCaseOf, CollectionSize } from './interfaces';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
-import { PalletLogionLocLegalOfficerCase } from '@polkadot/types/lookup';
+import { PalletLogionLocCollectionItemFile, PalletLogionLocLegalOfficerCase } from '@polkadot/types/lookup';
 
 export interface LogionIdentityLocCreationParameters {
     api: ApiPromise;
@@ -76,6 +76,7 @@ export interface CollectionLocCreationParameters {
     requester: string;
     lastBlock?: string;
     maxSize?: string;
+    canUpload: boolean;
 }
 
 export function createCollectionLoc(parameters: CollectionLocCreationParameters): SubmittableExtrinsic {
@@ -84,10 +85,11 @@ export function createCollectionLoc(parameters: CollectionLocCreationParameters)
         locId,
         requester,
         lastBlock,
-        maxSize
+        maxSize,
+        canUpload,
     } = parameters;
 
-    return api.tx.logionLoc.createCollectionLoc(locId.toHexString(), requester, lastBlock || null, maxSize || null);
+    return api.tx.logionLoc.createCollectionLoc(locId.toHexString(), requester, lastBlock || null, maxSize || null, canUpload);
 }
 
 export interface AddMetadataParameters {
@@ -158,6 +160,7 @@ function toModel(rawLoc: PalletLogionLocLegalOfficerCase): LegalOfficerCase {
         replacerOf: rawLoc.replacerOf.isSome ? UUID.fromDecimalString(rawLoc.replacerOf.toString()) : undefined,
         collectionLastBlockSubmission: rawLoc.collectionLastBlockSubmission.isSome ? rawLoc.collectionLastBlockSubmission.unwrap().toBigInt() : undefined,
         collectionMaxSize: rawLoc.collectionMaxSize.isSome ? rawLoc.collectionMaxSize.unwrap().toNumber() : undefined,
+        collectionCanUpload: rawLoc.collectionCanUpload.isTrue,
     };
 }
 
@@ -303,7 +306,16 @@ export async function getCollectionItem(
     const result = await api.query.logionLoc.collectionItemsMap(locId.toHexString(), itemId);
     if (result.isSome) {
         const description = result.unwrap().description.toUtf8();
-        return { id: itemId, description }
+        return {
+            id: itemId,
+            description,
+            files: result.unwrap().files.map(resultFile => ({
+                name: resultFile.name.toUtf8(),
+                contentType: resultFile.contentType.toUtf8(),
+                hash: resultFile.hash_.toHex(),
+                size: resultFile.size_.toBigInt(),
+            })),
+        };
     } else {
         return undefined;
     }
@@ -335,6 +347,7 @@ export interface AddCollectionItemParameters {
     collectionId: UUID;
     itemId: string;
     itemDescription: string;
+    itemFiles: ItemFile[];
 }
 
 export function addCollectionItem(parameters: AddCollectionItemParameters): SubmittableExtrinsic {
@@ -343,7 +356,15 @@ export function addCollectionItem(parameters: AddCollectionItemParameters): Subm
         collectionId,
         itemId,
         itemDescription,
+        itemFiles,
     } = parameters;
 
-    return api.tx.logionLoc.addCollectionItem(collectionId.toHexString(), itemId, itemDescription);
+    const files: ({ name?: any; contentType?: any; size_?: any; hash_?: any })[] = itemFiles.map(itemFile => ({
+        name: stringToHex(itemFile.name),
+        contentType: stringToHex(itemFile.contentType),
+        size_: itemFile.size,
+        hash_: itemFile.hash,
+    }));
+
+    return api.tx.logionLoc.addCollectionItem(collectionId.toHexString(), itemId, stringToHex(itemDescription), files);
 }

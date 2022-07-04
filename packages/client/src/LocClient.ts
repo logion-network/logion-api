@@ -285,7 +285,8 @@ export class LocClient {
             api: this.nodeApi,
             collectionId: locId,
             itemId,
-            itemDescription
+            itemDescription,
+            itemFiles: [],
         });
         await signer.signAndSend({
             signerId: this.currentAddress,

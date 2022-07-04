@@ -1180,6 +1180,7 @@ export default {
         requesterAccountId: 'AccountId32',
         collectionLastBlockSubmission: 'Option<u32>',
         collectionMaxSize: 'Option<u32>',
+        collectionCanUpload: 'bool',
       },
       add_metadata: {
         locId: 'Compact<u128>',
@@ -1206,7 +1207,8 @@ export default {
       add_collection_item: {
         collectionLocId: 'Compact<u128>',
         itemId: 'H256',
-        itemDescription: 'Bytes'
+        itemDescription: 'Bytes',
+        itemFiles: 'Vec<PalletLogionLocCollectionItemFile>'
       }
     }
   },
@@ -1237,7 +1239,20 @@ export default {
     nature: 'Bytes'
   },
   /**
-   * Lookup149: pallet_verified_recovery::pallet::Call<T>
+   * Lookup150: pallet_logion_loc::CollectionItemFile<primitive_types::H256>
+   **/
+  PalletLogionLocCollectionItemFile: {
+    _alias: {
+      size_: 'size',
+      hash_: 'hash'
+    },
+    name: 'Bytes',
+    contentType: 'Bytes',
+    size_: 'u32',
+    hash_: 'H256'
+  },
+  /**
+   * Lookup151: pallet_verified_recovery::pallet::Call<T>
    **/
   PalletVerifiedRecoveryCall: {
     _enum: {
@@ -1247,7 +1262,7 @@ export default {
     }
   },
   /**
-   * Lookup150: pallet_logion_vault::pallet::Call<T>
+   * Lookup152: pallet_logion_vault::pallet::Call<T>
    **/
   PalletLogionVaultCall: {
     _enum: {
@@ -1265,19 +1280,19 @@ export default {
     }
   },
   /**
-   * Lookup151: pallet_sudo::pallet::Error<T>
+   * Lookup153: pallet_sudo::pallet::Error<T>
    **/
   PalletSudoError: {
     _enum: ['RequireSudo']
   },
   /**
-   * Lookup153: pallet_node_authorization::pallet::Error<T>
+   * Lookup155: pallet_node_authorization::pallet::Error<T>
    **/
   PalletNodeAuthorizationError: {
     _enum: ['PeerIdTooLong', 'TooManyNodes', 'AlreadyJoined', 'NotExist', 'AlreadyClaimed', 'NotClaimed', 'NotOwner', 'PermissionDenied']
   },
   /**
-   * Lookup155: pallet_multisig::Multisig<BlockNumber, Balance, sp_core::crypto::AccountId32>
+   * Lookup157: pallet_multisig::Multisig<BlockNumber, Balance, sp_core::crypto::AccountId32>
    **/
   PalletMultisigMultisig: {
     when: 'PalletMultisigTimepoint',
@@ -1286,13 +1301,13 @@ export default {
     approvals: 'Vec<AccountId32>'
   },
   /**
-   * Lookup157: pallet_multisig::pallet::Error<T>
+   * Lookup159: pallet_multisig::pallet::Error<T>
    **/
   PalletMultisigError: {
     _enum: ['MinimumThreshold', 'AlreadyApproved', 'NoApprovalsNeeded', 'TooFewSignatories', 'TooManySignatories', 'SignatoriesOutOfOrder', 'SenderInSignatories', 'NotFound', 'NotOwner', 'NoTimepoint', 'WrongTimepoint', 'UnexpectedTimepoint', 'MaxWeightTooLow', 'AlreadyStored']
   },
   /**
-   * Lookup158: pallet_recovery::RecoveryConfig<BlockNumber, Balance, frame_support::storage::bounded_vec::BoundedVec<sp_core::crypto::AccountId32, S>>
+   * Lookup160: pallet_recovery::RecoveryConfig<BlockNumber, Balance, frame_support::storage::bounded_vec::BoundedVec<sp_core::crypto::AccountId32, S>>
    **/
   PalletRecoveryRecoveryConfig: {
     delayPeriod: 'u32',
@@ -1301,7 +1316,7 @@ export default {
     threshold: 'u16'
   },
   /**
-   * Lookup161: pallet_recovery::ActiveRecovery<BlockNumber, Balance, frame_support::storage::bounded_vec::BoundedVec<sp_core::crypto::AccountId32, S>>
+   * Lookup163: pallet_recovery::ActiveRecovery<BlockNumber, Balance, frame_support::storage::bounded_vec::BoundedVec<sp_core::crypto::AccountId32, S>>
    **/
   PalletRecoveryActiveRecovery: {
     created: 'u32',
@@ -1309,13 +1324,13 @@ export default {
     friends: 'Vec<AccountId32>'
   },
   /**
-   * Lookup162: pallet_recovery::pallet::Error<T>
+   * Lookup164: pallet_recovery::pallet::Error<T>
    **/
   PalletRecoveryError: {
     _enum: ['NotAllowed', 'ZeroThreshold', 'NotEnoughFriends', 'MaxFriends', 'NotSorted', 'NotRecoverable', 'AlreadyRecoverable', 'AlreadyStarted', 'NotStarted', 'NotFriend', 'DelayPeriod', 'AlreadyVouched', 'Threshold', 'StillActive', 'AlreadyProxy', 'BadState']
   },
   /**
-   * Lookup163: pallet_assets::types::AssetDetails<Balance, sp_core::crypto::AccountId32, DepositBalance>
+   * Lookup165: pallet_assets::types::AssetDetails<Balance, sp_core::crypto::AccountId32, DepositBalance>
    **/
   PalletAssetsAssetDetails: {
     owner: 'AccountId32',
@@ -1332,7 +1347,7 @@ export default {
     isFrozen: 'bool'
   },
   /**
-   * Lookup165: pallet_assets::types::AssetAccount<Balance, DepositBalance, Extra>
+   * Lookup167: pallet_assets::types::AssetAccount<Balance, DepositBalance, Extra>
    **/
   PalletAssetsAssetAccount: {
     balance: 'u128',
@@ -1341,7 +1356,7 @@ export default {
     extra: 'Null'
   },
   /**
-   * Lookup166: pallet_assets::types::ExistenceReason<Balance>
+   * Lookup168: pallet_assets::types::ExistenceReason<Balance>
    **/
   PalletAssetsExistenceReason: {
     _enum: {
@@ -1352,14 +1367,14 @@ export default {
     }
   },
   /**
-   * Lookup168: pallet_assets::types::Approval<Balance, DepositBalance>
+   * Lookup170: pallet_assets::types::Approval<Balance, DepositBalance>
    **/
   PalletAssetsApproval: {
     amount: 'u128',
     deposit: 'u128'
   },
   /**
-   * Lookup169: pallet_assets::types::AssetMetadata<DepositBalance, frame_support::storage::bounded_vec::BoundedVec<T, S>>
+   * Lookup171: pallet_assets::types::AssetMetadata<DepositBalance, frame_support::storage::bounded_vec::BoundedVec<T, S>>
    **/
   PalletAssetsAssetMetadata: {
     deposit: 'u128',
@@ -1369,19 +1384,19 @@ export default {
     isFrozen: 'bool'
   },
   /**
-   * Lookup171: pallet_assets::pallet::Error<T, I>
+   * Lookup173: pallet_assets::pallet::Error<T, I>
    **/
   PalletAssetsError: {
     _enum: ['BalanceLow', 'NoAccount', 'NoPermission', 'Unknown', 'Frozen', 'InUse', 'BadWitness', 'MinBalanceZero', 'NoProvider', 'BadMetadata', 'Unapproved', 'WouldDie', 'AlreadyExists', 'NoDeposit', 'WouldBurn']
   },
   /**
-   * Lookup172: pallet_lo_authority_list::pallet::Error<T>
+   * Lookup174: pallet_lo_authority_list::pallet::Error<T>
    **/
   PalletLoAuthorityListError: {
     _enum: ['AlreadyExists', 'NotFound']
   },
   /**
-   * Lookup173: pallet_logion_loc::LegalOfficerCase<sp_core::crypto::AccountId32, primitive_types::H256, LocId, BlockNumber>
+   * Lookup175: pallet_logion_loc::LegalOfficerCase<sp_core::crypto::AccountId32, primitive_types::H256, LocId, BlockNumber>
    **/
   PalletLogionLocLegalOfficerCase: {
     owner: 'AccountId32',
@@ -1394,10 +1409,11 @@ export default {
     voidInfo: 'Option<PalletLogionLocLocVoidInfo>',
     replacerOf: 'Option<u128>',
     collectionLastBlockSubmission: 'Option<u32>',
-    collectionMaxSize: 'Option<u32>'
+    collectionMaxSize: 'Option<u32>',
+    collectionCanUpload: 'bool'
   },
   /**
-   * Lookup174: pallet_logion_loc::Requester<sp_core::crypto::AccountId32, LocId>
+   * Lookup176: pallet_logion_loc::Requester<sp_core::crypto::AccountId32, LocId>
    **/
   PalletLogionLocRequester: {
     _enum: {
@@ -1407,49 +1423,50 @@ export default {
     }
   },
   /**
-   * Lookup177: pallet_logion_loc::LocType
+   * Lookup179: pallet_logion_loc::LocType
    **/
   PalletLogionLocLocType: {
     _enum: ['Transaction', 'Identity', 'Collection']
   },
   /**
-   * Lookup180: pallet_logion_loc::LocVoidInfo<LocId>
+   * Lookup182: pallet_logion_loc::LocVoidInfo<LocId>
    **/
   PalletLogionLocLocVoidInfo: {
     replacer: 'Option<u128>'
   },
   /**
-   * Lookup184: pallet_logion_loc::CollectionItem
+   * Lookup186: pallet_logion_loc::CollectionItem<primitive_types::H256>
    **/
   PalletLogionLocCollectionItem: {
-    description: 'Bytes'
+    description: 'Bytes',
+    files: 'Vec<PalletLogionLocCollectionItemFile>'
   },
   /**
-   * Lookup185: pallet_logion_loc::pallet::StorageVersion
+   * Lookup187: pallet_logion_loc::pallet::StorageVersion
    **/
   PalletLogionLocStorageVersion: {
-    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection']
+    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload']
   },
   /**
-   * Lookup186: pallet_logion_loc::pallet::Error<T>
+   * Lookup188: pallet_logion_loc::pallet::Error<T>
    **/
   PalletLogionLocError: {
-    _enum: ['AlreadyExists', 'NotFound', 'Unauthorized', 'CannotMutate', 'AlreadyClosed', 'LinkedLocNotFound', 'ReplacerLocNotFound', 'AlreadyVoid', 'ReplacerLocAlreadyVoid', 'ReplacerLocAlreadyReplacing', 'CannotMutateVoid', 'UnexpectedRequester', 'ReplacerLocWrongType', 'InvalidSubmitter', 'CollectionHasNoLimit', 'WrongCollectionLoc', 'CollectionItemAlreadyExists', 'CollectionItemInvalid', 'CollectionLimitsReached', 'MetadataItemInvalid', 'FileInvalid', 'LocLinkInvalid']
+    _enum: ['AlreadyExists', 'NotFound', 'Unauthorized', 'CannotMutate', 'AlreadyClosed', 'LinkedLocNotFound', 'ReplacerLocNotFound', 'AlreadyVoid', 'ReplacerLocAlreadyVoid', 'ReplacerLocAlreadyReplacing', 'CannotMutateVoid', 'UnexpectedRequester', 'ReplacerLocWrongType', 'InvalidSubmitter', 'CollectionHasNoLimit', 'WrongCollectionLoc', 'CollectionItemAlreadyExists', 'CollectionItemInvalid', 'CollectionLimitsReached', 'MetadataItemInvalid', 'FileInvalid', 'LocLinkInvalid', 'CannotUpload']
   },
   /**
-   * Lookup187: pallet_verified_recovery::pallet::Error<T>
+   * Lookup189: pallet_verified_recovery::pallet::Error<T>
    **/
   PalletVerifiedRecoveryError: {
     _enum: ['InvalidLegalOfficers', 'MissingIdentityLoc']
   },
   /**
-   * Lookup188: pallet_logion_vault::pallet::Error<T>
+   * Lookup190: pallet_logion_vault::pallet::Error<T>
    **/
   PalletLogionVaultError: {
     _enum: ['InvalidSignatories', 'WrongInitiator']
   },
   /**
-   * Lookup190: sp_runtime::MultiSignature
+   * Lookup192: sp_runtime::MultiSignature
    **/
   SpRuntimeMultiSignature: {
     _enum: {
@@ -1459,43 +1476,43 @@ export default {
     }
   },
   /**
-   * Lookup191: sp_core::sr25519::Signature
+   * Lookup193: sp_core::sr25519::Signature
    **/
   SpCoreSr25519Signature: '[u8;64]',
   /**
-   * Lookup192: sp_core::ecdsa::Signature
+   * Lookup194: sp_core::ecdsa::Signature
    **/
   SpCoreEcdsaSignature: '[u8;65]',
   /**
-   * Lookup195: frame_system::extensions::check_non_zero_sender::CheckNonZeroSender<T>
+   * Lookup197: frame_system::extensions::check_non_zero_sender::CheckNonZeroSender<T>
    **/
   FrameSystemExtensionsCheckNonZeroSender: 'Null',
   /**
-   * Lookup196: frame_system::extensions::check_spec_version::CheckSpecVersion<T>
+   * Lookup198: frame_system::extensions::check_spec_version::CheckSpecVersion<T>
    **/
   FrameSystemExtensionsCheckSpecVersion: 'Null',
   /**
-   * Lookup197: frame_system::extensions::check_tx_version::CheckTxVersion<T>
+   * Lookup199: frame_system::extensions::check_tx_version::CheckTxVersion<T>
    **/
   FrameSystemExtensionsCheckTxVersion: 'Null',
   /**
-   * Lookup198: frame_system::extensions::check_genesis::CheckGenesis<T>
+   * Lookup200: frame_system::extensions::check_genesis::CheckGenesis<T>
    **/
   FrameSystemExtensionsCheckGenesis: 'Null',
   /**
-   * Lookup201: frame_system::extensions::check_nonce::CheckNonce<T>
+   * Lookup203: frame_system::extensions::check_nonce::CheckNonce<T>
    **/
   FrameSystemExtensionsCheckNonce: 'Compact<u32>',
   /**
-   * Lookup202: frame_system::extensions::check_weight::CheckWeight<T>
+   * Lookup204: frame_system::extensions::check_weight::CheckWeight<T>
    **/
   FrameSystemExtensionsCheckWeight: 'Null',
   /**
-   * Lookup203: pallet_transaction_payment::ChargeTransactionPayment<T>
+   * Lookup205: pallet_transaction_payment::ChargeTransactionPayment<T>
    **/
   PalletTransactionPaymentChargeTransactionPayment: 'Compact<u128>',
   /**
-   * Lookup204: logion_node_runtime::Runtime
+   * Lookup206: logion_node_runtime::Runtime
    **/
   LogionNodeRuntimeRuntime: 'Null'
 };
