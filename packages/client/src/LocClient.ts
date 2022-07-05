@@ -5,6 +5,7 @@ import {
     CollectionItem,
     LocType,
     LegalOfficerCase,
+    ItemFile,
 } from '@logion/node-api/dist/Types';
 import { UserIdentity, LegalOfficer } from "./Types";
 import { NetworkState } from "./NetworkState";
@@ -21,6 +22,7 @@ import { AxiosInstance } from 'axios';
 import { requireDefined } from "./assertions";
 import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays } from "./Http";
 import { Signer, SignCallback } from "./Signer";
+import { ComponentFactory, FileLike } from './ComponentFactory';
 
 export interface AddedOn {
     addedOn: string;
@@ -93,7 +95,7 @@ export interface DeleteMetadataParams {
 }
 
 export interface AddFileParams {
-    file: File,
+    file: FileLike,
     fileName: string,
     nature: string,
 }
@@ -106,9 +108,14 @@ export interface AddFileResult {
     hash: string
 }
 
+export interface ItemFileWithContent extends ItemFile {
+    content: FileLike;
+}
+
 export interface AddCollectionItemParams {
     itemId: string,
     itemDescription: string,
+    itemFiles?: ItemFileWithContent[],
     signer: Signer,
     callback?: SignCallback,
 }
@@ -139,12 +146,14 @@ export class LocMultiClient {
         currentAddress: string,
         token: string,
         nodeApi: LogionNodeApi,
+        componentFactory: ComponentFactory,
     }) {
         this.networkState = params.networkState;
         this.axiosFactory = params.axiosFactory;
         this.currentAddress = params.currentAddress;
         this.token = params.token;
         this.nodeApi = params.nodeApi;
+        this.componentFactory = params.componentFactory;
     }
 
     private readonly networkState: NetworkState<LegalOfficerEndpoint>;
@@ -157,6 +166,8 @@ export class LocMultiClient {
 
     private readonly nodeApi: LogionNodeApi;
 
+    private readonly componentFactory: ComponentFactory;
+
     newLocClient(legalOfficer: LegalOfficer) {
         return new LocClient({
             axiosFactory: this.axiosFactory,
@@ -165,6 +176,7 @@ export class LocMultiClient {
             nodeApi: this.nodeApi,
             legalOfficer,
             multiClient: this,
+            componentFactory: this.componentFactory,
         })
     }
 
@@ -208,6 +220,7 @@ export class LocClient {
         nodeApi: LogionNodeApi,
         legalOfficer: LegalOfficer,
         multiClient: LocMultiClient,
+        componentFactory: ComponentFactory,
     }) {
         this.axiosFactory = params.axiosFactory;
         this.currentAddress = params.currentAddress;
@@ -215,6 +228,7 @@ export class LocClient {
         this.nodeApi = params.nodeApi;
         this.legalOfficer = params.legalOfficer;
         this.multiClient = params.multiClient;
+        this.componentFactory = params.componentFactory;
     }
 
     private readonly axiosFactory: AxiosFactory;
@@ -223,6 +237,7 @@ export class LocClient {
     private readonly nodeApi: LogionNodeApi;
     private readonly legalOfficer: LegalOfficer;
     private readonly multiClient: LocMultiClient;
+    private readonly componentFactory: ComponentFactory;
 
     async createLocRequest(request: CreateLocRequest): Promise<LocRequest> {
         const response = await this.backend().post(`/api/loc-request`, request);
@@ -260,7 +275,7 @@ export class LocClient {
 
     async addFile(parameters: AddFileParams & FetchParameters): Promise<AddFileResult> {
         const { file, fileName, nature, locId } = parameters
-        const formData = new FormData();
+        const formData = this.componentFactory.buildFormData();
         formData.append('file', file, fileName);
         formData.append('nature', nature);
         const response = await this.backend().post(
@@ -280,19 +295,31 @@ export class LocClient {
     }
 
     async addCollectionItem(parameters: AddCollectionItemParams & FetchParameters): Promise<void> {
-        const { itemId, itemDescription, signer, callback, locId } = parameters;
+        const { itemId, itemDescription, signer, callback, locId, itemFiles } = parameters;
         const submittable = addCollectionItem({
             api: this.nodeApi,
             collectionId: locId,
             itemId,
             itemDescription,
-            itemFiles: [],
+            itemFiles: itemFiles || [],
         });
         await signer.signAndSend({
             signerId: this.currentAddress,
             submittable,
             callback
-        })
+        });
+
+        if(itemFiles) {
+            for(const file of itemFiles) {
+                const formData = this.componentFactory.buildFormData();
+                formData.append('file', file.content, file.name);
+                await this.backend().post(
+                    `/api/collection/${ locId.toString() }/${ itemId }/files`,
+                    formData,
+                    { headers: { "Content-Type": "multipart/form-data" } }
+                );
+            }
+        }
     }
 
     async getCollectionItem(parameters: { itemId: string } & FetchParameters): Promise<CollectionItem | undefined> {

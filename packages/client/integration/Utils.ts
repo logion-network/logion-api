@@ -1,10 +1,12 @@
 import { buildApi } from "@logion/node-api";
 import { Keyring } from "@polkadot/api";
+import FormData from "form-data";
 
 import { FullSigner, KeyringSigner, Signer } from "../src/Signer";
 import { LogionClientConfig } from "../src/SharedClient";
 import { LegalOfficer, LogionClient } from "../src";
 import { ALICE, BOB, CHARLIE } from "../test/Utils";
+
 
 export const ALICE_SECRET_SEED = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a";
 export const BOB_SECRET_SEED = "0x398f0c28f98885e046333d4a41c19cee4c37368a9832c6502f6cfd182e2aef89";
@@ -18,7 +20,8 @@ export function buildSigner(seeds: string []): FullSigner {
 
 export const TEST_LOGION_CLIENT_CONFIG: LogionClientConfig = {
     directoryEndpoint: "http://localhost:8090",
-    rpcEndpoints: [ 'ws://localhost:9944', 'ws://localhost:9945' ]
+    rpcEndpoints: [ 'ws://localhost:9944', 'ws://localhost:9945' ],
+    formDataLikeFactory: () => new FormData(),
 };
 
 export const REQUESTER_ADDRESS = "5DPLBrBxniGbGdFe1Lmdpkt6K3aNjhoNPJrSJ51rwcmhH2Tn";

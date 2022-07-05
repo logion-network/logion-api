@@ -467,6 +467,9 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
 
     async addCollectionItem(parameters: AddCollectionItemParams): Promise<ClosedCollectionLoc> {
         const client = this.locSharedState.client;
+        if(parameters.itemFiles && parameters.itemFiles.length > 0 && !this.legalOfficerCase!.collectionCanUpload) {
+            throw new Error("This Collection LOC does not allow uploading files with items");
+        }
         await client.addCollectionItem({
             locId: this.locId,
             ...parameters
@@ -525,6 +528,7 @@ function newLocMultiClient(sharedState: SharedState): LocMultiClient {
         networkState: sharedState.networkState,
         token: sharedState.tokens.get(sharedState.currentAddress!)!.value,
         nodeApi: sharedState.nodeApi,
+        componentFactory: sharedState.componentFactory,
     });
 }
 
