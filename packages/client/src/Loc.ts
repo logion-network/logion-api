@@ -123,6 +123,18 @@ export class LocsState {
         return await LocRequestState.createFromLoc(locSharedState, locRequest, loc);
     }
 
+    async findPublicById(params: FetchParameters): Promise<LocData | undefined> {
+        const locMultiClient = newLocMultiClient(this.sharedState);
+        const loc = await locMultiClient.getLoc(params);
+        const legalOfficer = this.sharedState.legalOfficers.find(lo => lo.address === loc.owner)
+        if (!legalOfficer) {
+            return undefined;
+        }
+        const client = locMultiClient.newLocClient(legalOfficer);
+        const locRequest = await client.getPublicLocRequest(params);
+        return LocRequestState.buildLocData(loc, locRequest);
+    }
+
     async requestTransactionLoc(params: CreateLocRequestParams): Promise<PendingRequest> {
         return this.requestLoc({
             ...params,
@@ -254,10 +266,14 @@ class LocRequestState {
     }
 
     data(): LocData {
-        if (this.legalOfficerCase) {
-            return this.dataFromRequestAndLoc(this.request, this.legalOfficerCase)
+        return LocRequestState.buildLocData(this.legalOfficerCase, this.request);
+    }
+
+    static buildLocData(legalOfficerCase: LegalOfficerCase | undefined, request: LocRequest): LocData {
+        if (legalOfficerCase) {
+            return LocRequestState.dataFromRequestAndLoc(request, legalOfficerCase);
         } else {
-            return this.dataFromRequest(this.request)
+            return LocRequestState.dataFromRequest(request);
         }
     }
 
@@ -265,6 +281,14 @@ class LocRequestState {
         const superseded = this.data().replacerOf;
         if (superseded) {
             return await this.locSharedState.locsState.findById({ locId: superseded }) as VoidedLoc;
+        }
+        return undefined;
+    }
+
+    async publicSupersededLoc(): Promise<LocData | undefined> {
+        const superseded = this.data().replacerOf;
+        if (superseded) {
+            return await this.locSharedState.locsState.findPublicById({ locId: superseded });
         }
         return undefined;
     }
@@ -298,24 +322,24 @@ class LocRequestState {
         return result;
     }
 
-    private dataFromRequest(request: LocRequest): LocData {
+    private static dataFromRequest(request: LocRequest): LocData {
         return {
             ...request,
             requesterAddress: request.requesterAddress || undefined,
-            id: this.locId,
+            id: new UUID(request.id),
             closed: false,
             replacerOf: undefined,
             voidInfo: undefined,
-            metadata: request.metadata.map(item => this.mergeMetadata(item)),
-            files: request.files.map(item => this.mergeFile(item)),
-            links: request.links.map(item => this.mergeLink(item)),
+            metadata: request.metadata.map(item => LocRequestState.mergeMetadata(item)),
+            files: request.files.map(item => LocRequestState.mergeFile(item)),
+            links: request.links.map(item => LocRequestState.mergeLink(item)),
         };
     }
 
-    private dataFromRequestAndLoc(request: LocRequest, loc: LegalOfficerCase): LocData {
+    private static dataFromRequestAndLoc(request: LocRequest, loc: LegalOfficerCase): LocData {
         return {
             ...loc,
-            id: this.locId,
+            id: new UUID(request.id),
             ownerAddress: loc.owner,
             closedOn: request.closedOn,
             createdOn: request.createdOn,
@@ -324,13 +348,13 @@ class LocRequestState {
             rejectReason: request.rejectReason,
             status: request.status,
             userIdentity: request.userIdentity,
-            metadata: request.metadata.map(item => this.mergeMetadata(item, loc)),
-            files: request.files.map(item => this.mergeFile(item, loc)),
-            links: request.links.map(item => this.mergeLink(item, loc)),
+            metadata: request.metadata.map(item => LocRequestState.mergeMetadata(item, loc)),
+            files: request.files.map(item => LocRequestState.mergeFile(item, loc)),
+            links: request.links.map(item => LocRequestState.mergeLink(item, loc)),
         };
     }
 
-    private mergeMetadata(backendMetadataItem: LocMetadataItem, chainLoc?: LegalOfficerCase): MergedMetadataItem {
+    private static mergeMetadata(backendMetadataItem: LocMetadataItem, chainLoc?: LegalOfficerCase): MergedMetadataItem {
         const chainMetadataItem = chainLoc ? chainLoc.metadata.find(item => item.name === backendMetadataItem.name) : undefined;
         return {
             ...backendMetadataItem,
@@ -338,7 +362,7 @@ class LocRequestState {
         }
     }
 
-    private mergeFile(backendFile: LocFile, chainLoc?: LegalOfficerCase): MergedFile {
+    private static mergeFile(backendFile: LocFile, chainLoc?: LegalOfficerCase): MergedFile {
         const chainFile = chainLoc ? chainLoc.files.find(item => item.hash === backendFile.hash) : undefined;
         return {
             ...backendFile,
@@ -347,7 +371,7 @@ class LocRequestState {
         }
     }
 
-    private mergeLink(backendLink: LocLink, chainLoc?: LegalOfficerCase): MergedLink {
+    private static mergeLink(backendLink: LocLink, chainLoc?: LegalOfficerCase): MergedLink {
         const chainLink = chainLoc ? chainLoc.links.find(link => link.id.toString() === backendLink.target) : undefined;
         return {
             ...backendLink,

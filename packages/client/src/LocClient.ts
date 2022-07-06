@@ -259,6 +259,12 @@ export class LocClient {
         return response.data;
     }
 
+    async getPublicLocRequest(parameters: FetchParameters): Promise<LocRequest> {
+        const { locId } = parameters;
+        const response = await this.backend().get(`/api/loc-request/${ locId.toString() }/public`);
+        return response.data;
+    }
+
     async getLoc(parameters: FetchParameters): Promise<LegalOfficerCase> {
         return this.multiClient.getLoc(parameters);
     }
