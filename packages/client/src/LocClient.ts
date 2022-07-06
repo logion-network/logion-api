@@ -109,7 +109,7 @@ export interface AddFileResult {
 }
 
 export interface ItemFileWithContent extends ItemFile {
-    content: FileLike;
+    content?: FileLike; // Can be uploaded later if undefined
 }
 
 export interface AddCollectionItemParams {
@@ -311,15 +311,22 @@ export class LocClient {
 
         if(itemFiles) {
             for(const file of itemFiles) {
-                const formData = this.componentFactory.buildFormData();
-                formData.append('file', file.content, file.name);
-                await this.backend().post(
-                    `/api/collection/${ locId.toString() }/${ itemId }/files`,
-                    formData,
-                    { headers: { "Content-Type": "multipart/form-data" } }
-                );
+                if(file.content) {
+                    await this.uploadItemFile({ locId, itemId, file });
+                }
             }
         }
+    }
+
+    async uploadItemFile(parameters: { locId: UUID, itemId: string, file: ItemFileWithContent }) {
+        const { locId, itemId, file } = parameters;
+        const formData = this.componentFactory.buildFormData();
+        formData.append('file', file.content, file.name);
+        await this.backend().post(
+            `/api/collection/${ locId.toString() }/${ itemId }/files`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+        );
     }
 
     async getCollectionItem(parameters: { itemId: string } & FetchParameters): Promise<CollectionItem | undefined> {

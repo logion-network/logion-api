@@ -15,7 +15,8 @@ import {
     LocRequestVoidInfo,
     LocRequestStatus,
     Published,
-    AddedOn
+    AddedOn,
+    ItemFileWithContent
 } from "./LocClient";
 import { SharedState } from "./SharedClient";
 import { LegalOfficer, UserIdentity } from "./Types";
@@ -463,6 +464,11 @@ class ClosedOrVoidCollectionLoc extends LocRequestState {
     }
 }
 
+export interface UploadCollectionItemFileParams {
+    itemId: string,
+    itemFile: ItemFileWithContent,
+}
+
 export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
 
     async addCollectionItem(parameters: AddCollectionItemParams): Promise<ClosedCollectionLoc> {
@@ -473,6 +479,16 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
         await client.addCollectionItem({
             locId: this.locId,
             ...parameters
+        })
+        return this;
+    }
+
+    async uploadCollectionItemFile(parameters: UploadCollectionItemFileParams): Promise<ClosedCollectionLoc> {
+        const client = this.locSharedState.client;
+        await client.uploadItemFile({
+            locId: this.locId,
+            itemId: parameters.itemId,
+            file: parameters.itemFile,
         })
         return this;
     }
