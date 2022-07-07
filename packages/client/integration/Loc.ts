@@ -220,6 +220,7 @@ export async function collectionLocWithUpload(state: State) {
             contentType: "text/plain",
             hash: firstFileHash,
             size: 4n,
+            uploaded: true,
         })
     ]));
 
@@ -241,6 +242,13 @@ export async function collectionLocWithUpload(state: State) {
         ]
     });
 
+    const secondItemNoUpload = await closedLoc.getCollectionItem({ itemId: secondItemId });
+    expect(secondItemNoUpload!.files).toEqual(jasmine.arrayContaining([
+        jasmine.objectContaining({
+            uploaded: false,
+        })
+    ]));
+
     closedLoc = await closedLoc.uploadCollectionItemFile({
         itemId: secondItemId,
         itemFile: {
@@ -248,7 +256,14 @@ export async function collectionLocWithUpload(state: State) {
             contentType: "text/plain",
             hash: secondFileHash,
             size: 5n,
-            content: secondFileContent
+            content: secondFileContent,
         }
     });
+
+    const secondItemWithUpload = await closedLoc.getCollectionItem({ itemId: secondItemId });
+    expect(secondItemWithUpload!.files).toEqual(jasmine.arrayContaining([
+        jasmine.objectContaining({
+            uploaded: true,
+        })
+    ]));
 }

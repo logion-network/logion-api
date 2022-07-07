@@ -16,7 +16,8 @@ import {
     LocRequestStatus,
     Published,
     AddedOn,
-    ItemFileWithContent
+    ItemFileWithContent,
+    UploadableCollectionItem
 } from "./LocClient";
 import { SharedState } from "./SharedClient";
 import { LegalOfficer, UserIdentity } from "./Types";
@@ -462,7 +463,7 @@ export class ClosedLoc extends LocRequestState {
 
 class ClosedOrVoidCollectionLoc extends LocRequestState {
 
-    async getCollectionItem(parameters: { itemId: string }): Promise<CollectionItem | undefined> {
+    async getCollectionItem(parameters: { itemId: string }): Promise<UploadableCollectionItem | undefined> {
         const { itemId } = parameters;
         const client = this.locSharedState.client;
         return await client.getCollectionItem({

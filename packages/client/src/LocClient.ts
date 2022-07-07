@@ -212,6 +212,23 @@ export class LocMultiClient {
     }
 }
 
+export interface UploadableCollectionItem {
+    id: string;
+    description: string;
+    files: UploadableItemFile[];
+}
+
+export interface UploadableItemFile extends ItemFile {
+    uploaded: boolean;
+}
+
+export interface OffchainCollectionItem {
+    collectionLocId: string;
+    itemId: string;
+    addedOn: string;
+    files: string[];
+}
+
 export class LocClient {
 
     constructor(params: {
@@ -340,13 +357,35 @@ export class LocClient {
         }
     }
 
-    async getCollectionItem(parameters: { itemId: string } & FetchParameters): Promise<CollectionItem | undefined> {
+    async getCollectionItem(parameters: { itemId: string } & FetchParameters): Promise<UploadableCollectionItem | undefined> {
         const { locId, itemId } = parameters;
-        return await getCollectionItem({
+        const onchainItem = await getCollectionItem({
             api: this.nodeApi,
             locId,
             itemId
         });
+        if(!onchainItem) {
+            return undefined;
+        }
+        try {
+            const offchainItem = await this.getOffchainItem({ locId, itemId });
+            return {
+                id: itemId,
+                description: onchainItem.description,
+                files: onchainItem.files.map(file => ({
+                    ...file,
+                    uploaded: offchainItem.files.includes(file.hash),
+                })),
+            }
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    private async getOffchainItem(parameters: { locId: UUID, itemId: string }): Promise<OffchainCollectionItem> {
+        const { locId, itemId } = parameters;
+        const response = await this.backend().get(`/api/collection/${ locId.toString() }/${ itemId }`);
+        return response.data;
     }
 
     async getCollectionSize(parameters: FetchParameters): Promise<number | undefined> {
