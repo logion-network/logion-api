@@ -195,7 +195,7 @@ export async function collectionLocWithUpload(state: State) {
     const firstItemId = hash("first-collection-item");
     const firstItemDescription = "First collection item";
     const firstFileContent = "test";
-    const fisrtFileHash = hash(firstFileContent);
+    const firstFileHash = hash(firstFileContent);
     closedLoc = await closedLoc.addCollectionItem({
         itemId: firstItemId,
         itemDescription: firstItemDescription,
@@ -204,7 +204,7 @@ export async function collectionLocWithUpload(state: State) {
             {
                 name: "test.txt",
                 contentType: "text/plain",
-                hash: fisrtFileHash,
+                hash: firstFileHash,
                 size: 4n,
                 content: Buffer.from(firstFileContent)
             }
@@ -218,7 +218,7 @@ export async function collectionLocWithUpload(state: State) {
         jasmine.objectContaining({
             name: "test.txt",
             contentType: "text/plain",
-            hash: fisrtFileHash,
+            hash: firstFileHash,
             size: 4n,
         })
     ]));
