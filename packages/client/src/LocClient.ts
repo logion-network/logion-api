@@ -23,6 +23,7 @@ import { requireDefined } from "./assertions";
 import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays } from "./Http";
 import { Signer, SignCallback } from "./Signer";
 import { ComponentFactory, FileLike } from './ComponentFactory';
+import { newBackendError } from './Error';
 
 export interface AddedOn {
     addedOn: string;
@@ -328,11 +329,15 @@ export class LocClient {
         const { locId, itemId, file } = parameters;
         const formData = this.componentFactory.buildFormData();
         formData.append('file', file.content, file.name);
-        await this.backend().post(
-            `/api/collection/${ locId.toString() }/${ itemId }/files`,
-            formData,
-            { headers: { "Content-Type": "multipart/form-data" } }
-        );
+        try {
+            await this.backend().post(
+                `/api/collection/${ locId.toString() }/${ itemId }/files`,
+                formData,
+                { headers: { "Content-Type": "multipart/form-data" } }
+            );
+        } catch(e: any) {
+            throw newBackendError(e);
+        }
     }
 
     async getCollectionItem(parameters: { itemId: string } & FetchParameters): Promise<CollectionItem | undefined> {

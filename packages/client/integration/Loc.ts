@@ -192,26 +192,63 @@ export async function collectionLocWithUpload(state: State) {
     await legalOfficer.closeLoc(openLoc.locId);
     let closedLoc = await openLoc.refresh() as ClosedCollectionLoc;
 
-    const itemId = hash("first-collection-item");
-    const itemDescription = "First collection item";
-    const fileContent = "test";
-    const fileHash = hash(fileContent);
+    const firstItemId = hash("first-collection-item");
+    const firstItemDescription = "First collection item";
+    const firstFileContent = "test";
+    const fisrtFileHash = hash(firstFileContent);
     closedLoc = await closedLoc.addCollectionItem({
-        itemId,
-        itemDescription,
+        itemId: firstItemId,
+        itemDescription: firstItemDescription,
         signer: state.signer,
         itemFiles: [
             {
                 name: "test.txt",
                 contentType: "text/plain",
-                hash: fileHash,
+                hash: fisrtFileHash,
                 size: 4n,
-                content: Buffer.from(fileContent)
+                content: Buffer.from(firstFileContent)
             }
         ]
     });
 
-    const item = await closedLoc.getCollectionItem({ itemId });
-    expect(item!.id).toBe(itemId);
-    expect(item!.description).toBe(itemDescription);
+    const firstItem = await closedLoc.getCollectionItem({ itemId: firstItemId });
+    expect(firstItem!.id).toBe(firstItemId);
+    expect(firstItem!.description).toBe(firstItemDescription);
+    expect(firstItem!.files).toEqual(jasmine.arrayContaining([
+        jasmine.objectContaining({
+            name: "test.txt",
+            contentType: "text/plain",
+            hash: fisrtFileHash,
+            size: 4n,
+        })
+    ]));
+
+    const secondItemId = hash("second-collection-item");
+    const secondItemDescription = "Second collection item";
+    const secondFileContent = "test2";
+    const secondFileHash = hash(secondFileContent);
+    closedLoc = await closedLoc.addCollectionItem({
+        itemId: secondItemId,
+        itemDescription: secondItemDescription,
+        signer: state.signer,
+        itemFiles: [
+            {
+                name: "test2.txt",
+                contentType: "text/plain",
+                hash: secondFileHash,
+                size: 5n,
+            }
+        ]
+    });
+
+    closedLoc = await closedLoc.uploadCollectionItemFile({
+        itemId: secondItemId,
+        itemFile: {
+            name: "test2.txt",
+            contentType: "text/plain",
+            hash: secondFileHash,
+            size: 5n,
+            content: secondFileContent
+        }
+    });
 }
