@@ -79,11 +79,11 @@ class LegalOfficerWorker {
         await axios.post(`/api/loc-request/${ id.toString() }/accept`);
     }
 
-    async openCollectionLoc(id: UUID) {
+    async openCollectionLoc(id: UUID, withUpload: boolean) {
         const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
         await this.state.signer.signAndSend({
             signerId: this.legalOfficer.address,
-            submittable: api.tx.logionLoc.createCollectionLoc(id.toDecimalString(), USER_ADDRESS, null, "100", false)
+            submittable: api.tx.logionLoc.createCollectionLoc(id.toDecimalString(), USER_ADDRESS, null, "100", withUpload)
         });
 
         const axios = await this.buildLegalOfficerAxios(this.state.client, this.state.signer, this.legalOfficer);
@@ -137,7 +137,7 @@ export async function collectionLoc(state: State) {
     locsState = pendingRequest.locsState();
     expect(locsState.pendingRequests["Collection"][0].data().status).toBe("REQUESTED");
 
-    await legalOfficer.openCollectionLoc(pendingRequest.locId);
+    await legalOfficer.openCollectionLoc(pendingRequest.locId, false);
 
     let openLoc = await pendingRequest.refresh() as OpenLoc;
     await legalOfficer.closeLoc(openLoc.locId);
@@ -163,4 +163,92 @@ function hash(data: string): string {
     const bytes = new TextEncoder().encode(data);
     digest.update(bytes);
     return '0x' + Buffer.from(digest.digest()).toString('hex');
+}
+
+export async function collectionLocWithUpload(state: State) {
+
+    const { alice } = state;
+    const client = state.client.withCurrentAddress(USER_ADDRESS);
+    let locsState = await client.locsState();
+
+    const legalOfficer = new LegalOfficerWorker(alice, state);
+
+    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, USER_ADDRESS);
+
+    const pendingRequest = await locsState.requestCollectionLoc({
+        legalOfficer: alice,
+        description: "This is a Collection LOC with upload",
+        userIdentity: {
+            email: "john.doe@invalid.domain",
+            firstName: "John",
+            lastName: "Doe",
+            phoneNumber: "+1234",
+        },
+    });
+
+    await legalOfficer.openCollectionLoc(pendingRequest.locId, true);
+
+    let openLoc = await pendingRequest.refresh() as OpenLoc;
+    await legalOfficer.closeLoc(openLoc.locId);
+    let closedLoc = await openLoc.refresh() as ClosedCollectionLoc;
+
+    const firstItemId = hash("first-collection-item");
+    const firstItemDescription = "First collection item";
+    const firstFileContent = "test";
+    const firstFileHash = hash(firstFileContent);
+    closedLoc = await closedLoc.addCollectionItem({
+        itemId: firstItemId,
+        itemDescription: firstItemDescription,
+        signer: state.signer,
+        itemFiles: [
+            {
+                name: "test.txt",
+                contentType: "text/plain",
+                hash: firstFileHash,
+                size: 4n,
+                content: Buffer.from(firstFileContent)
+            }
+        ]
+    });
+
+    const firstItem = await closedLoc.getCollectionItem({ itemId: firstItemId });
+    expect(firstItem!.id).toBe(firstItemId);
+    expect(firstItem!.description).toBe(firstItemDescription);
+    expect(firstItem!.files).toEqual(jasmine.arrayContaining([
+        jasmine.objectContaining({
+            name: "test.txt",
+            contentType: "text/plain",
+            hash: firstFileHash,
+            size: 4n,
+        })
+    ]));
+
+    const secondItemId = hash("second-collection-item");
+    const secondItemDescription = "Second collection item";
+    const secondFileContent = "test2";
+    const secondFileHash = hash(secondFileContent);
+    closedLoc = await closedLoc.addCollectionItem({
+        itemId: secondItemId,
+        itemDescription: secondItemDescription,
+        signer: state.signer,
+        itemFiles: [
+            {
+                name: "test2.txt",
+                contentType: "text/plain",
+                hash: secondFileHash,
+                size: 5n,
+            }
+        ]
+    });
+
+    closedLoc = await closedLoc.uploadCollectionItemFile({
+        itemId: secondItemId,
+        itemFile: {
+            name: "test2.txt",
+            contentType: "text/plain",
+            hash: secondFileHash,
+            size: 5n,
+            content: secondFileContent
+        }
+    });
 }

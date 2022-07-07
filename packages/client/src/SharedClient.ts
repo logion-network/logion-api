@@ -2,7 +2,7 @@ import { LogionNodeApi } from "@logion/node-api";
 import { AccountTokens } from "./AuthenticationClient";
 
 import { AxiosFactory } from "./AxiosFactory";
-import { ComponentFactory } from "./ComponentFactory";
+import { ComponentFactory, FormDataLike } from "./ComponentFactory";
 import { DirectoryClient } from "./DirectoryClient";
 import { Endpoint } from "./Http";
 import { NetworkState } from "./NetworkState";
@@ -11,12 +11,12 @@ import { LegalOfficer } from "./Types";
 export interface LogionClientConfig {
     rpcEndpoints: string[];
     directoryEndpoint: string;
+    formDataLikeFactory?: () => FormDataLike;
 }
 
 export interface LegalOfficerEndpoint extends Endpoint {
     legalOfficer: string;
 }
-
 
 export interface SharedState {
     config: LogionClientConfig;

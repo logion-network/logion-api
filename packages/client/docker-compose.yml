@@ -21,9 +21,15 @@ services:
       - OWNER=5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
       - DIRECTORY_URL=http://directory:8080
       - SMTP_ENABLED=false
+      - IPFS_CLUSTER_HOST=/dns4/ipfs-cluster1/tcp/9094
+      - IPFS_HOST=/dns4/ipfs1/tcp/5001
+      - IPFS_MIN_REPLICA=1
+      - IPFS_MAX_REPLICA=2
+      - ENC_PASSWORD=test
     depends_on:
       - node1
       - private-database1
+      - ipfs-cluster1
   frontend1:
     image: logionnetwork/logion-frontend:${FRONTEND_TAG:-latest}
     ports:
@@ -39,6 +45,24 @@ services:
       - CERTBOT_EMAIL=user1@invalid.domain
       - BACKEND_HOST_PORT=backend1:8080
       - NODE_HOST_PORT=node1:9944
+  ipfs1:
+    image: ipfs/go-ipfs:v0.12.0
+    ports:
+      - 127.0.0.1:5001:5001
+    volumes:
+      - ./config/ipfs1/config:/data/ipfs/config:ro
+      - ./config/ipfs1/datastore_spec:/data/ipfs/datastore_spec:ro
+      - ./config/ipfs1/swarm.key:/data/ipfs/swarm.key:ro
+      - ./config/ipfs1/version:/data/ipfs/version:ro
+  ipfs-cluster1:
+    image: ipfs/ipfs-cluster:v0.14.5
+    depends_on:
+      - ipfs1
+    ports:
+      - 127.0.0.1:9094:9094
+    volumes:
+      - ./config/ipfs-cluster1/identity.json:/data/ipfs-cluster/identity.json:ro
+      - ./config/ipfs-cluster1/service.json:/data/ipfs-cluster/service.json:ro
 # ----------------------------------------- Logion node 2 --------------------------------------------------------------
   private-database2:
     image: logionnetwork/logion-postgres:${PG_TAG:-latest}
@@ -62,9 +86,15 @@ services:
       - OWNER=5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
       - DIRECTORY_URL=http://directory:8080
       - SMTP_ENABLED=false
+      - IPFS_CLUSTER_HOST=/dns4/ipfs-cluster2/tcp/9094
+      - IPFS_HOST=/dns4/ipfs2/tcp/5001
+      - IPFS_MIN_REPLICA=1
+      - IPFS_MAX_REPLICA=2
+      - ENC_PASSWORD=test
     depends_on:
       - node2
       - private-database2
+      - ipfs-cluster2
   frontend2:
     image: logionnetwork/logion-frontend:${FRONTEND_TAG:-latest}
     ports:
@@ -80,6 +110,23 @@ services:
       - CERTBOT_EMAIL=user2@invalid.domain
       - BACKEND_HOST_PORT=backend2:8080
       - NODE_HOST_PORT=node2:9944
+  ipfs2:
+    image: ipfs/go-ipfs:v0.12.0
+    volumes:
+      - ./config/ipfs2/config:/data/ipfs/config:ro
+      - ./config/ipfs2/datastore_spec:/data/ipfs/datastore_spec:ro
+      - ./config/ipfs2/swarm.key:/data/ipfs/swarm.key:ro
+      - ./config/ipfs2/version:/data/ipfs/version:ro
+    depends_on:
+      - ipfs1
+  ipfs-cluster2:
+    image: ipfs/ipfs-cluster:v0.14.5
+    depends_on:
+      - ipfs-cluster1
+      - ipfs2
+    volumes:
+      - ./config/ipfs-cluster2/identity.json:/data/ipfs-cluster/identity.json:ro
+      - ./config/ipfs-cluster2/service.json:/data/ipfs-cluster/service.json:ro
 # ----------------------------------------- Logion node 3 --------------------------------------------------------------
   private-database3:
     image: logionnetwork/logion-postgres:${PG_TAG:-latest}
@@ -103,9 +150,15 @@ services:
       - OWNER=5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y
       - DIRECTORY_URL=http://directory:8080
       - SMTP_ENABLED=false
+      - IPFS_CLUSTER_HOST=/dns4/ipfs-cluster3/tcp/9094
+      - IPFS_HOST=/dns4/ipfs3/tcp/5001
+      - IPFS_MIN_REPLICA=1
+      - IPFS_MAX_REPLICA=2
+      - ENC_PASSWORD=test
     depends_on:
       - node3
       - private-database3
+      - ipfs-cluster3
   frontend3:
     image: logionnetwork/logion-frontend:${FRONTEND_TAG:-latest}
     ports:
@@ -121,6 +174,23 @@ services:
       - CERTBOT_EMAIL=user3@invalid.domain
       - BACKEND_HOST_PORT=backend3:8080
       - NODE_HOST_PORT=node3:9944
+  ipfs3:
+    image: ipfs/go-ipfs:v0.12.0
+    volumes:
+      - ./config/ipfs3/config:/data/ipfs/config:ro
+      - ./config/ipfs3/datastore_spec:/data/ipfs/datastore_spec:ro
+      - ./config/ipfs3/swarm.key:/data/ipfs/swarm.key:ro
+      - ./config/ipfs3/version:/data/ipfs/version:ro
+    depends_on:
+      - ipfs1
+  ipfs-cluster3:
+    image: ipfs/ipfs-cluster:v0.14.5
+    depends_on:
+      - ipfs-cluster1
+      - ipfs3
+    volumes:
+      - ./config/ipfs-cluster3/identity.json:/data/ipfs-cluster/identity.json:ro
+      - ./config/ipfs-cluster3/service.json:/data/ipfs-cluster/service.json:ro
 # ----------------------------------------- Logion directory --------------------------------------------------------------
   directory-database:
     image: postgres:12

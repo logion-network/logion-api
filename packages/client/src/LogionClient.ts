@@ -221,9 +221,16 @@ export class LogionClient {
 }
 
 function getComponentFactory(config: LogionClientConfig): ComponentFactory {
+    let componentFactory: ComponentFactory;
     if("__componentFactory" in config) {
-        return (config as any)["__componentFactory"];
+        componentFactory = (config as any)["__componentFactory"];
     } else {
-        return DefaultComponentFactory;
+        componentFactory = DefaultComponentFactory;
     }
+
+    if(config.formDataLikeFactory !== undefined) {
+        componentFactory.buildFormData = config.formDataLikeFactory;
+    }
+
+    return componentFactory
 }

@@ -6,12 +6,19 @@ import { NetworkState } from "./NetworkState";
 import { LegalOfficerEndpoint } from "./SharedClient";
 import { LegalOfficer } from "./Types";
 
+export interface FormDataLike {
+    append(name: string, value: any, fileName?: string): void;
+}
+
+export type FileLike = any; // Either a browser's File or a Node.js Stream or Buffer
+
 export interface ComponentFactory {
     buildAxiosFactory: () => AxiosFactory;
     buildDirectoryClient: (directoryEndpoint: string, axiosFactory: AxiosFactory, token?: string) => DirectoryClient;
     buildAuthenticationClient: (directoryEndpoint: string, legalOfficers: LegalOfficer[], axiosFactory: AxiosFactory) => AuthenticationClient;
     buildNetworkState(nodesUp: LegalOfficerEndpoint[], nodesDown: LegalOfficerEndpoint[]): NetworkState<LegalOfficerEndpoint>;
     buildNodeApi(rpcEndpoints: string[]): Promise<LogionNodeApi>;
+    buildFormData: () => FormDataLike;
 }
 
 export const DefaultComponentFactory: ComponentFactory = {
@@ -20,4 +27,5 @@ export const DefaultComponentFactory: ComponentFactory = {
     buildAuthenticationClient: (directoryEndpoint: string, legalOfficers: LegalOfficer[], axiosFactory: AxiosFactory) => new AuthenticationClient(directoryEndpoint, legalOfficers, axiosFactory),
     buildNetworkState: (nodesUp: LegalOfficerEndpoint[], nodesDown: LegalOfficerEndpoint[]) => new NetworkState(nodesUp, nodesDown),
     buildNodeApi: (rpcEndpoints: string[]) => buildApi(rpcEndpoints),
+    buildFormData: () => new FormData(),
 };

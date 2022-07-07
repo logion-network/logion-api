@@ -7,3 +7,4 @@ front_config.js
 front_web*.conf
 jasmine*.json
 tsconfig*.json
+/config/**
