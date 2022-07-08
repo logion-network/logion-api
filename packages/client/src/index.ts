@@ -42,8 +42,12 @@ import {
     MergedMetadataItem,
     MergedFile,
     MergedLink,
+    CheckHashResult,
 } from './Loc';
-import { AddCollectionItemParams } from './LocClient';
+import {
+    AddCollectionItemParams,
+    UploadableCollectionItem,
+} from './LocClient';
 export {
     LogionClient,
     LegalOfficer,
@@ -86,4 +90,6 @@ export {
     MergedLink,
     AddCollectionItemParams,
     KeyringSigner,
+    UploadableCollectionItem,
+    CheckHashResult,
 };
