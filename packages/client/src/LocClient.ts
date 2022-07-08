@@ -215,6 +215,7 @@ export class LocMultiClient {
 export interface UploadableCollectionItem {
     id: string;
     description: string;
+    addedOn: string;
     files: UploadableItemFile[];
 }
 
@@ -372,6 +373,7 @@ export class LocClient {
             return {
                 id: itemId,
                 description: onchainItem.description,
+                addedOn: offchainItem.addedOn,
                 files: onchainItem.files.map(file => ({
                     ...file,
                     uploaded: offchainItem.files.includes(file.hash),

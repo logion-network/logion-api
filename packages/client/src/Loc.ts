@@ -202,7 +202,7 @@ export interface CreateSofRequestParams {
 export interface CheckHashResult {
     file?: MergedFile;
     metadataItem?: MergedMetadataItem;
-    collectionItem?: CollectionItem;
+    collectionItem?: UploadableCollectionItem;
 }
 
 class LocRequestState {
