@@ -232,17 +232,28 @@ const pendingRequest = await locsState.requestCollectionLoc({
     },
 });
 
-// ... Wait for the LO to open the LOC, fill-it in then close it ...
+// ... Wait for the LO to open the LOC with upload support, fill-it in then close it ...
 
 let closedLoc = await openLoc.refresh() as ClosedCollectionLoc;
 
 // Add an item to the collection LOC
 const itemId = "0xc53447c3d4e9d94d6f4ab926378c5b14bd66e28af619d4dcb066c862f8aeb455"; // SHA256 hash of "first-collection-item" (without the quotes)
 const itemDescription = "First collection item";
+const itemFileContent = "test";
+const itemFileHash = hash(itemFileContent);
 closedLoc = await closedLoc.addCollectionItem({
     itemId,
     itemDescription,
     signer,
+    itemFiles: [ // Must remain undefined with Collection LOCs without upload support
+        {
+            name: "test.txt",
+            contentType: "text/plain",
+            hash: itemFileHash,
+            size: BigInt(itemFileContent.length),
+            content: Buffer.from(itemFileContent)
+        }
+    ]
 });
 
 // Later, retrieve the item given its ID
