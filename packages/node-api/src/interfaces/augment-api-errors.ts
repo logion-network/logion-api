@@ -203,6 +203,10 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       CollectionLimitsReached: AugmentedError<ApiType>;
       /**
+       * Cannot attach same file multiple times
+       **/
+      DuplicateFile: AugmentedError<ApiType>;
+      /**
        * File cannot be added to given LOC because submitted data are invalid
        **/
       FileInvalid: AugmentedError<ApiType>;
@@ -222,6 +226,10 @@ declare module '@polkadot/api-base/types/errors' {
        * Metadata Item cannot be added to given LOC because submitted data are invalid
        **/
       MetadataItemInvalid: AugmentedError<ApiType>;
+      /**
+       * Must attach at least one file
+       **/
+      MustUpload: AugmentedError<ApiType>;
       /**
        * Target LOC does not exist
        **/

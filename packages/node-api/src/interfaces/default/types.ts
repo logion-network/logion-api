@@ -41,6 +41,15 @@ export interface AssetMetadata extends Struct {
 /** @name CollectionItem */
 export interface CollectionItem extends Struct {
   readonly description: Bytes;
+  readonly files: Vec<CollectionItemFile>;
+}
+
+/** @name CollectionItemFile */
+export interface CollectionItemFile extends Struct {
+  readonly name: Bytes;
+  readonly content_type: Bytes;
+  readonly fileSize: u32;
+  readonly hash: Hash;
 }
 
 /** @name CollectionItemId */
@@ -69,6 +78,7 @@ export interface LegalOfficerCaseOf extends Struct {
   readonly replacer_of: Option<LocId>;
   readonly collection_last_block_submission: Option<BlockNumber>;
   readonly collection_max_size: Option<CollectionSize>;
+  readonly collection_can_upload: bool;
 }
 
 /** @name LocId */
@@ -123,7 +133,8 @@ export interface StorageVersion extends Enum {
   readonly isV3RequesterEnum: boolean;
   readonly isV4ItemSubmitter: boolean;
   readonly isV5Collection: boolean;
-  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection';
+  readonly isV6ItemUpload: boolean;
+  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload';
 }
 
 /** @name TAssetBalance */

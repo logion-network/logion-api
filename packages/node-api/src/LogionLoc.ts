@@ -4,9 +4,9 @@ import { Option } from "@polkadot/types-codec";
 
 import { UUID } from './UUID';
 import { LegalOfficerCase, LocType, MetadataItem, VoidInfo, CollectionItem, ItemFile } from './Types';
-import { LegalOfficerCaseOf, CollectionSize } from './interfaces';
+import { CollectionSize } from './interfaces';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
-import { PalletLogionLocCollectionItemFile, PalletLogionLocLegalOfficerCase } from '@polkadot/types/lookup';
+import { PalletLogionLocLegalOfficerCase } from '@polkadot/types/lookup';
 
 export interface LogionIdentityLocCreationParameters {
     api: ApiPromise;

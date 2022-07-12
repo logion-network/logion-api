@@ -39,6 +39,7 @@ export default {
             replacer_of: "Option<LocId>",
             collection_last_block_submission: "Option<BlockNumber>",
             collection_max_size: "Option<CollectionSize>",
+            collection_can_upload: "bool",
         },
         MetadataItem: {
             name: "Vec<u8>",
@@ -70,7 +71,8 @@ export default {
                 "V2MakeLocVoid",
                 "V3RequesterEnum",
                 "V4ItemSubmitter",
-                "V5Collection"
+                "V5Collection",
+                "V6ItemUpload",
             ]
         },
         Requester: {
@@ -83,7 +85,14 @@ export default {
         CollectionSize: "u32",
         CollectionItemId: "Hash",
         CollectionItem: {
-            description: "Vec<u8>"
+            description: "Vec<u8>",
+            files: "Vec<CollectionItemFile<Hash>>",
+        },
+        CollectionItemFile: {
+            name: "Vec<u8>",
+            content_type: "Vec<u8>",
+            fileSize: "u32",
+            hash: "Hash",
         }
     }
 };
