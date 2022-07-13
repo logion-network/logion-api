@@ -140,7 +140,7 @@ export class HashOrContent {
                 size: BigInt(buffer.length)
             };
         } else if(typeof this._content === "string") {
-            return hashStream(buildStream(this._content as string));
+            return hashStream(await buildStream(this._content as string));
         } else {
             throw new Error(`Unsupported content type: ${ typeof this._content }`);
         }
@@ -176,7 +176,7 @@ function isBuffer(obj: any): boolean { // eslint-disable-line @typescript-eslint
         && obj.constructor.isBuffer(obj);
 }
 
-function buildStream(path: string): NodeJS.ReadableStream {
-    const fs = require('fs'); // eslint-disable-line @typescript-eslint/no-var-requires
+async function buildStream(path: string): Promise<NodeJS.ReadableStream> {
+    const fs = await import('fs');
     return fs.createReadStream(path);
 }
