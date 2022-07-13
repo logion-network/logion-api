@@ -873,13 +873,16 @@ __metadata:
   dependencies:
     "@logion/node-api": "workspace:^"
     "@tsconfig/node16": ^1.0.1
+    "@types/jasmine": ^4.0.3
     "@types/luxon": ^2.3.2
+    "@types/mime-db": ^1.43.1
     "@types/node": ^17.0.21
     axios: ^0.27.2
     form-data: ^4.0.0
     jasmine: ^4.1.0
     jasmine-spec-reporter: ^7.0.0
     luxon: ^2.3.2
+    mime-db: ^1.52.0
     moq.ts: ^7.3.4
     ts-node: ^10.7.0
     typescript: ^4.6.2
@@ -1891,6 +1894,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/jasmine@npm:^4.0.3":
+  version: 4.0.3
+  resolution: "@types/jasmine@npm:4.0.3"
+  checksum: 9d2af9ddb5750667bc9a3b439542fc9457c6eac2ab2c74801f598b03b9bc5cee1338fa8e75e6804dff1856e64539e8b0e3962ed8664a702f362d3db62eb9cd3a
+  languageName: node
+  linkType: hard
+
 "@types/jest@npm:^27.4.1":
   version: 27.5.0
   resolution: "@types/jest@npm:27.5.0"
@@ -1905,6 +1915,13 @@ __metadata:
   version: 2.3.2
   resolution: "@types/luxon@npm:2.3.2"
   checksum: b9fe79118681f4bb9f2e37696a7df992a82683ba4448e7ad1af8cc241443ffc64ef08fdeaad749de9e6259b42b0d4b6540d7e880bca39bb504e0f3863d503c98
+  languageName: node
+  linkType: hard
+
+"@types/mime-db@npm:^1.43.1":
+  version: 1.43.1
+  resolution: "@types/mime-db@npm:1.43.1"
+  checksum: 1e2f98b0ec87ae9604f12ce6efd32fdf26043fee9bdd4b894b53b5ccf790bdd1cc62b3be06d3d882c99ad3c01355f6336ff9cb67876cb2522fc6e9f6d1233228
   languageName: node
   linkType: hard
 
@@ -4089,7 +4106,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mime-db@npm:1.52.0":
+"mime-db@npm:1.52.0, mime-db@npm:^1.52.0":
   version: 1.52.0
   resolution: "mime-db@npm:1.52.0"
   checksum: 0d99a03585f8b39d68182803b12ac601d9c01abfa28ec56204fa330bc9f3d1c5e14beb049bafadb3dbdf646dfb94b87e24d4ec7b31b7279ef906a8ea9b6a513f

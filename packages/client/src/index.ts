@@ -47,7 +47,20 @@ import {
 import {
     AddCollectionItemParams,
     UploadableCollectionItem,
+    ItemFileWithContent,
 } from './LocClient';
+import {
+    hashString,
+    hashBlob,
+    hashBuffer,
+    hashStream,
+    HashAndSize,
+    HashOrContent,
+} from './Hash';
+import {
+    MimeType,
+    isValidMime,
+} from './Mime';
 export {
     LogionClient,
     LegalOfficer,
@@ -92,4 +105,13 @@ export {
     KeyringSigner,
     UploadableCollectionItem,
     CheckHashResult,
+    hashString,
+    hashBlob,
+    hashBuffer,
+    hashStream,
+    HashAndSize,
+    HashOrContent,
+    ItemFileWithContent,
+    MimeType,
+    isValidMime,
 };

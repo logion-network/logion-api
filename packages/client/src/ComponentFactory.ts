@@ -10,7 +10,7 @@ export interface FormDataLike {
     append(name: string, value: any, fileName?: string): void;
 }
 
-export type FileLike = any; // Either a browser's File or a Node.js Stream or Buffer
+export type FileLike = File | Blob | Buffer | string; // string is the path to the file
 
 export interface ComponentFactory {
     buildAxiosFactory: () => AxiosFactory;
