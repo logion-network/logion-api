@@ -2,11 +2,11 @@ import {
     File as BlockchainFile,
     MetadataItem,
     Link,
-    CollectionItem,
     LocType,
     LegalOfficerCase,
     ItemFile,
 } from '@logion/node-api/dist/Types';
+
 import { UserIdentity, LegalOfficer } from "./Types";
 import { NetworkState } from "./NetworkState";
 import { LegalOfficerEndpoint } from "./SharedClient";
@@ -24,6 +24,8 @@ import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays 
 import { Signer, SignCallback } from "./Signer";
 import { ComponentFactory, FileLike } from './ComponentFactory';
 import { newBackendError } from './Error';
+import { HashOrContent } from './Hash';
+import { MimeType } from './Mime';
 
 export interface AddedOn {
     addedOn: string;
@@ -109,8 +111,59 @@ export interface AddFileResult {
     hash: string
 }
 
-export interface ItemFileWithContent extends ItemFile {
-    content?: FileLike; // Can be uploaded later if undefined
+export class ItemFileWithContent {
+
+    constructor(parameters: {
+        name: string;
+        contentType: MimeType;
+        size?: bigint;
+        hashOrContent: HashOrContent;
+    }) {
+        this._name = parameters.name;
+        this._contentType = parameters.contentType;
+        this._hashOrContent = parameters.hashOrContent;
+        this._size = parameters.size;
+
+        if(!this._size && !this._hashOrContent.hasContent) {
+            throw new Error("File size must be provided if no content is");
+        }
+    }
+
+    private _name: string;
+    private _contentType: MimeType;
+    private _size?: bigint;
+    private _hashOrContent: HashOrContent;
+
+    async finalize() {
+        await this._hashOrContent.finalize();
+        if(this._hashOrContent.hasContent) {
+            const contentSize = this._hashOrContent.size;
+            if(!this._size) {
+                this._size = contentSize;
+            } else if(this._size !== contentSize) {
+                throw new Error(`Given size does not match content: got ${this._size}, should be ${contentSize}`);
+            }
+        }
+    }
+
+    get name() {
+        return this._name;
+    }
+
+    get contentType() {
+        return this._contentType;
+    }
+
+    get size() {
+        if(!this._size) {
+            throw new Error("Call finalize() first");
+        }
+        return this._size;
+    }
+
+    get hashOrContent() {
+        return this._hashOrContent;
+    }
 }
 
 export interface AddCollectionItemParams {
@@ -182,7 +235,7 @@ export class LocMultiClient {
     }
 
     async fetchAll(legalOfficers?: LegalOfficer[]): Promise<LocRequest[]> {
-        let initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers)
+        const initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers);
 
         const httpClient = new MultiSourceHttpClient<LegalOfficerEndpoint, LocRequest[]>(
             initialState,
@@ -190,7 +243,7 @@ export class LocMultiClient {
             this.token
         );
 
-        const multiResponse = await httpClient.fetch(async (axios, _) => {
+        const multiResponse = await httpClient.fetch(async axios => {
             const specs: FetchLocRequestSpecification = {
                 requesterAddress: this.currentAddress,
                 locTypes: [ "Transaction", "Collection" ],
@@ -321,12 +374,28 @@ export class LocClient {
 
     async addCollectionItem(parameters: AddCollectionItemParams & FetchParameters): Promise<void> {
         const { itemId, itemDescription, signer, callback, locId, itemFiles } = parameters;
+
+        const chainItemFiles: ItemFile[] = [];
+        if(itemFiles) {
+            for(const itemFile of itemFiles) {
+                await itemFile.finalize(); // Ensure hash and size
+            }
+            for(const itemFile of itemFiles) {
+                chainItemFiles.push({
+                    name: itemFile.name,
+                    contentType: itemFile.contentType.mimeType,
+                    hash: itemFile.hashOrContent.contentHash,
+                    size: itemFile.size,
+                });
+            }
+        }
+
         const submittable = addCollectionItem({
             api: this.nodeApi,
             collectionId: locId,
             itemId,
             itemDescription,
-            itemFiles: itemFiles || [],
+            itemFiles: chainItemFiles,
         });
         await signer.signAndSend({
             signerId: this.currentAddress,
@@ -336,7 +405,7 @@ export class LocClient {
 
         if(itemFiles) {
             for(const file of itemFiles) {
-                if(file.content) {
+                if(file.hashOrContent.hasContent) {
                     await this.uploadItemFile({ locId, itemId, file });
                 }
             }
@@ -345,15 +414,18 @@ export class LocClient {
 
     async uploadItemFile(parameters: { locId: UUID, itemId: string, file: ItemFileWithContent }) {
         const { locId, itemId, file } = parameters;
+
+        await file.hashOrContent.finalize(); // Ensure validity
+
         const formData = this.componentFactory.buildFormData();
-        formData.append('file', file.content, file.name);
+        formData.append('file', file.hashOrContent.content, file.name);
         try {
             await this.backend().post(
                 `/api/collection/${ locId.toString() }/${ itemId }/files`,
                 formData,
                 { headers: { "Content-Type": "multipart/form-data" } }
             );
-        } catch(e: any) {
+        } catch(e) {
             throw newBackendError(e);
         }
     }

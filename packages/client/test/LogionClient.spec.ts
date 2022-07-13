@@ -1,3 +1,4 @@
+import { HashOrContent, ItemFileWithContent, MimeType } from '../src';
 import { DateTime } from 'luxon';
 import { It, Mock, Times } from 'moq.ts';
 import { AuthenticationClient } from '../src/AuthenticationClient';
@@ -152,5 +153,60 @@ describe("LogionClient", () => {
         const client = authenticatedClient.logout();
 
         expect(client).toBeDefined();
+    });
+});
+
+describe("ItemFileWithContent", () => {
+
+    it("can be created with file size and no content", async () => {
+        const item = new ItemFileWithContent({
+            name: "test.txt",
+            contentType: MimeType.from("text/plain"),
+            hashOrContent: HashOrContent.fromHash("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"),
+            size: 4n,
+        });
+        expect(item.name).toBe("test.txt");
+        expect(item.contentType.mimeType).toBe("text/plain");
+        expect(item.size).toBe(4n);
+        expect(item.hashOrContent).toBeDefined();
+    });
+
+    it("detects file size with content", async () => {
+        const item = new ItemFileWithContent({
+            name: "test.txt",
+            contentType: MimeType.from("text/plain"),
+            hashOrContent: HashOrContent.fromContent(Buffer.from("test")),
+        });
+        await item.finalize();
+        expect(item.size).toBe(4n);
+    });
+
+    it("accepts file size matching content", async () => {
+        const item = new ItemFileWithContent({
+            name: "test.txt",
+            contentType: MimeType.from("text/plain"),
+            hashOrContent: HashOrContent.fromContent(Buffer.from("test")),
+            size: 4n,
+        });
+        await item.finalize();
+        expect(item.size).toBe(4n);
+    });
+
+    it("fails at finalizing with file size not matching content", async () => {
+        const item = new ItemFileWithContent({
+            name: "test.txt",
+            contentType: MimeType.from("text/plain"),
+            hashOrContent: HashOrContent.fromContent(Buffer.from("test")),
+            size: 5n,
+        });
+        await expectAsync(item.finalize()).toBeRejected();
+    });
+
+    it("cannot be created with missing file size and no content", async () => {
+        expect(() => new ItemFileWithContent({
+            name: "test.txt",
+            contentType: MimeType.from("text/plain"),
+            hashOrContent: HashOrContent.fromHash("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"),
+        })).toThrow();
     });
 });

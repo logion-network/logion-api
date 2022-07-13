@@ -4,7 +4,7 @@ import { asRecovered } from "@logion/node-api/dist/Recovery";
 import { CoinBalance, getBalances } from "@logion/node-api/dist/Balances";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
-import { SharedState } from "./SharedClient";
+import { authenticatedCurrentAddress, getDefinedCurrentAddress, SharedState } from "./SharedClient";
 import { SignCallback, Signer } from "./Signer";
 import { LegalOfficer } from "./Types";
 import { requestSort, VaultClient, VaultTransferRequest } from "./VaultClient";
@@ -32,12 +32,12 @@ export type VaultStateCreationParameters = SharedState & {
 export class VaultState {
 
     static async create(sharedState: VaultStateCreationParameters): Promise<VaultState> {
-        const currentAddress = sharedState.currentAddress!;
+        const { currentAddress, token } = authenticatedCurrentAddress(sharedState);
         const client = new VaultClient({
             axiosFactory: sharedState.axiosFactory,
             networkState: sharedState.networkState,
             currentAddress,
-            token: sharedState.tokens.get(currentAddress)!.value,
+            token: token.value,
             isLegalOfficer: sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === currentAddress) !== undefined,
             isRecovery: sharedState.isRecovery,
         });
@@ -67,10 +67,24 @@ export class VaultState {
 
     private static getVaultAddress(sharedState: VaultStateCreationParameters): string {
         if(sharedState.isRecovery) {
-            return getVaultAddress(sharedState.recoveredAddress!, sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address));
+            if(!sharedState.recoveredAddress) {
+                throw new Error("No recovered address defined");
+            }
+            return getVaultAddress(
+                VaultState.getDefinedRecoveredAddress(sharedState),
+                sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address)
+            );
         } else {
-            return getVaultAddress(sharedState.currentAddress!, sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address));
+            const { currentAddress } = authenticatedCurrentAddress(sharedState);
+            return getVaultAddress(currentAddress, sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address));
         }
+    }
+
+    private static getDefinedRecoveredAddress(sharedState: VaultStateCreationParameters): string {
+        if(!sharedState.recoveredAddress) {
+            throw new Error("No recovered address defined");
+        }
+        return sharedState.recoveredAddress;
     }
 
     constructor(state: VaultSharedState) {
@@ -111,7 +125,8 @@ export class VaultState {
     }): Promise<VaultState> {
         const { amount, destination, signer, callback, legalOfficer } = params;
 
-        const signerId = this.sharedState.currentAddress!;
+        const currentAddress = getDefinedCurrentAddress(this.sharedState);
+        const signerId = currentAddress;
 
         let submittable: SubmittableExtrinsic;
         if(this.sharedState.isRecovery) {
@@ -128,7 +143,7 @@ export class VaultState {
 
         let origin: string;
         if(this.sharedState.isRecovery) {
-            origin = this.sharedState.recoveredAddress!;
+            origin = VaultState.getDefinedRecoveredAddress(this.sharedState);
         } else {
             origin = signerId;
         }
@@ -156,14 +171,14 @@ export class VaultState {
         const { destination, amount } = params;
         const call = await buildVaultTransferCall({
             api: this.sharedState.nodeApi,
-            requesterAddress: this.sharedState.recoveredAddress!,
+            requesterAddress: VaultState.getDefinedRecoveredAddress(this.sharedState),
             destination,
             legalOfficers: this.sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address),
             amount: amount,
         });
         return asRecovered({
             api: this.sharedState.nodeApi,
-            recoveredAccountId: this.sharedState.recoveredAddress!,
+            recoveredAccountId: this.sharedState.recoveredAddress || "",
             call
         });
     }
@@ -174,7 +189,7 @@ export class VaultState {
     }): Promise<SubmittableExtrinsic> {
         const { destination, amount } = params;
         return requestVaultTransfer({
-            signerId: this.sharedState.currentAddress!,
+            signerId: getDefinedCurrentAddress(this.sharedState),
             api: this.sharedState.nodeApi,
             amount,
             destination,
@@ -188,7 +203,7 @@ export class VaultState {
         signer: Signer,
         callback?: SignCallback,
     ): Promise<VaultState> {
-        const signerId = this.sharedState.currentAddress!;
+        const signerId = getDefinedCurrentAddress(this.sharedState);
         const amount = new PrefixedNumber(request.amount, LGNT_SMALLEST_UNIT);
 
         let submittable: SubmittableExtrinsic;
@@ -235,7 +250,7 @@ export class VaultState {
             pendingVaultTransferRequests = pendingVaultTransferRequests.filter(pendingRequest => request.id !== pendingRequest.id);
         }
 
-        let cancelledVaultTransferRequests = this.sharedState.cancelledVaultTransferRequests.concat([ cancelledRequest ]).sort(requestSort);
+        const cancelledVaultTransferRequests = this.sharedState.cancelledVaultTransferRequests.concat([ cancelledRequest ]).sort(requestSort);
 
         let rejectedVaultTransferRequests = this.sharedState.rejectedVaultTransferRequests;
         if(request.status === "REJECTED") {

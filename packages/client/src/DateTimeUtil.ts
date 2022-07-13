@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 
 export function toIsoString(moment: DateTime): string {
-    let signedOn = moment.toISO();
+    const signedOn = moment.toISO();
     if(signedOn.endsWith('Z')) {
         return signedOn.substring(0, signedOn.length - 1);
     } else {

@@ -97,7 +97,7 @@ export class RecoveryClient {
     private readonly nodeApi: LogionNodeApi;
 
     async fetchAll(legalOfficers?: LegalOfficer[]): Promise<FetchAllResult> {
-        let initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers)
+        const initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers)
 
         const multiClient = new MultiSourceHttpClient<LegalOfficerEndpoint, ProtectionRequest[]>(
             initialState,

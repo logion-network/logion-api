@@ -1,11 +1,11 @@
-import { Hash } from 'fast-sha256';
-
-import { State, TEST_LOGION_CLIENT_CONFIG, NEW_ADDRESS, initRequesterBalance } from "./Utils";
-import { LegalOfficer, LogionClient, FullSigner } from "../src";
-import { AxiosFactory } from "../src/AxiosFactory";
 import { UUID, buildApi } from "@logion/node-api";
+import { LegalOfficer, LogionClient, FullSigner, HashOrContent, hashString, ItemFileWithContent, MimeType } from "../src";
+
+import { AxiosFactory } from "../src/AxiosFactory";
 import { LocRequestStatus } from "../src/LocClient";
 import { OpenLoc, PendingRequest, LocData, ClosedCollectionLoc } from "../src/Loc";
+
+import { State, TEST_LOGION_CLIENT_CONFIG, NEW_ADDRESS, initRequesterBalance } from "./Utils";
 
 const USER_ADDRESS = NEW_ADDRESS;
 
@@ -145,7 +145,7 @@ export async function collectionLoc(state: State) {
     let closedLoc = await openLoc.refresh() as ClosedCollectionLoc;
     expect(closedLoc).toBeInstanceOf(ClosedCollectionLoc);
 
-    const itemId = hash("first-collection-item");
+    const itemId = hashString("first-collection-item");
     const itemDescription = "First collection item";
     closedLoc = await closedLoc.addCollectionItem({
         itemId,
@@ -156,13 +156,6 @@ export async function collectionLoc(state: State) {
     const item = await closedLoc.getCollectionItem({ itemId });
     expect(item!.id).toBe(itemId);
     expect(item!.description).toBe(itemDescription);
-}
-
-function hash(data: string): string {
-    let digest = new Hash();
-    const bytes = new TextEncoder().encode(data);
-    digest.update(bytes);
-    return '0x' + Buffer.from(digest.digest()).toString('hex');
 }
 
 export async function collectionLocWithUpload(state: State) {
@@ -192,22 +185,20 @@ export async function collectionLocWithUpload(state: State) {
     await legalOfficer.closeLoc(openLoc.locId);
     let closedLoc = await openLoc.refresh() as ClosedCollectionLoc;
 
-    const firstItemId = hash("first-collection-item");
+    const firstItemId = hashString("first-collection-item");
     const firstItemDescription = "First collection item";
     const firstFileContent = "test";
-    const firstFileHash = hash(firstFileContent);
+    const firstFileHash = hashString(firstFileContent);
     closedLoc = await closedLoc.addCollectionItem({
         itemId: firstItemId,
         itemDescription: firstItemDescription,
         signer: state.signer,
         itemFiles: [
-            {
+            new ItemFileWithContent({
                 name: "test.txt",
-                contentType: "text/plain",
-                hash: firstFileHash,
-                size: 4n,
-                content: Buffer.from(firstFileContent)
-            }
+                contentType: MimeType.from("text/plain"),
+                hashOrContent: HashOrContent.fromContent(Buffer.from(firstFileContent)), // Let SDK compute hash and size
+            })
         ]
     });
 
@@ -224,21 +215,21 @@ export async function collectionLocWithUpload(state: State) {
         })
     ]));
 
-    const secondItemId = hash("second-collection-item");
+    const secondItemId = hashString("second-collection-item");
     const secondItemDescription = "Second collection item";
     const secondFileContent = "test2";
-    const secondFileHash = hash(secondFileContent);
+    const secondFileHash = hashString(secondFileContent);
     closedLoc = await closedLoc.addCollectionItem({
         itemId: secondItemId,
         itemDescription: secondItemDescription,
         signer: state.signer,
         itemFiles: [
-            {
+            new ItemFileWithContent({
                 name: "test2.txt",
-                contentType: "text/plain",
-                hash: secondFileHash,
-                size: 5n,
-            }
+                contentType: MimeType.from("text/plain"),
+                hashOrContent: HashOrContent.fromHash(secondFileHash), // No content, must upload later
+                size: 5n, // No content, must provide size
+            })
         ]
     });
 
@@ -251,13 +242,12 @@ export async function collectionLocWithUpload(state: State) {
 
     closedLoc = await closedLoc.uploadCollectionItemFile({
         itemId: secondItemId,
-        itemFile: {
+        itemFile: new ItemFileWithContent({
             name: "test2.txt",
-            contentType: "text/plain",
-            hash: secondFileHash,
-            size: 5n,
-            content: secondFileContent,
-        }
+            contentType: MimeType.from("text/plain"),
+            hashOrContent: new HashOrContent({ hash: secondFileHash, content: Buffer.from(secondFileContent) }), // Provide both hash and content to double-check
+            size: 5n, // Provide size to double-check with content
+        })
     });
 
     const secondItemWithUpload = await closedLoc.getCollectionItem({ itemId: secondItemId });

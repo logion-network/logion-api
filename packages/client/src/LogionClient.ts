@@ -10,7 +10,7 @@ import { DirectoryClient } from "./DirectoryClient";
 import { Token } from "./Http";
 import { getInitialState, ProtectionState } from "./Recovery";
 import { RecoveryClient } from "./RecoveryClient";
-import { LegalOfficerEndpoint, LogionClientConfig, SharedState } from "./SharedClient";
+import { authenticatedCurrentAddress, LegalOfficerEndpoint, LogionClientConfig, SharedState } from "./SharedClient";
 import { RawSigner } from "./Signer";
 import { LegalOfficer } from "./Types";
 import { LocsState } from "./Loc";
@@ -87,8 +87,10 @@ export class LogionClient {
         } else {
             actualThreshold = {minutes: 30};
         }
+        const earliestExpiration = this.tokens.earliestExpiration();
         if(this.tokens.length === 0
-                || this.tokens.earliestExpiration()! > now.plus(actualThreshold) ) {
+                || !earliestExpiration
+                || earliestExpiration > now.plus(actualThreshold) ) {
             return this;
         }
         const client = this.sharedState.componentFactory.buildAuthenticationClient(
@@ -146,13 +148,10 @@ export class LogionClient {
     }
 
     async protectionState(): Promise<ProtectionState> {
-        const token = this.token;
-        if(!token) {
-            throw new Error("Current address was not authenticated");
-        }
+        const { currentAddress, token } = authenticatedCurrentAddress(this.sharedState);
         const recoveryClient = new RecoveryClient({
             axiosFactory: this.sharedState.axiosFactory,
-            currentAddress: this.currentAddress!,
+            currentAddress,
             networkState: this.sharedState.networkState,
             token: token.value,
             nodeApi: this.sharedState.nodeApi,
@@ -223,7 +222,7 @@ export class LogionClient {
 function getComponentFactory(config: LogionClientConfig): ComponentFactory {
     let componentFactory: ComponentFactory;
     if("__componentFactory" in config) {
-        componentFactory = (config as any)["__componentFactory"];
+        componentFactory = (config as any)["__componentFactory"]; // eslint-disable-line @typescript-eslint/no-explicit-any
     } else {
         componentFactory = DefaultComponentFactory;
     }
