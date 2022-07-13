@@ -14,7 +14,7 @@ test("recovery creation", () => {
         legalOfficers,
     });
 
-    expect(api.tx.verifiedRecovery.createRecovery).toBeCalledWith(legalOfficers);
+    expect(api.tx.verifiedRecovery.createRecovery).toHaveBeenCalledWith(legalOfficers);
 });
 
 test("get recovery config", async () => {
@@ -51,7 +51,7 @@ test("initiate recovery", () => {
         addressToRecover
     });
 
-    expect(api.tx.recovery.initiateRecovery).toBeCalledWith(addressToRecover);
+    expect(api.tx.recovery.initiateRecovery).toHaveBeenCalledWith(addressToRecover);
 });
 
 test("get active recovery", async () => {

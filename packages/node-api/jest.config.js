@@ -7,5 +7,6 @@ module.exports = {
   ],
   transformIgnorePatterns: [
     "/node_modules/(?!@polkadot|@babel)"
-  ]
+  ],
+  testRunner: "jest-jasmine2"
 };
