@@ -6,7 +6,7 @@
   "packageManager": "yarn@3.2.0",
   "scripts": {
     "build": "tsc",
-    "test": "jasmine --config=jasmine.json"
+    "test": "echo 'Nothing to test'"
   },
   "repository": {
     "type": "git",
