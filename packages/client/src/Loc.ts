@@ -19,7 +19,7 @@ import {
     ItemFileWithContent,
     UploadableCollectionItem
 } from "./LocClient";
-import { SharedState } from "./SharedClient";
+import { authenticatedCurrentAddress, SharedState } from "./SharedClient";
 import { LegalOfficer, UserIdentity } from "./Types";
 import { UUID } from "@logion/node-api";
 
@@ -565,20 +565,13 @@ export class VoidedCollectionLoc extends ClosedOrVoidCollectionLoc {
 }
 
 function newLocMultiClient(sharedState: SharedState): LocMultiClient {
-    if(!sharedState.currentAddress) {
-        throw new Error("No current address");
-    }
-    const token = sharedState.tokens.get(sharedState.currentAddress);
-    if(!token) {
-        throw new Error("Current address is not authenticated");
-    }
+    const { currentAddress, token } = authenticatedCurrentAddress(sharedState);
     return new LocMultiClient({
         axiosFactory: sharedState.axiosFactory,
-        currentAddress: sharedState.currentAddress,
+        currentAddress,
         networkState: sharedState.networkState,
         token: token.value,
         nodeApi: sharedState.nodeApi,
         componentFactory: sharedState.componentFactory,
     });
 }
-
