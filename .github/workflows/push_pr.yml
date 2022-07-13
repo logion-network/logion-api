@@ -7,14 +7,12 @@ on:
 
 jobs:
   build:
-    strategy:
-        matrix:
-            step: ['test', 'build']
-    name: ${{ matrix.step }}
+    name: Build and test
     runs-on: ubuntu-latest
     steps:
         - uses: actions/checkout@v2
         - name: ${{ matrix.step }}
           run: |
             yarn install --immutable
-            yarn ${{ matrix.step }}
+            yarn build
+            yarn test
