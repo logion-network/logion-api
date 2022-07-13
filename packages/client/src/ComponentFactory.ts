@@ -7,7 +7,7 @@ import { LegalOfficerEndpoint } from "./SharedClient";
 import { LegalOfficer } from "./Types";
 
 export interface FormDataLike {
-    append(name: string, value: any, fileName?: string): void;
+    append(name: string, value: any, fileName?: string): void; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export type FileLike = File | Blob | Buffer | string; // string is the path to the file

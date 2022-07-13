@@ -1,4 +1,4 @@
-export function newBackendError(error: any): Error {
+export function newBackendError(error: any): Error { // eslint-disable-line @typescript-eslint/no-explicit-any
     if(error.response.data.errorMessage) {
         return new Error(`${error.message}: ${error.response.data.errorMessage}`);
     } else {

@@ -24,9 +24,9 @@ export interface BalanceSharedState extends SharedState {
 export async function getBalanceState(sharedState: SharedState & { isRecovery: boolean, recoveredAddress?: string }): Promise<BalanceState> {
     let targetAddress;
     if(sharedState.isRecovery) {
-        targetAddress = sharedState.recoveredAddress!;
+        targetAddress = sharedState.recoveredAddress || "";
     } else {
-        targetAddress = sharedState.currentAddress!;
+        targetAddress = sharedState.currentAddress || "";
     }
     const client = newTransactionClient(targetAddress, sharedState);
     const transactions = await client.fetchTransactions();
@@ -69,7 +69,7 @@ export class BalanceState {
         if(this.sharedState.isRecovery) {
             submittable = asRecovered({
                 api: this.sharedState.nodeApi,
-                recoveredAccountId: this.sharedState.recoveredAddress!,
+                recoveredAccountId: this.sharedState.recoveredAddress || "",
                 call: buildTransferCall({
                     api: this.sharedState.nodeApi,
                     destination,
@@ -85,7 +85,7 @@ export class BalanceState {
         }
 
         await signer.signAndSend({
-            signerId: this.sharedState.currentAddress!,
+            signerId: this.sharedState.currentAddress || "",
             submittable,
             callback,
         })

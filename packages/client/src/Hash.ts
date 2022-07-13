@@ -2,7 +2,7 @@ import { Hash } from 'fast-sha256';
 import { FileLike } from './ComponentFactory';
 
 export function hashString(data: string): string {
-    let digest = new Hash();
+    const digest = new Hash();
     const bytes = new TextEncoder().encode(data);
     digest.update(bytes);
     return digestToHex(digest);
@@ -18,14 +18,14 @@ export interface HashAndSize {
 }
 
 export async function hashBlob(file: Blob): Promise<HashAndSize> {
-    const unknownStream: any = file.stream();
+    const unknownStream: any = file.stream(); // eslint-disable-line @typescript-eslint/no-explicit-any
     const reader = unknownStream.getReader();
-    let digest = new Hash();
+    const digest = new Hash();
     let size = 0n;
-    let chunk: {done: boolean, value?: Buffer} = await reader.read();
+    let chunk: {done: boolean, value: Buffer} = await reader.read();
     while(!chunk.done) {
-        size = size + BigInt(chunk.value!.length);
-        digest.update(chunk.value!);
+        size = size + BigInt(chunk.value.length);
+        digest.update(chunk.value);
         chunk = await reader.read();
     }
     return {
@@ -35,14 +35,14 @@ export async function hashBlob(file: Blob): Promise<HashAndSize> {
 }
 
 export function hashBuffer(buffer: Buffer): string {
-    let digest = new Hash();
+    const digest = new Hash();
     digest.update(buffer);
     return digestToHex(digest);
 }
 
 export async function hashStream(stream: NodeJS.ReadableStream): Promise<HashAndSize> {
     return new Promise<HashAndSize>((resolve, reject) => {
-        let digest = new Hash();
+        const digest = new Hash();
         let size = 0n;
         stream.on("data", data => {
             size = size + BigInt(data.length);
@@ -104,7 +104,7 @@ export class HashOrContent {
 
     get contentHash(): string {
         this.ensureFinalized();
-        return this._hash!;
+        return this._hash || "";
     }
 
     private ensureFinalized() {
@@ -163,13 +163,13 @@ export class HashOrContent {
     }
 }
 
-function isBlob(obj: any): boolean {
+function isBlob(obj: any): boolean { // eslint-disable-line @typescript-eslint/no-explicit-any
     return obj
         && obj.stream
         && typeof obj.stream === 'function';
 }
 
-function isBuffer(obj: any): boolean {
+function isBuffer(obj: any): boolean { // eslint-disable-line @typescript-eslint/no-explicit-any
     return obj
         && obj.constructor
         && typeof obj.constructor.isBuffer === 'function'
@@ -177,6 +177,6 @@ function isBuffer(obj: any): boolean {
 }
 
 function buildStream(path: string): NodeJS.ReadableStream {
-    const fs = require('fs');
+    const fs = require('fs'); // eslint-disable-line @typescript-eslint/no-var-requires
     return fs.createReadStream(path);
 }

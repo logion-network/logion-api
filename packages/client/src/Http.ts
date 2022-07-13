@@ -15,9 +15,7 @@ export interface Endpoint {
     url: string;
 }
 
-export interface MultiResponse<R> extends Record<string, R> {
-
-}
+export type MultiResponse<R> = Record<string, R>;
 
 export interface MultiSourceHttpClientState<E extends Endpoint> {
     nodesUp: E[];
@@ -56,7 +54,7 @@ export class MultiSourceHttpClient<E extends Endpoint, R> {
 
         const promises = currentNodesUp.map(node => query(this.axiosFactory.buildAxiosInstance(node.url, this.token), node));
         const allSettled = await Promise.allSettled(promises);
-        let multiResponse: MultiResponse<R> = {};
+        const multiResponse: MultiResponse<R> = {};
         for(let i = 0; i < allSettled.length; ++i) {
             const promiseResult = allSettled[i];
             if(promiseResult.status === 'fulfilled') {
@@ -116,7 +114,7 @@ export class AnySourceHttpClient<E extends Endpoint, R> {
     async fetch(query: Query<E, R>): Promise<R | undefined> {
         while(this.nodesUp.length > 0) {
             const selectedEndpointIndex = this.selectedEndpointIndex();
-            let selectedEndpoint = this.nodesUp[selectedEndpointIndex];
+            const selectedEndpoint = this.nodesUp[selectedEndpointIndex];
             try {
                 return await query(this.axiosFactory.buildAxiosInstance(selectedEndpoint.url, this.token), selectedEndpoint);
             } catch(error) {

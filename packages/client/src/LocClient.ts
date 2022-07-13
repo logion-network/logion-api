@@ -235,7 +235,7 @@ export class LocMultiClient {
     }
 
     async fetchAll(legalOfficers?: LegalOfficer[]): Promise<LocRequest[]> {
-        let initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers)
+        const initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers);
 
         const httpClient = new MultiSourceHttpClient<LegalOfficerEndpoint, LocRequest[]>(
             initialState,
@@ -243,7 +243,7 @@ export class LocMultiClient {
             this.token
         );
 
-        const multiResponse = await httpClient.fetch(async (axios, _) => {
+        const multiResponse = await httpClient.fetch(async axios => {
             const specs: FetchLocRequestSpecification = {
                 requesterAddress: this.currentAddress,
                 locTypes: [ "Transaction", "Collection" ],
@@ -425,7 +425,7 @@ export class LocClient {
                 formData,
                 { headers: { "Content-Type": "multipart/form-data" } }
             );
-        } catch(e: any) {
+        } catch(e) {
             throw newBackendError(e);
         }
     }

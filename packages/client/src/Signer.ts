@@ -16,7 +16,7 @@ export interface SignRawParameters {
     resource: string;
     operation: string;
     signedOn: DateTime;
-    attributes: any[];
+    attributes: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export interface RawSigner {
@@ -55,7 +55,7 @@ export class KeyringSigner implements FullSigner {
     async signRaw(parameters: SignRawParameters): Promise<string> {
         const message = buildMessage(parameters);
         const keypair = this.keyring.getPair(parameters.signerId);
-        const bytes = keypair.sign!(message);
+        const bytes = keypair.sign(message);
         return '0x' + Buffer.from(bytes).toString('hex');
     }
 
@@ -63,7 +63,7 @@ export class KeyringSigner implements FullSigner {
         const keypair = this.keyring.getPair(parameters.signerId);
         const registry = parameters.submittable.registry;
         const next = parameters.callback;
-        return new Promise<SuccessfulSubmission>(async (resolve, reject) => {
+        return new Promise<SuccessfulSubmission>(async (resolve, reject) => { // eslint-disable-line no-async-promise-executor
             try {
                 const unsub = await parameters.submittable.signAndSend(keypair, (result) => {
                     signerCallback({
@@ -86,14 +86,14 @@ export function buildMessage(parameters: SignRawParameters): string {
     return toHex(hashAttributes(buildAttributes(parameters)));
 }
 
-function buildAttributes(parameters: SignRawParameters): any[] {
-    let signedOn = toIsoString(parameters.signedOn);
+function buildAttributes(parameters: SignRawParameters): string[] {
+    const signedOn = toIsoString(parameters.signedOn);
     const attributes = [parameters.resource, parameters.operation, signedOn];
     return attributes.concat(parameters.attributes);
 }
 
-export function hashAttributes(attributes: any[]): string {
-    let digest = new Hash();
+export function hashAttributes(attributes: any[]): string { // eslint-disable-line @typescript-eslint/no-explicit-any
+    const digest = new Hash();
     for (let i = 0; i < attributes.length; i++) {
         const bytes = new TextEncoder().encode(attributes[i]);
         digest.update(bytes);
@@ -105,7 +105,7 @@ export function signerCallback(params: {
     next?: (result: ISubmittableResult) => void;
     unsub: () => void;
     resolve: (result: SuccessfulSubmission) => void;
-    reject: (error: any) => void;
+    reject: (error: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
     registry: Registry;
     result: ISubmittableResult;
 }) {
@@ -118,8 +118,8 @@ export function signerCallback(params: {
             params.reject(new Error(buildErrorMessage(params.registry, params.result.dispatchError)));
         } else {
             params.resolve({
-                block: params.result!.status.asInBlock.toString(),
-                index: params.result!.txIndex!
+                block: params.result.status.asInBlock.toString(),
+                index: params.result.txIndex || -1
             });
         }
     }
