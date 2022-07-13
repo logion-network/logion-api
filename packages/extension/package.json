@@ -1,6 +1,6 @@
 {
   "name": "@logion/extension",
-  "version": "0.3.3",
+  "version": "0.4.0-2",
   "description": "logion SDK for Polkadot JS extension",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
@@ -20,7 +20,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@logion/client": "workspace:^",
-    "@polkadot/extension-dapp": "^0.43.1"
+    "@polkadot/extension-dapp": "^0.44.1",
+    "@polkadot/extension-compat-metamask": "^0.44.1"
   },
   "bugs": {
     "url": "https://github.com/logion-network/logion-api/issues"

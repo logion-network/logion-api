@@ -7,7 +7,6 @@ import { Registry } from '@polkadot/types-codec/types';
 import { toHex } from '@logion/node-api/dist/Codec';
 import { buildErrorMessage } from '@logion/node-api/dist/Error';
 import { Hash } from 'fast-sha256';
-import { TextEncoder } from 'util';
 
 import { toIsoString } from './DateTimeUtil';
 
