@@ -44,52 +44,104 @@ export interface Signer {
 
 export type FullSigner = RawSigner & Signer;
 
-export class KeyringSigner implements FullSigner {
+export type SignAndSendFunction = (statusCallback: (result: ISubmittableResult) => void) => Promise<() => void>;
 
-    constructor(keyring: Keyring) {
-        this.keyring = keyring;
-    }
-
-    private keyring: Keyring;
+export abstract class BaseSigner implements FullSigner {
 
     async signRaw(parameters: SignRawParameters): Promise<string> {
-        const message = buildMessage(parameters);
-        const keypair = this.keyring.getPair(parameters.signerId);
-        const bytes = keypair.sign(message);
-        return '0x' + Buffer.from(bytes).toString('hex');
+        const message = this.buildMessage(parameters);
+        return await this.signToHex(parameters.signerId, message);
     }
 
-    signAndSend(parameters: SignParameters): Promise<SuccessfulSubmission> {
-        const keypair = this.keyring.getPair(parameters.signerId);
+    abstract signToHex(signerId: string, message: string): Promise<string>;
+
+    buildMessage(parameters: SignRawParameters): string {
+        return toHex(hashAttributes(this.buildAttributes(parameters)));
+    }
+
+    buildAttributes(parameters: SignRawParameters): string[] {
+        const signedOn = toIsoString(parameters.signedOn);
+        const attributes = [parameters.resource, parameters.operation, signedOn];
+        return attributes.concat(parameters.attributes);
+    }
+
+    async signAndSend(parameters: SignParameters): Promise<SuccessfulSubmission> {
+        const signAndSendFunction = await this.buildSignAndSendFunction(parameters);
+        return this.buildSignAndSendPromise({
+            ...parameters,
+            signAndSend: signAndSendFunction,
+        });
+    }
+
+    abstract buildSignAndSendFunction(parameters: SignParameters): Promise<SignAndSendFunction>;
+
+    private buildSignAndSendPromise(parameters: SignParameters & { signAndSend: SignAndSendFunction }): Promise<SuccessfulSubmission> {
         const registry = parameters.submittable.registry;
         const next = parameters.callback;
-        return new Promise<SuccessfulSubmission>(async (resolve, reject) => { // eslint-disable-line no-async-promise-executor
-            try {
-                const unsub = await parameters.submittable.signAndSend(keypair, (result) => {
-                    signerCallback({
+        return new Promise<SuccessfulSubmission>((resolve, reject) => {
+            let unsub: (() => void) | undefined;
+            parameters.signAndSend(result => {
+                if(unsub) {
+                    this.signerCallback({
                         result,
                         unsub,
                         reject,
                         resolve,
                         registry,
                         next,
-                    })
-                });
-              } catch(e) {
-                reject(e);
-              }
+                    });
+                }
+            })
+            .then(unsubParam => unsub = unsubParam)
+            .catch(error => reject(error));
         });
     }
+
+    private signerCallback(params: {
+        next?: (result: ISubmittableResult) => void;
+        unsub: () => void;
+        resolve: (result: SuccessfulSubmission) => void;
+        reject: (error: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+        registry: Registry;
+        result: ISubmittableResult;
+    }) {
+        if(params.next !== undefined) {
+            params.next(params.result);
+        }
+        if (params.result.status.isInBlock) {
+            params.unsub();
+            if(params.result.dispatchError) {
+                params.reject(new Error(buildErrorMessage(params.registry, params.result.dispatchError)));
+            } else {
+                params.resolve({
+                    block: params.result.status.asInBlock.toString(),
+                    index: params.result.txIndex || -1
+                });
+            }
+        }
+    }
+    
 }
 
-export function buildMessage(parameters: SignRawParameters): string {
-    return toHex(hashAttributes(buildAttributes(parameters)));
-}
+export class KeyringSigner extends BaseSigner {
 
-function buildAttributes(parameters: SignRawParameters): string[] {
-    const signedOn = toIsoString(parameters.signedOn);
-    const attributes = [parameters.resource, parameters.operation, signedOn];
-    return attributes.concat(parameters.attributes);
+    constructor(keyring: Keyring) {
+        super();
+        this.keyring = keyring;
+    }
+
+    private keyring: Keyring;
+
+    async signToHex(signerId: string, message: string): Promise<string> {
+        const keypair = this.keyring.getPair(signerId);
+        const bytes = keypair.sign(message);
+        return '0x' + Buffer.from(bytes).toString('hex');
+    }
+
+    async buildSignAndSendFunction(parameters: SignParameters): Promise<SignAndSendFunction> {
+        const keypair = this.keyring.getPair(parameters.signerId);
+        return statusCallback => parameters.submittable.signAndSend(keypair, statusCallback);
+    }
 }
 
 export function hashAttributes(attributes: any[]): string { // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -99,30 +151,6 @@ export function hashAttributes(attributes: any[]): string { // eslint-disable-li
         digest.update(bytes);
     }
     return base64Encode(digest.digest());
-}
-
-export function signerCallback(params: {
-    next?: (result: ISubmittableResult) => void;
-    unsub: () => void;
-    resolve: (result: SuccessfulSubmission) => void;
-    reject: (error: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
-    registry: Registry;
-    result: ISubmittableResult;
-}) {
-    if(params.next !== undefined) {
-        params.next(params.result);
-    }
-    if (params.result.status.isInBlock) {
-        params.unsub();
-        if(params.result.dispatchError) {
-            params.reject(new Error(buildErrorMessage(params.registry, params.result.dispatchError)));
-        } else {
-            params.resolve({
-                block: params.result.status.asInBlock.toString(),
-                index: params.result.txIndex || -1
-            });
-        }
-    }
 }
 
 export function isSuccessful(result: ISubmittableResult): boolean {

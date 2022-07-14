@@ -149,7 +149,7 @@ function toModel(rawLoc: PalletLogionLocLegalOfficerCase): LegalOfficerCase {
             submitter: rawFile.submitter.toString(),
         })),
         links: rawLoc.links.toArray().map(rawLink => ({
-            id: UUID.fromDecimalString(rawLink.id.toString())!,
+            id: UUID.fromDecimalStringOrThrow(rawLink.id.toString()),
             nature: rawLink.nature.toUtf8()
         })),
         closed: rawLoc.closed.isTrue,
@@ -359,7 +359,7 @@ export function addCollectionItem(parameters: AddCollectionItemParameters): Subm
         itemFiles,
     } = parameters;
 
-    const files: ({ name?: any; contentType?: any; size_?: any; hash_?: any })[] = itemFiles.map(itemFile => ({
+    const files: ({ name: string; contentType: string; size_: bigint; hash_: string })[] = itemFiles.map(itemFile => ({
         name: stringToHex(itemFile.name),
         contentType: stringToHex(itemFile.contentType),
         size_: itemFile.size,

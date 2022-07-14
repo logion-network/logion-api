@@ -1,7 +1,7 @@
 import moment, { Moment } from 'moment';
 
 export function toIsoString(moment: Moment): string {
-    let signedOn = moment.toISOString(false);
+    const signedOn = moment.toISOString(false);
     if(signedOn.endsWith('Z')) {
         return signedOn.substring(0, signedOn.length - 1);
     } else {

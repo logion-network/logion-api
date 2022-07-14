@@ -3,7 +3,7 @@ import { ApiPromise } from "@polkadot/api";
 export class ChainTime {
 
     static async now(api: ApiPromise): Promise<ChainTime> {
-        const currentBlock = await api!.rpc.chain.getBlock();
+        const currentBlock = await api.rpc.chain.getBlock();
         return new ChainTime(api, Date.now(), currentBlock.block.header.number.toBigInt());
     }
 

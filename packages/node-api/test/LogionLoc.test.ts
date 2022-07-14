@@ -9,10 +9,10 @@ import {
     addFile,
     addCollectionItem,
     getCollectionItem,
-} from './LogionLoc';
-import { UUID } from './UUID';
+} from '../src/LogionLoc';
+import { UUID } from '../src/UUID';
 import { DEFAULT_ITEM, DEFAULT_LOC } from './__mocks__/PolkadotApiMock';
-import { ItemFile } from './Types';
+import { ItemFile } from '../src/Types';
 
 describe("LogionLoc", () => {
 

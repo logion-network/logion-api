@@ -6,14 +6,14 @@ import { Token } from './Http';
 import { AccountTokens } from './AuthenticationClient';
 import { DirectoryClient } from './DirectoryClient';
 import {
-    buildMessage,
     FullSigner,
-    signerCallback,
     SignParameters,
     SignRawParameters,
     SignCallback,
     isSuccessful,
-    KeyringSigner
+    KeyringSigner,
+    BaseSigner,
+    SignAndSendFunction,
 } from './Signer';
 import {
     ProtectionState,
@@ -67,9 +67,7 @@ export {
     Token,
     AccountTokens,
     DirectoryClient,
-    buildMessage,
     FullSigner,
-    signerCallback,
     SignParameters,
     SignRawParameters,
     ProtectionState,
@@ -114,4 +112,6 @@ export {
     ItemFileWithContent,
     MimeType,
     isValidMime,
+    BaseSigner,
+    SignAndSendFunction,
 };

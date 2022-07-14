@@ -1,6 +1,6 @@
 import { ApiPromise } from "@polkadot/api";
 import { CURRENT_BLOCK_NUMBER } from "./__mocks__/PolkadotApiMock";
-import { ChainTime } from "./ChainTime";
+import { ChainTime } from "../src/ChainTime";
 
 jest.mock("@polkadot/api")
 

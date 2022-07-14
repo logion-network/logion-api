@@ -23,15 +23,19 @@ export class UUID {
     }
 
     static fromDecimalString(value: string): UUID | undefined {
-        if (!/^\d+$/.test(value)) {
+        try {
+            return UUID.fromDecimalStringOrThrow(value);
+        } catch (error) {
             return undefined;
         }
-        try {
-            const numbers = new BN(value, 10).toArray();
-            return new UUID(numbers);
-        } catch (error) {
-            return undefined
+    }
+
+    static fromDecimalStringOrThrow(value: string): UUID {
+        if (!/^\d+$/.test(value)) {
+            throw new Error(`Unexpected format: ${value}`);
         }
+        const numbers = new BN(value, 10).toArray();
+        return new UUID(numbers);
     }
 
     private bytes: ArrayLike<number>;

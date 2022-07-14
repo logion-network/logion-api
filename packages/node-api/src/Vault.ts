@@ -106,10 +106,17 @@ export async function approveVaultTransfer(parameters: VaultTransferApprovalPara
         api,
         accountId: requester
     });
-    const otherLegalOfficer = recoveryConfig!.legalOfficers.find(accountId => accountId !== signerId)!;
+    if(!recoveryConfig) {
+        throw new Error("Cannot approve vault transfer of requester without recovery defined");
+    }
+
+    const otherLegalOfficer = recoveryConfig.legalOfficers.find(accountId => accountId !== signerId);
+    if(!otherLegalOfficer) {
+        throw new Error("No other legal officer found");
+    }
 
     const actualAmount = amount.convertTo(LGNT_SMALLEST_UNIT).coefficient.unnormalize();
-    const { call, weight } = await transferCallAndWeight(api, requester, recoveryConfig!.legalOfficers, BigInt(actualAmount), destination);
+    const { call, weight } = await transferCallAndWeight(api, requester, recoveryConfig.legalOfficers, BigInt(actualAmount), destination);
 
     const otherSignatories = [ requester, otherLegalOfficer ].sort();
     return api.tx.vault.approveCall(otherSignatories, call.method.toHex(), {height: block, index}, weight);

@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
   "scripts": {
-    "build": "tsc",
-    "test": "echo 'Nothing to test'"
+    "build": "yarn eslint src/** && tsc",
+    "test": "echo 'Nothing to test for the moment'"
   },
   "repository": {
     "type": "git",
@@ -29,6 +29,9 @@
   "devDependencies": {
     "@tsconfig/node16": "^1.0.1",
     "@types/node": "^17.0.21",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
+    "eslint": "^8.19.0",
     "jasmine": "^4.1.0",
     "jasmine-spec-reporter": "^7.0.0",
     "moq.ts": "^7.3.4",
