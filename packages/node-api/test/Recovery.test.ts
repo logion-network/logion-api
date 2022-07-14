@@ -1,7 +1,7 @@
 import { DEFAULT_LEGAL_OFFICER } from "./TestData";
 import { ApiPromise } from '@polkadot/api';
 import { setQueryRecoveryRecoverable, setQueryRecoveryActiveRecoveries } from './__mocks__/PolkadotApiMock';
-import { createRecovery, getRecoveryConfig, initiateRecovery, getActiveRecovery } from './Recovery';
+import { createRecovery, getRecoveryConfig, initiateRecovery, getActiveRecovery } from '../src/Recovery';
 
 jest.mock('@polkadot/api');
 

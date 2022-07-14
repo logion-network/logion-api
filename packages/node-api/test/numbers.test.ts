@@ -9,7 +9,7 @@ import {
     ScientificNumber,
     MEGA,
     ATTO, PICO, convertToPrefixed,
-} from './numbers';
+} from '../src/numbers';
 
 test("amount given balance", () => {
     const result = balance("3", 4);
