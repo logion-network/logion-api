@@ -1,4 +1,4 @@
-/* eslint-disable import/no-anonymous-default-export */
+/* eslint-disable */
 export default {
     types: {
         FullIdentification: 'Exposure',

@@ -35,13 +35,13 @@ describe("Logion SDK", () => {
 
     it("requests a Transaction LOC", async () => {
         await requestTransactionLoc(state);
-    })
+    });
 
     it("provides Collection LOC", async () => {
         await collectionLoc(state);
-    })
+    });
 
     it("provides Collection LOC with upload", async () => {
         await collectionLocWithUpload(state);
-    })
+    });
 });

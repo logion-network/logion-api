@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { toIsoString, ISO_DATETIME_PATTERN, fromIsoString } from './datetime';
+import { toIsoString, ISO_DATETIME_PATTERN, fromIsoString } from '../src/datetime';
 
 test("toIsoString produces date with valid pattern", () => {
     const dateTime = moment();

@@ -1,7 +1,7 @@
 import { DEFAULT_LEGAL_OFFICER } from "./TestData";
 import { ApiPromise } from '@polkadot/api';
 import { setQueryRecoveryRecoverable, setQueryRecoveryActiveRecoveries } from './__mocks__/PolkadotApiMock';
-import { createRecovery, getRecoveryConfig, initiateRecovery, getActiveRecovery } from './Recovery';
+import { createRecovery, getRecoveryConfig, initiateRecovery, getActiveRecovery } from '../src/Recovery';
 
 jest.mock('@polkadot/api');
 
@@ -14,7 +14,7 @@ test("recovery creation", () => {
         legalOfficers,
     });
 
-    expect(api.tx.verifiedRecovery.createRecovery).toBeCalledWith(legalOfficers);
+    expect(api.tx.verifiedRecovery.createRecovery).toHaveBeenCalledWith(legalOfficers);
 });
 
 test("get recovery config", async () => {
@@ -51,7 +51,7 @@ test("initiate recovery", () => {
         addressToRecover
     });
 
-    expect(api.tx.recovery.initiateRecovery).toBeCalledWith(addressToRecover);
+    expect(api.tx.recovery.initiateRecovery).toHaveBeenCalledWith(addressToRecover);
 });
 
 test("get active recovery", async () => {

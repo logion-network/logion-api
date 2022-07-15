@@ -3,9 +3,10 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: [
-    'src'
+    'test'
   ],
   transformIgnorePatterns: [
     "/node_modules/(?!@polkadot|@babel)"
-  ]
+  ],
+  testRunner: "jest-jasmine2"
 };

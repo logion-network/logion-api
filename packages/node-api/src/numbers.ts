@@ -399,9 +399,9 @@ const SORTED_UNITS: UnitPrefix[] = [
 ].sort((a, b) => a.tenExponent - b.tenExponent);
 
 function closestPrefix(tenExponent: number): UnitPrefix {
-    let from: number = 0;
-    let to: number = SORTED_UNITS.length;
-    let candidate: number = -1;
+    let from = 0;
+    let to = SORTED_UNITS.length;
+    let candidate = -1;
     while((to - from) > 1) {
         const next = Math.floor(from + (to - from) / 2);
         if(SORTED_UNITS[next].tenExponent > tenExponent) {

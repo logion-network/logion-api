@@ -3,7 +3,7 @@ import axios, { AxiosInstance } from "axios";
 export class AxiosFactory {
 
     buildAxiosInstance(endpoint?: string, token?: string): AxiosInstance {
-        let headers: any = undefined;
+        let headers = undefined;
         if(token !== undefined) {
             headers = {
                 'Authorization': `Bearer ${token}`,

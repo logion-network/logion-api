@@ -9,10 +9,10 @@ import {
     addFile,
     addCollectionItem,
     getCollectionItem,
-} from './LogionLoc';
-import { UUID } from './UUID';
+} from '../src/LogionLoc';
+import { UUID } from '../src/UUID';
 import { DEFAULT_ITEM, DEFAULT_LOC } from './__mocks__/PolkadotApiMock';
-import { ItemFile } from './Types';
+import { ItemFile } from '../src/Types';
 
 describe("LogionLoc", () => {
 
@@ -27,7 +27,7 @@ describe("LogionLoc", () => {
             requester,
         });
 
-        expect(api.tx.logionLoc.createPolkadotTransactionLoc).toBeCalledWith(locId.toHexString(), requester);
+        expect(api.tx.logionLoc.createPolkadotTransactionLoc).toHaveBeenCalledWith(locId.toHexString(), requester);
     });
 
     it("submits addMetadata extrinsic", () => {
@@ -45,7 +45,7 @@ describe("LogionLoc", () => {
             item,
         });
 
-        expect(api.tx.logionLoc.addMetadata).toBeCalledWith(locId.toHexString(), expect.objectContaining({
+        expect(api.tx.logionLoc.addMetadata).toHaveBeenCalledWith(locId.toHexString(), jasmine.objectContaining({
             name: stringToHex(item.name),
             value: stringToHex(item.value)
         }));
@@ -88,7 +88,7 @@ describe("LogionLoc", () => {
             submitter,
         });
 
-        expect(api.tx.logionLoc.addFile).toBeCalledWith(locId.toHexString(), {
+        expect(api.tx.logionLoc.addFile).toHaveBeenCalledWith(locId.toHexString(), {
             hash_: hash,
             nature: "0x66696c652d6e6174757265",
             submitter,
@@ -108,7 +108,7 @@ describe("LogionLoc", () => {
 
         expect(item!.id).toEqual(DEFAULT_ITEM.id);
         expect(item!.description).toEqual(DEFAULT_ITEM.description);
-        expect(item!.files).toEqual(expect.arrayContaining(DEFAULT_ITEM.files));
+        expect(item!.files).toEqual(jasmine.arrayContaining(DEFAULT_ITEM.files));
     });
 
     it("adds collection items", () => {
@@ -133,12 +133,12 @@ describe("LogionLoc", () => {
             itemFiles,
         });
 
-        expect(api.tx.logionLoc.addCollectionItem).toBeCalledWith(
+        expect(api.tx.logionLoc.addCollectionItem).toHaveBeenCalledWith(
             collectionId.toHexString(),
             itemId,
             stringToHex(itemDescription),
-            expect.arrayContaining([
-                expect.objectContaining({
+            jasmine.arrayContaining([
+                jasmine.objectContaining({
                     name: stringToHex(itemFiles[0].name),
                     contentType: stringToHex(itemFiles[0].contentType),
                     size_: itemFiles[0].size,

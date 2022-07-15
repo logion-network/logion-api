@@ -1,11 +1,11 @@
 {
   "name": "@logion/client",
-  "version": "0.6.1",
+  "version": "0.7.0-2",
   "description": "logion SDK for client applications",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
   "scripts": {
-    "build": "tsc -p tsconfig.app.json",
+    "build": "yarn eslint src/** && tsc -p tsconfig.app.json",
     "test": "jasmine --config=jasmine.json",
     "integration-test": "docker-compose up -d && ./scripts/integration_test_db_setup.sh && jasmine --config=jasmine-integration.json ; docker-compose down",
     "check-publish": "yarn build && yarn pack -n",
@@ -26,7 +26,8 @@
   "dependencies": {
     "@logion/node-api": "workspace:^",
     "axios": "^0.27.2",
-    "luxon": "^2.3.2"
+    "luxon": "^2.3.2",
+    "mime-db": "^1.52.0"
   },
   "bugs": {
     "url": "https://github.com/logion-network/logion-api/issues"
@@ -34,8 +35,13 @@
   "homepage": "https://github.com/logion-network/logion-api/packages/client#readme",
   "devDependencies": {
     "@tsconfig/node16": "^1.0.1",
+    "@types/jasmine": "^4.0.3",
     "@types/luxon": "^2.3.2",
+    "@types/mime-db": "^1.43.1",
     "@types/node": "^17.0.21",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
+    "eslint": "^8.19.0",
     "form-data": "^4.0.0",
     "jasmine": "^4.1.0",
     "jasmine-spec-reporter": "^7.0.0",

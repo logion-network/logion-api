@@ -1,41 +1,25 @@
-import { buildMessage, FullSigner, signerCallback, SignParameters, SignRawParameters } from '@logion/client';
+import { SignParameters, SignAndSendFunction, BaseSigner } from '@logion/client';
 import { web3FromAddress } from '@polkadot/extension-dapp';
-import { SuccessfulSubmission } from 'client/dist/Signer';
 
-export class ExtensionSigner implements FullSigner {
+export class ExtensionSigner extends BaseSigner {
 
-    async signRaw(parameters: SignRawParameters): Promise<string> {
-        const extension = await web3FromAddress(parameters.signerId);
-        const message = buildMessage(parameters);
-        const result = await extension.signer.signRaw!({
-            address: parameters.signerId,
+    async signToHex(signerId: string, message: string): Promise<string> {
+        const extension = await web3FromAddress(signerId);
+        if(!extension.signer.signRaw) {
+            throw new Error("Web3 extension does not support bytes signing");
+        }
+        const result = await extension.signer.signRaw({
+            address: signerId,
             type: "bytes",
             data: message
         });
         return result.signature;
     }
 
-    async signAndSend(parameters: SignParameters): Promise<SuccessfulSubmission> {
+    async buildSignAndSendFunction(parameters: SignParameters): Promise<SignAndSendFunction> {
         const extension = await web3FromAddress(parameters.signerId);
-        const registry = parameters.submittable.registry;
-        const next = parameters.callback;
-        return new Promise(async (resolve, reject) => {
-            try {
-                const unsub = await parameters.submittable.signAndSend(parameters.signerId, {
-                    signer: extension.signer
-                }, (result) => {
-                    signerCallback({
-                        result,
-                        unsub,
-                        reject,
-                        resolve,
-                        registry,
-                        next,
-                    })
-                  });
-              } catch(e) {
-                reject(e);
-              }
-        });
+        return statusCallback => parameters.submittable.signAndSend(parameters.signerId, {
+            signer: extension.signer
+        }, statusCallback);
     }
 }

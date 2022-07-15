@@ -57,7 +57,7 @@ export async function getBalances(parameters: GetAccountDataParameters): Promise
     } = parameters;
 
     const data = await getAccountData({
-        api: api!,
+        api,
         accountId,
     });
 

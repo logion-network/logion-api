@@ -102,7 +102,10 @@ export class AuthenticationClient {
         const addresses = accountTokens.addresses;
         for(let i = 0; i < addresses.length; ++i) {
             const address = addresses[i];
-            tokens[address] = accountTokens.get(address)!.value;
+            const tokenValue = accountTokens.get(address)?.value;
+            if(tokenValue) {
+                tokens[address] = tokenValue;
+            }
         }
 
         const authenticateResponse = await this.doWithFirstAvailableNode(axios =>
@@ -142,8 +145,8 @@ export class AccountTokens {
     cleanUp(now: DateTime): AccountTokens {
         const newStore: Record<string, Token> = {};
         for(const address of this.addresses) {
-            const token = this.get(address)!;
-            if(token.expirationDateTime > now) {
+            const token = this.get(address);
+            if(token && token.expirationDateTime > now) {
                 newStore[address] = token;
             }
         }
@@ -157,8 +160,8 @@ export class AccountTokens {
         for(const address of this.addresses) {
             const thisToken = this.get(address);
             const otherToken = other.get(address);
-            if(thisToken!.value !== otherToken?.value
-                || !thisToken!.expirationDateTime.equals(otherToken.expirationDateTime)) {
+            if((!thisToken || !otherToken)
+                || !thisToken.expirationDateTime.equals(otherToken.expirationDateTime)) {
                 return false;
             }
         }

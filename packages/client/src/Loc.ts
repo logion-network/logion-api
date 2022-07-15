@@ -19,7 +19,7 @@ import {
     ItemFileWithContent,
     UploadableCollectionItem
 } from "./LocClient";
-import { SharedState } from "./SharedClient";
+import { authenticatedCurrentAddress, SharedState } from "./SharedClient";
 import { LegalOfficer, UserIdentity } from "./Types";
 import { UUID } from "@logion/node-api";
 
@@ -155,7 +155,7 @@ export class LocsState {
         const client = newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
         const request = await client.createLocRequest({
             ownerAddress: legalOfficer.address,
-            requesterAddress: this.sharedState.currentAddress!,
+            requesterAddress: this.sharedState.currentAddress || "",
             description,
             locType,
             userIdentity
@@ -168,7 +168,7 @@ export class LocsState {
         const refreshedLocs: Record<string, LocRequestState> = {};
         const locMultiClient = newLocMultiClient(this.sharedState);
         const locRequests = await locMultiClient.fetchAll();
-        for (let locRequest of locRequests) {
+        for (const locRequest of locRequests) {
             const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === locRequest.ownerAddress)
             if (legalOfficer) {
                 const client = locMultiClient.newLocClient(legalOfficer);
@@ -498,7 +498,9 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
 
     async addCollectionItem(parameters: AddCollectionItemParams): Promise<ClosedCollectionLoc> {
         const client = this.locSharedState.client;
-        if(parameters.itemFiles && parameters.itemFiles.length > 0 && !this.legalOfficerCase!.collectionCanUpload) {
+        if(parameters.itemFiles
+            && parameters.itemFiles.length > 0
+            && (!this.legalOfficerCase?.collectionCanUpload || false)) {
             throw new Error("This Collection LOC does not allow uploading files with items");
         }
         await client.addCollectionItem({
@@ -563,13 +565,13 @@ export class VoidedCollectionLoc extends ClosedOrVoidCollectionLoc {
 }
 
 function newLocMultiClient(sharedState: SharedState): LocMultiClient {
+    const { currentAddress, token } = authenticatedCurrentAddress(sharedState);
     return new LocMultiClient({
         axiosFactory: sharedState.axiosFactory,
-        currentAddress: sharedState.currentAddress!,
+        currentAddress,
         networkState: sharedState.networkState,
-        token: sharedState.tokens.get(sharedState.currentAddress!)!.value,
+        token: token.value,
         nodeApi: sharedState.nodeApi,
         componentFactory: sharedState.componentFactory,
     });
 }
-

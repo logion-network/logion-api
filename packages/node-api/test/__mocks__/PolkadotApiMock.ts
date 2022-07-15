@@ -1,6 +1,6 @@
 import { BN } from "bn.js";
-import { CollectionItem, LegalOfficerCase } from "../Types";
-import { UUID } from "../UUID";
+import { CollectionItem, LegalOfficerCase } from "../../src/Types";
+import { UUID } from "../../src/UUID";
 
 export class WsProvider {
     constructor(socket: string) {

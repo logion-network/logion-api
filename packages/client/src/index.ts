@@ -6,14 +6,14 @@ import { Token } from './Http';
 import { AccountTokens } from './AuthenticationClient';
 import { DirectoryClient } from './DirectoryClient';
 import {
-    buildMessage,
     FullSigner,
-    signerCallback,
     SignParameters,
     SignRawParameters,
     SignCallback,
     isSuccessful,
-    KeyringSigner
+    KeyringSigner,
+    BaseSigner,
+    SignAndSendFunction,
 } from './Signer';
 import {
     ProtectionState,
@@ -47,16 +47,27 @@ import {
 import {
     AddCollectionItemParams,
     UploadableCollectionItem,
+    ItemFileWithContent,
 } from './LocClient';
+import {
+    hashString,
+    hashBlob,
+    hashBuffer,
+    hashStream,
+    HashAndSize,
+    HashOrContent,
+} from './Hash';
+import {
+    MimeType,
+    isValidMime,
+} from './Mime';
 export {
     LogionClient,
     LegalOfficer,
     Token,
     AccountTokens,
     DirectoryClient,
-    buildMessage,
     FullSigner,
-    signerCallback,
     SignParameters,
     SignRawParameters,
     ProtectionState,
@@ -92,4 +103,15 @@ export {
     KeyringSigner,
     UploadableCollectionItem,
     CheckHashResult,
+    hashString,
+    hashBlob,
+    hashBuffer,
+    hashStream,
+    HashAndSize,
+    HashOrContent,
+    ItemFileWithContent,
+    MimeType,
+    isValidMime,
+    BaseSigner,
+    SignAndSendFunction,
 };
