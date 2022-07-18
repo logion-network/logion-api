@@ -246,13 +246,11 @@ closedLoc = await closedLoc.addCollectionItem({
     itemDescription,
     signer,
     itemFiles: [ // Must remain undefined with Collection LOCs without upload support
-        {
+        new ItemFileWithContent({
             name: "test.txt",
-            contentType: "text/plain",
-            hash: itemFileHash,
-            size: BigInt(itemFileContent.length),
-            content: Buffer.from(itemFileContent)
-        }
+            contentType: MimeType.from("text/plain"),
+            hashOrContent: HashOrContent.fromContent(Buffer.from(firstFileContent)), // Let SDK compute hash and size
+        })
     ]
 });
 
