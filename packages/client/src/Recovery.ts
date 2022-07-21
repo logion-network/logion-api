@@ -295,6 +295,8 @@ function newLoRecoveryClient(sharedState: SharedState, legalOfficer: LegalOffice
 
 export interface LegalOfficerProtectionState {
 
+    readonly id: string;
+
     readonly legalOfficer: LegalOfficer;
 
     readonly status: ProtectionRequestStatus;
@@ -344,6 +346,7 @@ function buildProtectionParameters(sharedState: RecoverySharedState): Protection
 
 function buildProtectionState(legalOfficer: LegalOfficer, request: ProtectionRequest): LegalOfficerProtectionState {
     return {
+        id: request.id,
         legalOfficer,
         status: request.status,
         decision: request.decision,
