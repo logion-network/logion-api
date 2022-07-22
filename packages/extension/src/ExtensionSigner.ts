@@ -1,9 +1,10 @@
-import { SignParameters, SignAndSendFunction, BaseSigner } from '@logion/client';
+import { SignParameters, SignAndSendFunction, BaseSigner, TypedSignature, SignatureType } from '@logion/client';
 import { web3FromAddress } from '@polkadot/extension-dapp';
+import { META_MASK_NAME } from "./Extension";
 
 export class ExtensionSigner extends BaseSigner {
 
-    async signToHex(signerId: string, message: string): Promise<string> {
+    async signToHex(signerId: string, message: string): Promise<TypedSignature> {
         const extension = await web3FromAddress(signerId);
         if(!extension.signer.signRaw) {
             throw new Error("Web3 extension does not support bytes signing");
@@ -13,7 +14,8 @@ export class ExtensionSigner extends BaseSigner {
             type: "bytes",
             data: message
         });
-        return result.signature;
+        const type: SignatureType = extension.name === META_MASK_NAME ? "ETHEREUM" : "POLKADOT"
+        return { signature: result.signature, type };
     }
 
     async buildSignAndSendFunction(parameters: SignParameters): Promise<SignAndSendFunction> {

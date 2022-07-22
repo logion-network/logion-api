@@ -18,9 +18,16 @@ export interface SignRawParameters {
     attributes: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
+export type SignatureType = "POLKADOT" | "ETHEREUM";
+
+export interface TypedSignature {
+    signature: string
+    type: SignatureType
+}
+
 export interface RawSigner {
 
-    signRaw(parameters: SignRawParameters): Promise<string>;
+    signRaw(parameters: SignRawParameters): Promise<TypedSignature>;
 }
 
 export type SignCallback = (result: ISubmittableResult) => void;
@@ -47,12 +54,12 @@ export type SignAndSendFunction = (statusCallback: (result: ISubmittableResult) 
 
 export abstract class BaseSigner implements FullSigner {
 
-    async signRaw(parameters: SignRawParameters): Promise<string> {
+    async signRaw(parameters: SignRawParameters): Promise<TypedSignature> {
         const message = this.buildMessage(parameters);
         return await this.signToHex(parameters.signerId, message);
     }
 
-    abstract signToHex(signerId: string, message: string): Promise<string>;
+    abstract signToHex(signerId: string, message: string): Promise<TypedSignature>;
 
     buildMessage(parameters: SignRawParameters): string {
         return toHex(hashAttributes(this.buildAttributes(parameters)));
@@ -119,7 +126,7 @@ export abstract class BaseSigner implements FullSigner {
             }
         }
     }
-    
+
 }
 
 export class KeyringSigner extends BaseSigner {
@@ -131,10 +138,12 @@ export class KeyringSigner extends BaseSigner {
 
     private keyring: Keyring;
 
-    async signToHex(signerId: string, message: string): Promise<string> {
+    async signToHex(signerId: string, message: string): Promise<TypedSignature> {
         const keypair = this.keyring.getPair(signerId);
         const bytes = keypair.sign(message);
-        return '0x' + Buffer.from(bytes).toString('hex');
+        const signature = '0x' + Buffer.from(bytes).toString('hex');
+        const type: SignatureType = keypair.type === "ethereum" ? "ETHEREUM" : "POLKADOT";
+        return { signature, type };
     }
 
     async buildSignAndSendFunction(parameters: SignParameters): Promise<SignAndSendFunction> {
