@@ -4,12 +4,13 @@ import { AxiosFactory } from "./AxiosFactory";
 import { fromIsoString, toIsoString } from "./DateTimeUtil";
 
 import { Token } from "./Http";
-import { RawSigner } from "./Signer";
+import { RawSigner, SignatureType } from "./Signer";
 import { LegalOfficer } from "./Types";
 
 interface AuthenticationSignature {
     signature: string;
     signedOn: string;
+    type: SignatureType;
 }
 
 type AuthenticationResponse = Record<string, { value: string, expiredOn: string }>;
@@ -69,8 +70,9 @@ export class AuthenticationClient {
                 attributes,
             });
             signatures[address] = {
-                signature,
-                signedOn: toIsoString(signedOn)
+                signature: signature.signature,
+                signedOn: toIsoString(signedOn),
+                type: signature.type,
             };
         }
 

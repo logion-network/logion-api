@@ -17,9 +17,11 @@ export async function enableExtensions(appName: string): Promise<InjectedAccount
     return consumer => web3AccountsSubscribe(consumer);
 }
 
+export const META_MASK_NAME = "Web3Source";
+
 export async function enableMetaMask(appName: string): Promise<boolean> {
     const injectedExtensions: InjectedExtension[] = await web3Enable(appName, [ initMetaMask ]);
-    return injectedExtensions.find(injectedExtension => injectedExtension.name === "Web3Source") !== undefined
+    return injectedExtensions.find(injectedExtension => injectedExtension.name === META_MASK_NAME) !== undefined
 }
 
 export async function allMetamaskAccounts(): Promise<InjectedAccount[]> {

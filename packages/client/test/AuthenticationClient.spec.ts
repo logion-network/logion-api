@@ -94,7 +94,7 @@ function setupSignatures(signer: Mock<RawSigner>, addresses: string[], sessionId
             && params.signerId === addresses[i]
             && params.operation === "login"
             && params.attributes[0] === sessionId
-        ))).returns(Promise.resolve(signatures[i]));
+        ))).returns(Promise.resolve({ signature: signatures[i], type: "POLKADOT"}));
     }
 }
 
@@ -119,6 +119,9 @@ function bodyIncludesSignatures(body: any, addresses: string[], signatures: stri
     for(let i = 0; i < addresses.length; ++i) {
         const address = addresses[i];
         if(body.signatures[address].signature !== signatures[i] || body.signatures[address].signedOn === undefined) {
+            return false;
+        }
+        if(body.signatures[address].type !== "POLKADOT") {
             return false;
         }
     }

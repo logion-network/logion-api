@@ -14,6 +14,8 @@ import {
     KeyringSigner,
     BaseSigner,
     SignAndSendFunction,
+    SignatureType,
+    TypedSignature
 } from './Signer';
 import {
     ProtectionState,
@@ -114,4 +116,6 @@ export {
     isValidMime,
     BaseSigner,
     SignAndSendFunction,
+    SignatureType,
+    TypedSignature
 };
