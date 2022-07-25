@@ -14,7 +14,7 @@ type InjectedAccountsConsumerRegister = (consumer: InjectedAccountsConsumer) => 
 
 export async function enableExtensions(appName: string): Promise<InjectedAccountsConsumerRegister> {
     await web3Enable(appName);
-    return consumer => web3AccountsSubscribe(consumer);
+    return consumer => web3AccountsSubscribe(consumer, { extensions: [ "polkadot-js" ] });
 }
 
 export const META_MASK_NAME = "Web3Source";
