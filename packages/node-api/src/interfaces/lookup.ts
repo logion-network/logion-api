@@ -269,38 +269,38 @@ export default {
   PalletNodeAuthorizationEvent: {
     _enum: {
       NodeAdded: {
-        peerId: 'Bytes',
+        peerId: 'OpaquePeerId',
         who: 'AccountId32',
       },
       NodeRemoved: {
-        peerId: 'Bytes',
+        peerId: 'OpaquePeerId',
       },
       NodeSwapped: {
-        removed: 'Bytes',
-        added: 'Bytes',
+        removed: 'OpaquePeerId',
+        added: 'OpaquePeerId',
       },
       NodesReset: {
-        nodes: 'Vec<(Bytes,AccountId32)>',
+        nodes: 'Vec<(OpaquePeerId,AccountId32)>',
       },
       NodeClaimed: {
-        peerId: 'Bytes',
+        peerId: 'OpaquePeerId',
         who: 'AccountId32',
       },
       ClaimRemoved: {
-        peerId: 'Bytes',
+        peerId: 'OpaquePeerId',
         who: 'AccountId32',
       },
       NodeTransferred: {
-        peerId: 'Bytes',
+        peerId: 'OpaquePeerId',
         target: 'AccountId32',
       },
       ConnectionsAdded: {
-        peerId: 'Bytes',
-        allowedConnections: 'Vec<Bytes>',
+        peerId: 'OpaquePeerId',
+        allowedConnections: 'Vec<OpaquePeerId>',
       },
       ConnectionsRemoved: {
-        peerId: 'Bytes',
-        allowedConnections: 'Vec<Bytes>'
+        peerId: 'OpaquePeerId',
+        allowedConnections: 'Vec<OpaquePeerId>'
       }
     }
   },
@@ -895,36 +895,36 @@ export default {
   PalletNodeAuthorizationCall: {
     _enum: {
       add_well_known_node: {
-        node: 'Bytes',
+        node: 'OpaquePeerId',
         owner: 'AccountId32',
       },
       remove_well_known_node: {
-        node: 'Bytes',
+        node: 'OpaquePeerId',
       },
       swap_well_known_node: {
-        remove: 'Bytes',
-        add: 'Bytes',
+        remove: 'OpaquePeerId',
+        add: 'OpaquePeerId',
       },
       reset_well_known_nodes: {
-        nodes: 'Vec<(Bytes,AccountId32)>',
+        nodes: 'Vec<(OpaquePeerId,AccountId32)>',
       },
       claim_node: {
-        node: 'Bytes',
+        node: 'OpaquePeerId',
       },
       remove_claim: {
-        node: 'Bytes',
+        node: 'OpaquePeerId',
       },
       transfer_node: {
-        node: 'Bytes',
+        node: 'OpaquePeerId',
         owner: 'AccountId32',
       },
       add_connections: {
-        node: 'Bytes',
-        connections: 'Vec<Bytes>',
+        node: 'OpaquePeerId',
+        connections: 'Vec<OpaquePeerId>',
       },
       remove_connections: {
-        node: 'Bytes',
-        connections: 'Vec<Bytes>'
+        node: 'OpaquePeerId',
+        connections: 'Vec<OpaquePeerId>'
       }
     }
   },

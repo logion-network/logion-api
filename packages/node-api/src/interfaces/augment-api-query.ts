@@ -1,15 +1,23 @@
 // Auto-generated via `yarn polkadot-types-from-chain`, do not edit
 /* eslint-disable */
 
-import type { ApiTypes } from '@polkadot/api-base/types';
+// import type lookup before we augment - in some environments
+// this is required to allow for ambient/previous definitions
+import '@polkadot/api-base/types/storage';
+
+import type { ApiTypes, AugmentedQuery, QueryableStorageEntry } from '@polkadot/api-base/types';
 import type { BTreeSet, Bytes, Option, U8aFixed, Vec, WrapperKeepOpaque, bool, u128, u32, u64 } from '@polkadot/types-codec';
 import type { AnyNumber, ITuple } from '@polkadot/types-codec/types';
+import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, Call, H256 } from '@polkadot/types/interfaces/runtime';
 import type { FrameSupportWeightsPerDispatchClassU64, FrameSystemAccountInfo, FrameSystemEventRecord, FrameSystemLastRuntimeUpgradeInfo, FrameSystemPhase, LogionNodeRuntimeOpaqueSessionKeys, PalletAssetsApproval, PalletAssetsAssetAccount, PalletAssetsAssetDetails, PalletAssetsAssetMetadata, PalletBalancesAccountData, PalletBalancesBalanceLock, PalletBalancesReleases, PalletBalancesReserveData, PalletGrandpaStoredPendingChange, PalletGrandpaStoredState, PalletLogionLocCollectionItem, PalletLogionLocLegalOfficerCase, PalletLogionLocStorageVersion, PalletMultisigMultisig, PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig, PalletTransactionPaymentReleases, SpConsensusAuraSr25519AppSr25519Public, SpCoreCryptoKeyTypeId, SpRuntimeDigest } from '@polkadot/types/lookup';
 import type { Observable } from '@polkadot/types/types';
 
+export type __AugmentedQuery<ApiType extends ApiTypes> = AugmentedQuery<ApiType, () => unknown>;
+export type __QueryableStorageEntry<ApiType extends ApiTypes> = QueryableStorageEntry<ApiType>;
+
 declare module '@polkadot/api-base/types/storage' {
-  export interface AugmentedQueries<ApiType extends ApiTypes> {
+  interface AugmentedQueries<ApiType extends ApiTypes> {
     assets: {
       /**
        * The holdings of a specific account for a specific asset.
@@ -191,15 +199,15 @@ declare module '@polkadot/api-base/types/storage' {
       /**
        * The additional adapative connections of each node.
        **/
-      additionalConnections: AugmentedQuery<ApiType, (arg: Bytes | string | Uint8Array) => Observable<BTreeSet<Bytes>>, [Bytes]> & QueryableStorageEntry<ApiType, [Bytes]>;
+      additionalConnections: AugmentedQuery<ApiType, (arg: OpaquePeerId | object | string | Uint8Array) => Observable<BTreeSet<OpaquePeerId>>, [OpaquePeerId]> & QueryableStorageEntry<ApiType, [OpaquePeerId]>;
       /**
        * A map that maintains the ownership of each node.
        **/
-      owners: AugmentedQuery<ApiType, (arg: Bytes | string | Uint8Array) => Observable<Option<AccountId32>>, [Bytes]> & QueryableStorageEntry<ApiType, [Bytes]>;
+      owners: AugmentedQuery<ApiType, (arg: OpaquePeerId | object | string | Uint8Array) => Observable<Option<AccountId32>>, [OpaquePeerId]> & QueryableStorageEntry<ApiType, [OpaquePeerId]>;
       /**
        * The set of well known nodes. This is stored sorted (just by value).
        **/
-      wellKnownNodes: AugmentedQuery<ApiType, () => Observable<BTreeSet<Bytes>>, []> & QueryableStorageEntry<ApiType, []>;
+      wellKnownNodes: AugmentedQuery<ApiType, () => Observable<BTreeSet<OpaquePeerId>>, []> & QueryableStorageEntry<ApiType, []>;
       /**
        * Generic query
        **/

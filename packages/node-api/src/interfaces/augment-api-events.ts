@@ -1,14 +1,21 @@
 // Auto-generated via `yarn polkadot-types-from-chain`, do not edit
 /* eslint-disable */
 
-import type { ApiTypes } from '@polkadot/api-base/types';
+// import type lookup before we augment - in some environments
+// this is required to allow for ambient/previous definitions
+import '@polkadot/api-base/types/events';
+
+import type { ApiTypes, AugmentedEvent } from '@polkadot/api-base/types';
 import type { Bytes, Null, Option, Result, U8aFixed, Vec, bool, u128, u32, u64, u8 } from '@polkadot/types-codec';
 import type { ITuple } from '@polkadot/types-codec/types';
+import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, H256 } from '@polkadot/types/interfaces/runtime';
 import type { FrameSupportTokensMiscBalanceStatus, FrameSupportWeightsDispatchInfo, PalletMultisigTimepoint, SpFinalityGrandpaAppPublic, SpRuntimeDispatchError } from '@polkadot/types/lookup';
 
+export type __AugmentedEvent<ApiType extends ApiTypes> = AugmentedEvent<ApiType>;
+
 declare module '@polkadot/api-base/types/events' {
-  export interface AugmentedEvents<ApiType extends ApiTypes> {
+  interface AugmentedEvents<ApiType extends ApiTypes> {
     assets: {
       /**
        * An approval for account `delegate` was cancelled by `owner`.
@@ -216,40 +223,40 @@ declare module '@polkadot/api-base/types/events' {
       /**
        * The given claim was removed by its owner.
        **/
-      ClaimRemoved: AugmentedEvent<ApiType, [peerId: Bytes, who: AccountId32], { peerId: Bytes, who: AccountId32 }>;
+      ClaimRemoved: AugmentedEvent<ApiType, [peerId: OpaquePeerId, who: AccountId32], { peerId: OpaquePeerId, who: AccountId32 }>;
       /**
        * The allowed connections were added to a node.
        **/
-      ConnectionsAdded: AugmentedEvent<ApiType, [peerId: Bytes, allowedConnections: Vec<Bytes>], { peerId: Bytes, allowedConnections: Vec<Bytes> }>;
+      ConnectionsAdded: AugmentedEvent<ApiType, [peerId: OpaquePeerId, allowedConnections: Vec<OpaquePeerId>], { peerId: OpaquePeerId, allowedConnections: Vec<OpaquePeerId> }>;
       /**
        * The allowed connections were removed from a node.
        **/
-      ConnectionsRemoved: AugmentedEvent<ApiType, [peerId: Bytes, allowedConnections: Vec<Bytes>], { peerId: Bytes, allowedConnections: Vec<Bytes> }>;
+      ConnectionsRemoved: AugmentedEvent<ApiType, [peerId: OpaquePeerId, allowedConnections: Vec<OpaquePeerId>], { peerId: OpaquePeerId, allowedConnections: Vec<OpaquePeerId> }>;
       /**
        * The given well known node was added.
        **/
-      NodeAdded: AugmentedEvent<ApiType, [peerId: Bytes, who: AccountId32], { peerId: Bytes, who: AccountId32 }>;
+      NodeAdded: AugmentedEvent<ApiType, [peerId: OpaquePeerId, who: AccountId32], { peerId: OpaquePeerId, who: AccountId32 }>;
       /**
        * The given node was claimed by a user.
        **/
-      NodeClaimed: AugmentedEvent<ApiType, [peerId: Bytes, who: AccountId32], { peerId: Bytes, who: AccountId32 }>;
+      NodeClaimed: AugmentedEvent<ApiType, [peerId: OpaquePeerId, who: AccountId32], { peerId: OpaquePeerId, who: AccountId32 }>;
       /**
        * The given well known node was removed.
        **/
-      NodeRemoved: AugmentedEvent<ApiType, [peerId: Bytes], { peerId: Bytes }>;
+      NodeRemoved: AugmentedEvent<ApiType, [peerId: OpaquePeerId], { peerId: OpaquePeerId }>;
       /**
        * The given well known nodes were reset.
        **/
-      NodesReset: AugmentedEvent<ApiType, [nodes: Vec<ITuple<[Bytes, AccountId32]>>], { nodes: Vec<ITuple<[Bytes, AccountId32]>> }>;
+      NodesReset: AugmentedEvent<ApiType, [nodes: Vec<ITuple<[OpaquePeerId, AccountId32]>>], { nodes: Vec<ITuple<[OpaquePeerId, AccountId32]>> }>;
       /**
        * The given well known node was swapped; first item was removed,
        * the latter was added.
        **/
-      NodeSwapped: AugmentedEvent<ApiType, [removed: Bytes, added: Bytes], { removed: Bytes, added: Bytes }>;
+      NodeSwapped: AugmentedEvent<ApiType, [removed: OpaquePeerId, added: OpaquePeerId], { removed: OpaquePeerId, added: OpaquePeerId }>;
       /**
        * The node was transferred to another account.
        **/
-      NodeTransferred: AugmentedEvent<ApiType, [peerId: Bytes, target: AccountId32], { peerId: Bytes, target: AccountId32 }>;
+      NodeTransferred: AugmentedEvent<ApiType, [peerId: OpaquePeerId, target: AccountId32], { peerId: OpaquePeerId, target: AccountId32 }>;
       /**
        * Generic event
        **/

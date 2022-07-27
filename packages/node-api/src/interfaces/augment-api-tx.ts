@@ -1,14 +1,23 @@
 // Auto-generated via `yarn polkadot-types-from-chain`, do not edit
 /* eslint-disable */
 
-import type { ApiTypes } from '@polkadot/api-base/types';
+// import type lookup before we augment - in some environments
+// this is required to allow for ambient/previous definitions
+import '@polkadot/api-base/types/submittable';
+
+import type { ApiTypes, AugmentedSubmittable, SubmittableExtrinsic, SubmittableExtrinsicFunction } from '@polkadot/api-base/types';
 import type { Bytes, Compact, Option, U8aFixed, Vec, WrapperKeepOpaque, bool, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
+import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, Call, H256, MultiAddress, Perbill } from '@polkadot/types/interfaces/runtime';
 import type { LogionNodeRuntimeOpaqueSessionKeys, PalletAssetsDestroyWitness, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFile, PalletLogionLocLocLink, PalletLogionLocMetadataItem, PalletMultisigTimepoint, SpCoreVoid, SpFinalityGrandpaEquivocationProof } from '@polkadot/types/lookup';
 
+export type __AugmentedSubmittable = AugmentedSubmittable<() => unknown>;
+export type __SubmittableExtrinsic<ApiType extends ApiTypes> = SubmittableExtrinsic<ApiType>;
+export type __SubmittableExtrinsicFunction<ApiType extends ApiTypes> = SubmittableExtrinsicFunction<ApiType>;
+
 declare module '@polkadot/api-base/types/submittable' {
-  export interface AugmentedSubmittables<ApiType extends ApiTypes> {
+  interface AugmentedSubmittables<ApiType extends ApiTypes> {
     assets: {
       /**
        * Approve an amount of asset for transfer by a delegated third-party account.
@@ -585,7 +594,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * Adds an item to a collection
        **/
-      addCollectionItem: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, itemId: H256 | string | Uint8Array, itemDescription: Bytes | string | Uint8Array, itemFiles: Vec<PalletLogionLocCollectionItemFile> | (PalletLogionLocCollectionItemFile | { name?: any; contentType?: any; size_?: any; hash_?: any } | string | Uint8Array)[], itemToken: Option<PalletLogionLocCollectionItemToken> | null | object | string | Uint8Array, restrictedDelivery: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, Bytes, Vec<PalletLogionLocCollectionItemFile>, Option<PalletLogionLocCollectionItemToken>, bool]>;
+      addCollectionItem: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, itemId: H256 | string | Uint8Array, itemDescription: Bytes | string | Uint8Array, itemFiles: Vec<PalletLogionLocCollectionItemFile> | (PalletLogionLocCollectionItemFile | { name?: any; contentType?: any; size_?: any; hash_?: any } | string | Uint8Array)[], itemToken: Option<PalletLogionLocCollectionItemToken> | null | Uint8Array | PalletLogionLocCollectionItemToken | { tokenType?: any; tokenId?: any } | string, restrictedDelivery: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, Bytes, Vec<PalletLogionLocCollectionItemFile>, Option<PalletLogionLocCollectionItemToken>, bool]>;
       /**
        * Add file to LOC
        **/
@@ -605,7 +614,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * Creates a new Collection LOC
        **/
-      createCollectionLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, requesterAccountId: AccountId32 | string | Uint8Array, collectionLastBlockSubmission: Option<u32> | null | object | string | Uint8Array, collectionMaxSize: Option<u32> | null | object | string | Uint8Array, collectionCanUpload: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, Option<u32>, Option<u32>, bool]>;
+      createCollectionLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, requesterAccountId: AccountId32 | string | Uint8Array, collectionLastBlockSubmission: Option<u32> | null | Uint8Array | u32 | AnyNumber, collectionMaxSize: Option<u32> | null | Uint8Array | u32 | AnyNumber, collectionCanUpload: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, Option<u32>, Option<u32>, bool]>;
       /**
        * Creates a new logion Identity LOC i.e. a LOC describing a real identity not yet linked to an AccountId
        **/
@@ -673,7 +682,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - Write: Multisig Storage, [Caller Account]
        * # </weight>
        **/
-      approveAsMulti: AugmentedSubmittable<(threshold: u16 | AnyNumber | Uint8Array, otherSignatories: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], maybeTimepoint: Option<PalletMultisigTimepoint> | null | object | string | Uint8Array, callHash: U8aFixed | string | Uint8Array, maxWeight: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u16, Vec<AccountId32>, Option<PalletMultisigTimepoint>, U8aFixed, u64]>;
+      approveAsMulti: AugmentedSubmittable<(threshold: u16 | AnyNumber | Uint8Array, otherSignatories: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], maybeTimepoint: Option<PalletMultisigTimepoint> | null | Uint8Array | PalletMultisigTimepoint | { height?: any; index?: any } | string, callHash: U8aFixed | string | Uint8Array, maxWeight: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u16, Vec<AccountId32>, Option<PalletMultisigTimepoint>, U8aFixed, u64]>;
       /**
        * Register approval for a dispatch to be made from a deterministic composite account if
        * approved by a total of `threshold - 1` of `other_signatories`.
@@ -721,7 +730,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - Plus Call Weight
        * # </weight>
        **/
-      asMulti: AugmentedSubmittable<(threshold: u16 | AnyNumber | Uint8Array, otherSignatories: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], maybeTimepoint: Option<PalletMultisigTimepoint> | null | object | string | Uint8Array, call: WrapperKeepOpaque<Call> | object | string | Uint8Array, storeCall: bool | boolean | Uint8Array, maxWeight: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u16, Vec<AccountId32>, Option<PalletMultisigTimepoint>, WrapperKeepOpaque<Call>, bool, u64]>;
+      asMulti: AugmentedSubmittable<(threshold: u16 | AnyNumber | Uint8Array, otherSignatories: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], maybeTimepoint: Option<PalletMultisigTimepoint> | null | Uint8Array | PalletMultisigTimepoint | { height?: any; index?: any } | string, call: WrapperKeepOpaque<Call> | object | string | Uint8Array, storeCall: bool | boolean | Uint8Array, maxWeight: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u16, Vec<AccountId32>, Option<PalletMultisigTimepoint>, WrapperKeepOpaque<Call>, bool, u64]>;
       /**
        * Immediately dispatch a multi-signature call using a single approval from the caller.
        * 
@@ -782,7 +791,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `node`: identifier of the node.
        * - `connections`: additonal nodes from which the connections are allowed.
        **/
-      addConnections: AugmentedSubmittable<(node: Bytes | string | Uint8Array, connections: Vec<Bytes> | (Bytes | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [Bytes, Vec<Bytes>]>;
+      addConnections: AugmentedSubmittable<(node: OpaquePeerId | object | string | Uint8Array, connections: Vec<OpaquePeerId> | (OpaquePeerId | object | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, Vec<OpaquePeerId>]>;
       /**
        * Add a node to the set of well known nodes. If the node is already claimed, the owner
        * will be updated and keep the existing additional connection unchanged.
@@ -791,14 +800,14 @@ declare module '@polkadot/api-base/types/submittable' {
        * 
        * - `node`: identifier of the node.
        **/
-      addWellKnownNode: AugmentedSubmittable<(node: Bytes | string | Uint8Array, owner: AccountId32 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, AccountId32]>;
+      addWellKnownNode: AugmentedSubmittable<(node: OpaquePeerId | object | string | Uint8Array, owner: AccountId32 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, AccountId32]>;
       /**
        * A given node can be claimed by anyone. The owner should be the first to know its
        * PeerId, so claim it right away!
        * 
        * - `node`: identifier of the node.
        **/
-      claimNode: AugmentedSubmittable<(node: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes]>;
+      claimNode: AugmentedSubmittable<(node: OpaquePeerId | object | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId]>;
       /**
        * A claim can be removed by its owner and get back the reservation. The additional
        * connections are also removed. You can't remove a claim on well known nodes, as it
@@ -806,14 +815,14 @@ declare module '@polkadot/api-base/types/submittable' {
        * 
        * - `node`: identifier of the node.
        **/
-      removeClaim: AugmentedSubmittable<(node: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes]>;
+      removeClaim: AugmentedSubmittable<(node: OpaquePeerId | object | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId]>;
       /**
        * Remove additional connections of a given node.
        * 
        * - `node`: identifier of the node.
        * - `connections`: additonal nodes from which the connections are not allowed anymore.
        **/
-      removeConnections: AugmentedSubmittable<(node: Bytes | string | Uint8Array, connections: Vec<Bytes> | (Bytes | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [Bytes, Vec<Bytes>]>;
+      removeConnections: AugmentedSubmittable<(node: OpaquePeerId | object | string | Uint8Array, connections: Vec<OpaquePeerId> | (OpaquePeerId | object | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, Vec<OpaquePeerId>]>;
       /**
        * Remove a node from the set of well known nodes. The ownership and additional
        * connections of the node will also be removed.
@@ -822,7 +831,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * 
        * - `node`: identifier of the node.
        **/
-      removeWellKnownNode: AugmentedSubmittable<(node: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes]>;
+      removeWellKnownNode: AugmentedSubmittable<(node: OpaquePeerId | object | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId]>;
       /**
        * Reset all the well known nodes. This will not remove the ownership and additional
        * connections for the removed nodes. The node owner can perform further cleaning if
@@ -832,7 +841,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * 
        * - `nodes`: the new nodes for the allow list.
        **/
-      resetWellKnownNodes: AugmentedSubmittable<(nodes: Vec<ITuple<[Bytes, AccountId32]>> | ([Bytes | string | Uint8Array, AccountId32 | string | Uint8Array])[]) => SubmittableExtrinsic<ApiType>, [Vec<ITuple<[Bytes, AccountId32]>>]>;
+      resetWellKnownNodes: AugmentedSubmittable<(nodes: Vec<ITuple<[OpaquePeerId, AccountId32]>> | ([OpaquePeerId | object | string | Uint8Array, AccountId32 | string | Uint8Array])[]) => SubmittableExtrinsic<ApiType>, [Vec<ITuple<[OpaquePeerId, AccountId32]>>]>;
       /**
        * Swap a well known node to another. Both the ownership and additional connections
        * stay untouched.
@@ -842,14 +851,14 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `remove`: the node which will be moved out from the list.
        * - `add`: the node which will be put in the list.
        **/
-      swapWellKnownNode: AugmentedSubmittable<(remove: Bytes | string | Uint8Array, add: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Bytes]>;
+      swapWellKnownNode: AugmentedSubmittable<(remove: OpaquePeerId | object | string | Uint8Array, add: OpaquePeerId | object | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, OpaquePeerId]>;
       /**
        * A node can be transferred to a new owner.
        * 
        * - `node`: identifier of the node.
        * - `owner`: new owner of the node.
        **/
-      transferNode: AugmentedSubmittable<(node: Bytes | string | Uint8Array, owner: AccountId32 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, AccountId32]>;
+      transferNode: AugmentedSubmittable<(node: OpaquePeerId | object | string | Uint8Array, owner: AccountId32 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, AccountId32]>;
       /**
        * Generic tx
        **/
