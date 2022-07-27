@@ -87,12 +87,18 @@ export default {
         CollectionItem: {
             description: "Vec<u8>",
             files: "Vec<CollectionItemFile<Hash>>",
+            token: "Option<CollectionItemToken>",
+            restricted_delivery: "bool",
         },
         CollectionItemFile: {
             name: "Vec<u8>",
             content_type: "Vec<u8>",
             fileSize: "u32",
             hash: "Hash",
+        },
+        CollectionItemToken: {
+            token_type: "Vec<u8>",
+	        token_id: "Vec<u8>",
         }
     }
 };

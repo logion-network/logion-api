@@ -195,9 +195,9 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       CollectionItemAlreadyExists: AugmentedError<ApiType>;
       /**
-       * Collection Item cannot be added to given collection because submitted data are invalid
+       * Collection Item cannot be added to given collection because some fields contain too many bytes
        **/
-      CollectionItemInvalid: AugmentedError<ApiType>;
+      CollectionItemTooMuchData: AugmentedError<ApiType>;
       /**
        * The collection limits have been reached
        **/
@@ -226,6 +226,14 @@ declare module '@polkadot/api-base/types/errors' {
        * Metadata Item cannot be added to given LOC because submitted data are invalid
        **/
       MetadataItemInvalid: AugmentedError<ApiType>;
+      /**
+       * Collection items with restricted delivery require at least one associated file
+       **/
+      MissingFiles: AugmentedError<ApiType>;
+      /**
+       * Collection items with restricted delivery require an underlying token to be defined
+       **/
+      MissingToken: AugmentedError<ApiType>;
       /**
        * Must attach at least one file
        **/

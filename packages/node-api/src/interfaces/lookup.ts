@@ -866,16 +866,7 @@ export default {
     _enum: ['V1Ancient', 'V2']
   },
   /**
-   * Lookup134: frame_support::weights::WeightToFeeCoefficient<Balance>
-   **/
-  FrameSupportWeightsWeightToFeeCoefficient: {
-    coeffInteger: 'u128',
-    coeffFrac: 'Perbill',
-    negative: 'bool',
-    degree: 'u8'
-  },
-  /**
-   * Lookup135: pallet_sudo::pallet::Call<T>
+   * Lookup133: pallet_sudo::pallet::Call<T>
    **/
   PalletSudoCall: {
     _enum: {
@@ -899,7 +890,7 @@ export default {
     }
   },
   /**
-   * Lookup137: pallet_node_authorization::pallet::Call<T>
+   * Lookup135: pallet_node_authorization::pallet::Call<T>
    **/
   PalletNodeAuthorizationCall: {
     _enum: {
@@ -938,7 +929,7 @@ export default {
     }
   },
   /**
-   * Lookup138: pallet_multisig::pallet::Call<T>
+   * Lookup136: pallet_multisig::pallet::Call<T>
    **/
   PalletMultisigCall: {
     _enum: {
@@ -970,7 +961,7 @@ export default {
     }
   },
   /**
-   * Lookup141: pallet_recovery::pallet::Call<T>
+   * Lookup139: pallet_recovery::pallet::Call<T>
    **/
   PalletRecoveryCall: {
     _enum: {
@@ -1007,7 +998,7 @@ export default {
     }
   },
   /**
-   * Lookup142: pallet_assets::pallet::Call<T, I>
+   * Lookup140: pallet_assets::pallet::Call<T, I>
    **/
   PalletAssetsCall: {
     _enum: {
@@ -1135,7 +1126,7 @@ export default {
     }
   },
   /**
-   * Lookup143: pallet_assets::types::DestroyWitness
+   * Lookup141: pallet_assets::types::DestroyWitness
    **/
   PalletAssetsDestroyWitness: {
     accounts: 'Compact<u32>',
@@ -1143,7 +1134,7 @@ export default {
     approvals: 'Compact<u32>'
   },
   /**
-   * Lookup144: pallet_lo_authority_list::pallet::Call<T>
+   * Lookup142: pallet_lo_authority_list::pallet::Call<T>
    **/
   PalletLoAuthorityListCall: {
     _enum: {
@@ -1156,7 +1147,7 @@ export default {
     }
   },
   /**
-   * Lookup145: pallet_logion_loc::pallet::Call<T>
+   * Lookup143: pallet_logion_loc::pallet::Call<T>
    **/
   PalletLogionLocCall: {
     _enum: {
@@ -1208,12 +1199,14 @@ export default {
         collectionLocId: 'Compact<u128>',
         itemId: 'H256',
         itemDescription: 'Bytes',
-        itemFiles: 'Vec<PalletLogionLocCollectionItemFile>'
+        itemFiles: 'Vec<PalletLogionLocCollectionItemFile>',
+        itemToken: 'Option<PalletLogionLocCollectionItemToken>',
+        restrictedDelivery: 'bool'
       }
     }
   },
   /**
-   * Lookup146: pallet_logion_loc::MetadataItem<sp_core::crypto::AccountId32>
+   * Lookup144: pallet_logion_loc::MetadataItem<sp_core::crypto::AccountId32>
    **/
   PalletLogionLocMetadataItem: {
     name: 'Bytes',
@@ -1221,7 +1214,7 @@ export default {
     submitter: 'AccountId32'
   },
   /**
-   * Lookup147: pallet_logion_loc::File<primitive_types::H256, sp_core::crypto::AccountId32>
+   * Lookup145: pallet_logion_loc::File<primitive_types::H256, sp_core::crypto::AccountId32>
    **/
   PalletLogionLocFile: {
     _alias: {
@@ -1232,14 +1225,14 @@ export default {
     submitter: 'AccountId32'
   },
   /**
-   * Lookup148: pallet_logion_loc::LocLink<LocId>
+   * Lookup146: pallet_logion_loc::LocLink<LocId>
    **/
   PalletLogionLocLocLink: {
     id: 'u128',
     nature: 'Bytes'
   },
   /**
-   * Lookup150: pallet_logion_loc::CollectionItemFile<primitive_types::H256>
+   * Lookup148: pallet_logion_loc::CollectionItemFile<primitive_types::H256>
    **/
   PalletLogionLocCollectionItemFile: {
     _alias: {
@@ -1250,6 +1243,13 @@ export default {
     contentType: 'Bytes',
     size_: 'u32',
     hash_: 'H256'
+  },
+  /**
+   * Lookup150: pallet_logion_loc::CollectionItemToken
+   **/
+  PalletLogionLocCollectionItemToken: {
+    tokenType: 'Bytes',
+    tokenId: 'Bytes'
   },
   /**
    * Lookup151: pallet_verified_recovery::pallet::Call<T>
@@ -1439,19 +1439,21 @@ export default {
    **/
   PalletLogionLocCollectionItem: {
     description: 'Bytes',
-    files: 'Vec<PalletLogionLocCollectionItemFile>'
+    files: 'Vec<PalletLogionLocCollectionItemFile>',
+    token: 'Option<PalletLogionLocCollectionItemToken>',
+    restrictedDelivery: 'bool'
   },
   /**
    * Lookup187: pallet_logion_loc::pallet::StorageVersion
    **/
   PalletLogionLocStorageVersion: {
-    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload']
+    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken']
   },
   /**
    * Lookup188: pallet_logion_loc::pallet::Error<T>
    **/
   PalletLogionLocError: {
-    _enum: ['AlreadyExists', 'NotFound', 'Unauthorized', 'CannotMutate', 'AlreadyClosed', 'LinkedLocNotFound', 'ReplacerLocNotFound', 'AlreadyVoid', 'ReplacerLocAlreadyVoid', 'ReplacerLocAlreadyReplacing', 'CannotMutateVoid', 'UnexpectedRequester', 'ReplacerLocWrongType', 'InvalidSubmitter', 'CollectionHasNoLimit', 'WrongCollectionLoc', 'CollectionItemAlreadyExists', 'CollectionItemInvalid', 'CollectionLimitsReached', 'MetadataItemInvalid', 'FileInvalid', 'LocLinkInvalid', 'CannotUpload', 'MustUpload', 'DuplicateFile']
+    _enum: ['AlreadyExists', 'NotFound', 'Unauthorized', 'CannotMutate', 'AlreadyClosed', 'LinkedLocNotFound', 'ReplacerLocNotFound', 'AlreadyVoid', 'ReplacerLocAlreadyVoid', 'ReplacerLocAlreadyReplacing', 'CannotMutateVoid', 'UnexpectedRequester', 'ReplacerLocWrongType', 'InvalidSubmitter', 'CollectionHasNoLimit', 'WrongCollectionLoc', 'CollectionItemAlreadyExists', 'CollectionItemTooMuchData', 'CollectionLimitsReached', 'MetadataItemInvalid', 'FileInvalid', 'LocLinkInvalid', 'CannotUpload', 'MustUpload', 'DuplicateFile', 'MissingToken', 'MissingFiles']
   },
   /**
    * Lookup189: pallet_verified_recovery::pallet::Error<T>

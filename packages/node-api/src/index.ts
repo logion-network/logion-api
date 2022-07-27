@@ -33,10 +33,26 @@ import {
     UUID
 } from './UUID';
 
+import {
+    File,
+    MetadataItem,
+    Link,
+    LocType,
+    LegalOfficerCase,
+    ItemFile,
+    ItemToken,
+} from './Types';
+
+import {
+    getLegalOfficerCase,
+    addCollectionItem,
+    getCollectionItem,
+    getCollectionSize,
+} from './LogionLoc';
+
 export {
     LogionNodeApi,
     buildApi,
-
     PrefixedNumber,
     NormalizedNumber,
     UnitPrefix,
@@ -54,10 +70,19 @@ export {
     FEMTO,
     ATTO,
     convertToPrefixed,
-
     LGNT_SMALLEST_UNIT,
     LGNT_SYMBOL,
     CoinBalance,
-
     UUID,
+    File,
+    MetadataItem,
+    Link,
+    LocType,
+    LegalOfficerCase,
+    ItemFile,
+    ItemToken,
+    getLegalOfficerCase,
+    addCollectionItem,
+    getCollectionItem,
+    getCollectionSize,
 }

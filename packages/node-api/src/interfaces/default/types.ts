@@ -42,6 +42,8 @@ export interface AssetMetadata extends Struct {
 export interface CollectionItem extends Struct {
   readonly description: Bytes;
   readonly files: Vec<CollectionItemFile>;
+  readonly token: Option<CollectionItemToken>;
+  readonly restricted_delivery: bool;
 }
 
 /** @name CollectionItemFile */
@@ -54,6 +56,12 @@ export interface CollectionItemFile extends Struct {
 
 /** @name CollectionItemId */
 export interface CollectionItemId extends Hash {}
+
+/** @name CollectionItemToken */
+export interface CollectionItemToken extends Struct {
+  readonly token_type: Bytes;
+  readonly token_id: Bytes;
+}
 
 /** @name CollectionSize */
 export interface CollectionSize extends u32 {}
