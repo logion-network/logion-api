@@ -1,5 +1,5 @@
 import { DEFAULT_LEGAL_OFFICER, TEST_WALLET_USER } from '../TestData';
-import { LegalOfficerCase } from '../Types';
+import { LegalOfficerCase } from '../../src/Types';
 
 export function createLogionIdentityLoc(parameters: any) {
     return Promise.resolve();

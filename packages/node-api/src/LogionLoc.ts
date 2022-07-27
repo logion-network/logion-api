@@ -3,7 +3,7 @@ import { stringToHex } from '@polkadot/util';
 import { Option } from "@polkadot/types-codec";
 
 import { UUID } from './UUID';
-import { LegalOfficerCase, LocType, MetadataItem, VoidInfo, CollectionItem, ItemFile } from './Types';
+import { LegalOfficerCase, LocType, MetadataItem, VoidInfo, CollectionItem, ItemFile, ItemToken } from './Types';
 import { CollectionSize } from './interfaces';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { PalletLogionLocLegalOfficerCase } from '@polkadot/types/lookup';
@@ -305,16 +305,23 @@ export async function getCollectionItem(
 
     const result = await api.query.logionLoc.collectionItemsMap(locId.toHexString(), itemId);
     if (result.isSome) {
-        const description = result.unwrap().description.toUtf8();
+        const unwrappedResult = result.unwrap();
+        const description = unwrappedResult.description.toUtf8();
+        const token = unwrappedResult.token;
         return {
             id: itemId,
             description,
-            files: result.unwrap().files.map(resultFile => ({
+            files: unwrappedResult.files.map(resultFile => ({
                 name: resultFile.name.toUtf8(),
                 contentType: resultFile.contentType.toUtf8(),
                 hash: resultFile.hash_.toHex(),
                 size: resultFile.size_.toBigInt(),
             })),
+            token: (token && token.isSome) ? {
+                type: token.unwrap().tokenType.toUtf8(),
+                id: token.unwrap().tokenId.toUtf8(),
+            } : undefined,
+            restrictedDelivery: unwrappedResult.restrictedDelivery.isTrue,
         };
     } else {
         return undefined;
@@ -348,6 +355,8 @@ export interface AddCollectionItemParameters {
     itemId: string;
     itemDescription: string;
     itemFiles: ItemFile[];
+    itemToken?: ItemToken;
+    restrictedDelivery: boolean,
 }
 
 export function addCollectionItem(parameters: AddCollectionItemParameters): SubmittableExtrinsic {
@@ -357,6 +366,8 @@ export function addCollectionItem(parameters: AddCollectionItemParameters): Subm
         itemId,
         itemDescription,
         itemFiles,
+        itemToken,
+        restrictedDelivery,
     } = parameters;
 
     const files: ({ name: string; contentType: string; size_: bigint; hash_: string })[] = itemFiles.map(itemFile => ({
@@ -366,5 +377,10 @@ export function addCollectionItem(parameters: AddCollectionItemParameters): Subm
         hash_: itemFile.hash,
     }));
 
-    return api.tx.logionLoc.addCollectionItem(collectionId.toHexString(), itemId, stringToHex(itemDescription), files);
+    const token = itemToken ? {
+        tokenType: stringToHex(itemToken.type),
+        tokenId: stringToHex(itemToken.id),
+    } : null;
+
+    return api.tx.logionLoc.addCollectionItem(collectionId.toHexString(), itemId, stringToHex(itemDescription), files, token, restrictedDelivery);
 }

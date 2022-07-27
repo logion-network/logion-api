@@ -86,6 +86,7 @@ export const DEFAULT_ITEM: CollectionItem = {
             hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
         }
     ],
+    restrictedDelivery: false,
 }
 
 export class ApiPromise {
@@ -214,7 +215,11 @@ export class ApiPromise {
                         contentType: { toUtf8: () => item.contentType },
                         hash_: { toHex: () => item.hash },
                         size_: { toBigInt: () => item.size },
-                    }))
+                    })),
+                    restrictedDelivery: {
+                        isTrue: DEFAULT_ITEM.restrictedDelivery,
+                        isFalse: !DEFAULT_ITEM.restrictedDelivery,
+                    }
                 })
             }),
         }
@@ -350,7 +355,7 @@ export function blockMock(body: object): object {
 }
 
 export function extrinsicsMock(size: number): any[] {
-    const extrinsics = [];
+    const extrinsics: any = [];
     for(let i = 0; i < size; ++i) {
         extrinsics.push({});
     }

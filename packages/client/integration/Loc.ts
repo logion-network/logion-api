@@ -6,6 +6,7 @@ import { LocRequestStatus } from "../src/LocClient";
 import { OpenLoc, PendingRequest, LocData, ClosedCollectionLoc } from "../src/Loc";
 
 import { State, TEST_LOGION_CLIENT_CONFIG, NEW_ADDRESS, initRequesterBalance } from "./Utils";
+import { ItemTokenWithRestrictedType } from "client/src/Token";
 
 const USER_ADDRESS = NEW_ADDRESS;
 
@@ -189,6 +190,10 @@ export async function collectionLocWithUpload(state: State) {
     const firstItemDescription = "First collection item";
     const firstFileContent = "test";
     const firstFileHash = hashString(firstFileContent);
+    const firstItemToken: ItemTokenWithRestrictedType = {
+        type: "ethereum_erc721",
+        id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","id":"4391"}'
+    };
     closedLoc = await closedLoc.addCollectionItem({
         itemId: firstItemId,
         itemDescription: firstItemDescription,
@@ -199,7 +204,9 @@ export async function collectionLocWithUpload(state: State) {
                 contentType: MimeType.from("text/plain"),
                 hashOrContent: HashOrContent.fromContent(Buffer.from(firstFileContent)), // Let SDK compute hash and size
             })
-        ]
+        ],
+        itemToken: firstItemToken,
+        restrictedDelivery: true,
     });
 
     const firstItem = await closedLoc.getCollectionItem({ itemId: firstItemId });
@@ -214,6 +221,8 @@ export async function collectionLocWithUpload(state: State) {
             uploaded: true,
         })
     ]));
+    expect(firstItem!.token).toEqual(firstItemToken);
+    expect(firstItem!.restrictedDelivery).toBe(true);
 
     const secondItemId = hashString("second-collection-item");
     const secondItemDescription = "Second collection item";

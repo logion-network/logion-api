@@ -1,24 +1,23 @@
 import {
+    LogionNodeApi,
+    UUID,
     File as BlockchainFile,
     MetadataItem,
     Link,
     LocType,
     LegalOfficerCase,
     ItemFile,
-} from '@logion/node-api/dist/Types';
+    getLegalOfficerCase,
+    addCollectionItem,
+    getCollectionItem,
+    getCollectionSize,
+} from '@logion/node-api';
+import { AxiosInstance } from 'axios';
 
 import { UserIdentity, LegalOfficer } from "./Types";
 import { NetworkState } from "./NetworkState";
 import { LegalOfficerEndpoint } from "./SharedClient";
 import { AxiosFactory } from "./AxiosFactory";
-import { LogionNodeApi, UUID } from "node-api/dist";
-import {
-    getLegalOfficerCase,
-    addCollectionItem,
-    getCollectionItem,
-    getCollectionSize
-} from "@logion/node-api/dist/LogionLoc";
-import { AxiosInstance } from 'axios';
 import { requireDefined } from "./assertions";
 import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays } from "./Http";
 import { Signer, SignCallback } from "./Signer";
@@ -26,6 +25,7 @@ import { ComponentFactory, FileLike } from './ComponentFactory';
 import { newBackendError } from './Error';
 import { HashOrContent } from './Hash';
 import { MimeType } from './Mime';
+import { validateToken, ItemTokenWithRestrictedType, TokenType } from './Token';
 
 export interface AddedOn {
     addedOn: string;
@@ -170,6 +170,8 @@ export interface AddCollectionItemParams {
     itemId: string,
     itemDescription: string,
     itemFiles?: ItemFileWithContent[],
+    itemToken?: ItemTokenWithRestrictedType,
+    restrictedDelivery?: boolean,
     signer: Signer,
     callback?: SignCallback,
 }
@@ -270,6 +272,8 @@ export interface UploadableCollectionItem {
     description: string;
     addedOn: string;
     files: UploadableItemFile[];
+    token?: ItemTokenWithRestrictedType,
+    restrictedDelivery: boolean;
 }
 
 export interface UploadableItemFile extends ItemFile {
@@ -373,7 +377,9 @@ export class LocClient {
     }
 
     async addCollectionItem(parameters: AddCollectionItemParams & FetchParameters): Promise<void> {
-        const { itemId, itemDescription, signer, callback, locId, itemFiles } = parameters;
+        const { itemId, itemDescription, signer, callback, locId, itemFiles, itemToken, restrictedDelivery } = parameters;
+
+        const booleanRestrictedDelivery = restrictedDelivery !== undefined ? restrictedDelivery : false;
 
         const chainItemFiles: ItemFile[] = [];
         if(itemFiles) {
@@ -390,12 +396,23 @@ export class LocClient {
             }
         }
 
+        if(booleanRestrictedDelivery
+            && (chainItemFiles.length === 0 || !itemToken)) {
+            throw new Error("Restricted delivery requires a defined underlying token as well as at least one file");
+        }
+
+        if(itemToken) {
+            this.validTokenOrThrow(itemToken);
+        }
+
         const submittable = addCollectionItem({
             api: this.nodeApi,
             collectionId: locId,
             itemId,
             itemDescription,
             itemFiles: chainItemFiles,
+            itemToken,
+            restrictedDelivery: booleanRestrictedDelivery,
         });
         await signer.signAndSend({
             signerId: this.currentAddress,
@@ -430,6 +447,17 @@ export class LocClient {
         }
     }
 
+    private validTokenOrThrow(itemToken: ItemTokenWithRestrictedType) {
+        const result = validateToken(itemToken);
+        if(!result.valid) {
+            if(result.error) {
+                throw new Error("Given token definition is invalid");
+            } else {
+                throw new Error(`Given token definition is invalid: ${result.error}`);
+            }
+        }
+    }
+
     async getCollectionItem(parameters: { itemId: string } & FetchParameters): Promise<UploadableCollectionItem | undefined> {
         const { locId, itemId } = parameters;
         const onchainItem = await getCollectionItem({
@@ -450,6 +478,11 @@ export class LocClient {
                     ...file,
                     uploaded: offchainItem.files.includes(file.hash),
                 })),
+                token: onchainItem.token ? {
+                    type: onchainItem.token.type as TokenType,
+                    id: onchainItem.token.id,
+                } : undefined,
+                restrictedDelivery: onchainItem.restrictedDelivery,
             }
         } catch(e) {
             throw newBackendError(e);

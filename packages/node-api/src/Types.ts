@@ -47,6 +47,8 @@ export interface CollectionItem {
     id: string,
     description: string,
     files: ItemFile[],
+    token?: ItemToken,
+    restrictedDelivery: boolean,
 }
 
 export interface ItemFile {
@@ -54,6 +56,11 @@ export interface ItemFile {
     contentType: string;
     size: bigint;
     hash: string;
+}
+
+export interface ItemToken {
+    type: string;
+    id: string;
 }
 
 export function isLogionIdentityLoc(loc: LegalOfficerCase): boolean {

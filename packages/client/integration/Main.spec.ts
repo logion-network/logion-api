@@ -41,7 +41,7 @@ describe("Logion SDK", () => {
         await collectionLoc(state);
     });
 
-    it("provides Collection LOC with upload", async () => {
+    it("provides Collection LOC with upload and restricted delivery", async () => {
         await collectionLocWithUpload(state);
     });
 });
