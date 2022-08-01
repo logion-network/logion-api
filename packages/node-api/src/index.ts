@@ -41,6 +41,7 @@ import {
     LegalOfficerCase,
     ItemFile,
     ItemToken,
+    CollectionItem,
 } from './Types';
 
 import {
@@ -81,6 +82,7 @@ export {
     LegalOfficerCase,
     ItemFile,
     ItemToken,
+    CollectionItem,
     getLegalOfficerCase,
     addCollectionItem,
     getCollectionItem,
