@@ -14,5 +14,12 @@ export async function buildApi(endpoint: string | string[]): Promise<LogionNodeA
 }
 
 function buildProvider(endpoint: string | string[]): WsProvider {
-    return new WsProvider(endpoint, 100);
+    let endpoints: string[];
+    if(typeof endpoint === "string") {
+        endpoints = [ endpoint ];
+    } else {
+        endpoints = endpoint;
+        endpoints.sort(() => Math.random() - 0.5);
+    }
+    return new WsProvider(endpoints, 100);
 }
