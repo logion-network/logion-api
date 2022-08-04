@@ -1,5 +1,6 @@
 import { ISubmittableResult } from '@polkadot/types/types';
 
+export * from './DateTimeUtil';
 import { LogionClient } from './LogionClient';
 import { LegalOfficer, PostalAddress, UserIdentity } from './Types';
 import { Token } from './Http';

@@ -23,5 +23,5 @@ describe("DateTimeUtil", () => {
     it("produces valid DateTime from ISO string with Z", () => {
         const dateTime = fromIsoString("2021-07-27T11:34:00.000Z");
         expect(dateTime.isValid).toBe(true);
-    });    
+    });
 });
