@@ -338,7 +338,7 @@ export class LocRequestState {
     }
 
     private static dataFromRequestAndLoc(request: LocRequest, loc: LegalOfficerCase): LocData {
-        return {
+        const data: LocData = {
             ...loc,
             id: new UUID(request.id),
             ownerAddress: loc.owner,
@@ -353,6 +353,13 @@ export class LocRequestState {
             files: request.files.map(item => LocRequestState.mergeFile(item, loc)),
             links: request.links.map(item => LocRequestState.mergeLink(item, loc)),
         };
+
+        if(data.voidInfo && request.voidInfo) {
+            data.voidInfo.reason = request.voidInfo.reason;
+            data.voidInfo.voidedOn = request.voidInfo.voidedOn;
+        }
+
+        return data;
     }
 
     private static mergeMetadata(backendMetadataItem: LocMetadataItem, chainLoc?: LegalOfficerCase): MergedMetadataItem {

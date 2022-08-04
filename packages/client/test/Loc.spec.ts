@@ -349,13 +349,13 @@ const BOB_OPEN_TRANSACTION_LOC_REQUEST = buildLocRequest(BOB.address, "OPEN", "T
 const BOB_OPEN_TRANSACTION_LOC = buildLoc(BOB.address, "OPEN", "Transaction");
 const BOB_VOID_TRANSACTION_LOC_REQUEST = buildLocRequest(BOB.address, "CLOSED", "Transaction");
 const BOB_VOID_TRANSACTION_LOC = buildLoc(BOB.address, "CLOSED", "Transaction", mockVoidInfo());
-const BOB_VOID_COLLECTION_LOC_REQUEST = buildLocRequest(BOB.address, "CLOSED", "Collection");
+const BOB_VOID_COLLECTION_LOC_REQUEST = buildLocRequest(BOB.address, "CLOSED", "Collection", true);
 const BOB_VOID_COLLECTION_LOC = buildLoc(BOB.address, "CLOSED", "Collection", mockVoidInfo());
 
 const COLLECTION_ITEM = buildCollectionItem();
 const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem();
 
-function buildLocRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType): LocRequest {
+function buildLocRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voided?: boolean): LocRequest {
     return {
         id: new UUID().toString(),
         createdOn: DateTime.now().toISO(),
@@ -374,6 +374,7 @@ function buildLocRequest(ownerAddress: string, status: LocRequestStatus, locType
         ownerAddress,
         status,
         locType,
+        voidInfo: voided ? { reason: "Some voiding reason.", voidedOn: DateTime.now().toISO() } : undefined,
     };
 }
 
@@ -651,4 +652,6 @@ function expectDataToMatch(data: LocData, request: LocRequest) {
     expect(data.closed).toBe(request.status === "CLOSED");
     expect(data.createdOn).toBeDefined();
     expect(data.status).toBe(request.status);
+    expect(data.voidInfo?.reason).toBe(request.voidInfo?.reason);
+    expect(data.voidInfo?.voidedOn).toBe(request.voidInfo?.voidedOn);
 }
