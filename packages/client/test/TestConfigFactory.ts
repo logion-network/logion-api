@@ -1,4 +1,5 @@
 import { LogionNodeApi } from "@logion/node-api";
+import FormData from "form-data";
 import { IMock, IPresetBuilder, It, Mock, Times } from "moq.ts";
 import { IExpression } from "moq.ts/lib/reflector/expression-reflector";
 import { AuthenticationClient } from "../src/AuthenticationClient";
@@ -73,5 +74,9 @@ export class TestConfigFactory {
 
     verifyComponentFactory<E extends IExpression<ComponentFactory>>(expression: E, times?: Times): IMock<ComponentFactory> {
         return this._componentFactory.verify(expression, times);
+    }
+
+    setupDefaultFormDataFactory() {
+        this._componentFactory.setup(instance => instance.buildFormData()).returns(new FormData());
     }
 }

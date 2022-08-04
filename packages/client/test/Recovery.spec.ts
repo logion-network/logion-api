@@ -1,5 +1,6 @@
 import type { Option, Vec } from '@polkadot/types-codec';
-import type { ActiveRecovery, RecoveryConfig } from '@polkadot/types/interfaces/recovery';
+import "@logion/node-api/dist/interfaces/types-lookup";
+import { PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig } from "@polkadot/types/lookup";
 import type { AccountId } from '@polkadot/types/interfaces/runtime';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { DateTime } from 'luxon';
@@ -426,7 +427,7 @@ describe("NoProtection", () => {
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.activeRecoveries(RECOVERED_ADDRESS, currentAddress))
-                    .returns(Promise.resolve(mockEmptyOption<ActiveRecovery>()));
+                    .returns(Promise.resolve(mockEmptyOption<PalletRecoveryActiveRecovery>()));
 
                 const aliceAccountId = new Mock<AccountId>();
                 aliceAccountId.setup(instance => instance.toString()).returns(ALICE.address);
@@ -438,7 +439,7 @@ describe("NoProtection", () => {
                     bobAccountId.object()
                 ]);
                 nodeApi.setup(instance => instance.query.recovery.recoverable(RECOVERED_ADDRESS))
-                    .returns(Promise.resolve(mockOption<RecoveryConfig>({
+                    .returns(Promise.resolve(mockOption<PalletRecoveryRecoveryConfig>({
                         friends: friends.object()
                     })));
 
@@ -551,7 +552,7 @@ describe("PendingProtection", () => {
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(mockEmptyOption<RecoveryConfig>()));
+                    .returns(Promise.resolve(mockEmptyOption<PalletRecoveryRecoveryConfig>()));
                 nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
                     .returns(Promise.resolve(mockEmptyOption<AccountId>()));
             },
@@ -601,7 +602,7 @@ describe("PendingProtection", () => {
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(mockEmptyOption<RecoveryConfig>()));
+                    .returns(Promise.resolve(mockEmptyOption<PalletRecoveryRecoveryConfig>()));
                 nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
                     .returns(Promise.resolve(mockEmptyOption<AccountId>()));
             },
@@ -700,7 +701,7 @@ describe("AcceptedProtection", () => {
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(mockEmptyOption<RecoveryConfig>()));
+                    .returns(Promise.resolve(mockEmptyOption<PalletRecoveryRecoveryConfig>()));
                 nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
                     .returns(Promise.resolve(mockEmptyOption<AccountId>()));
 
@@ -760,7 +761,7 @@ describe("AcceptedProtection", () => {
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(mockEmptyOption<RecoveryConfig>()));
+                    .returns(Promise.resolve(mockEmptyOption<PalletRecoveryRecoveryConfig>()));
                 nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
                     .returns(Promise.resolve(mockEmptyOption<AccountId>()));
 
@@ -824,14 +825,14 @@ describe("PendingRecovery", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const recoveryConfig = mockOption<RecoveryConfig>({
+                const recoveryConfig = mockOption<PalletRecoveryRecoveryConfig>({
                     friends: [
                         ALICE.address,
                         BOB.address
                     ]
-                } as unknown as RecoveryConfig)
+                } as unknown as PalletRecoveryRecoveryConfig)
                 nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(recoveryConfig as Option<RecoveryConfig>));
+                    .returns(Promise.resolve(recoveryConfig as Option<PalletRecoveryRecoveryConfig>));
                 const proxy = mockOption<AccountId>(RECOVERED_ADDRESS as unknown as AccountId)
                 nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
                     .returns(Promise.resolve(proxy as Option<AccountId>));

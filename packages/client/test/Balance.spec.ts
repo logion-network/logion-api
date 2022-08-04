@@ -1,5 +1,6 @@
 import { PrefixedNumber, ATTO } from "@logion/node-api";
-import { AccountInfo } from "@polkadot/types/interfaces/system/types";
+import "@logion/node-api/dist/interfaces/types-lookup";
+import { FrameSystemAccountInfo } from "@polkadot/types/lookup";
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { Call } from "@polkadot/types/interfaces";
 import { AxiosInstance, AxiosResponse } from 'axios';
@@ -225,7 +226,7 @@ function setupFetchTransactions(axiosFactory: Mock<AxiosFactory>, transactions: 
         .returns(axios.object());
 }
 
-function mockAccountInfo(free: bigint): AccountInfo {
+function mockAccountInfo(free: bigint): FrameSystemAccountInfo {
     const accountInfo = {
         data: {
             free: {
@@ -237,5 +238,5 @@ function mockAccountInfo(free: bigint): AccountInfo {
             }
         }
     }
-    return accountInfo as unknown as AccountInfo;
+    return accountInfo as unknown as FrameSystemAccountInfo;
 }

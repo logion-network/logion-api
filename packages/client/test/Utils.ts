@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { Option } from "@polkadot/types-codec";
+import { Option, Vec, bool } from "@polkadot/types-codec";
 import type { Codec } from '@polkadot/types-codec/types';
 
 import { AccountTokens } from "../src/AuthenticationClient";
@@ -114,6 +114,7 @@ export async function buildTestAuthenticatedSharedSate(
 
 export function mockEmptyOption<T extends Codec>(): Option<T> {
     return {
+        isSome: false,
         isEmpty: true,
         isNone: true,
     } as unknown as Option<T>;
@@ -121,11 +122,10 @@ export function mockEmptyOption<T extends Codec>(): Option<T> {
 
 export function mockOption<T extends Codec>(value: Partial<T>): Option<T> {
     return {
+        isSome: true,
         isEmpty: false,
         isNone: false,
-        unwrap(): T {
-            return value as T;
-        },
+        unwrap: () => (value as T),
     } as unknown as Option<T>;
 }
 
@@ -140,4 +140,36 @@ export const REQUESTER = "5EBxoSssqNo23FvsDeUxjyQScnfEiGxJaNwuwqBH2Twe35BX";
 
 export function itSpies<T>(): T {
     return It.Is<T>(value => { console.log(value); return false });
+}
+
+export function mockCodecWithToString<T extends Codec>(value: string): T {
+    return ({
+        toString: () => value,
+    }) as T;
+}
+
+export function mockVec<T extends Codec>(items: T[]): Vec<T> {
+    return ({
+        toArray: () => items,
+        map: items.map,
+    }) as Vec<T>;
+}
+
+export function mockBool(value: boolean): bool {
+    return ({
+        isTrue: value,
+        isFalse: !value,
+    }) as bool;
+}
+
+export function mockCodecWithToUtf8<T extends Codec & { toUtf8: () => string }>(value: string): T {
+    return ({
+        toUtf8: () => value,
+    }) as T;
+}
+
+export function mockCodecWithToHex<T extends Codec & { toHex: () => string }>(value: string): T {
+    return ({
+        toHex: () => value,
+    }) as T;
 }

@@ -205,7 +205,7 @@ export interface CheckHashResult {
     collectionItem?: UploadableCollectionItem;
 }
 
-class LocRequestState {
+export class LocRequestState {
 
     protected readonly locSharedState: LocSharedState;
     protected readonly request: LocRequest;
