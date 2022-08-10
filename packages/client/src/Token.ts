@@ -1,9 +1,15 @@
+import { isHex } from "@polkadot/util";
+
 export interface ItemTokenWithRestrictedType {
     type: TokenType,
     id: string,
 }
 
-export type TokenType = 'ethereum_erc721';
+export type TokenType = 'ethereum_erc721' | 'owner';
+
+export function isTokenType(type: string): type is TokenType {
+    return type === 'ethereum_erc721' || type === 'owner';
+}
 
 export interface TokenValidationResult {
     valid: boolean;
@@ -51,6 +57,15 @@ export function validateToken(itemToken: ItemTokenWithRestrictedType): TokenVali
         }
         
         return { valid: true };
+    } else if(itemToken.type === "owner") {
+        if(isHex(itemToken.id, ETHEREUM_ADDRESS_LENGTH_IN_BITS)) {
+            return { valid: true };
+        } else {
+            return {
+                valid: false,
+                error: "token ID must be a valid Ethereum address",
+            }
+        }
     } else {
         return {
             valid: false,
@@ -58,3 +73,5 @@ export function validateToken(itemToken: ItemTokenWithRestrictedType): TokenVali
         }
     }
 }
+
+const ETHEREUM_ADDRESS_LENGTH_IN_BITS = 20 * 8;

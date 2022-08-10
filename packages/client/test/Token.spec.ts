@@ -1,4 +1,4 @@
-import { ItemTokenWithRestrictedType, TokenType, validateToken } from "../src/Token";
+import { ItemTokenWithRestrictedType, TokenType, validateToken, isTokenType } from "../src/Token";
 
 describe("validateToken", () => {
 
@@ -70,5 +70,46 @@ describe("validateToken", () => {
         const result = validateToken(token);
         expect(result.valid).toBe(false);
         expect(result.error).toBe("unsupported token type 'ethereum_erc20'");
+    });
+
+    it("validates valid owner token", () => {
+        const token: ItemTokenWithRestrictedType = {
+            type: "owner",
+            id: '0xa6db31d1aee06a3ad7e4e56de3775e80d2f5ea84'
+        };
+        const result = validateToken(token);
+        expect(result.valid).toBe(true);
+        expect(result.error).not.toBeDefined();
+    });
+
+    it("invalidates owner token with non-hex ID", () => {
+        const token: ItemTokenWithRestrictedType = {
+            type: "owner",
+            id: 'some random string'
+        };
+        const result = validateToken(token);
+        expect(result.valid).toBe(false);
+        expect(result.error).toBe("token ID must be a valid Ethereum address");
+    });
+
+    it("invalidates owner token with hex ID but wrong length", () => {
+        const token: ItemTokenWithRestrictedType = {
+            type: "owner",
+            id: '0xa6db31d1aee06a3ad7e4e56de3775e80d2f5ea8'
+        };
+        const result = validateToken(token);
+        expect(result.valid).toBe(false);
+        expect(result.error).toBe("token ID must be a valid Ethereum address");
+    });
+});
+
+describe("isTokenType", () => {
+
+    it("returns true given 'ethereum_erc721'", () => {
+        expect(isTokenType("ethereum_erc721")).toBe(true);
+    });
+
+    it("returns true given 'owner'", () => {
+        expect(isTokenType("owner")).toBe(true);
     });
 });
