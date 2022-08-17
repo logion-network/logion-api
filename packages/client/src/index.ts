@@ -64,9 +64,7 @@ import {
     MimeType,
     isValidMime,
 } from './Mime';
-import {
-    ItemTokenWithRestrictedType,
-} from './Token';
+export * from './Token';
 export {
     LogionClient,
     LegalOfficer,
@@ -122,5 +120,4 @@ export {
     SignAndSendFunction,
     SignatureType,
     TypedSignature,
-    ItemTokenWithRestrictedType,
 };
