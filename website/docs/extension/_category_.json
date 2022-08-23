@@ -1,0 +1,8 @@
+{
+  "label": "Extension",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Provides some utility classes enabling the use a browser extension with."
+  }
+}
