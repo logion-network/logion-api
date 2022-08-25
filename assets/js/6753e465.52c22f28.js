@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[2434],{8696:e=>{e.exports=JSON.parse('{"label":"hello","permalink":"/logion-api/blog/tags/hello","allTagsPath":"/logion-api/blog/tags","count":2}')}}]);
