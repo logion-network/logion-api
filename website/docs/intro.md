@@ -7,7 +7,7 @@ sidebar_position: 1
 ## Install
 
 Install package [`@logion/extension`](https://www.npmjs.com/package/@logion/extension) with your favorite package manager (recommended).
-Note that the extension embeds the [`@logion/client`](https://www.npmjs.com/package/@logion/client).
+Note that the extension has [`@logion/client`](https://www.npmjs.com/package/@logion/client) as a dependency.
 
 Alternatively if you don't want to use a Polkadot{.js} and provide your own keyring instead, you can directly use
 [`@logion/client`](https://www.npmjs.com/package/@logion/client)
