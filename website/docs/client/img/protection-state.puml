@@ -1,0 +1,14 @@
+@startuml
+hide empty description
+[*] --> NoProtection
+NoProtection --> PendingProtection : requestProtection()
+state "Decision" as decision <<choice>>
+PendingProtection --> decision
+decision --> RejectedProtection: (at least) one LO rejects
+decision --> AcceptedProtection: both LO's accept
+AcceptedProtection --> ActiveProtection: activate()
+RejectedProtection --> NoProtection: cancel()
+RejectedProtection --> PendingProtection: resubmit()
+RejectedProtection --> PendingProtection: changeLegalOfficer()
+ActiveProtection --> [*]
+@enduml

@@ -1,8 +1,34 @@
-# Protection
+# Protection and Recovery
 
-## Protection Request
+The global state of protection or recovery can be obtained and later on refreshed with:
+
+```typescript
+const protectionState = await authenticatedClient.protectionState();
+const refreshedState = await protectionState.refresh();
+```
+
+:::caution
+All user operations (`requestProtection`, `activate`, `cancel`, etc.), as well as `refresh`, do return a new state.
+Always use the most recent state, and discard the former state.
+In the example above, the var `protectionState` must not be used any more as soon as `refreshedState` is available.
+:::
+
+## Protection
+
+The setup of a Polkadot account protection is a 3-steps process:
+* **Choose 2 officers** among the official list of Logion Legal Officers.
+* **Request** the protection towards those 2 LO's.
+* Upon acceptance, **activate** the protection on the chain.
+
+### Overview of the whole process
+
+![Protection State Diagram](img/protection-state.png)
 
 ### Choose legal officers
+
+The following call accesses the configured [logion-directory](https://github.com/logion-network/logion-directory)
+to retrieve the list of available Legal Officers. A protection requires the user to choose 2 distinct Legal Officers
+(in this sample Alice and Bob are selected).
 
 ```typescript
 const legalOfficers: LegalOfficer[] = authenticatedClient.getLegalOfficers();
@@ -12,6 +38,8 @@ const bob = legalOfficers[1];
 ```
 
 ### Request a protection
+
+You can submit your protection requests to the selected officers: 
 
 ```typescript
 const noProtection = await authenticatedClient.protectionState() as NoProtection;
@@ -44,8 +72,35 @@ const accepted = (await pending.refresh()) as AcceptedProtection;
 accepted.activate(signer);
 ```
 
+In case of refusal of one or both Legal Officers, the refreshed state will be `RejectedProtection`.
+
+### Rejection Management
+
+If rejected by one or more Legal Officer, you may either
+* Resubmit the request to the officer who rejected,
+* Or replace him/her with a new Legal Officer,
+* Or completely cancel your protection request.
+
+```typescript title="Resubmit to LO who rejected"
+let rejectedProtection = (await authenticatedClient.protectionState()) as RejectedProtection;
+const rejecter = rejectedProtection.protectionParameters.states.find(state => state.status === "REJECTED")!.legalOfficer;
+rejectedProtection.resubmit(rejecter);
+```
+
+```typescript title="Replace LO who rejected with Charlie"
+let rejectedProtection = (await authenticatedClient.protectionState()) as RejectedProtection;
+const rejecter = rejectedProtection.protectionParameters.states.find(state => state.status === "REJECTED")!.legalOfficer;
+const charlie: LegalOfficer = ...;
+rejectedProtection.changeLegalOfficer(rejecter, charlie);
+```
+
+```typescript title="Cancel the protection request"
+let rejectedProtection = (await authenticatedClient.protectionState()) as RejectedProtection;
+rejectedProtection.cancel();
+```
+
 ## Vault
-Operations require an activated protection (see above [Protection Request](#protection-request))
+Operations require an activated protection (see above [Protection Request](#protection))
 
 ### Transfer from vault
 
