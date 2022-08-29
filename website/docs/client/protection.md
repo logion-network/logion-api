@@ -136,6 +136,17 @@ console.log("Balance :%s", `${balance.balance.coefficient.toInteger()}.${balance
 
 ## Recovery
 
+In order to recover a previously protected account, you must first create a new Polkadot account. Then follow these 3-stpes process:
+* **Request a recovery** to the Legal Officers who protected the lost account.
+* Upon acceptance and vouching of the recovery, **activate** the protection (of the new account) on the chain.
+* **Claim** the recovery.
+
+One claimed, you can recover the lost assets.
+
+### Overview of the whole process
+
+![Recovery State Diagram](img/recovery-state.png)
+
 ### Request a recovery
 
 Recovery must be requested to the **same Legal Officers** who accepted to protect the lost account (in this case, Alice and Bob).
@@ -183,6 +194,8 @@ let pendingRecovery = await accepted.activate(signer) as PendingRecovery;
 
 ### Claim the recovery
 
+Finally, the recovery is claimed:
+
 ```typescript
 pendingRecovery = await pendingRecovery.waitForFullyReady();
 const claimed = await pendingRecovery.claimRecovery(signer);
@@ -205,7 +218,7 @@ The destination may be any address, not necessarily the new account address.
 
 ### Recover the lost vault
 
-As for any transfer from a vault, you must for one LO's approval.
+As for any transfer from a vault, you must wait for one LO's approval.
 
 ```typescript
 const newVault = await claimed.vaultState();
@@ -228,3 +241,20 @@ console.log("Balance :%s", `${newBalance.balance.coefficient.toInteger()}.${newB
 :::info
 The destination may be any address, not necessarily the new vault address.
 :::
+
+### Rejection Management
+
+If rejected by one or more Legal Officer, you may either
+* Resubmit the request to the officer who rejected,
+* Or completely cancel your recovery request.
+
+```typescript title="Resubmit to LO who rejected"
+let rejectedRecovery = (await authenticatedClient.protectionState()) as RejectedRecovery;
+const rejecter = rejectedRecovery.protectionParameters.states.find(state => state.status === "REJECTED")!.legalOfficer;
+rejectedRecovery.resubmit(rejecter);
+```
+
+```typescript title="Cancel the recovery request"
+let rejectedRecovery = (await authenticatedClient.protectionState()) as RejectedRecovery;
+rejectedRecovery.cancel();
+```
