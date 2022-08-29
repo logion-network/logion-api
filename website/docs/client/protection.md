@@ -1,3 +1,8 @@
+---
+sidebar_position: 3
+description: How to protect/recover a Polkadot account, and access the vault.
+---
+
 # Protection and Recovery
 
 The global state of protection or recovery can be obtained and later on refreshed with:
@@ -120,7 +125,7 @@ const pendingRequest = vaultState.pendingVaultTransferRequests[0];
 
 ### Transfer to vault
 
-A transfer to the vault is similar to any other [transfer](balance-transactions#transfer-an-amount-to-another-account).
+A transfer to the vault is similar to any other [transfer](balance-transactions#transfer).
 Simply use `vaultState.vaultAddress` as destination.
 
 ### Check vault balance

@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+description: How to access to the balance and do transactions.
 ---
 
 # Balance and Transactions
@@ -22,7 +23,7 @@ const transactions = balanceState.transactions;
 console.log("First transaction destination: %s", transactions[0].destination)
 ```
 
-## Transfer an amount to another account
+## Transfer an amount to another account {#transfer}
 
 ```typescript
 import { KILO } from "@logion/node-api";
