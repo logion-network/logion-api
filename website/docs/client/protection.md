@@ -5,7 +5,12 @@ description: How to protect/recover a Polkadot account, and access the vault.
 
 # Protection and Recovery
 
-The global state of protection or recovery can be obtained and later on refreshed with:
+## State
+
+:::note
+An [authenticated client](authentication.md) is necessary for protection/recovery operations.
+:::
+The global state of protection or recovery can be obtained (and later on, refreshed) with:
 
 ```typescript
 const protectionState = await authenticatedClient.protectionState();
