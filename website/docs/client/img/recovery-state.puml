@@ -1,0 +1,14 @@
+@startuml
+hide empty description
+[*] --> NoProtection
+NoProtection --> PendingProtection : requestRecovery()
+state "Decision" as decision <<choice>>
+PendingProtection --> decision
+decision --> RejectedRecovery: (at least) one LO rejects
+decision --> AcceptedProtection: both LO's accept and vouch
+AcceptedProtection --> PendingRecovery: activate()
+PendingRecovery --> ClaimedRecovery: claimRecovery()
+RejectedRecovery --> NoProtection: cancel()
+RejectedRecovery --> PendingProtection: resubmit()
+ClaimedRecovery --> [*]
+@enduml

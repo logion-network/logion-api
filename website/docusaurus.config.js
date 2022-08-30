@@ -3,7 +3,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'logion sdk',
+  title: 'logion-api',
   tagline: 'The blockchain infrastructure of safe digital ownership',
   url: 'https://logion-network.github.io/',
   baseUrl: '/logion-api/',
@@ -32,15 +32,11 @@ const config = {
       ({
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/logion-network/logion-api/tree/main/website/',
         },
         blog: {
           showReadingTime: true,
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
           editUrl:
               'https://github.com/logion-network/logion-api/tree/main/website/',
         },
@@ -55,7 +51,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'logion-sdk',
+        title: 'logion-api',
         logo: {
           alt: 'logion Logo',
           src: 'img/logion218-twitter.png',

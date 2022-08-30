@@ -1,13 +1,33 @@
 ---
 sidebar_position: 2
+description: How to access to the balance and do transactions.
 ---
 
 # Balance and Transactions
 
-## Get the current balance
+## State
+
+:::note
+An [authenticated client](authentication.md) is necessary for all balance-related operations.
+:::
+The global state of the balances can be obtained (and later on, refreshed) with:
 
 ```typescript
-let balanceState = await authenticatedClient.balanceState();
+const balanceState = await authenticatedClient.balanceState();
+const refreshedState = await balanceState.refresh();
+```
+
+:::caution
+`transfer` and `refresh` do return a new state.
+Always use the most recent state, and discard the former state.
+In the example above, the var `balanceState` must not be used any more as soon as `refreshedState` is available.
+:::
+
+## Balance
+
+You can get the current balance with:
+
+```typescript
 const balance = balanceState.balances[0];
 console.log(
     "Balance :%s",
@@ -15,17 +35,22 @@ console.log(
 );
 ```
 
-## List all transactions
+## Transactions on the balance
+
+You can get a list of transactions on the balance with:
 
 ```typescript
 const transactions = balanceState.transactions;
 console.log("First transaction destination: %s", transactions[0].destination)
 ```
 
-## Transfer an amount to another account
+## Transfer {#transfer}
+
+You can transfer any amount (must be less than or equal to the balance, taking transaction fees into account)
+to another account:
 
 ```typescript
-import { KILO } from "@logion/node-api";
+import { PrefixedNumber, KILO } from "@logion/node-api";
 
 balanceState =  balanceState.transfer({
     signer,

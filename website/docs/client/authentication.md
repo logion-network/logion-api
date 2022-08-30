@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+description: How to authenticate a Polkadot account to logion network.
 ---
 
 # Authentication
