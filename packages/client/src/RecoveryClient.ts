@@ -1,6 +1,6 @@
+import { LogionNodeApi, getProxy, getRecoveryConfig, RecoveryConfig } from "@logion/node-api";
 import { AxiosInstance } from "axios";
-import { LogionNodeApi } from "node-api/dist";
-import { getProxy, getRecoveryConfig, RecoveryConfig } from "@logion/node-api/dist/Recovery";
+
 import { AxiosFactory } from "./AxiosFactory";
 import { aggregateArrays, MultiResponse, MultiSourceHttpClient, initMultiSourceHttpClientState } from "./Http";
 import { NetworkState } from "./NetworkState";

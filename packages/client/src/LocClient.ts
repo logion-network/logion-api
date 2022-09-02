@@ -11,12 +11,13 @@ import {
     addCollectionItem,
     getCollectionItem,
     getCollectionSize,
+    GetLegalOfficerCaseParameters,
 } from '@logion/node-api';
 import { AxiosInstance } from 'axios';
 
 import { UserIdentity, LegalOfficer } from "./Types";
 import { NetworkState } from "./NetworkState";
-import { LegalOfficerEndpoint } from "./SharedClient";
+import { authenticatedCurrentAddress, LegalOfficerEndpoint, SharedState } from "./SharedClient";
 import { AxiosFactory } from "./AxiosFactory";
 import { requireDefined } from "./assertions";
 import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays } from "./Http";
@@ -183,7 +184,7 @@ export interface FetchLocRequestSpecification {
     locTypes: LocType[],
 }
 
-interface CreateLocRequest {
+export interface CreateLocRequest {
     ownerAddress: string;
     requesterAddress: string;
     description: string;
@@ -191,11 +192,28 @@ interface CreateLocRequest {
     userIdentity?: UserIdentity;
 }
 
-interface CreateSofRequest {
+export interface CreateSofRequest {
     itemId?: string;
 }
 
+export interface GetDeliveriesRequest {
+    locId: UUID;
+    itemId: string;
+}
+
 export class LocMultiClient {
+
+    static newLocMultiClient(sharedState: SharedState): LocMultiClient {
+        const { currentAddress, token } = authenticatedCurrentAddress(sharedState);
+        return new LocMultiClient({
+            axiosFactory: sharedState.axiosFactory,
+            currentAddress,
+            networkState: sharedState.networkState,
+            token: token.value,
+            nodeApi: sharedState.nodeApi,
+            componentFactory: sharedState.componentFactory,
+        });
+    }
 
     constructor(params: {
         networkState: NetworkState<LegalOfficerEndpoint>,
@@ -226,7 +244,7 @@ export class LocMultiClient {
     private readonly componentFactory: ComponentFactory;
 
     newLocClient(legalOfficer: LegalOfficer) {
-        return new LocClient({
+        return new AuthenticatedLocClient({
             axiosFactory: this.axiosFactory,
             currentAddress: this.currentAddress,
             token: this.token,
@@ -260,10 +278,16 @@ export class LocMultiClient {
     }
 
     async getLoc(parameters: FetchParameters): Promise<LegalOfficerCase> {
-        const { locId } = parameters;
+        return LocMultiClient.getLoc({
+            ...parameters,
+            api: this.nodeApi,
+        });
+    }
+
+    static async getLoc(params: GetLegalOfficerCaseParameters): Promise<LegalOfficerCase> {
         return requireDefined(
-            await getLegalOfficerCase({ locId, api: this.nodeApi }),
-            () => new Error(`LOC not found on chain: ${ locId.toDecimalString() }`)
+            await getLegalOfficerCase(params),
+            () => new Error(`LOC not found on chain: ${ params.locId.toDecimalString() }`)
         );
     }
 }
@@ -288,7 +312,111 @@ export interface OffchainCollectionItem {
     files: string[];
 }
 
-export class LocClient {
+export interface FetchParameters {
+    locId: UUID,
+}
+
+export interface ItemDeliveries {
+    [key: string]: ItemDelivery[];
+}
+
+export interface ItemDelivery {
+    copyHash: string;
+    generatedOn: string;
+    owner: string;
+    belongsToCurrentOwner: boolean;
+}
+
+export abstract class LocClient {
+
+    constructor(params: {
+        axiosFactory: AxiosFactory,
+        nodeApi: LogionNodeApi,
+        legalOfficer: LegalOfficer,
+    }) {
+        this.axiosFactory = params.axiosFactory;
+        this.nodeApi = params.nodeApi;
+        this.legalOfficer = params.legalOfficer;
+    }
+
+    protected readonly axiosFactory: AxiosFactory;
+    protected readonly nodeApi: LogionNodeApi;
+    protected readonly legalOfficer: LegalOfficer;
+
+    async getLoc(parameters: FetchParameters): Promise<LegalOfficerCase> {
+        return LocMultiClient.getLoc({ ...parameters, api: this.nodeApi });
+    }
+
+    protected backend(): AxiosInstance {
+        return this.axiosFactory.buildAxiosInstance(this.legalOfficer.node);
+    }
+
+    async getCollectionItem(parameters: { itemId: string } & FetchParameters): Promise<UploadableCollectionItem | undefined> {
+        const { locId, itemId } = parameters;
+        const onchainItem = await getCollectionItem({
+            api: this.nodeApi,
+            locId,
+            itemId
+        });
+        if(!onchainItem) {
+            return undefined;
+        }
+        try {
+            const offchainItem = await this.getOffchainItem({ locId, itemId });
+            return {
+                id: itemId,
+                description: onchainItem.description,
+                addedOn: offchainItem.addedOn,
+                files: onchainItem.files.map(file => ({
+                    ...file,
+                    uploaded: offchainItem.files.includes(file.hash),
+                })),
+                token: onchainItem.token ? {
+                    type: onchainItem.token.type as TokenType,
+                    id: onchainItem.token.id,
+                } : undefined,
+                restrictedDelivery: onchainItem.restrictedDelivery,
+            }
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    private async getOffchainItem(parameters: { locId: UUID, itemId: string }): Promise<OffchainCollectionItem> {
+        const { locId, itemId } = parameters;
+        const response = await this.backend().get(`/api/collection/${ locId.toString() }/${ itemId }`);
+        return response.data;
+    }
+
+    async getCollectionSize(parameters: FetchParameters): Promise<number | undefined> {
+        const { locId } = parameters;
+        return await getCollectionSize({
+            api: this.nodeApi,
+            locId,
+        });
+    }
+
+    abstract getLocRequest(parameters: FetchParameters): Promise<LocRequest>;
+
+    abstract getDeliveries(parameters: GetDeliveriesRequest): Promise<ItemDeliveries>;
+}
+
+export class PublicLocClient extends LocClient {
+
+    override async getLocRequest(parameters: FetchParameters): Promise<LocRequest> {
+        const { locId } = parameters;
+        const response = await this.backend().get(`/api/loc-request/${ locId.toString() }/public`);
+        return response.data;
+    }
+
+    override async getDeliveries(parameters: GetDeliveriesRequest): Promise<ItemDeliveries> {
+        const { locId, itemId } = parameters;
+        const response = await this.backend().get(`/api/collection/${ locId }/${ itemId }/latest-deliveries`);
+        return response.data;
+    }
+}
+
+export class AuthenticatedLocClient extends LocClient {
 
     constructor(params: {
         axiosFactory: AxiosFactory,
@@ -299,20 +427,19 @@ export class LocClient {
         multiClient: LocMultiClient,
         componentFactory: ComponentFactory,
     }) {
-        this.axiosFactory = params.axiosFactory;
+        super({
+            axiosFactory: params.axiosFactory,
+            legalOfficer: params.legalOfficer,
+            nodeApi: params.nodeApi,
+        });
         this.currentAddress = params.currentAddress;
         this.token = params.token;
-        this.nodeApi = params.nodeApi;
-        this.legalOfficer = params.legalOfficer;
         this.multiClient = params.multiClient;
         this.componentFactory = params.componentFactory;
     }
 
-    private readonly axiosFactory: AxiosFactory;
     private readonly currentAddress: string;
     private readonly token: string;
-    private readonly nodeApi: LogionNodeApi;
-    private readonly legalOfficer: LegalOfficer;
     private readonly multiClient: LocMultiClient;
     private readonly componentFactory: ComponentFactory;
 
@@ -330,20 +457,10 @@ export class LocClient {
         return response.data;
     }
 
-    async getLocRequest(parameters: FetchParameters): Promise<LocRequest> {
+    override async getLocRequest(parameters: FetchParameters): Promise<LocRequest> {
         const { locId } = parameters;
         const response = await this.backend().get(`/api/loc-request/${ locId.toString() }`);
         return response.data;
-    }
-
-    async getPublicLocRequest(parameters: FetchParameters): Promise<LocRequest> {
-        const { locId } = parameters;
-        const response = await this.backend().get(`/api/loc-request/${ locId.toString() }/public`);
-        return response.data;
-    }
-
-    async getLoc(parameters: FetchParameters): Promise<LegalOfficerCase> {
-        return this.multiClient.getLoc(parameters);
     }
 
     async addMetadata(parameters: AddMetadataParams & FetchParameters): Promise<void> {
@@ -373,7 +490,7 @@ export class LocClient {
         await this.backend().delete(`/api/loc-request/${ locId.toString() }/files/${ hash }`)
     }
 
-    private backend(): AxiosInstance {
+    override backend(): AxiosInstance {
         return this.axiosFactory.buildAxiosInstance(this.legalOfficer.node, this.token);
     }
 
@@ -459,49 +576,9 @@ export class LocClient {
         }
     }
 
-    async getCollectionItem(parameters: { itemId: string } & FetchParameters): Promise<UploadableCollectionItem | undefined> {
+    override async getDeliveries(parameters: GetDeliveriesRequest): Promise<ItemDeliveries> {
         const { locId, itemId } = parameters;
-        const onchainItem = await getCollectionItem({
-            api: this.nodeApi,
-            locId,
-            itemId
-        });
-        if(!onchainItem) {
-            return undefined;
-        }
-        try {
-            const offchainItem = await this.getOffchainItem({ locId, itemId });
-            return {
-                id: itemId,
-                description: onchainItem.description,
-                addedOn: offchainItem.addedOn,
-                files: onchainItem.files.map(file => ({
-                    ...file,
-                    uploaded: offchainItem.files.includes(file.hash),
-                })),
-                token: onchainItem.token ? {
-                    type: onchainItem.token.type as TokenType,
-                    id: onchainItem.token.id,
-                } : undefined,
-                restrictedDelivery: onchainItem.restrictedDelivery,
-            }
-        } catch(e) {
-            throw newBackendError(e);
-        }
-    }
-
-    private async getOffchainItem(parameters: { locId: UUID, itemId: string }): Promise<OffchainCollectionItem> {
-        const { locId, itemId } = parameters;
-        const response = await this.backend().get(`/api/collection/${ locId.toString() }/${ itemId }`);
+        const response = await this.backend().get(`/api/collection/${ locId }/${ itemId }/all-deliveries`);
         return response.data;
     }
-
-    async getCollectionSize(parameters: FetchParameters): Promise<number | undefined> {
-        const { locId } = parameters;
-        return await getCollectionSize({
-            api: this.nodeApi,
-            locId,
-        });
-    }
 }
-

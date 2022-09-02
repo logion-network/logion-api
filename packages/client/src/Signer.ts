@@ -4,8 +4,7 @@ import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { ISubmittableResult } from '@polkadot/types/types';
 import { base64Encode } from '@polkadot/util-crypto';
 import { Registry } from '@polkadot/types-codec/types';
-import { toHex } from '@logion/node-api/dist/Codec';
-import { buildErrorMessage } from '@logion/node-api/dist/Error';
+import { toHex, buildErrorMessage } from '@logion/node-api';
 import { Hash } from 'fast-sha256';
 
 import { toIsoString } from './DateTimeUtil';

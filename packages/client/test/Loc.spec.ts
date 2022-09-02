@@ -24,6 +24,7 @@ import { TestConfigFactory } from "./TestConfigFactory";
 import { AddMetadataParams, FetchLocRequestSpecification, FetchParameters, ItemFileWithContent, LocRequest, LocRequestStatus, OffchainCollectionItem } from "../src/LocClient";
 import { FormDataLike } from "../src/ComponentFactory";
 import { Signer, SignParameters } from "../src/Signer";
+import { buildCollectionItem, buildLoc, buildLocRequest, buildOffchainCollectionItem, EXISTING_FILE_HASH, EXISTING_ITEM_ID, ITEM_DESCRIPTION, mockVoidInfo } from "./LocUtils";
 
 describe("LocsState", () => {
 
@@ -331,9 +332,6 @@ describe("VoidedCollectionLoc", () => {
 const legalOfficers: LegalOfficer[] = [ ALICE, BOB ];
 
 const ITEM_ID = "0x186bf67f32bb45187a1c50286dbd9adf8751874831aeba2a66760a74a9c898cc";
-const ITEM_DESCRIPTION = "Some item description";
-const EXISTING_FILE_HASH = "0xa4d9f9f1a02baae960d1a7c4cedb25940a414ae4c545bf2f14ab24691fec09a5";
-const EXISTING_ITEM_ID = "0x3ba63a86247fac44f6f196db27ec10fdf5335367e3f6ac6be8da8594645bfc85";
 
 const ALICE_OPEN_TRANSACTION_LOC_REQUEST = buildLocRequest(ALICE.address, "OPEN", "Transaction");
 const ALICE_OPEN_TRANSACTION_LOC = buildLoc(ALICE.address, "OPEN", "Transaction");
@@ -353,106 +351,7 @@ const BOB_VOID_COLLECTION_LOC_REQUEST = buildLocRequest(BOB.address, "CLOSED", "
 const BOB_VOID_COLLECTION_LOC = buildLoc(BOB.address, "CLOSED", "Collection", mockVoidInfo());
 
 const COLLECTION_ITEM = buildCollectionItem();
-const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem();
-
-function buildLocRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voided?: boolean): LocRequest {
-    return {
-        id: new UUID().toString(),
-        createdOn: DateTime.now().toISO(),
-        description: `Some ${status} ${locType} LOC owned by ${ownerAddress}`,
-        files: [
-            {
-                name: "existing-file.txt",
-                hash: EXISTING_FILE_HASH,
-                nature: "Some nature",
-                submitter: REQUESTER,
-            }
-        ],
-        links: [],
-        metadata: [],
-        requesterAddress: REQUESTER,
-        ownerAddress,
-        status,
-        locType,
-        voidInfo: voided ? { reason: "Some voiding reason.", voidedOn: DateTime.now().toISO() } : undefined,
-    };
-}
-
-function buildLoc(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: Option<PalletLogionLocLocVoidInfo>): Option<PalletLogionLocLegalOfficerCase> {
-    return mockOption<PalletLogionLocLegalOfficerCase>({
-        owner: mockCodecWithToString<AccountId32>(ownerAddress),
-        requester: mockPalletLogionLocRequester(REQUESTER),
-        metadata: mockVec([]),
-        files: mockVec<PalletLogionLocFile>([
-            mockLogionLocFile({
-                hash: EXISTING_FILE_HASH,
-                nature: "Some nature",
-                submitter: REQUESTER,
-            })
-        ]),
-        links: mockVec([]),
-        closed: mockBool(status === "CLOSED"),
-        locType: mockPalletLogionLocLocType(locType),
-        voidInfo: voidInfo ? voidInfo : mockEmptyOption(),
-        replacerOf: mockEmptyOption(),
-        collectionLastBlockSubmission: mockEmptyOption(),
-        collectionMaxSize: mockEmptyOption(),
-        collectionCanUpload: mockBool(false),
-    });
-}
-
-function mockPalletLogionLocRequester(address: string): PalletLogionLocRequester {
-    const mock = new Mock<PalletLogionLocRequester>();
-    mock.setup(instance => instance.isAccount).returns(true);
-    mock.setup(instance => instance.isLoc).returns(false);
-    mock.setup(instance => instance.asAccount).returns(mockCodecWithToString<AccountId32>(address));
-    return mock.object();
-}
-
-function mockLogionLocFile(file: {
-    hash: string,
-    nature: string,
-    submitter: string,
-}): PalletLogionLocFile {
-    const mock = new Mock<PalletLogionLocFile>();
-    mock.setup(instance => instance.hash_).returns(mockCodecWithToHex<H256>(file.hash));
-    mock.setup(instance => instance.nature).returns(mockCodecWithToUtf8<Bytes>(file.nature));
-    mock.setup(instance => instance.submitter).returns(mockCodecWithToString<AccountId32>(file.submitter));
-    return mock.object();
-}
-
-function mockPalletLogionLocLocType(locType: LocType): PalletLogionLocLocType {
-    const mock = new Mock<PalletLogionLocLocType>();
-    mock.setup(instance => instance.isCollection).returns(locType === "Collection");
-    mock.setup(instance => instance.isIdentity).returns(locType === "Identity");
-    mock.setup(instance => instance.isTransaction).returns(locType === "Transaction");
-    mock.setup(instance => instance.toString()).returns(locType);
-    return mock.object();
-}
-
-function buildCollectionItem(): Option<PalletLogionLocCollectionItem> {
-    return mockOption<PalletLogionLocCollectionItem>({
-        description: mockCodecWithToUtf8<Bytes>(ITEM_DESCRIPTION),
-        token: mockEmptyOption(),
-        files: mockVec([]),
-        restrictedDelivery: mockBool(false),
-    });
-}
-
-function buildOffchainCollectionItem(): OffchainCollectionItem {
-    return ({
-        collectionLocId: ALICE_CLOSED_COLLECTION_LOC_REQUEST.id,
-        itemId: EXISTING_ITEM_ID,
-        addedOn: DateTime.now().toISO(),
-        files: [],
-    });
-}
-
-function mockVoidInfo(): Option<PalletLogionLocLocVoidInfo> {
-    return mockOption<PalletLogionLocLocVoidInfo>({
-        replacer: mockEmptyOption(),
-    });
-}
+const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem(ALICE_CLOSED_COLLECTION_LOC_REQUEST.id);
 
 let aliceAxiosMock: Mock<AxiosInstance>;
 let bobAxiosMock: Mock<AxiosInstance>;
