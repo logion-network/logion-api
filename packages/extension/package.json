@@ -1,11 +1,12 @@
 {
   "name": "@logion/extension",
-  "version": "0.4.2-1",
+  "version": "0.4.3-1",
   "description": "logion SDK for Polkadot JS extension",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
   "scripts": {
-    "build": "yarn eslint src/** && tsc",
+    "build": "yarn lint && tsc",
+    "lint": "yarn eslint src/**",
     "test": "echo 'Nothing to test for the moment'"
   },
   "repository": {

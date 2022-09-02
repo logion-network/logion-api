@@ -1,3 +1,5 @@
+[![Test](https://github.com/logion-network/logion-api/actions/workflows/push_pr.yml/badge.svg)](https://github.com/logion-network/logion-api/actions/workflows/push_pr.yml)
+
 # Logion API
 
 This project provides different packages which may be used by developers to interact with the logion network.

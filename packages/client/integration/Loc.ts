@@ -6,7 +6,7 @@ import { LocRequestStatus } from "../src/LocClient";
 import { OpenLoc, PendingRequest, LocData, ClosedCollectionLoc } from "../src/Loc";
 
 import { State, TEST_LOGION_CLIENT_CONFIG, NEW_ADDRESS, initRequesterBalance } from "./Utils";
-import { ItemTokenWithRestrictedType } from "client/src/Token";
+import { ItemTokenWithRestrictedType } from "../src/Token";
 
 const USER_ADDRESS = NEW_ADDRESS;
 
@@ -51,6 +51,20 @@ export async function requestTransactionLoc(state: State) {
     expect(openLoc.data().metadata[0].name).toBe("Some name");
     expect(openLoc.data().metadata[0].value).toBe("Some value");
     expect(openLoc.data().metadata[0].addedOn).toBeUndefined();
+
+    const addFileResult = await openLoc.addFile({
+        fileName: "test.txt",
+        nature: "Some file nature",
+        file: Buffer.from("test"),
+    });
+    openLoc = addFileResult.state;
+    const hash = addFileResult.hash;
+    expect(hash).toBe("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
+
+    const checkResult = await openLoc.checkHash(hash);
+    expect(checkResult.file).toBeDefined();
+    expect(checkResult.metadataItem).not.toBeDefined();
+    expect(checkResult.collectionItem).not.toBeDefined();
 }
 
 function checkData(data: LocData, locRequestStatus: LocRequestStatus) {
@@ -138,10 +152,11 @@ export async function collectionLoc(state: State) {
     locsState = pendingRequest.locsState();
     expect(locsState.pendingRequests["Collection"][0].data().status).toBe("REQUESTED");
 
-    await legalOfficer.openCollectionLoc(pendingRequest.locId, false);
+    const locId = pendingRequest.locId;
+    await legalOfficer.openCollectionLoc(locId, false);
 
     let openLoc = await pendingRequest.refresh() as OpenLoc;
-    await legalOfficer.closeLoc(openLoc.locId);
+    await legalOfficer.closeLoc(locId);
 
     let closedLoc = await openLoc.refresh() as ClosedCollectionLoc;
     expect(closedLoc).toBeInstanceOf(ClosedCollectionLoc);
@@ -157,6 +172,15 @@ export async function collectionLoc(state: State) {
     const item = await closedLoc.getCollectionItem({ itemId });
     expect(item!.id).toBe(itemId);
     expect(item!.description).toBe(itemDescription);
+
+    const publicApi = state.client.public;
+    const publicLoc = await publicApi.findLocById({ locId });
+    expect(publicLoc).toBeDefined();
+
+    const checkResult = await publicLoc?.checkHash(itemId);
+    expect(checkResult?.collectionItem).toBeDefined();
+    expect(checkResult?.file).not.toBeDefined();
+    expect(checkResult?.metadataItem).not.toBeDefined();
 }
 
 export async function collectionLocWithUpload(state: State) {

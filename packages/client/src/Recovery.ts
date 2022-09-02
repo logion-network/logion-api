@@ -5,7 +5,7 @@ import {
     initiateRecovery,
     RecoveryConfig,
     getRecoveryConfig
-} from "@logion/node-api/dist/Recovery";
+} from "@logion/node-api";
 import {
     FetchAllResult,
     LegalOfficerDecision,

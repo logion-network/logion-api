@@ -78,7 +78,7 @@ export function buildTestConfig(setupComponentFactory: (factory: TestConfigFacto
 
 export async function buildAuthenticatedSharedStateUsingTestConfig(
     config: LogionClientConfig,
-    currentAddress: string,
+    currentAddress: string | undefined,
     legalOfficers: LegalOfficer[],
     tokens: AccountTokens,
 ): Promise<SharedState> {
@@ -104,7 +104,7 @@ export async function buildAuthenticatedSharedStateUsingTestConfig(
 
 export async function buildTestAuthenticatedSharedSate(
     setupComponentFactory: (factory: TestConfigFactory) => void,
-    currentAddress: string,
+    currentAddress: string | undefined,
     legalOfficers: LegalOfficer[],
     tokens: AccountTokens,
 ): Promise<SharedState> {

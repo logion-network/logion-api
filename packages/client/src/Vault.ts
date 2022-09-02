@@ -1,7 +1,15 @@
-import { buildCancelVaultTransferCall, buildVaultTransferCall, cancelVaultTransfer, getVaultAddress, requestVaultTransfer } from "@logion/node-api/dist/Vault";
-import { PrefixedNumber, LGNT_SMALLEST_UNIT } from "@logion/node-api";
-import { asRecovered } from "@logion/node-api/dist/Recovery";
-import { CoinBalance, getBalances } from "@logion/node-api/dist/Balances";
+import {
+    buildCancelVaultTransferCall,
+    buildVaultTransferCall,
+    cancelVaultTransfer,
+    getVaultAddress,
+    requestVaultTransfer,
+    PrefixedNumber,
+    LGNT_SMALLEST_UNIT,
+    asRecovered,
+    CoinBalance,
+    getBalances,
+} from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import { authenticatedCurrentAddress, getDefinedCurrentAddress, SharedState } from "./SharedClient";

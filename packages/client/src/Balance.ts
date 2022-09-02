@@ -1,6 +1,11 @@
-import { PrefixedNumber } from "@logion/node-api";
-import { asRecovered } from "@logion/node-api/dist/Recovery";
-import { CoinBalance, transferSubmittable, getBalances, buildTransferCall } from "@logion/node-api/dist/Balances";
+import {
+    PrefixedNumber,
+    asRecovered,
+    CoinBalance,
+    transferSubmittable,
+    getBalances,
+    buildTransferCall
+} from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types'; 
 
 import { Transaction, TransactionClient } from "./TransactionClient";

@@ -1,4 +1,5 @@
-import { LegalOfficerCase, DataLocType, CollectionItem, LocType, VoidInfo } from '@logion/node-api/dist/Types';
+import { UUID, LegalOfficerCase, DataLocType, CollectionItem, LocType, VoidInfo } from "@logion/node-api";
+
 import {
     LocRequest,
     LocClient,
@@ -17,11 +18,11 @@ import {
     Published,
     AddedOn,
     ItemFileWithContent,
-    UploadableCollectionItem
+    AuthenticatedLocClient,
 } from "./LocClient";
-import { authenticatedCurrentAddress, SharedState } from "./SharedClient";
+import { SharedState } from "./SharedClient";
 import { LegalOfficer, UserIdentity } from "./Types";
-import { UUID } from "@logion/node-api";
+import { CollectionItem as CollectionItemClass } from './CollectionItem';
 
 export interface LocData {
     id: UUID
@@ -112,7 +113,7 @@ export class LocsState {
     }
 
     async findById(params: FetchParameters): Promise<OpenLoc | ClosedLoc | ClosedCollectionLoc | VoidedLoc | VoidedCollectionLoc | undefined> {
-        const locMultiClient = newLocMultiClient(this.sharedState);
+        const locMultiClient = LocMultiClient.newLocMultiClient(this.sharedState);
         const loc = await locMultiClient.getLoc(params);
         const legalOfficer = this.sharedState.legalOfficers.find(lo => lo.address === loc.owner)
         if (!legalOfficer) {
@@ -122,18 +123,6 @@ export class LocsState {
         const locRequest = await client.getLocRequest(params);
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
         return await LocRequestState.createFromLoc(locSharedState, locRequest, loc);
-    }
-
-    async findPublicById(params: FetchParameters): Promise<LocData | undefined> {
-        const locMultiClient = newLocMultiClient(this.sharedState);
-        const loc = await locMultiClient.getLoc(params);
-        const legalOfficer = this.sharedState.legalOfficers.find(lo => lo.address === loc.owner)
-        if (!legalOfficer) {
-            return undefined;
-        }
-        const client = locMultiClient.newLocClient(legalOfficer);
-        const locRequest = await client.getPublicLocRequest(params);
-        return LocRequestState.buildLocData(loc, locRequest);
     }
 
     async requestTransactionLoc(params: CreateLocRequestParams): Promise<PendingRequest> {
@@ -152,7 +141,7 @@ export class LocsState {
 
     async requestLoc(params: CreateLocRequestParams & { locType: DataLocType }): Promise<PendingRequest> {
         const { legalOfficer, locType, description, userIdentity } = params;
-        const client = newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
+        const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
         const request = await client.createLocRequest({
             ownerAddress: legalOfficer.address,
             requesterAddress: this.sharedState.currentAddress || "",
@@ -166,7 +155,7 @@ export class LocsState {
 
     async refresh(): Promise<LocsState> {
         const refreshedLocs: Record<string, LocRequestState> = {};
-        const locMultiClient = newLocMultiClient(this.sharedState);
+        const locMultiClient = LocMultiClient.newLocMultiClient(this.sharedState);
         const locRequests = await locMultiClient.fetchAll();
         for (const locRequest of locRequests) {
             const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === locRequest.ownerAddress)
@@ -184,9 +173,9 @@ export class LocsState {
 }
 
 interface LocSharedState extends SharedState {
-    legalOfficer: LegalOfficer
-    client: LocClient
-    locsState: LocsState
+    legalOfficer: LegalOfficer;
+    client: AuthenticatedLocClient;
+    locsState: LocsState;
 }
 
 export interface CreateLocRequestParams {
@@ -202,7 +191,7 @@ export interface CreateSofRequestParams {
 export interface CheckHashResult {
     file?: MergedFile;
     metadataItem?: MergedMetadataItem;
-    collectionItem?: UploadableCollectionItem;
+    collectionItem?: CollectionItemClass;
 }
 
 export class LocRequestState {
@@ -286,14 +275,6 @@ export class LocRequestState {
         return undefined;
     }
 
-    async publicSupersededLoc(): Promise<LocData | undefined> {
-        const superseded = this.data().replacerOf;
-        if (superseded) {
-            return await this.locSharedState.locsState.findPublicById({ locId: superseded });
-        }
-        return undefined;
-    }
-
     isLogionIdentity(): boolean {
         const loc = this.data();
         return loc.locType === 'Identity' && !loc.requesterAddress && !loc.requesterLocId;
@@ -305,7 +286,10 @@ export class LocRequestState {
     }
 
     async checkHash(hash: string): Promise<CheckHashResult> {
-        const loc = this.data();
+        return LocRequestState.checkHash(this.data(), hash);
+    }
+
+    static checkHash(loc: LocData, hash: string): CheckHashResult {
         const result: CheckHashResult = {};
 
         for (const file of loc.files) {
@@ -468,14 +452,30 @@ export class ClosedLoc extends LocRequestState {
     }
 }
 
+export async function getCollectionItem(parameters: { locClient: LocClient, locId: UUID, itemId: string }): Promise<CollectionItemClass | undefined> {
+    const { locId, itemId, locClient } = parameters;
+        const clientItem = await locClient.getCollectionItem({
+            locId,
+            itemId
+        });
+        if(clientItem) {
+            return new CollectionItemClass({
+                locId,
+                locClient,
+                clientItem,
+            });
+        } else {
+            return undefined;
+        }
+}
+
 class ClosedOrVoidCollectionLoc extends LocRequestState {
 
-    async getCollectionItem(parameters: { itemId: string }): Promise<UploadableCollectionItem | undefined> {
-        const { itemId } = parameters;
-        const client = this.locSharedState.client;
-        return await client.getCollectionItem({
+    async getCollectionItem(parameters: { itemId: string }): Promise<CollectionItemClass | undefined> {
+        return getCollectionItem({
+            locClient: this.locSharedState.client,
             locId: this.locId,
-            itemId
+            itemId: parameters.itemId,
         });
     }
 
@@ -569,16 +569,4 @@ export class VoidedCollectionLoc extends ClosedOrVoidCollectionLoc {
     async refresh(): Promise<VoidedCollectionLoc> {
         return await super.refresh() as VoidedCollectionLoc;
     }
-}
-
-function newLocMultiClient(sharedState: SharedState): LocMultiClient {
-    const { currentAddress, token } = authenticatedCurrentAddress(sharedState);
-    return new LocMultiClient({
-        axiosFactory: sharedState.axiosFactory,
-        currentAddress,
-        networkState: sharedState.networkState,
-        token: token.value,
-        nodeApi: sharedState.nodeApi,
-        componentFactory: sharedState.componentFactory,
-    });
 }
