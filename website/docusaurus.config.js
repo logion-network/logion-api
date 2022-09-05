@@ -61,7 +61,17 @@ const config = {
             type: 'doc',
             docId: 'intro',
             position: 'left',
-            label: 'Usage',
+            label: 'Intro',
+          },
+          {
+            to: '/docs/category/extension',
+            position: 'left',
+            label: 'Extension',
+          },
+          {
+            to: '/docs/category/client',
+            position: 'left',
+            label: 'Client',
           },
           {
             href: 'https://github.com/logion-network/logion-api',
@@ -77,8 +87,16 @@ const config = {
             title: 'Docs',
             items: [
               {
-                label: 'Usage',
+                label: 'Intro',
                 to: '/docs/intro',
+              },
+              {
+                to: '/docs/category/extension',
+                label: 'Extension',
+              },
+              {
+                to: '/docs/category/client',
+                label: 'Client',
               },
             ],
           },
