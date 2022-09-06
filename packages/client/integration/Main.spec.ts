@@ -3,7 +3,7 @@ import { enablesProtection, requestsProtectionAndCancel } from "./Protection";
 import { transfers } from "./Balance";
 import { providesVault } from "./Vault";
 import { recoverLostAccount, requestRecoveryAndCancel } from "./Recovery";
-import { requestTransactionLoc, collectionLoc, collectionLocWithUpload } from "./Loc";
+import { requestTransactionLoc, collectionLoc, collectionLocWithUpload, identityLoc } from "./Loc";
 
 describe("Logion SDK", () => {
 
@@ -44,4 +44,8 @@ describe("Logion SDK", () => {
     it("provides Collection LOC with upload and restricted delivery", async () => {
         await collectionLocWithUpload(state);
     });
+
+    it("provides Identity LOC", async () => {
+        await identityLoc(state);
+    })
 });

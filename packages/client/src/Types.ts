@@ -6,7 +6,6 @@ export interface UserIdentity {
 }
 
 export interface PostalAddress {
-    company?: string,
     line1: string,
     line2: string,
     postalCode: string,
@@ -14,9 +13,13 @@ export interface PostalAddress {
     country: string
 }
 
+export interface LegalOfficerPostalAddress extends PostalAddress {
+    company: string,
+}
+
 export interface LegalOfficer {
     userIdentity: UserIdentity;
-    postalAddress: PostalAddress;
+    postalAddress: LegalOfficerPostalAddress;
     address: string;
     additionalDetails: string;
     node: string;

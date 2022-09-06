@@ -4,7 +4,7 @@ import type { Codec } from '@polkadot/types-codec/types';
 
 import { AccountTokens } from "../src/AuthenticationClient";
 import { LegalOfficerEndpoint, LogionClientConfig, SharedState } from "../src/SharedClient";
-import { LegalOfficer, PostalAddress, UserIdentity } from "../src/Types";
+import { LegalOfficer, UserIdentity, LegalOfficerPostalAddress } from "../src/Types";
 import { TestConfigFactory } from "./TestConfigFactory";
 import { SuccessfulSubmission } from "../src/Signer";
 import { It } from "moq.ts";
@@ -15,7 +15,7 @@ export const ALICE: LegalOfficer = {
     additionalDetails: "",
     logoUrl: "https://alice.logion.network/logo.png",
     node: "https://alice.logion.network",
-    postalAddress: {} as PostalAddress,
+    postalAddress: {} as LegalOfficerPostalAddress,
     userIdentity: {} as UserIdentity,
 };
 
@@ -25,7 +25,7 @@ export const BOB: LegalOfficer = {
     additionalDetails: "",
     logoUrl: "https://bob.logion.network/logo.png",
     node: "https://bob.logion.network",
-    postalAddress: {} as PostalAddress,
+    postalAddress: {} as LegalOfficerPostalAddress,
     userIdentity: {} as UserIdentity,
 };
 
@@ -35,7 +35,7 @@ export const CHARLIE: LegalOfficer = {
     additionalDetails: "",
     logoUrl: "https://charlie.logion.network/logo.png",
     node: "https://charlie.logion.network",
-    postalAddress: {} as PostalAddress,
+    postalAddress: {} as LegalOfficerPostalAddress,
     userIdentity: {} as UserIdentity,
 };
 

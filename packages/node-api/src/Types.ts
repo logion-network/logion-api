@@ -33,9 +33,7 @@ export interface LegalOfficerCase {
     collectionCanUpload: boolean;
 }
 
-export type DataLocType = 'Transaction' | 'Collection';
-
-export type LocType = DataLocType | 'Identity';
+export type LocType = 'Transaction' | 'Collection' | 'Identity';
 
 export type IdentityLocType = 'Polkadot' | 'Logion';
 
