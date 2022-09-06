@@ -1,53 +1,64 @@
 import React from 'react';
 import clsx from 'clsx';
 import styles from './styles.module.css';
+import Link from "@docusaurus/Link";
+import IntroImg from "@site/static/img/intro.png";
+import TransactionProtectionImg from "@site/static/img/transaction-protection.png";
+import AccountProtectionImg from "@site/static/img/account-protection.png";
 
 type FeatureItem = {
-  title: string;
-  Svg: React.ComponentType<React.ComponentProps<'svg'>>;
+  title: JSX.Element;
+  ImgSrc: string;
   description: JSX.Element;
+  link: string;
 };
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Dashboard',
-    Svg: require('@site/static/img/dashboard.svg').default,
+    title: <>First steps</>,
+    ImgSrc: IntroImg,
     description: (
       <>
-        Access both your public and private data.
+        Learn about logion architecture and SDK installation.
       </>
     ),
+    link: "/docs/intro",
   },
   {
-    title: 'Protect your account',
-    Svg: require('@site/static/img/account-protection.svg').default,
+    title: <>Digital Asset Generation Protection <br/>for Marketplace and token providers with the Legal Officer Case (LOC)</>,
+    ImgSrc: TransactionProtectionImg,
     description: (
-      <>
-          Get your account protected by our<br />
-          Logion Legal Officers.
-      </>
+      <ul>
+        <li>System of evidence record with online certificate:
+        Token/NFT underlying assets and documentation existence certification, process execution logs record (for digital, monetary, physical assets)</li>
+        <li>Zero-knowledge proof infrastructure (content is not revealed) for all underlying asset related files, securely archived (private IPFS) with possible future access under strict access rules.</li>
+        <li>Exclusive restricted delivery of digital asset(s) to NFT owner</li>
+      </ul>
     ),
+    link: "/docs/client/loc",
   },
   {
-    title: 'Protect your transactions',
-    Svg: require('@site/static/img/transaction-protection.svg').default,
+    title: <>Digital Wallet Protection API <br/>for Digital Wallet providers</>,
+    ImgSrc: AccountProtectionImg,
     description: (
-      <>
-        Protect your most valuable digital assets.
-      </>
+      <ul>
+        <li>Social recovery service: to answer to password loss situation</li>
+        <li>Multisig service: to avoid any unwanted asset transfer as high-value asset transfer requires Legal Officer signature</li>
+      </ul>
     ),
+    link: "/docs/client/protection",
   },
 ];
 
-function Feature({title, Svg, description}: FeatureItem) {
+function Feature({title, ImgSrc, description, link}: FeatureItem) {
   return (
     <div className={clsx('col col--4')}>
-      <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
+      <div className={clsx("text--center", styles.featureImageContainer)}>
+        <Link to={ link }><img src={ImgSrc} className={styles.featureSvg} /></Link>
       </div>
       <div className="text--center padding-horiz--md">
-        <h3>{title}</h3>
-        <p>{description}</p>
+        <h3><Link to={ link } className={styles.featureLink}>{title}</Link></h3>
+        <p className="text--left"><Link to={ link } className={styles.featureLink}>{description}</Link></p>
       </div>
     </div>
   );

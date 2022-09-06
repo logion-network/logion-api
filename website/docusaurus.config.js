@@ -3,7 +3,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'logion-api',
+  title: 'logion SDK',
   tagline: 'The blockchain infrastructure of safe digital ownership',
   url: 'https://logion-network.github.io/',
   baseUrl: '/logion-api/',
@@ -51,7 +51,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'logion-api',
+        title: 'logion SDK',
         logo: {
           alt: 'logion Logo',
           src: 'img/logion218-twitter.png',
@@ -61,7 +61,7 @@ const config = {
             type: 'doc',
             docId: 'intro',
             position: 'left',
-            label: 'Intro',
+            label: 'Introduction',
           },
           {
             to: '/docs/category/extension',
@@ -81,13 +81,12 @@ const config = {
         ],
       },
       footer: {
-        style: 'dark',
         links: [
           {
             title: 'Docs',
             items: [
               {
-                label: 'Intro',
+                label: 'Introduction',
                 to: '/docs/intro',
               },
               {
