@@ -141,6 +141,13 @@ export class LocsState {
     }
 
     async requestIdentityLoc(params: CreateLocRequestParams): Promise<PendingRequest> {
+        const { userIdentity, userPostalAddress } = params;
+        if (userIdentity === undefined) {
+            throw new Error("User Identity is mandatory for an Identity LOC")
+        }
+        if (userPostalAddress === undefined) {
+            throw new Error("User Postal Address is mandatory for an Identity LOC")
+        }
         return this.requestLoc({
             ...params,
             locType: "Identity"
