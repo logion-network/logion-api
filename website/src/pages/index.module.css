@@ -10,14 +10,12 @@
   overflow: hidden;
 }
 
+.heroLogo {
+  width: 150px;
+}
+
 @media screen and (max-width: 996px) {
   .heroBanner {
     padding: 2rem;
   }
-}
-
-.buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }

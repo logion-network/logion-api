@@ -6,6 +6,18 @@
 }
 
 .featureSvg {
-  height: 200px;
-  width: 200px;
+  height: 220px;
+}
+
+.featureLink {
+  color: var(--ifm-navbar-link-color);
+}
+
+.featureLink:hover {
+  color: var(--ifm-navbar-link-color);
+  text-decoration: none;
+}
+
+.featureImageContainer {
+  padding-bottom: 30px;
 }
