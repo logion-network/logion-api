@@ -1,4 +1,4 @@
-import { UUID, LegalOfficerCase, DataLocType, CollectionItem, LocType, VoidInfo } from "@logion/node-api";
+import { UUID, LegalOfficerCase, CollectionItem, LocType, VoidInfo } from "@logion/node-api";
 
 import {
     LocRequest,
@@ -21,7 +21,7 @@ import {
     AuthenticatedLocClient,
 } from "./LocClient";
 import { SharedState } from "./SharedClient";
-import { LegalOfficer, UserIdentity } from "./Types";
+import { LegalOfficer, UserIdentity, PostalAddress } from "./Types";
 import { CollectionItem as CollectionItemClass } from './CollectionItem';
 
 export interface LocData {
@@ -68,37 +68,38 @@ export class LocsState {
         this._locs = locs;
     }
 
-    get openLocs(): Record<DataLocType, OpenLoc[]> {
+    get openLocs(): Record<LocType, OpenLoc[]> {
         return this.withPredicate(loc => loc instanceof OpenLoc);
     }
 
-    get closedLocs(): Record<DataLocType, (ClosedLoc | ClosedCollectionLoc)[]> {
+    get closedLocs(): Record<LocType, (ClosedLoc | ClosedCollectionLoc)[]> {
         return this.withPredicate(loc => loc instanceof ClosedLoc || loc instanceof ClosedCollectionLoc);
     }
 
-    get voidedLocs(): Record<DataLocType, (VoidedLoc | VoidedCollectionLoc)[]> {
+    get voidedLocs(): Record<LocType, (VoidedLoc | VoidedCollectionLoc)[]> {
         return this.withPredicate(loc => loc instanceof VoidedLoc || loc instanceof VoidedCollectionLoc);
     }
 
-    get pendingRequests(): Record<DataLocType, PendingRequest[]> {
+    get pendingRequests(): Record<LocType, PendingRequest[]> {
         return this.withPredicate(loc => loc instanceof PendingRequest);
     }
 
-    get rejectedRequests(): Record<DataLocType, RejectedRequest[]> {
+    get rejectedRequests(): Record<LocType, RejectedRequest[]> {
         return this.withPredicate(loc => loc instanceof RejectedRequest);
     }
 
-    private withPredicate<T extends LocRequestState>(predicate: (l: LocRequestState) => boolean): Record<DataLocType, T[]> {
+    private withPredicate<T extends LocRequestState>(predicate: (l: LocRequestState) => boolean): Record<LocType, T[]> {
         return {
             'Transaction': this.filter('Transaction', predicate),
             'Collection': this.filter('Collection', predicate),
+            'Identity': this.filter('Identity', predicate),
         };
     }
 
-    private filter<T extends LocRequestState>(dataLocType: DataLocType, predicate: (loc: LocRequestState) => boolean): T[] {
+    private filter<T extends LocRequestState>(locType: LocType, predicate: (loc: LocRequestState) => boolean): T[] {
         const locs = Object.values(this._locs)
             .filter(predicate)
-            .filter(value => value.data().locType === dataLocType)
+            .filter(value => value.data().locType === locType)
         return locs as T[];
     }
 
@@ -139,15 +140,23 @@ export class LocsState {
         });
     }
 
-    async requestLoc(params: CreateLocRequestParams & { locType: DataLocType }): Promise<PendingRequest> {
-        const { legalOfficer, locType, description, userIdentity } = params;
+    async requestIdentityLoc(params: CreateLocRequestParams): Promise<PendingRequest> {
+        return this.requestLoc({
+            ...params,
+            locType: "Identity"
+        });
+    }
+
+    async requestLoc(params: CreateLocRequestParams & { locType: LocType }): Promise<PendingRequest> {
+        const { legalOfficer, locType, description, userIdentity, userPostalAddress } = params;
         const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
         const request = await client.createLocRequest({
             ownerAddress: legalOfficer.address,
             requesterAddress: this.sharedState.currentAddress || "",
             description,
             locType,
-            userIdentity
+            userIdentity,
+            userPostalAddress,
         });
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
         return new PendingRequest(locSharedState, request).veryNew();
@@ -182,6 +191,7 @@ export interface CreateLocRequestParams {
     legalOfficer: LegalOfficer;
     description: string;
     userIdentity?: UserIdentity;
+    userPostalAddress?: PostalAddress;
 }
 
 export interface CreateSofRequestParams {

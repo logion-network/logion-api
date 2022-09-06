@@ -15,7 +15,7 @@ import {
 } from '@logion/node-api';
 import { AxiosInstance } from 'axios';
 
-import { UserIdentity, LegalOfficer } from "./Types";
+import { UserIdentity, LegalOfficer, PostalAddress } from "./Types";
 import { NetworkState } from "./NetworkState";
 import { authenticatedCurrentAddress, LegalOfficerEndpoint, SharedState } from "./SharedClient";
 import { AxiosFactory } from "./AxiosFactory";
@@ -190,6 +190,7 @@ export interface CreateLocRequest {
     description: string;
     locType: LocType;
     userIdentity?: UserIdentity;
+    userPostalAddress?: PostalAddress;
 }
 
 export interface CreateSofRequest {

@@ -290,3 +290,31 @@ export async function collectionLocWithUpload(state: State) {
         })
     ]));
 }
+
+export async function identityLoc(state: State) {
+
+    const { alice } = state;
+    const client = state.client.withCurrentAddress(USER_ADDRESS);
+    let locsState = await client.locsState();
+
+    const pendingRequest = await locsState.requestIdentityLoc({
+        legalOfficer: alice,
+        description: "This is an Identity LOC",
+        userIdentity: {
+            email: "john.doe@invalid.domain",
+            firstName: "John",
+            lastName: "Doe",
+            phoneNumber: "+1234",
+        },
+        userPostalAddress: {
+            line1: "Peace Street",
+            line2: "2nd floor",
+            postalCode: "10000",
+            city: "MyCity",
+            country: "Wonderland"
+        }
+    });
+
+    locsState = pendingRequest.locsState();
+    expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REQUESTED");
+}

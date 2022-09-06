@@ -174,3 +174,68 @@ closedLoc = await closedLoc.addCollectionItem({
 });
 ```
 
+## Identity LOC
+
+### Lifecycle
+
+![Identity Loc State](img/identity-loc-state.png)
+
+### Request
+
+An Identity LOc is requested this way:
+
+```typescript
+const pendingRequest = await locsState.requestIdentityLoc({
+    legalOfficer: alice,
+    description: "This is an Identity LOC",
+    userIdentity: {
+        email: "john.doe@invalid.domain",
+        firstName: "John",
+        lastName: "Doe",
+        phoneNumber: "+1234",
+    },
+    userPostalAddress: {
+        line1: "Peace Street",
+        line2: "2nd floor",
+        postalCode: "10000",
+        city: "MyCity",
+        country: "Wonderland"
+    }
+});
+```
+
+## Query
+
+### Querying requests
+Pending and rejected requests can be queried:
+
+```typescript
+const type: LocType = 'Transaction'; // could be 'Collection' or 'Identity'
+const pendingRequests = locsState.pendingRequests[type];
+const rejectedRequests = locsState.rejectedRequests[type];
+```
+
+### Querying LOCs
+Similarly, LOC's can be queried according to their state:
+
+```typescript
+const type: LocType = 'Transaction'; // could be 'Collection' or 'Identity'
+const openLocs = locsState.openLocs[type];
+const closedLocs = locsState.closedLocs[type];
+const voidedLocs = locsState.voidedLocs[type];
+```
+
+## Accessing LOC data
+
+```typescript
+const locData: LocData = locsState.openLocs["Identity"][0].data();
+const userIdentity = locData.userIdentity;
+console.log("Identity of %s: %s %s %s %s", 
+    locData.requesterAddress, 
+    userIdentity?.firstName, 
+    userIdentity?.lastName, 
+    userIdentity?.email, 
+    userIdentity?.phoneNumber
+);
+```
+
