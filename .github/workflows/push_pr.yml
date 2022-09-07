@@ -2,8 +2,12 @@ name: Build and tests
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - website/**
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - website/**
 
 jobs:
   build:

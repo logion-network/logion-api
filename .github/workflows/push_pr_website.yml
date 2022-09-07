@@ -1,0 +1,22 @@
+name: Build website
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - website/**
+  pull_request:
+    branches: [ main ]
+    paths:
+      - website/**
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build website
+        working-directory: website
+        run: |
+          yarn install --immutable
+          yarn build
