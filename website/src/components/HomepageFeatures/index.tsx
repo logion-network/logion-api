@@ -30,7 +30,7 @@ const FeatureList: FeatureItem[] = [
     description: (
       <ul>
         <li>System of evidence record with online certificate:
-        Token/NFT underlying assets and documentation existence certification, process execution logs record (for digital, monetary, physical assets)</li>
+        </li>
         <li>Zero-knowledge proof infrastructure (content is not revealed) for all underlying asset related files, securely archived (private IPFS) with possible future access under strict access rules.</li>
         <li>Exclusive restricted delivery of digital asset(s) to NFT owner</li>
       </ul>
