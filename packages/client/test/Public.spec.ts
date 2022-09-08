@@ -6,7 +6,7 @@ import { AccountTokens, CollectionItem, FetchParameters, LocData, PublicLocClien
 import { SharedState } from "../src/SharedClient";
 import { ALICE, buildTestAuthenticatedSharedSate, LEGAL_OFFICERS, LOGION_CLIENT_CONFIG, mockEmptyOption } from "./Utils";
 import { TestConfigFactory } from "./TestConfigFactory";
-import { buildCollectionItem, buildLoc, buildLocRequest, buildOffchainCollectionItem, EXISTING_FILE, EXISTING_FILE_HASH, EXISTING_ITEM_ID, ITEM_DESCRIPTION } from "./LocUtils";
+import { buildCollectionItem, buildLoc, buildLocRequest, buildOffchainCollectionItem, EXISTING_FILE, EXISTING_ITEM_ID, ITEM_DESCRIPTION } from "./LocUtils";
 
 import { PublicApi, PublicLoc } from "../src/Public";
 

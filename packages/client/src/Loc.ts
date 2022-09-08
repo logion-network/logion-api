@@ -46,6 +46,7 @@ export interface LocData {
     files: MergedFile[];
     metadata: MergedMetadataItem[];
     links: MergedLink[];
+    seal?: string;
 }
 
 export type MergedCollectionItem = CollectionItem & Partial<AddedOn>

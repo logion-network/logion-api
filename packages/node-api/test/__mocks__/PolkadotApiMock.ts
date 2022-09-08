@@ -61,6 +61,7 @@ export const DEFAULT_LOC: LegalOfficerCase = {
     collectionLastBlockSubmission: undefined,
     collectionMaxSize: undefined,
     collectionCanUpload: false,
+    seal: "0x917ec227fc39f3eba7dc3546d714f4146bcbeb496a909316723ada32008de3c8",
 }
 
 export const CURRENT_BLOCK_NUMBER = {
@@ -204,6 +205,12 @@ export class ApiPromise {
                         isTrue: DEFAULT_LOC.collectionCanUpload,
                         isFalse: !DEFAULT_LOC.collectionCanUpload,
                     },
+                    seal: {
+                        isSome: DEFAULT_LOC.seal !== undefined,
+                        unwrap: () => ({
+                            toHex: () => DEFAULT_LOC.seal
+                        })
+                    }
                 })
             }),
             collectionItemsMap: () => Promise.resolve({

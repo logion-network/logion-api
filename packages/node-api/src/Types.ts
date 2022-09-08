@@ -31,6 +31,7 @@ export interface LegalOfficerCase {
     collectionLastBlockSubmission?: bigint;
     collectionMaxSize?: number;
     collectionCanUpload: boolean;
+    seal?: string;
 }
 
 export type LocType = 'Transaction' | 'Collection' | 'Identity';

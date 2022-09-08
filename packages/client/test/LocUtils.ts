@@ -60,6 +60,7 @@ export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType
         collectionLastBlockSubmission: mockEmptyOption(),
         collectionMaxSize: mockEmptyOption(),
         collectionCanUpload: mockBool(false),
+        seal: mockEmptyOption(),
     });
 }
 

@@ -161,6 +161,7 @@ function toModel(rawLoc: PalletLogionLocLegalOfficerCase): LegalOfficerCase {
         collectionLastBlockSubmission: rawLoc.collectionLastBlockSubmission.isSome ? rawLoc.collectionLastBlockSubmission.unwrap().toBigInt() : undefined,
         collectionMaxSize: rawLoc.collectionMaxSize.isSome ? rawLoc.collectionMaxSize.unwrap().toNumber() : undefined,
         collectionCanUpload: rawLoc.collectionCanUpload.isTrue,
+        seal: rawLoc.seal.isSome ? rawLoc.seal.unwrap().toHex() : undefined,
     };
 }
 
@@ -232,15 +233,21 @@ export function addFile(parameters: AddFileParameters): SubmittableExtrinsic {
 export interface CloseLocParameters {
     api: ApiPromise;
     locId: UUID;
+    seal?: string;
 }
 
 export function closeLoc(parameters: CloseLocParameters): SubmittableExtrinsic {
     const {
         api,
         locId,
+        seal,
     } = parameters;
 
-    return api.tx.logionLoc.close(locId.toHexString());
+    if(seal) {
+        return api.tx.logionLoc.closeAndSeal(locId.toHexString(), seal);
+    } else {
+        return api.tx.logionLoc.close(locId.toHexString());
+    }
 }
 
 export interface AddLinkParameters {

@@ -171,6 +171,10 @@ declare module '@polkadot/api-base/types/events' {
        **/
       LoRemoved: AugmentedEvent<ApiType, [AccountId32]>;
       /**
+       * Issued when an LO is updated. [accountId]
+       **/
+      LoUpdated: AugmentedEvent<ApiType, [AccountId32]>;
+      /**
        * Generic event
        **/
       [key: string]: AugmentedEvent<ApiType>;
@@ -346,6 +350,17 @@ declare module '@polkadot/api-base/types/events' {
        * On on-chain remark happened.
        **/
       Remarked: AugmentedEvent<ApiType, [sender: AccountId32, hash_: H256], { sender: AccountId32, hash_: H256 }>;
+      /**
+       * Generic event
+       **/
+      [key: string]: AugmentedEvent<ApiType>;
+    };
+    transactionPayment: {
+      /**
+       * A transaction fee `actual_fee`, of which `tip` was added to the minimum inclusion fee,
+       * has been paid by `who`.
+       **/
+      TransactionFeePaid: AugmentedEvent<ApiType, [who: AccountId32, actualFee: u128, tip: u128], { who: AccountId32, actualFee: u128, tip: u128 }>;
       /**
        * Generic event
        **/
