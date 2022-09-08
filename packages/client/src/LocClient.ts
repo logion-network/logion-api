@@ -268,7 +268,7 @@ export class LocMultiClient {
         const multiResponse = await httpClient.fetch(async axios => {
             const specs: FetchLocRequestSpecification = {
                 requesterAddress: this.currentAddress,
-                locTypes: [ "Transaction", "Collection" ],
+                locTypes: [ "Transaction", "Collection", "Identity" ],
                 statuses: [ "OPEN", "REQUESTED", "REJECTED", "CLOSED" ]
             }
             const response = await axios.put("/api/loc-request", specs);
