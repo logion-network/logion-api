@@ -6,6 +6,7 @@ import { FullSigner, KeyringSigner, Signer } from "../src/Signer";
 import { LogionClientConfig } from "../src/SharedClient";
 import { LegalOfficer, LogionClient } from "../src";
 import { ALICE, BOB, CHARLIE } from "../test/Utils";
+import { requireDefined } from "../src/assertions";
 
 
 export const ALICE_SECRET_SEED = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a";
@@ -55,9 +56,9 @@ export async function setupInitialState(): Promise<State> {
         CHARLIE.address
     ], signer);
     const legalOfficers = client.legalOfficers;
-    const alice = legalOfficers.find(legalOfficer => legalOfficer.address === ALICE.address)!;
-    const bob = legalOfficers.find(legalOfficer => legalOfficer.address === BOB.address)!;
-    const charlie = legalOfficers.find(legalOfficer => legalOfficer.address === CHARLIE.address)!;
+    const alice = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === ALICE.address));
+    const bob = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === BOB.address));
+    const charlie = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === CHARLIE.address));
     return {
         client,
         signer,

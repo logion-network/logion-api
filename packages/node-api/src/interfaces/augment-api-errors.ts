@@ -163,6 +163,10 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       NotFound: AugmentedError<ApiType>;
       /**
+       * The Peer ID is already assigned to another LO.
+       **/
+      PeerIdAlreadyInUse: AugmentedError<ApiType>;
+      /**
        * Generic error
        **/
       [key: string]: AugmentedError<ApiType>;
