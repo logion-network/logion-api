@@ -29,10 +29,9 @@ const FeatureList: FeatureItem[] = [
     ImgSrc: TransactionProtectionImg,
     description: (
       <ul>
-        <li>System of evidence record with online certificate:
-        </li>
-        <li>Zero-knowledge proof infrastructure (content is not revealed) for all underlying asset related files, securely archived (private IPFS) with possible future access under strict access rules.</li>
-        <li>Exclusive restricted delivery of digital asset(s) to NFT owner</li>
+        <li>System of evidence record with online certificate</li>
+        <li>Zero-knowledge proof infrastructure (content is not revealed) for all underlying asset related files, securely archived (private IPFS)</li>
+        <li>Exclusive restricted delivery of digital asset(s) to the sole NFT owner</li>
       </ul>
     ),
     link: "/docs/client/loc",
@@ -43,7 +42,7 @@ const FeatureList: FeatureItem[] = [
     description: (
       <ul>
         <li>Social recovery service: to answer to password loss situation</li>
-        <li>Multisig service: to avoid any unwanted asset transfer as high-value asset transfer requires Legal Officer signature</li>
+        <li>Multisig service: to avoid any unwanted asset transfer (Legal Officer co-signature)</li>
       </ul>
     ),
     link: "/docs/client/protection",
