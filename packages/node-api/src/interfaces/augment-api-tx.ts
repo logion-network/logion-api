@@ -8,7 +8,7 @@ import '@polkadot/api-base/types/submittable';
 import type { ApiTypes, AugmentedSubmittable, SubmittableExtrinsic, SubmittableExtrinsicFunction } from '@polkadot/api-base/types';
 import type { Bytes, Compact, Option, U8aFixed, Vec, WrapperKeepOpaque, bool, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
-import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
+import type { OpaquePeerId } from './default';
 import type { AccountId32, Call, H256, MultiAddress, Perbill } from '@polkadot/types/interfaces/runtime';
 import type { LogionNodeRuntimeOpaqueSessionKeys, PalletAssetsDestroyWitness, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFile, PalletLogionLocLocLink, PalletLogionLocMetadataItem, PalletMultisigTimepoint, SpCoreVoid, SpFinalityGrandpaEquivocationProof } from '@polkadot/types/lookup';
 
@@ -804,7 +804,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `node`: identifier of the node.
        * - `connections`: additonal nodes from which the connections are allowed.
        **/
-      addConnections: AugmentedSubmittable<(node: OpaquePeerId | object | string | Uint8Array, connections: Vec<OpaquePeerId> | (OpaquePeerId | object | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, Vec<OpaquePeerId>]>;
+      addConnections: AugmentedSubmittable<(node: OpaquePeerId | string | Uint8Array, connections: Vec<OpaquePeerId> | (OpaquePeerId | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, Vec<OpaquePeerId>]>;
       /**
        * Add a node to the set of well known nodes. If the node is already claimed, the owner
        * will be updated and keep the existing additional connection unchanged.
@@ -813,14 +813,14 @@ declare module '@polkadot/api-base/types/submittable' {
        * 
        * - `node`: identifier of the node.
        **/
-      addWellKnownNode: AugmentedSubmittable<(node: OpaquePeerId | object | string | Uint8Array, owner: AccountId32 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, AccountId32]>;
+      addWellKnownNode: AugmentedSubmittable<(node: OpaquePeerId | string | Uint8Array, owner: AccountId32 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, AccountId32]>;
       /**
        * A given node can be claimed by anyone. The owner should be the first to know its
        * PeerId, so claim it right away!
        * 
        * - `node`: identifier of the node.
        **/
-      claimNode: AugmentedSubmittable<(node: OpaquePeerId | object | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId]>;
+      claimNode: AugmentedSubmittable<(node: OpaquePeerId | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId]>;
       /**
        * A claim can be removed by its owner and get back the reservation. The additional
        * connections are also removed. You can't remove a claim on well known nodes, as it
@@ -828,14 +828,14 @@ declare module '@polkadot/api-base/types/submittable' {
        * 
        * - `node`: identifier of the node.
        **/
-      removeClaim: AugmentedSubmittable<(node: OpaquePeerId | object | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId]>;
+      removeClaim: AugmentedSubmittable<(node: OpaquePeerId | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId]>;
       /**
        * Remove additional connections of a given node.
        * 
        * - `node`: identifier of the node.
        * - `connections`: additonal nodes from which the connections are not allowed anymore.
        **/
-      removeConnections: AugmentedSubmittable<(node: OpaquePeerId | object | string | Uint8Array, connections: Vec<OpaquePeerId> | (OpaquePeerId | object | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, Vec<OpaquePeerId>]>;
+      removeConnections: AugmentedSubmittable<(node: OpaquePeerId | string | Uint8Array, connections: Vec<OpaquePeerId> | (OpaquePeerId | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, Vec<OpaquePeerId>]>;
       /**
        * Remove a node from the set of well known nodes. The ownership and additional
        * connections of the node will also be removed.
@@ -844,7 +844,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * 
        * - `node`: identifier of the node.
        **/
-      removeWellKnownNode: AugmentedSubmittable<(node: OpaquePeerId | object | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId]>;
+      removeWellKnownNode: AugmentedSubmittable<(node: OpaquePeerId | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId]>;
       /**
        * Reset all the well known nodes. This will not remove the ownership and additional
        * connections for the removed nodes. The node owner can perform further cleaning if
@@ -854,7 +854,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * 
        * - `nodes`: the new nodes for the allow list.
        **/
-      resetWellKnownNodes: AugmentedSubmittable<(nodes: Vec<ITuple<[OpaquePeerId, AccountId32]>> | ([OpaquePeerId | object | string | Uint8Array, AccountId32 | string | Uint8Array])[]) => SubmittableExtrinsic<ApiType>, [Vec<ITuple<[OpaquePeerId, AccountId32]>>]>;
+      resetWellKnownNodes: AugmentedSubmittable<(nodes: Vec<ITuple<[OpaquePeerId, AccountId32]>> | ([OpaquePeerId | string | Uint8Array, AccountId32 | string | Uint8Array])[]) => SubmittableExtrinsic<ApiType>, [Vec<ITuple<[OpaquePeerId, AccountId32]>>]>;
       /**
        * Swap a well known node to another. Both the ownership and additional connections
        * stay untouched.
@@ -864,14 +864,14 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `remove`: the node which will be moved out from the list.
        * - `add`: the node which will be put in the list.
        **/
-      swapWellKnownNode: AugmentedSubmittable<(remove: OpaquePeerId | object | string | Uint8Array, add: OpaquePeerId | object | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, OpaquePeerId]>;
+      swapWellKnownNode: AugmentedSubmittable<(remove: OpaquePeerId | string | Uint8Array, add: OpaquePeerId | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, OpaquePeerId]>;
       /**
        * A node can be transferred to a new owner.
        * 
        * - `node`: identifier of the node.
        * - `owner`: new owner of the node.
        **/
-      transferNode: AugmentedSubmittable<(node: OpaquePeerId | object | string | Uint8Array, owner: AccountId32 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, AccountId32]>;
+      transferNode: AugmentedSubmittable<(node: OpaquePeerId | string | Uint8Array, owner: AccountId32 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, AccountId32]>;
       /**
        * Generic tx
        **/

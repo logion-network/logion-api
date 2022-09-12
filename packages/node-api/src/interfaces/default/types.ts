@@ -87,6 +87,20 @@ export interface LegalOfficerCaseOf extends Struct {
   readonly collection_last_block_submission: Option<BlockNumber>;
   readonly collection_max_size: Option<CollectionSize>;
   readonly collection_can_upload: bool;
+  readonly seal: Option<Hash>;
+}
+
+/** @name LegalOfficerData */
+export interface LegalOfficerData extends Struct {
+  readonly node_id: Option<OpaquePeerId>;
+  readonly base_url: Option<Bytes>;
+}
+
+/** @name LoAuthorityListStorageVersion */
+export interface LoAuthorityListStorageVersion extends Enum {
+  readonly isV1: boolean;
+  readonly isV2AddOnchainSettings: boolean;
+  readonly type: 'V1' | 'V2AddOnchainSettings';
 }
 
 /** @name LocId */
@@ -121,8 +135,8 @@ export interface MetadataItem extends Struct {
   readonly submitter: AccountId;
 }
 
-/** @name PeerId */
-export interface PeerId extends Bytes {}
+/** @name OpaquePeerId */
+export interface OpaquePeerId extends Bytes {}
 
 /** @name Requester */
 export interface Requester extends Enum {
@@ -142,7 +156,9 @@ export interface StorageVersion extends Enum {
   readonly isV4ItemSubmitter: boolean;
   readonly isV5Collection: boolean;
   readonly isV6ItemUpload: boolean;
-  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload';
+  readonly isV7ItemToken: boolean;
+  readonly isV8AddSeal: boolean;
+  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal';
 }
 
 /** @name TAssetBalance */
