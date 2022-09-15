@@ -1,9 +1,14 @@
 /* eslint-disable */
 export default {
+    typesAlias: {
+        loAuthorityList: {
+            StorageVersion: "LoAuthorityListStorageVersion",
+        }
+    },
     types: {
         Address: "MultiAddress",
         LookupSource: "MultiAddress",
-        PeerId: "(Vec<u8>)",
+        OpaquePeerId: "Vec<u8>",
         AccountInfo: "AccountInfoWithDualRefCount",
         TAssetBalance: "u128",
         AssetId: "u64",
@@ -40,6 +45,7 @@ export default {
             collection_last_block_submission: "Option<BlockNumber>",
             collection_max_size: "Option<CollectionSize>",
             collection_can_upload: "bool",
+            seal: "Option<Hash>",
         },
         MetadataItem: {
             name: "Vec<u8>",
@@ -73,6 +79,8 @@ export default {
                 "V4ItemSubmitter",
                 "V5Collection",
                 "V6ItemUpload",
+                "V7ItemToken",
+                "V8AddSeal",
             ]
         },
         Requester: {
@@ -99,6 +107,16 @@ export default {
         CollectionItemToken: {
             token_type: "Vec<u8>",
 	        token_id: "Vec<u8>",
-        }
+        },
+        LegalOfficerData: {
+            node_id: "Option<OpaquePeerId>",
+            base_url: "Option<Vec<u8>>",
+        },
+        LoAuthorityListStorageVersion: {
+            "_enum": [
+                "V1",
+                "V2AddOnchainSettings",
+            ]
+        },
     }
 };
