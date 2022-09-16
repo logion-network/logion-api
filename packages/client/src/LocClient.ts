@@ -77,6 +77,7 @@ export interface LocRequest {
     status: LocRequestStatus;
     rejectReason?: string;
     userIdentity?: UserIdentity;
+    userPostalAddress?: PostalAddress;
     closedOn?: string;
     files: LocFile[];
     metadata: LocMetadataItem[];

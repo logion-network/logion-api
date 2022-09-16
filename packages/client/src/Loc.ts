@@ -40,6 +40,7 @@ export interface LocData {
     replacerOf?: UUID;
     rejectReason?: string;
     userIdentity?: UserIdentity;
+    userPostalAddress?: PostalAddress;
     collectionLastBlockSubmission?: bigint;
     collectionMaxSize?: number;
     collectionCanUpload?: boolean;
@@ -351,6 +352,7 @@ export class LocRequestState {
             rejectReason: request.rejectReason,
             status: request.status,
             userIdentity: request.userIdentity,
+            userPostalAddress: request.userPostalAddress,
             metadata: request.metadata.map(item => LocRequestState.mergeMetadata(item, loc)),
             files: request.files.map(item => LocRequestState.mergeFile(item, loc)),
             links: request.links.map(item => LocRequestState.mergeLink(item, loc)),
