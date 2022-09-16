@@ -354,6 +354,7 @@ export class LocRequestState {
             metadata: request.metadata.map(item => LocRequestState.mergeMetadata(item, loc)),
             files: request.files.map(item => LocRequestState.mergeFile(item, loc)),
             links: request.links.map(item => LocRequestState.mergeLink(item, loc)),
+            seal: loc.closed ? loc.seal : request.seal,
         };
 
         if(data.voidInfo && request.voidInfo) {
