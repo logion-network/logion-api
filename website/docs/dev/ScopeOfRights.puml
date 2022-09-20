@@ -1,0 +1,29 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+class License {
+  + type
+  + text?: string
+}
+
+enum LicenseType {
+None
+Logion
+Specific
+}
+
+class LicenseItem {
+  + text
+  + hash
+  + shortDescription
+}
+
+License *-- "0..n" LicenseItem
+
+License::type --> LicenseType
+
+note bottom of LicenseType
+Can be further extended,
+for example TokenArt, CreativeCommons, etc.
+end note
+@enduml
