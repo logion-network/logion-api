@@ -40,16 +40,19 @@ lucas_games_characters.jpg,LucasArts Games Characters,lucas_games_characters.jpg
 
 * license type is `None` | `Logion` | `Specific`
 * license item hashes are validated from LOC files for type `Logion`
-* If type is `Specific` - The user receives the suggestion to add a metadata item or a file with the license text or to RTFM.
+* If type is `Specific` - The user has to provide the hash of the text.
 
 ### Transaction LOC : Import via LOC creation screen
 * Drop-down to select license type: `None` | `Logion` | `Specific`
 * If type is `Logion` - List of check boxes with items: populated from LOC files.
-* If type is `Specific` - Text area to add a (small) text.
+* If type is `Specific` - The user has to provide the hash of the text.
 
 ## Display license
 In SOF or certificate.
-When `license-type` is `Logion` the license items are retrieved using the License Holding LOC. 
+* When `type` is `Logion` the license items are retrieved using the License Holding LOC.
+* When `type` is `Specific` the following mention is shown:
+
+> Specific license contained in a document with the following hash : 0x123...456
 
 ## Versioning
 In case of new version, a new LOC containing the items is published, and the setting is adapted.
