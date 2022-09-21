@@ -1,0 +1,46 @@
+{
+  "name": "@logion/crossmint",
+  "version": "0.1.0-0",
+  "description": "logion SDK for Crossmint",
+  "main": "dist/index.js",
+  "packageManager": "yarn@3.2.0",
+  "scripts": {
+    "build": "yarn lint && tsc",
+    "lint": "yarn eslint src/**",
+    "test": "echo 'Nothing to test for the moment'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logion-network/logion-api.git",
+    "directory": "packages/crossmint"
+  },
+  "keywords": [
+    "logion"
+  ],
+  "author": "Logion Team",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@crossmint/embed": "^0.0.2",
+    "@logion/client": "workspace:^"
+  },
+  "bugs": {
+    "url": "https://github.com/logion-network/logion-api/issues"
+  },
+  "homepage": "https://github.com/logion-network/logion-api/packages/extension#readme",
+  "devDependencies": {
+    "@tsconfig/node16": "^1.0.3",
+    "@types/node": "^18.6.1",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
+    "eslint": "^8.20.0",
+    "jasmine": "^4.3.0",
+    "jasmine-spec-reporter": "^7.0.0",
+    "moq.ts": "^9.0.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.7.4"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "stableVersion": "0.1.0"
+}
