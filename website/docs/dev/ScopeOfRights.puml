@@ -14,8 +14,8 @@ Specific
 }
 
 class LicenseItem {
+  + code
   + text
-  + hash
   + shortDescription
 }
 
@@ -29,12 +29,11 @@ for example TokenArt, CreativeCommons, etc.
 end note
 
 note right of License::text
-Stored as a document
-in a separate LOC.
+"Logion": Stored (text file) in the code
 end note
 
 note left of LicenseItem::text
-Stored in the code.
+Stored (typescript) )in the code.
 end note
 
 @enduml
