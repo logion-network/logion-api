@@ -60,6 +60,10 @@ export async function requestTransactionLoc(state: State) {
     openLoc = addFileResult.state;
     const hash = addFileResult.hash;
     expect(hash).toBe("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
+    expect(openLoc.data().files[0].name).toBe("test.txt");
+    expect(openLoc.data().files[0].hash).toBe(hash);
+    expect(openLoc.data().files[0].nature).toBe("Some file nature");
+    expect(openLoc.data().files[0].addedOn).toBeUndefined();
 
     const checkResult = await openLoc.checkHash(hash);
     expect(checkResult.file).toBeDefined();

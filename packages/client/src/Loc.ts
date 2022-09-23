@@ -369,27 +369,52 @@ export class LocRequestState {
 
     private static mergeMetadata(backendMetadataItem: LocMetadataItem, chainLoc?: LegalOfficerCase): MergedMetadataItem {
         const chainMetadataItem = chainLoc ? chainLoc.metadata.find(item => item.name === backendMetadataItem.name) : undefined;
-        return {
-            ...backendMetadataItem,
-            published: chainMetadataItem !== undefined,
+        if(chainMetadataItem) {
+            return {
+                ...backendMetadataItem,
+                ...chainMetadataItem,
+                published: true,
+            };
+        } else {
+            return {
+                ...backendMetadataItem,
+                published: false,
+            };
         }
     }
 
     private static mergeFile(backendFile: LocFile, chainLoc?: LegalOfficerCase): MergedFile {
         const chainFile = chainLoc ? chainLoc.files.find(item => item.hash === backendFile.hash) : undefined;
-        return {
-            ...backendFile,
-            name: backendFile?.name || "",
-            published: chainFile !== undefined,
+        if(chainFile) {
+            return {
+                ...backendFile,
+                ...chainFile,
+                published: true,
+            };
+        } else {
+            return {
+                ...backendFile,
+                published: false,
+            }
         }
     }
 
     private static mergeLink(backendLink: LocLink, chainLoc?: LegalOfficerCase): MergedLink {
         const chainLink = chainLoc ? chainLoc.links.find(link => link.id.toString() === backendLink.target) : undefined;
-        return {
-            ...backendLink,
-            id: new UUID(backendLink.target),
-            published: chainLink !== undefined
+        const targetLink = new UUID(backendLink.target);
+        if(chainLink) {
+            return {
+                ...backendLink,
+                ...chainLink,
+                id: targetLink,
+                published: true,
+            };
+        } else {
+            return {
+                ...backendLink,
+                id: targetLink,
+                published: false,
+            }
         }
     }
 }
