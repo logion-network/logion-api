@@ -225,6 +225,18 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       InvalidSubmitter: AugmentedError<ApiType>;
       /**
+       * License LOC not closed
+       **/
+      LicenseLocNotClosed: AugmentedError<ApiType>;
+      /**
+       * License LOC does not exist
+       **/
+      LicenseLocNotFound: AugmentedError<ApiType>;
+      /**
+       * License LOC is void
+       **/
+      LicenseLocVoid: AugmentedError<ApiType>;
+      /**
        * Occurs when trying to link to a non-existent LOC
        **/
       LinkedLocNotFound: AugmentedError<ApiType>;

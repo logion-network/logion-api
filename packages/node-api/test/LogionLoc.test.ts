@@ -9,10 +9,10 @@ import {
     addFile,
     addCollectionItem,
     getCollectionItem,
-} from '../src/LogionLoc';
-import { UUID } from '../src/UUID';
+} from '../src';
+import { UUID } from '../src';
 import { DEFAULT_ITEM, DEFAULT_LOC } from './__mocks__/PolkadotApiMock';
-import { ItemFile, ItemToken } from '../src/Types';
+import { ItemFile, ItemToken, License } from '../src';
 
 describe("LogionLoc", () => {
 
@@ -38,7 +38,7 @@ describe("LogionLoc", () => {
             submitter: "owner",
         };
         const locId = new UUID();
-        
+
         addMetadata({
             api,
             locId,
@@ -111,6 +111,7 @@ describe("LogionLoc", () => {
         expect(item!.files).toEqual(jasmine.arrayContaining(DEFAULT_ITEM.files));
         expect(item!.token).toEqual(DEFAULT_ITEM.token);
         expect(item!.restrictedDelivery).toEqual(DEFAULT_ITEM.restrictedDelivery);
+        expect(item!.license).toEqual(DEFAULT_ITEM.license);
     });
 
     it("adds collection items without restricted delivery", () => {
@@ -151,6 +152,58 @@ describe("LogionLoc", () => {
             ]),
             null,
             false,
+        );
+    });
+
+    it("adds collection items with License", () => {
+        const api = new ApiPromise();
+        const collectionId = new UUID();
+        const itemId = "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2";
+        const itemDescription = "Some description";
+        const itemFiles: ItemFile[] = [
+            {
+                name: "artwork.png",
+                contentType: "image/png",
+                size: 256000n,
+                hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
+            }
+        ];
+
+        const license: License = {
+            type: "Logion",
+            licenseLoc: new UUID(),
+            details: "ITEM-A, ITEM-B, ITEM-C"
+        }
+        addCollectionItem({
+            api,
+            collectionId,
+            itemId,
+            itemDescription,
+            itemFiles,
+            itemToken: undefined,
+            restrictedDelivery: false,
+            license,
+        });
+
+        expect(api.tx.logionLoc.addLicensedCollectionItem).toHaveBeenCalledWith(
+            collectionId.toHexString(),
+            itemId,
+            stringToHex(itemDescription),
+            jasmine.arrayContaining([
+                jasmine.objectContaining({
+                    name: stringToHex(itemFiles[0].name),
+                    contentType: stringToHex(itemFiles[0].contentType),
+                    size_: itemFiles[0].size,
+                    hash_: itemFiles[0].hash,
+                })
+            ]),
+            null,
+            false,
+            jasmine.objectContaining({
+                licenseType: stringToHex(license.type),
+                licenseLoc: license.licenseLoc.toHexString(),
+                details: stringToHex(license.details)
+            })
         );
     });
 

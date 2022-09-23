@@ -48,6 +48,7 @@ export interface CollectionItem {
     files: ItemFile[],
     token?: ItemToken,
     restrictedDelivery: boolean,
+    license?: License
 }
 
 export interface ItemFile {
@@ -60,6 +61,12 @@ export interface ItemFile {
 export interface ItemToken {
     type: string;
     id: string;
+}
+
+export interface License {
+    type: string;
+    licenseLoc: UUID;
+    details: string;
 }
 
 export function isLogionIdentityLoc(loc: LegalOfficerCase): boolean {
