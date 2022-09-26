@@ -171,7 +171,7 @@ describe("LogionLoc", () => {
 
         const license: License = {
             type: "Logion",
-            licenseLoc: new UUID(),
+            licenseLocId: new UUID(),
             details: "ITEM-A, ITEM-B, ITEM-C"
         }
         addCollectionItem({
@@ -201,7 +201,7 @@ describe("LogionLoc", () => {
             false,
             jasmine.objectContaining({
                 licenseType: stringToHex(license.type),
-                licenseLoc: license.licenseLoc.toHexString(),
+                licenseLoc: license.licenseLocId.toHexString(),
                 details: stringToHex(license.details)
             })
         );

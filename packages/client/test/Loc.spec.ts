@@ -1,30 +1,57 @@
 import "@logion/node-api/dist/interfaces/types-lookup";
 
-import { LocType, LogionNodeApi, UUID } from "@logion/node-api";
-import type { SubmittableExtrinsic } from '@polkadot/api/promise/types'; 
-import {
-    PalletLogionLocLegalOfficerCase,
-    PalletLogionLocRequester,
-    PalletLogionLocLocType,
-    PalletLogionLocFile,
-    PalletLogionLocCollectionItem,
-    PalletLogionLocLocVoidInfo,
-} from "@polkadot/types/lookup";
-import { AccountId32, H256 } from "@polkadot/types/interfaces/runtime";
-import { Option, Bytes } from "@polkadot/types-codec";
+import { LogionNodeApi, UUID } from "@logion/node-api";
+import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import { DateTime } from "luxon";
 import { It, Mock, Times } from "moq.ts";
 
-import { AccountTokens, HashOrContent, LegalOfficer, MimeType } from "../src";
+import {
+    AccountTokens,
+    HashOrContent,
+    LegalOfficer,
+    MimeType,
+    ClosedCollectionLoc,
+    ClosedLoc,
+    LocData,
+    LocRequestState,
+    LocsState,
+    OpenLoc,
+    PendingRequest,
+    RejectedRequest,
+    VoidedCollectionLoc,
+    VoidedLoc,
+    AddMetadataParams,
+    FetchLocRequestSpecification,
+    FetchParameters,
+    ItemFileWithContent,
+    LocRequest,
+    Signer,
+    SignParameters,
+    License
+} from "../src";
 import { SharedState } from "../src/SharedClient";
-import { ClosedCollectionLoc, ClosedLoc, LocData, LocRequestState, LocsState, OpenLoc, PendingRequest, RejectedRequest, VoidedCollectionLoc, VoidedLoc } from "../src/Loc";
-import { ALICE, BOB, buildTestAuthenticatedSharedSate, LOGION_CLIENT_CONFIG, mockBool, mockCodecWithToHex, mockCodecWithToString, mockCodecWithToUtf8, mockEmptyOption, mockOption, mockVec, REQUESTER, SUCCESSFULL_SUBMISSION } from "./Utils";
+import {
+    ALICE,
+    BOB,
+    buildTestAuthenticatedSharedSate,
+    LOGION_CLIENT_CONFIG,
+    mockEmptyOption,
+    REQUESTER,
+    SUCCESSFULL_SUBMISSION
+} from "./Utils";
 import { TestConfigFactory } from "./TestConfigFactory";
-import { AddMetadataParams, FetchLocRequestSpecification, FetchParameters, ItemFileWithContent, LocRequest, LocRequestStatus, OffchainCollectionItem } from "../src/LocClient";
 import { FormDataLike } from "../src/ComponentFactory";
-import { Signer, SignParameters } from "../src/Signer";
-import { buildCollectionItem, buildLoc, buildLocRequest, buildOffchainCollectionItem, EXISTING_FILE_HASH, EXISTING_ITEM_ID, ITEM_DESCRIPTION, mockVoidInfo } from "./LocUtils";
+import {
+    buildCollectionItem,
+    buildLoc,
+    buildLocRequest,
+    buildOffchainCollectionItem,
+    EXISTING_FILE_HASH,
+    EXISTING_ITEM_ID,
+    ITEM_DESCRIPTION,
+    mockVoidInfo
+} from "./LocUtils";
 
 describe("LocsState", () => {
 
@@ -41,7 +68,7 @@ describe("LocsState", () => {
         const openLoc = locs.openLocs.Transaction[0];
         expect(openLoc).toBeInstanceOf(OpenLoc);
         expect(openLoc.locId).toEqual(new UUID(ALICE_OPEN_TRANSACTION_LOC_REQUEST.id));
-        
+
         expect(locs.closedLocs.Transaction.length).toBe(1);
         const closedTransactionLoc = locs.closedLocs.Transaction[0];
         expect(closedTransactionLoc).toBeInstanceOf(ClosedLoc);
@@ -96,8 +123,8 @@ describe("OpenLoc", () => {
 
         expect(newState).toBeInstanceOf(OpenLoc);
         aliceAxiosMock.verify(instance => instance.post(
-            `/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC_REQUEST.id }/metadata`,
-            It.Is<AddMetadataParams & FetchParameters>((params: any) => params.name === "Test" && params.value === "Test Value")),
+                `/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC_REQUEST.id }/metadata`,
+                It.Is<AddMetadataParams & FetchParameters>((params: any) => params.name === "Test" && params.value === "Test Value")),
             Times.Once(),
         );
     });
@@ -215,6 +242,21 @@ describe("ClosedCollectionLoc", () => {
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
         nodeApiMock.verify(instance => instance.tx.logionLoc.addCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+    });
+
+    it("adds licensed collection item", async () => {
+        const closedLoc = await getClosedCollectionLoc();
+
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFULL_SUBMISSION);
+        await closedLoc.addCollectionItem({
+            itemId: ITEM_ID,
+            itemDescription: ITEM_DESCRIPTION,
+            signer: signer.object(),
+            license: LICENSE
+        });
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.tx.logionLoc.addLicensedCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
     });
 
     it("requests Statement of Facts (SoF)", async () => {
@@ -352,6 +394,11 @@ const BOB_VOID_COLLECTION_LOC = buildLoc(BOB.address, "CLOSED", "Collection", mo
 
 const COLLECTION_ITEM = buildCollectionItem();
 const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem(ALICE_CLOSED_COLLECTION_LOC_REQUEST.id);
+const LICENSE: License = {
+    type: 'Specific',
+    licenseLocId: new UUID("61ccd87f-765c-4ab0-bd91-af68887515d4"),
+    details: ""
+};
 
 let aliceAxiosMock: Mock<AxiosInstance>;
 let bobAxiosMock: Mock<AxiosInstance>;
@@ -363,7 +410,7 @@ async function buildSharedState(): Promise<SharedState> {
     const tokens = new AccountTokens({
         [REQUESTER]: {
             value: token,
-            expirationDateTime: DateTime.now().plus({hours: 1})
+            expirationDateTime: DateTime.now().plus({ hours: 1 })
         }
     });
     return await buildTestAuthenticatedSharedSate(
@@ -471,10 +518,21 @@ async function buildSharedState(): Promise<SharedState> {
                 false
             )).returns(addCollectionItemExtrinsic.object());
 
+            const addLicensedCollectionItemExtrinsic = new Mock<SubmittableExtrinsic>();
+            nodeApiMock.setup(instance => instance.tx.logionLoc.addLicensedCollectionItem(
+                new UUID(ALICE_CLOSED_COLLECTION_LOC_REQUEST.id).toDecimalString(),
+                ITEM_ID,
+                ITEM_DESCRIPTION,
+                [],
+                null,
+                false,
+                LICENSE,
+            )).returns(addLicensedCollectionItemExtrinsic.object());
+
             nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(
                 It.Is<UUID>(locId => locId.toString() !== ALICE_CLOSED_COLLECTION_LOC_REQUEST.id),
                 It.Is<string>(itemId => itemId !== EXISTING_ITEM_ID
-            )))
+                )))
                 .returnsAsync(mockEmptyOption());
             nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(new UUID(ALICE_CLOSED_COLLECTION_LOC_REQUEST.id).toHexString(), EXISTING_ITEM_ID))
                 .returnsAsync(COLLECTION_ITEM);

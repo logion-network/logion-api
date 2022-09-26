@@ -12,6 +12,7 @@ import {
     getCollectionItem,
     getCollectionSize,
     GetLegalOfficerCaseParameters,
+    License,
 } from '@logion/node-api';
 import { AxiosInstance } from 'axios';
 
@@ -176,6 +177,7 @@ export interface AddCollectionItemParams {
     itemFiles?: ItemFileWithContent[],
     itemToken?: ItemTokenWithRestrictedType,
     restrictedDelivery?: boolean,
+    license?: License,
     signer: Signer,
     callback?: SignCallback,
 }
@@ -302,6 +304,7 @@ export interface UploadableCollectionItem {
     files: UploadableItemFile[];
     token?: ItemTokenWithRestrictedType,
     restrictedDelivery: boolean;
+    license?: License
 }
 
 export interface UploadableItemFile extends ItemFile {
@@ -379,6 +382,7 @@ export abstract class LocClient {
                     id: onchainItem.token.id,
                 } : undefined,
                 restrictedDelivery: onchainItem.restrictedDelivery,
+                license: onchainItem.license,
             }
         } catch(e) {
             throw newBackendError(e);
@@ -498,7 +502,7 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async addCollectionItem(parameters: AddCollectionItemParams & FetchParameters): Promise<void> {
-        const { itemId, itemDescription, signer, callback, locId, itemFiles, itemToken, restrictedDelivery } = parameters;
+        const { itemId, itemDescription, signer, callback, locId, itemFiles, itemToken, restrictedDelivery, license } = parameters;
 
         const booleanRestrictedDelivery = restrictedDelivery !== undefined ? restrictedDelivery : false;
 
@@ -534,6 +538,7 @@ export class AuthenticatedLocClient extends LocClient {
             itemFiles: chainItemFiles,
             itemToken,
             restrictedDelivery: booleanRestrictedDelivery,
+            license
         });
         await signer.signAndSend({
             signerId: this.currentAddress,

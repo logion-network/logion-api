@@ -341,7 +341,7 @@ export async function getCollectionItem(
             restrictedDelivery: unwrappedResult.restrictedDelivery.isTrue,
             license: (license && license.isSome) ? {
                 type: license.unwrap().licenseType.toUtf8(),
-                licenseLoc: UUID.fromDecimalStringOrThrow(license.unwrap().licenseLoc.toString()),
+                licenseLocId: UUID.fromDecimalStringOrThrow(license.unwrap().licenseLoc.toString()),
                 details: license.unwrap().details.toUtf8(),
             } : undefined
         };
@@ -408,7 +408,7 @@ export function addCollectionItem(parameters: AddCollectionItemParameters): Subm
     if (parameters.license) {
         const license = {
             licenseType: stringToHex(parameters.license.type),
-            licenseLoc: parameters.license.licenseLoc.toHexString(),
+            licenseLoc: parameters.license.licenseLocId.toHexString(),
             details: stringToHex(parameters.license.details)
         }
         return api.tx.logionLoc.addLicensedCollectionItem(collectionId.toHexString(), itemId, stringToHex(itemDescription), files, token, restrictedDelivery, license);

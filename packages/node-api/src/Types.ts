@@ -65,7 +65,7 @@ export interface ItemToken {
 
 export interface License {
     type: string;
-    licenseLoc: UUID;
+    licenseLocId: UUID;
     details: string;
 }
 
