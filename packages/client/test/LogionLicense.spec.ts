@@ -15,8 +15,8 @@ describe("LogionLicense", () => {
         expect(logionLicense.transferredRights.length).toEqual(2);
         expect(logionLicense.transferredRights).toContain(logionLicenseItems.A);
         expect(logionLicense.transferredRights).toContain(logionLicenseItems.B);
-        expect(logionLicense.transferredRights[0].shortDescription).toEqual("RIGHT TO REPRODUCE/COPY");
-        expect(logionLicense.transferredRights[1].shortDescription).toEqual("RIGHT TO REPRESENT/TO PUBLICLY DISPLAY/TO PERFORM");
+        expect(logionLicense.transferredRights[0].shortDescription).toEqual("PERSONAL, PRIVATE USE ONLY");
+        expect(logionLicense.transferredRights[1].shortDescription).toEqual("PERSONAL, PRIVATE, AND PUBLIC USE");
     })
 
     it("instantiates from empty details", () => {
@@ -27,10 +27,10 @@ describe("LogionLicense", () => {
     })
 
     it("instantiates from full details", () => {
-        const logionLicense = LogionLicense.fromDetails(licenseLocId, '{"transferredRights":["A"],"regionalLimit":["BE","FR","US"],"expiration":"2022-09-23"}');
+        const logionLicense = LogionLicense.fromDetails(licenseLocId, '{"transferredRights":["C"],"regionalLimit":["BE","FR","US"],"expiration":"2022-09-23"}');
         expect(logionLicense.transferredRights.length).toEqual(1);
-        expect(logionLicense.transferredRights).toContain(logionLicenseItems.A);
-        expect(logionLicense.transferredRights[0].shortDescription).toEqual("RIGHT TO REPRODUCE/COPY");
+        expect(logionLicense.transferredRights).toContain(logionLicenseItems.C);
+        expect(logionLicense.transferredRights[0].shortDescription).toEqual("COMMERCIAL USE BUT WITHOUT MODIFICATION");
         expect(logionLicense.expiration).toEqual("2022-09-23");
         expect(logionLicense.regionalLimit).toContain("BE");
         expect(logionLicense.regionalLimit).toContain("FR");

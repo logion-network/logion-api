@@ -284,7 +284,7 @@ export async function collectionLocWithUpload(state: State) {
     expect(firstItem!.license?.licenseLocId.toString()).toEqual(licenseLocRequest.locId.toString());
     expect(firstItem!.license?.type).toEqual("Logion");
     const logionLicense = firstItem?.license as LogionLicense;
-    expect(logionLicense.transferredRights[0].shortDescription).toEqual("RIGHT TO REPRODUCE/COPY")
+    expect(logionLicense.transferredRights[0].shortDescription).toEqual("PERSONAL, PRIVATE USE ONLY")
     expect(logionLicense.expiration).toEqual("2025-01-01")
     expect(logionLicense.regionalLimit[0]).toEqual("BE")
 
