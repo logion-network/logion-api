@@ -1,16 +1,46 @@
-import { UUID } from "@logion/node-api";
+import { UUID, License } from "@logion/node-api";
 import { It, Mock } from "moq.ts";
 
-import { CheckCertifiedCopyResult, CheckResultType, CollectionItem, GetDeliveriesRequest, LocClient, UploadableCollectionItem } from "../src";
+import {
+    CheckCertifiedCopyResult,
+    CheckResultType,
+    CollectionItem,
+    GetDeliveriesRequest,
+    LocClient,
+    UploadableCollectionItem,
+    LogionLicense, SpecificLicense
+} from "../src";
 
 const locId = new UUID("eff6da24-1364-4594-965a-3b31f1e1df25");
+const licenseLocId: UUID = new UUID("61ccd87f-765c-4ab0-bd91-af68887515d4");
 const collectionItemId = "0x7411e1c74c64430ea9700cc695be6685";
 const originalHash = "0xf2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2";
 const copyHash = "0x72685ddcbec5052f9db2523252407990c24bb94d43b478d1a22411e612f3b650";
 const otherHash = "7d6fd7774f0d87624da6dcf16d0d3d104c3191e771fbe2f39c86aed4b2bf1a0f";
 const oldCopyHash = "ab03c34f1ece08211fe2a8039fd6424199b3f5d7b55ff13b1134b364776c45c5";
 
-describe("CollectionItem", () => {
+describe("CollectionItem provides correct license", () => {
+
+    it("Provides Logion license", () => {
+        const item = given(true, {
+            type: "Logion",
+            licenseLocId,
+            details: '{"transferredRights":[],"regionalLimit":[]}'
+        });
+        expect(item.license).toBeInstanceOf(LogionLicense);
+    })
+
+    it("Provides Specific license", () => {
+        const item = given(true, {
+            type: "Specific",
+            licenseLocId,
+            details: 'some details'
+        });
+        expect(item.license).toBeInstanceOf(SpecificLicense);
+    })
+})
+
+describe("CollectionItem checkCertifiedCopy", () => {
 
     it("detects that latest copy hash comes from certified copy", async () => {
         const item = given(true);
@@ -49,7 +79,7 @@ describe("CollectionItem", () => {
     });
 });
 
-function given(privileged: boolean): CollectionItem {
+function given(privileged: boolean, license?: License): CollectionItem {
     const clientItem: UploadableCollectionItem = {
         id: collectionItemId,
         description: "Some description",
@@ -68,6 +98,7 @@ function given(privileged: boolean): CollectionItem {
             id: "0x900edc98db53508e6742723988b872dd08cd09c2",
         },
         restrictedDelivery: true,
+        license,
     };
 
     const locClient = new Mock<LocClient>();

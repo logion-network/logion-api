@@ -21,3 +21,4 @@ export * from './Token';
 export * from './Types';
 export * from './Vault';
 export * from './VaultClient';
+export * from './license';

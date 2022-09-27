@@ -2,6 +2,7 @@ import { UUID } from "@logion/node-api";
 
 import { ItemDelivery, LocClient, UploadableCollectionItem, UploadableItemFile } from "./LocClient";
 import { ItemTokenWithRestrictedType } from "./Token";
+import { License, newLicense } from "./license";
 
 export class CollectionItem implements UploadableCollectionItem {
 
@@ -15,7 +16,7 @@ export class CollectionItem implements UploadableCollectionItem {
         this.clientItem = args.clientItem;
     }
 
-    private _locId: UUID;
+    private readonly _locId: UUID;
 
     private locClient: LocClient;
 
@@ -48,6 +49,11 @@ export class CollectionItem implements UploadableCollectionItem {
 
     get restrictedDelivery(): boolean {
         return this.clientItem.restrictedDelivery;
+    }
+
+    get license(): License | undefined {
+        const license = this.clientItem.license;
+        return license ? newLicense(license.type, license.licenseLocId, license.details) : undefined;
     }
 
     async checkCertifiedCopy(hash: string): Promise<CheckCertifiedCopyResult> {

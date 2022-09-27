@@ -1,6 +1,6 @@
 import { BN } from "bn.js";
-import { CollectionItem, LegalOfficerCase } from "../../src/Types";
-import { UUID } from "../../src/UUID";
+import { CollectionItem, LegalOfficerCase } from "../../src";
+import { UUID } from "../../src";
 
 export class WsProvider {
     constructor(socket: string) {
@@ -272,6 +272,7 @@ export class ApiPromise {
             addFile: jest.fn().mockResolvedValue(() => {}),
             addLink: jest.fn().mockResolvedValue(() => {}),
             addCollectionItem: jest.fn().mockResolvedValue(() => {}),
+            addLicensedCollectionItem: jest.fn().mockResolvedValue(() => {}),
         },
         verifiedRecovery: {
             createRecovery: jest.fn().mockResolvedValue(() => {}),
