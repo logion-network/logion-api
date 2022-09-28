@@ -44,6 +44,7 @@ export interface CollectionItem extends Struct {
   readonly files: Vec<CollectionItemFile>;
   readonly token: Option<CollectionItemToken>;
   readonly restricted_delivery: bool;
+  readonly terms_and_conditions: Vec<TermsAndConditionsElement>;
 }
 
 /** @name CollectionItemFile */
@@ -158,10 +159,18 @@ export interface StorageVersion extends Enum {
   readonly isV6ItemUpload: boolean;
   readonly isV7ItemToken: boolean;
   readonly isV8AddSeal: boolean;
-  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal';
+  readonly isV9TermsAndConditions: boolean;
+  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions';
 }
 
 /** @name TAssetBalance */
 export interface TAssetBalance extends u128 {}
+
+/** @name TermsAndConditionsElement */
+export interface TermsAndConditionsElement extends Struct {
+  readonly tc_type: Bytes;
+  readonly tc_loc: LocId;
+  readonly details: Bytes;
+}
 
 export type PHANTOM_DEFAULT = 'default';

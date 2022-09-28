@@ -88,6 +88,7 @@ export const DEFAULT_ITEM: CollectionItem = {
         }
     ],
     restrictedDelivery: false,
+    termsAndConditions: [],
 }
 
 export class ApiPromise {
@@ -226,7 +227,12 @@ export class ApiPromise {
                     restrictedDelivery: {
                         isTrue: DEFAULT_ITEM.restrictedDelivery,
                         isFalse: !DEFAULT_ITEM.restrictedDelivery,
-                    }
+                    },
+                    termsAndConditions: DEFAULT_ITEM.termsAndConditions.map(tc => ({
+                        tcType: { toUtf8: () => tc.tcType },
+                        tcLocId: { toString: () => tc.tcLocId.toDecimalString() },
+                        details: { toUtf8: () => tc.details },
+                    })),
                 })
             }),
         }

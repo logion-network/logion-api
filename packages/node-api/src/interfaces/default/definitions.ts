@@ -81,6 +81,7 @@ export default {
                 "V6ItemUpload",
                 "V7ItemToken",
                 "V8AddSeal",
+                "V9TermsAndConditions",
             ]
         },
         Requester: {
@@ -97,6 +98,7 @@ export default {
             files: "Vec<CollectionItemFile<Hash>>",
             token: "Option<CollectionItemToken>",
             restricted_delivery: "bool",
+            terms_and_conditions: "Vec<TermsAndConditionsElement<LocId>>",
         },
         CollectionItemFile: {
             name: "Vec<u8>",
@@ -118,5 +120,10 @@ export default {
                 "V2AddOnchainSettings",
             ]
         },
+        TermsAndConditionsElement: {
+            tcType: "Vec<u8>",
+            tcLoc: "LocId",
+            details: "Vec<u8>",
+        }
     }
 };
