@@ -28,7 +28,7 @@ import {
     LocRequest,
     Signer,
     SignParameters,
-    License
+    TermsAndConditionsElement
 } from "../src";
 import { SharedState } from "../src/SharedClient";
 import {
@@ -253,10 +253,10 @@ describe("ClosedCollectionLoc", () => {
             itemId: ITEM_ID,
             itemDescription: ITEM_DESCRIPTION,
             signer: signer.object(),
-            license: LICENSE
+            termsAndConditions: TERMS_AND_CONDITIONS
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
-        nodeApiMock.verify(instance => instance.tx.logionLoc.addLicensedCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.tx.logionLoc.addCollectionItemWithTermsAndConditions(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
     });
 
     it("requests Statement of Facts (SoF)", async () => {
@@ -394,11 +394,11 @@ const BOB_VOID_COLLECTION_LOC = buildLoc(BOB.address, "CLOSED", "Collection", mo
 
 const COLLECTION_ITEM = buildCollectionItem();
 const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem(ALICE_CLOSED_COLLECTION_LOC_REQUEST.id);
-const LICENSE: License = {
-    type: 'Specific',
-    licenseLocId: new UUID("61ccd87f-765c-4ab0-bd91-af68887515d4"),
+const TERMS_AND_CONDITIONS: TermsAndConditionsElement[] = [{
+    type: 'specific_license',
+    tcLocId: new UUID("61ccd87f-765c-4ab0-bd91-af68887515d4"),
     details: ""
-};
+}];
 
 let aliceAxiosMock: Mock<AxiosInstance>;
 let bobAxiosMock: Mock<AxiosInstance>;
@@ -518,16 +518,16 @@ async function buildSharedState(): Promise<SharedState> {
                 false
             )).returns(addCollectionItemExtrinsic.object());
 
-            const addLicensedCollectionItemExtrinsic = new Mock<SubmittableExtrinsic>();
-            nodeApiMock.setup(instance => instance.tx.logionLoc.addLicensedCollectionItem(
+            const addCollectionItemWithTermsAndConditionsExtrinsic = new Mock<SubmittableExtrinsic>();
+            nodeApiMock.setup(instance => instance.tx.logionLoc.addCollectionItemWithTermsAndConditions(
                 new UUID(ALICE_CLOSED_COLLECTION_LOC_REQUEST.id).toDecimalString(),
                 ITEM_ID,
                 ITEM_DESCRIPTION,
                 [],
                 null,
                 false,
-                LICENSE,
-            )).returns(addLicensedCollectionItemExtrinsic.object());
+                TERMS_AND_CONDITIONS,
+            )).returns(addCollectionItemWithTermsAndConditionsExtrinsic.object());
 
             nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(
                 It.Is<UUID>(locId => locId.toString() !== ALICE_CLOSED_COLLECTION_LOC_REQUEST.id),

@@ -123,7 +123,7 @@ describe("LogionLoc", () => {
             {
                 name: "artwork.png",
                 contentType: "image/png",
-                size: 256000n,
+                size: BigInt(256000),
                 hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
             }
         ];
@@ -164,7 +164,7 @@ describe("LogionLoc", () => {
             {
                 name: "artwork.png",
                 contentType: "image/png",
-                size: 256000n,
+                size: BigInt(256000),
                 hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
             }
         ];
@@ -185,7 +185,7 @@ describe("LogionLoc", () => {
             termsAndConditions,
         });
 
-        expect(api.tx.logionLoc.addLicensedCollectionItem).toHaveBeenCalledWith(
+        expect(api.tx.logionLoc.addCollectionItemWithTermsAndConditions).toHaveBeenCalledWith(
             collectionId.toHexString(),
             itemId,
             stringToHex(itemDescription),
@@ -216,7 +216,7 @@ describe("LogionLoc", () => {
             {
                 name: "artwork.png",
                 contentType: "image/png",
-                size: 256000n,
+                size: BigInt(256000),
                 hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
             }
         ];

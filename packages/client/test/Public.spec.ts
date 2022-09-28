@@ -8,7 +8,7 @@ import { ALICE, buildTestAuthenticatedSharedSate, LEGAL_OFFICERS, LOGION_CLIENT_
 import { TestConfigFactory } from "./TestConfigFactory";
 import { buildCollectionItem, buildLoc, buildLocRequest, buildOffchainCollectionItem, EXISTING_FILE, EXISTING_ITEM_ID, ITEM_DESCRIPTION } from "./LocUtils";
 
-import { PublicApi, PublicLoc } from "../src/Public";
+import { PublicApi, PublicLoc } from "../src";
 
 describe("PublicApi", () => {
 
@@ -70,6 +70,7 @@ describe("PublicLoc", () => {
             files: [],
             id: EXISTING_ITEM_ID,
             restrictedDelivery: false,
+            termsAndConditions: [],
         });
 
         const publicLoc = new PublicLoc({

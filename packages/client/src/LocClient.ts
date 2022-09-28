@@ -12,7 +12,6 @@ import {
     getCollectionItem,
     getCollectionSize,
     GetLegalOfficerCaseParameters,
-    License,
 } from '@logion/node-api';
 import { AxiosInstance } from 'axios';
 
@@ -28,6 +27,7 @@ import { newBackendError } from './Error';
 import { HashOrContent } from './Hash';
 import { MimeType } from './Mime';
 import { validateToken, ItemTokenWithRestrictedType, TokenType } from './Token';
+import { TermsAndConditionsElement, newTermsAndConditions } from "./license";
 
 export interface AddedOn {
     addedOn: string;
@@ -177,7 +177,7 @@ export interface AddCollectionItemParams {
     itemFiles?: ItemFileWithContent[],
     itemToken?: ItemTokenWithRestrictedType,
     restrictedDelivery?: boolean,
-    license?: License,
+    termsAndConditions?: TermsAndConditionsElement[],
     signer: Signer,
     callback?: SignCallback,
 }
@@ -304,7 +304,7 @@ export interface UploadableCollectionItem {
     files: UploadableItemFile[];
     token?: ItemTokenWithRestrictedType,
     restrictedDelivery: boolean;
-    license?: License
+    termsAndConditions: TermsAndConditionsElement[],
 }
 
 export interface UploadableItemFile extends ItemFile {
@@ -382,7 +382,7 @@ export abstract class LocClient {
                     id: onchainItem.token.id,
                 } : undefined,
                 restrictedDelivery: onchainItem.restrictedDelivery,
-                license: onchainItem.license,
+                termsAndConditions: newTermsAndConditions(onchainItem.termsAndConditions),
             }
         } catch(e) {
             throw newBackendError(e);
@@ -502,7 +502,7 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async addCollectionItem(parameters: AddCollectionItemParams & FetchParameters): Promise<void> {
-        const { itemId, itemDescription, signer, callback, locId, itemFiles, itemToken, restrictedDelivery, license } = parameters;
+        const { itemId, itemDescription, signer, callback, locId, itemFiles, itemToken, restrictedDelivery } = parameters;
 
         const booleanRestrictedDelivery = restrictedDelivery !== undefined ? restrictedDelivery : false;
 
@@ -530,6 +530,12 @@ export class AuthenticatedLocClient extends LocClient {
             this.validTokenOrThrow(itemToken);
         }
 
+        const termsAndConditions = parameters.termsAndConditions ? parameters.termsAndConditions.map(tc => ({
+            tcType: tc.type,
+            tcLocId: tc.tcLocId,
+            details: tc.details,
+        })) : undefined;
+
         const submittable = addCollectionItem({
             api: this.nodeApi,
             collectionId: locId,
@@ -538,7 +544,7 @@ export class AuthenticatedLocClient extends LocClient {
             itemFiles: chainItemFiles,
             itemToken,
             restrictedDelivery: booleanRestrictedDelivery,
-            license
+            termsAndConditions,
         });
         await signer.signAndSend({
             signerId: this.currentAddress,

@@ -13,7 +13,7 @@ import {
     LocData,
     ClosedCollectionLoc,
     ItemTokenWithRestrictedType,
-    License, LogionLicense
+    LogionClassification
 } from "../src";
 
 import { AxiosFactory } from "../src/AxiosFactory";
@@ -99,7 +99,7 @@ class LegalOfficerWorker {
         this.state = state;
     }
 
-    async createValidLicenseLoc(id: UUID) {
+    async createValidLogionClassificationLoc(id: UUID) {
         await this.openTransactionLoc(id);
         return this.closeLoc(id);
     }
@@ -193,7 +193,7 @@ export async function collectionLoc(state: State) {
     const item = await closedLoc.getCollectionItem({ itemId });
     expect(item!.id).toBe(itemId);
     expect(item!.description).toBe(itemDescription);
-    expect(item!.license).toBeUndefined();
+    expect(item!.termsAndConditions.length).toEqual(0);
 
     const publicApi = state.client.public;
     const publicLoc = await publicApi.findLocById({ locId });
@@ -215,11 +215,11 @@ export async function collectionLocWithUpload(state: State) {
 
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, USER_ADDRESS);
 
-    const licenseLocRequest = await locsState.requestTransactionLoc({
+    const logionClassificationLocRequest = await locsState.requestTransactionLoc({
         legalOfficer: alice,
-        description: "This is the LICENSE LOC.",
+        description: "This is the Logion Classification LOC",
     });
-    await legalOfficer.createValidLicenseLoc(licenseLocRequest.locId);
+    await legalOfficer.createValidLogionClassificationLoc(logionClassificationLocRequest.locId);
 
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficer: alice,
@@ -246,11 +246,6 @@ export async function collectionLocWithUpload(state: State) {
         type: "ethereum_erc721",
         id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","id":"4391"}'
     };
-    const firstLicense: License = new LogionLicense(licenseLocRequest.locId, {
-        regionalLimit: ["BE", "FR", "LU"],
-        transferredRights: ["A"],
-        expiration: "2025-01-01",
-    })
     closedLoc = await closedLoc.addCollectionItem({
         itemId: firstItemId,
         itemDescription: firstItemDescription,
@@ -264,7 +259,11 @@ export async function collectionLocWithUpload(state: State) {
         ],
         itemToken: firstItemToken,
         restrictedDelivery: true,
-        license: firstLicense,
+        termsAndConditions: [ new LogionClassification(logionClassificationLocRequest.locId, {
+            regionalLimit: [ "BE", "FR", "LU" ],
+            transferredRights: [ "PER-PRIV" ],
+            expiration: "2025-01-01",
+        }) ],
     });
 
     const firstItem = await closedLoc.getCollectionItem({ itemId: firstItemId });
@@ -281,12 +280,13 @@ export async function collectionLocWithUpload(state: State) {
     ]));
     expect(firstItem!.token).toEqual(firstItemToken);
     expect(firstItem!.restrictedDelivery).toBe(true);
-    expect(firstItem!.license?.licenseLocId.toString()).toEqual(licenseLocRequest.locId.toString());
-    expect(firstItem!.license?.type).toEqual("Logion");
-    const logionLicense = firstItem?.license as LogionLicense;
-    expect(logionLicense.transferredRights[0].shortDescription).toEqual("PERSONAL, PRIVATE USE ONLY")
-    expect(logionLicense.expiration).toEqual("2025-01-01")
-    expect(logionLicense.regionalLimit[0]).toEqual("BE")
+    const tc = firstItem!.termsAndConditions[0];
+    expect(tc.tcLocId.toString()).toEqual(logionClassificationLocRequest.locId.toString());
+    expect(tc.type).toEqual("logion_classification");
+    const logionClassification = tc as LogionClassification;
+    expect(logionClassification.transferredRights[0].shortDescription).toEqual("PERSONAL, PRIVATE USE ONLY")
+    expect(logionClassification.expiration).toEqual("2025-01-01")
+    expect(logionClassification.regionalLimit[0]).toEqual("BE")
 
     const secondItemId = hashString("second-collection-item");
     const secondItemDescription = "Second collection item";

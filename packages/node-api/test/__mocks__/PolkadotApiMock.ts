@@ -83,7 +83,7 @@ export const DEFAULT_ITEM: CollectionItem = {
         {
             name: "artwork.png",
             contentType: "image/png",
-            size: 256000n,
+            size: BigInt(256000),
             hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
         }
     ],
@@ -278,7 +278,7 @@ export class ApiPromise {
             addFile: jest.fn().mockResolvedValue(() => {}),
             addLink: jest.fn().mockResolvedValue(() => {}),
             addCollectionItem: jest.fn().mockResolvedValue(() => {}),
-            addLicensedCollectionItem: jest.fn().mockResolvedValue(() => {}),
+            addCollectionItemWithTermsAndConditions: jest.fn().mockResolvedValue(() => {}),
         },
         verifiedRecovery: {
             createRecovery: jest.fn().mockResolvedValue(() => {}),

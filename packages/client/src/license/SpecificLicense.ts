@@ -1,10 +1,10 @@
 import { UUID } from "@logion/node-api";
-import { AbstractLicense } from "./License";
+import { AbstractTermsAndConditionsElement } from "./TermsAndConditions";
 
-export class SpecificLicense extends AbstractLicense<string> {
+export class SpecificLicense extends AbstractTermsAndConditionsElement<string> {
 
     constructor(licenseLocId: UUID, details: string) {
-        super("Specific", licenseLocId, details);
+        super('specific_license', licenseLocId, details);
     }
 
     static fromDetails(licenseLocId: UUID, details: string): SpecificLicense {
