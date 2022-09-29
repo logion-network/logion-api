@@ -50,8 +50,6 @@ export interface LocData {
     seal?: string;
 }
 
-export type MergedCollectionItem = CollectionItem & Partial<AddedOn>
-
 export interface MergedLink extends LocLink, Published {
 }
 
