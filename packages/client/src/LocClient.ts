@@ -27,7 +27,7 @@ import { newBackendError } from './Error';
 import { HashOrContent } from './Hash';
 import { MimeType } from './Mime';
 import { validateToken, ItemTokenWithRestrictedType, TokenType } from './Token';
-import { TermsAndConditionsElement, newTermsAndConditions } from "./license";
+import { TermsAndConditionsElement, newTermsAndConditions, LogionClassification, SpecificLicense } from "./license";
 
 export interface AddedOn {
     addedOn: string;
@@ -177,7 +177,8 @@ export interface AddCollectionItemParams {
     itemFiles?: ItemFileWithContent[],
     itemToken?: ItemTokenWithRestrictedType,
     restrictedDelivery?: boolean,
-    termsAndConditions?: TermsAndConditionsElement[],
+    logionClassification?: LogionClassification,
+    specificLicenses?: SpecificLicense[],
     signer: Signer,
     callback?: SignCallback,
 }
@@ -530,11 +531,23 @@ export class AuthenticatedLocClient extends LocClient {
             this.validTokenOrThrow(itemToken);
         }
 
-        const termsAndConditions = parameters.termsAndConditions ? parameters.termsAndConditions.map(tc => ({
-            tcType: tc.type,
-            tcLocId: tc.tcLocId,
-            details: tc.details,
-        })) : undefined;
+        const termsAndConditions = [];
+
+        if(parameters.logionClassification) {
+            termsAndConditions.push({
+                tcType: parameters.logionClassification.type,
+                tcLocId: parameters.logionClassification.tcLocId,
+                details: parameters.logionClassification.details,
+            })
+        }
+
+        if(parameters.specificLicenses) {
+            parameters.specificLicenses.forEach(element => termsAndConditions.push({
+                tcType: element.type,
+                tcLocId: element.tcLocId,
+                details: element.details,
+            }));
+        }
 
         const submittable = addCollectionItem({
             api: this.nodeApi,

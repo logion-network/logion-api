@@ -3,7 +3,7 @@ import { AbstractTermsAndConditionsElement } from "./TermsAndConditions";
 import { Iso3166Alpha2Code } from "../Country";
 import { DateTime } from 'luxon';
 
-type LogionTransferredRightCode = "PER-PRIV" | "PER-PUB" | "COM-NOMOD" | "COM-MOD" | "EX" | "NOEX" | "WW" | "REG" | "NOTIME" | "TIME";
+export type LogionTransferredRightCode = "PER-PRIV" | "PER-PUB" | "COM-NOMOD" | "COM-MOD" | "EX" | "NOEX" | "WW" | "REG" | "NOTIME" | "TIME";
 
 export type LogionTransferredRightDescription = {
     shortDescription: string
@@ -90,9 +90,9 @@ export const logionLicenseItems: Record<LogionTransferredRightCode, LogionTransf
     },
 }
 
-interface LogionLicenseParameters {
+export interface LogionLicenseParameters {
     transferredRights: LogionTransferredRightCode[],
-    regionalLimit: Iso3166Alpha2Code[],
+    regionalLimit?: Iso3166Alpha2Code[],
     expiration?: string
 }
 
@@ -107,7 +107,7 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
         return this.parameters.transferredRights.map(code => ({ ...logionLicenseItems[code], code }))
     }
 
-    get regionalLimit(): Iso3166Alpha2Code[] {
+    get regionalLimit(): Iso3166Alpha2Code[] | undefined {
         return this.parameters.regionalLimit
     }
 
@@ -123,9 +123,6 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
         const parameters = JSON.parse(details);
         if (parameters.transferredRights === undefined) {
             parameters.transferredRights = [];
-        }
-        if (parameters.regionalLimit === undefined) {
-            parameters.regionalLimit = [];
         }
         return new LogionClassification(licenseLocId, parameters);
     }

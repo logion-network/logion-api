@@ -2,7 +2,7 @@ import { UUID } from "@logion/node-api";
 
 import { ItemDelivery, LocClient, UploadableCollectionItem, UploadableItemFile } from "./LocClient";
 import { ItemTokenWithRestrictedType } from "./Token";
-import { TermsAndConditionsElement } from "./license";
+import { LogionClassification, SpecificLicense, TermsAndConditionsElement } from "./license";
 
 export class CollectionItem implements UploadableCollectionItem {
 
@@ -14,6 +14,19 @@ export class CollectionItem implements UploadableCollectionItem {
         this._locId = args.locId;
         this.locClient = args.locClient;
         this.clientItem = args.clientItem;
+
+        const logionClassifications = args.clientItem.termsAndConditions
+            .filter(element => element.type === "logion_classification")
+            .map(element => element as LogionClassification);
+        if(logionClassifications.length > 0) {
+            this._logionClassification = logionClassifications[0];
+        } else if(logionClassifications.length > 1) {
+            throw new Error("Terms and conditions must include at most one logion classification element");
+        }
+
+        this._specificLicenses = args.clientItem.termsAndConditions
+            .filter(element => element.type === "specific_license")
+            .map(element => element as SpecificLicense);
     }
 
     private readonly _locId: UUID;
@@ -22,6 +35,9 @@ export class CollectionItem implements UploadableCollectionItem {
 
     private clientItem: UploadableCollectionItem;
 
+    private _logionClassification: LogionClassification | undefined;
+
+    private _specificLicenses: SpecificLicense[];
 
     get locId(): UUID {
         return this._locId;
@@ -53,6 +69,14 @@ export class CollectionItem implements UploadableCollectionItem {
 
     get termsAndConditions(): TermsAndConditionsElement[] {
         return this.clientItem.termsAndConditions;
+    }
+
+    get logionClassification(): LogionClassification | undefined {
+        return this._logionClassification;
+    }
+
+    get specificLicenses(): SpecificLicense[] {
+        return this._specificLicenses;
     }
 
     async checkCertifiedCopy(hash: string): Promise<CheckCertifiedCopyResult> {

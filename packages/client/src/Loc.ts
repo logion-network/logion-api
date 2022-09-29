@@ -1,4 +1,4 @@
-import { UUID, LegalOfficerCase, CollectionItem, LocType, VoidInfo } from "@logion/node-api";
+import { UUID, LegalOfficerCase, LocType, VoidInfo } from "@logion/node-api";
 
 import {
     LocRequest,
@@ -16,7 +16,6 @@ import {
     LocRequestVoidInfo,
     LocRequestStatus,
     Published,
-    AddedOn,
     ItemFileWithContent,
     AuthenticatedLocClient,
 } from "./LocClient";
