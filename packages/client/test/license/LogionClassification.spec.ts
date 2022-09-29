@@ -1,5 +1,5 @@
 import { UUID } from "@logion/node-api";
-import { LogionClassification, logionLicenseItems } from "../../src";
+import { LogionClassification } from "../../src";
 
 describe("LogionClassification", () => {
 
@@ -13,8 +13,8 @@ describe("LogionClassification", () => {
         });
         expect(logionClassification.details).toEqual('{"transferredRights":["PER-PRIV","PER-PUB"],"regionalLimit":["BE","FR","US"],"expiration":"2022-09-23"}');
         expect(logionClassification.transferredRights.length).toEqual(2);
-        expect(logionClassification.transferredRights).toContain(logionLicenseItems["PER-PRIV"]);
-        expect(logionClassification.transferredRights).toContain(logionLicenseItems["PER-PUB"]);
+        expect(logionClassification.transferredRights[0].code).toEqual("PER-PRIV");
+        expect(logionClassification.transferredRights[1].code).toEqual("PER-PUB");
         expect(logionClassification.transferredRights[0].shortDescription).toEqual("PERSONAL, PRIVATE USE ONLY");
         expect(logionClassification.transferredRights[1].shortDescription).toEqual("PERSONAL, PRIVATE, AND PUBLIC USE");
         expect(logionClassification.tcLocId.toString()).toEqual(classificationLocId.toString());
@@ -31,7 +31,7 @@ describe("LogionClassification", () => {
     it("instantiates from full details", () => {
         const logionClassification = LogionClassification.fromDetails(classificationLocId, '{"transferredRights":["COM-NOMOD"],"regionalLimit":["BE","FR","US"],"expiration":"2022-09-23"}');
         expect(logionClassification.transferredRights.length).toEqual(1);
-        expect(logionClassification.transferredRights).toContain(logionLicenseItems["COM-NOMOD"]);
+        expect(logionClassification.transferredRights[0].code).toEqual("COM-NOMOD");
         expect(logionClassification.transferredRights[0].shortDescription).toEqual("COMMERCIAL USE WITHOUT MODIFICATION");
         expect(logionClassification.expiration).toEqual("2022-09-23");
         expect(logionClassification.regionalLimit).toContain("BE");

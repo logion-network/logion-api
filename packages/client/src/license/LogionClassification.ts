@@ -5,12 +5,14 @@ import { DateTime } from 'luxon';
 
 type LogionTransferredRightCode = "PER-PRIV" | "PER-PUB" | "COM-NOMOD" | "COM-MOD" | "EX" | "NOEX" | "WW" | "REG" | "NOTIME" | "TIME";
 
-export type LogionTransferredRight = {
+export type LogionTransferredRightDescription = {
     shortDescription: string
     description: string
 }
 
-export const logionLicenseItems: Record<LogionTransferredRightCode, LogionTransferredRight> = {
+export type LogionTransferredRight = { code: LogionTransferredRightCode } & LogionTransferredRightDescription;
+
+export const logionLicenseItems: Record<LogionTransferredRightCode, LogionTransferredRightDescription> = {
     "PER-PRIV": {
         shortDescription: "PERSONAL, PRIVATE USE ONLY",
         description:
@@ -102,7 +104,7 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
     }
 
     get transferredRights(): LogionTransferredRight[] {
-        return this.parameters.transferredRights.map(code => logionLicenseItems[code])
+        return this.parameters.transferredRights.map(code => ({ ...logionLicenseItems[code], code }))
     }
 
     get regionalLimit(): Iso3166Alpha2Code[] {
