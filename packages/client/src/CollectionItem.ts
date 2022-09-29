@@ -20,6 +20,8 @@ export class CollectionItem implements UploadableCollectionItem {
             .map(element => element as LogionClassification);
         if(logionClassifications.length > 0) {
             this._logionClassification = logionClassifications[0];
+        } else if(logionClassifications.length > 1) {
+            throw new Error("Terms and conditions must include at most one logion classification element");
         }
 
         this._specificLicenses = args.clientItem.termsAndConditions
