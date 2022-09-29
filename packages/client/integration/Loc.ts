@@ -259,11 +259,11 @@ export async function collectionLocWithUpload(state: State) {
         ],
         itemToken: firstItemToken,
         restrictedDelivery: true,
-        termsAndConditions: [ new LogionClassification(logionClassificationLocRequest.locId, {
+        logionClassification: new LogionClassification(logionClassificationLocRequest.locId, {
             regionalLimit: [ "BE", "FR", "LU" ],
             transferredRights: [ "PER-PRIV" ],
             expiration: "2025-01-01",
-        }) ],
+        }),
     });
 
     const firstItem = await closedLoc.getCollectionItem({ itemId: firstItemId });
@@ -280,10 +280,7 @@ export async function collectionLocWithUpload(state: State) {
     ]));
     expect(firstItem!.token).toEqual(firstItemToken);
     expect(firstItem!.restrictedDelivery).toBe(true);
-    const tc = firstItem!.termsAndConditions[0];
-    expect(tc.tcLocId.toString()).toEqual(logionClassificationLocRequest.locId.toString());
-    expect(tc.type).toEqual("logion_classification");
-    const logionClassification = tc as LogionClassification;
+    const logionClassification = firstItem!.logionClassification!;
     expect(logionClassification.transferredRights[0].shortDescription).toEqual("PERSONAL, PRIVATE USE ONLY")
     expect(logionClassification.expiration).toEqual("2025-01-01")
     expect(logionClassification.regionalLimit[0]).toEqual("BE")

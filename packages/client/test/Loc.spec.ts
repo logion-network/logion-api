@@ -28,7 +28,8 @@ import {
     LocRequest,
     Signer,
     SignParameters,
-    TermsAndConditionsElement
+    TermsAndConditionsElement,
+    SpecificLicense
 } from "../src";
 import { SharedState } from "../src/SharedClient";
 import {
@@ -253,7 +254,7 @@ describe("ClosedCollectionLoc", () => {
             itemId: ITEM_ID,
             itemDescription: ITEM_DESCRIPTION,
             signer: signer.object(),
-            termsAndConditions: TERMS_AND_CONDITIONS
+            specificLicenses: SPECIFIC_LICENSES
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
         nodeApiMock.verify(instance => instance.tx.logionLoc.addCollectionItemWithTermsAndConditions(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
@@ -394,11 +395,9 @@ const BOB_VOID_COLLECTION_LOC = buildLoc(BOB.address, "CLOSED", "Collection", mo
 
 const COLLECTION_ITEM = buildCollectionItem();
 const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem(ALICE_CLOSED_COLLECTION_LOC_REQUEST.id);
-const TERMS_AND_CONDITIONS: TermsAndConditionsElement[] = [{
-    type: 'specific_license',
-    tcLocId: new UUID("61ccd87f-765c-4ab0-bd91-af68887515d4"),
-    details: ""
-}];
+const SPECIFIC_LICENSES: SpecificLicense[] = [
+    new SpecificLicense(new UUID("61ccd87f-765c-4ab0-bd91-af68887515d4"), "")
+];
 
 let aliceAxiosMock: Mock<AxiosInstance>;
 let bobAxiosMock: Mock<AxiosInstance>;
@@ -526,7 +525,7 @@ async function buildSharedState(): Promise<SharedState> {
                 [],
                 null,
                 false,
-                TERMS_AND_CONDITIONS,
+                It.Is<object[]>(args => args.length === 1),
             )).returns(addCollectionItemWithTermsAndConditionsExtrinsic.object());
 
             nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(
