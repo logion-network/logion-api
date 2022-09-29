@@ -283,7 +283,7 @@ export async function collectionLocWithUpload(state: State) {
     const logionClassification = firstItem!.logionClassification!;
     expect(logionClassification.transferredRights[0].shortDescription).toEqual("PERSONAL, PRIVATE USE ONLY")
     expect(logionClassification.expiration).toEqual("2025-01-01")
-    expect(logionClassification.regionalLimit[0]).toEqual("BE")
+    expect(logionClassification.regionalLimit![0]).toEqual("BE")
 
     const secondItemId = hashString("second-collection-item");
     const secondItemDescription = "Second collection item";

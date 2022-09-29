@@ -25,7 +25,7 @@ describe("LogionClassification", () => {
         const logionClassification = LogionClassification.fromDetails(classificationLocId, '{}');
         expect(logionClassification.transferredRights.length).toEqual(0);
         expect(logionClassification.expiration).toBeUndefined();
-        expect(logionClassification.regionalLimit.length).toEqual(0);
+        expect(logionClassification.regionalLimit).toBeUndefined();
     })
 
     it("instantiates from full details", () => {
