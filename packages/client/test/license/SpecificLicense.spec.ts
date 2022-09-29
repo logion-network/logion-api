@@ -1,5 +1,5 @@
 import { UUID } from "@logion/node-api";
-import { SpecificLicense } from "../src";
+import { SpecificLicense } from "../../src";
 
 describe("SpecificLicense", () => {
 
@@ -8,13 +8,15 @@ describe("SpecificLicense", () => {
 
     it("has correct details", () => {
         const license = new SpecificLicense(licenseLocId, details);
-        expect(license.licenseLocId).toEqual(licenseLocId);
+        expect(license.tcLocId).toEqual(licenseLocId);
         expect(license.details).toEqual(details);
+        expect(license.parameters).toEqual(details);
     })
 
     it("instantiates from details", () => {
         const license = SpecificLicense.fromDetails(licenseLocId, details);
-        expect(license.licenseLocId).toEqual(licenseLocId);
+        expect(license.tcLocId).toEqual(licenseLocId);
         expect(license.details).toEqual(details);
+        expect(license.parameters).toEqual(details);
     })
 })

@@ -11,7 +11,7 @@ import {
     CollectionItem,
     ItemFile,
     ItemToken,
-    License
+    TermsAndConditionsElement
 } from './Types';
 import { CollectionSize } from './interfaces';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
@@ -324,7 +324,6 @@ export async function getCollectionItem(
         const unwrappedResult = result.unwrap();
         const description = unwrappedResult.description.toUtf8();
         const token = unwrappedResult.token;
-        const license = unwrappedResult.license;
         return {
             id: itemId,
             description,
@@ -339,11 +338,11 @@ export async function getCollectionItem(
                 id: token.unwrap().tokenId.toUtf8(),
             } : undefined,
             restrictedDelivery: unwrappedResult.restrictedDelivery.isTrue,
-            license: (license && license.isSome) ? {
-                type: license.unwrap().licenseType.toUtf8(),
-                licenseLocId: UUID.fromDecimalStringOrThrow(license.unwrap().licenseLoc.toString()),
-                details: license.unwrap().details.toUtf8(),
-            } : undefined
+            termsAndConditions: unwrappedResult.termsAndConditions.map(tc => ({
+                tcType: tc.tcType.toUtf8(),
+                tcLocId: UUID.fromDecimalStringOrThrow(tc.tcLoc.toString()),
+                details: tc.details.toUtf8(),
+            })),
         };
     } else {
         return undefined;
@@ -379,7 +378,7 @@ export interface AddCollectionItemParameters {
     itemFiles: ItemFile[];
     itemToken?: ItemToken;
     restrictedDelivery: boolean,
-    license?: License;
+    termsAndConditions?: TermsAndConditionsElement[];
 }
 
 export function addCollectionItem(parameters: AddCollectionItemParameters): SubmittableExtrinsic {
@@ -405,13 +404,13 @@ export function addCollectionItem(parameters: AddCollectionItemParameters): Subm
         tokenId: stringToHex(itemToken.id),
     } : null;
 
-    if (parameters.license) {
-        const license = {
-            licenseType: stringToHex(parameters.license.type),
-            licenseLoc: parameters.license.licenseLocId.toHexString(),
-            details: stringToHex(parameters.license.details)
-        }
-        return api.tx.logionLoc.addLicensedCollectionItem(collectionId.toHexString(), itemId, stringToHex(itemDescription), files, token, restrictedDelivery, license);
+    if (parameters.termsAndConditions && parameters.termsAndConditions.length > 0) {
+        const termsAndConditions = parameters.termsAndConditions.map(tc => ({
+            tcType: stringToHex(tc.tcType),
+            tcLoc: tc.tcLocId.toHexString(),
+            details: stringToHex(tc.details)
+        }))
+        return api.tx.logionLoc.addCollectionItemWithTermsAndConditions(collectionId.toHexString(), itemId, stringToHex(itemDescription), files, token, restrictedDelivery, termsAndConditions);
     } else {
         return api.tx.logionLoc.addCollectionItem(collectionId.toHexString(), itemId, stringToHex(itemDescription), files, token, restrictedDelivery);
     }

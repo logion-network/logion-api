@@ -1,17 +1,19 @@
 import { UUID } from "@logion/node-api";
-import { AbstractLicense } from "./License";
+import { AbstractTermsAndConditionsElement } from "./TermsAndConditions";
 import { Iso3166Alpha2Code } from "../Country";
 import { DateTime } from 'luxon';
 
-type LogionTransferredRightCode = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J";
+type LogionTransferredRightCode = "PER-PRIV" | "PER-PUB" | "COM-NOMOD" | "COM-MOD" | "EX" | "NOEX" | "WW" | "REG" | "NOTIME" | "TIME";
 
-type LogionTransferredRight = {
+export type LogionTransferredRightDescription = {
     shortDescription: string
     description: string
 }
 
-export const logionLicenseItems: Record<LogionTransferredRightCode, LogionTransferredRight> = {
-    A: {
+export type LogionTransferredRight = { code: LogionTransferredRightCode } & LogionTransferredRightDescription;
+
+export const logionLicenseItems: Record<LogionTransferredRightCode, LogionTransferredRightDescription> = {
+    "PER-PRIV": {
         shortDescription: "PERSONAL, PRIVATE USE ONLY",
         description:
             "Use the Underlying Asset for your personal use, exclusively in private spheres and so long as that " +
@@ -19,7 +21,7 @@ export const logionLicenseItems: Record<LogionTransferredRightCode, LogionTransf
             "financial benefit or commercial gain, To the extent that such use is non-commercial and private, you " +
             "may use, reproduce, display and as necessary perform but not modify the Underlying Asset."
     },
-    B: {
+    "PER-PUB": {
         shortDescription: "PERSONAL, PRIVATE, AND PUBLIC USE",
         description:
             "Use the Underlying Asset for your personal use, both in private and public spheres and so long as that " +
@@ -28,8 +30,8 @@ export const logionLicenseItems: Record<LogionTransferredRightCode, LogionTransf
             "picture or in the metaverse. To the extent that such use is non-commercial, you may use, reproduce, " +
             "display and as necessary perform but not modify the Underlying Asset."
     },
-    C: {
-        shortDescription: "COMMERCIAL USE BUT WITHOUT MODIFICATION",
+    "COM-NOMOD": {
+        shortDescription: "COMMERCIAL USE WITHOUT MODIFICATION",
         description:
             "Use the Underlying Asset for commercial use, i.e. directly or indirectly, results in compensation, " +
             "financial benefit or commercial gain and may include promoting, marketing, advertising, and selling. " +
@@ -39,7 +41,7 @@ export const logionLicenseItems: Record<LogionTransferredRightCode, LogionTransf
             "on products or services using the Underlying Asset, display on sold merchandise, display in a physical " +
             "or digital museum. Includes the right to sublicense such rights."
     },
-    D: {
+    "COM-MOD": {
         shortDescription: "COMMERCIAL USE WITH THE RIGHT TO MODIFY",
         description:
             "Use the Underlying Asset for commercial use, i.e. directly or indirectly, results in compensation, " +
@@ -52,36 +54,36 @@ export const logionLicenseItems: Record<LogionTransferredRightCode, LogionTransf
             "on products or services using the Underlying Asset and/or its derivatives, display on sold merchandise, " +
             "display in a physical or digital museum. Includes the right to sublicense such rights."
     },
-    E: {
+    "EX": {
         shortDescription: "EXCLUSIVE USE",
         description:
             "The above-mentioned rights, as applicable, are exclusive in nature, i.e. are licensed and/or assigned " +
             "to no other person or entity."
     },
-    F: {
+    "NOEX": {
         shortDescription: "NON-EXCLUSIVE USE",
         description:
             "The above-mentioned rights, as applicable, are non-exclusive in nature, i.e. they can be licensed " +
             "and/or assigned to other persons or entities."
     },
-    G: {
+    "WW": {
         shortDescription: "WORLDWIDE USE",
         description:
             "Covers use in all countries of the world, existing and future, not limited territorially."
     },
-    H: {
+    "REG": {
         shortDescription: "COUNTRY-SPECIFIC OR REGIONAL USE",
         description:
             "Means that some territorial limitations apply. The list of allowed countries is recorded by the logion " +
             "infrastructure."
     },
-    I: {
+    "NOTIME": {
         shortDescription: "FOR THE ENTIRE DURATION OF THE IP RIGHTS",
         description:
             "The duration of the IP rights contemplated - author rights and copyright - are for the entire life of " +
             "the Creator and 70 years afterward, counted from the moment the work of art has been disclosed."
     },
-    J: {
+    "TIME": {
         shortDescription: "FOR A LIMITED PERIOD OF TIME",
         description:
             "Means that the license/assignment grant is limited in time as recorded by the logion infrastructure"
@@ -94,15 +96,15 @@ interface LogionLicenseParameters {
     expiration?: string
 }
 
-export class LogionLicense extends AbstractLicense<LogionLicenseParameters> {
+export class LogionClassification extends AbstractTermsAndConditionsElement<LogionLicenseParameters> {
 
     constructor(licenseLocId: UUID, parameters: LogionLicenseParameters) {
-        LogionLicense.requireIsoDate(parameters.expiration);
-        super('Logion', licenseLocId, parameters);
+        LogionClassification.requireIsoDate(parameters.expiration);
+        super('logion_classification', licenseLocId, parameters);
     }
 
     get transferredRights(): LogionTransferredRight[] {
-        return this.parameters.transferredRights.map(code => logionLicenseItems[code])
+        return this.parameters.transferredRights.map(code => ({ ...logionLicenseItems[code], code }))
     }
 
     get regionalLimit(): Iso3166Alpha2Code[] {
@@ -117,7 +119,7 @@ export class LogionLicense extends AbstractLicense<LogionLicenseParameters> {
         return JSON.stringify(this.parameters)
     }
 
-    static fromDetails(licenseLocId: UUID, details: string): LogionLicense {
+    static fromDetails(licenseLocId: UUID, details: string): LogionClassification {
         const parameters = JSON.parse(details);
         if (parameters.transferredRights === undefined) {
             parameters.transferredRights = [];
@@ -125,7 +127,7 @@ export class LogionLicense extends AbstractLicense<LogionLicenseParameters> {
         if (parameters.regionalLimit === undefined) {
             parameters.regionalLimit = [];
         }
-        return new LogionLicense(licenseLocId, parameters);
+        return new LogionClassification(licenseLocId, parameters);
     }
 
     static requireIsoDate(date: string | undefined) {

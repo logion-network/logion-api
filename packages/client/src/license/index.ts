@@ -1,4 +1,4 @@
 export * from './Factory';
-export * from './License';
-export * from './LogionLicense';
+export * from './TermsAndConditions';
+export * from './LogionClassification';
 export * from './SpecificLicense';

@@ -101,6 +101,7 @@ export function buildCollectionItem(): Option<PalletLogionLocCollectionItem> {
         token: mockEmptyOption(),
         files: mockVec([]),
         restrictedDelivery: mockBool(false),
+        termsAndConditions: mockVec([]),
     });
 }
 

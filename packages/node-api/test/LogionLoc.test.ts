@@ -12,7 +12,7 @@ import {
 } from '../src';
 import { UUID } from '../src';
 import { DEFAULT_ITEM, DEFAULT_LOC } from './__mocks__/PolkadotApiMock';
-import { ItemFile, ItemToken, License } from '../src';
+import { ItemFile, ItemToken, TermsAndConditionsElement } from '../src';
 
 describe("LogionLoc", () => {
 
@@ -111,7 +111,7 @@ describe("LogionLoc", () => {
         expect(item!.files).toEqual(jasmine.arrayContaining(DEFAULT_ITEM.files));
         expect(item!.token).toEqual(DEFAULT_ITEM.token);
         expect(item!.restrictedDelivery).toEqual(DEFAULT_ITEM.restrictedDelivery);
-        expect(item!.license).toEqual(DEFAULT_ITEM.license);
+        expect(item!.termsAndConditions).toEqual(DEFAULT_ITEM.termsAndConditions);
     });
 
     it("adds collection items without restricted delivery", () => {
@@ -123,7 +123,7 @@ describe("LogionLoc", () => {
             {
                 name: "artwork.png",
                 contentType: "image/png",
-                size: 256000n,
+                size: BigInt(256000),
                 hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
             }
         ];
@@ -164,16 +164,16 @@ describe("LogionLoc", () => {
             {
                 name: "artwork.png",
                 contentType: "image/png",
-                size: 256000n,
+                size: BigInt(256000),
                 hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
             }
         ];
 
-        const license: License = {
-            type: "Logion",
-            licenseLocId: new UUID(),
+        const termsAndConditions: TermsAndConditionsElement[] = [{
+            tcType: "Logion",
+            tcLocId: new UUID(),
             details: "ITEM-A, ITEM-B, ITEM-C"
-        }
+        }]
         addCollectionItem({
             api,
             collectionId,
@@ -182,10 +182,10 @@ describe("LogionLoc", () => {
             itemFiles,
             itemToken: undefined,
             restrictedDelivery: false,
-            license,
+            termsAndConditions,
         });
 
-        expect(api.tx.logionLoc.addLicensedCollectionItem).toHaveBeenCalledWith(
+        expect(api.tx.logionLoc.addCollectionItemWithTermsAndConditions).toHaveBeenCalledWith(
             collectionId.toHexString(),
             itemId,
             stringToHex(itemDescription),
@@ -199,11 +199,11 @@ describe("LogionLoc", () => {
             ]),
             null,
             false,
-            jasmine.objectContaining({
-                licenseType: stringToHex(license.type),
-                licenseLoc: license.licenseLocId.toHexString(),
-                details: stringToHex(license.details)
-            })
+            jasmine.objectContaining([{
+                tcType: stringToHex(termsAndConditions[0].tcType),
+                tcLoc: termsAndConditions[0].tcLocId.toHexString(),
+                details: stringToHex(termsAndConditions[0].details)
+            }])
         );
     });
 
@@ -216,7 +216,7 @@ describe("LogionLoc", () => {
             {
                 name: "artwork.png",
                 contentType: "image/png",
-                size: 256000n,
+                size: BigInt(256000),
                 hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
             }
         ];

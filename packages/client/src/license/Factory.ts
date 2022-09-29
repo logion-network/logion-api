@@ -1,11 +1,15 @@
-import { UUID } from "@logion/node-api";
-import { LogionLicense } from "./LogionLicense";
-import { License } from "./License";
+import { TermsAndConditionsElement as ChainTermsAndConditionsElement, UUID } from "@logion/node-api";
+import { LogionClassification } from "./LogionClassification";
+import { TermsAndConditionsElement } from "./TermsAndConditions";
 import { SpecificLicense } from "./SpecificLicense";
 
-export function newLicense(type: string, licenseLocId: UUID, details: string): License {
-    if (type === 'Logion') {
-        return LogionLicense.fromDetails(licenseLocId, details);
+export function newTermsAndConditions(termsAndConditions: ChainTermsAndConditionsElement[]): TermsAndConditionsElement[] {
+    return termsAndConditions.map(tc => newTermsAndConditionsElement(tc.tcType, tc.tcLocId, tc.details));
+}
+
+export function newTermsAndConditionsElement(type: string, licenseLocId: UUID, details: string): TermsAndConditionsElement {
+    if (type === 'logion_classification') {
+        return LogionClassification.fromDetails(licenseLocId, details);
     } else {
         return SpecificLicense.fromDetails(licenseLocId, details);
     }

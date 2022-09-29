@@ -48,7 +48,7 @@ export interface CollectionItem {
     files: ItemFile[],
     token?: ItemToken,
     restrictedDelivery: boolean,
-    license?: License
+    termsAndConditions: TermsAndConditionsElement[],
 }
 
 export interface ItemFile {
@@ -63,9 +63,9 @@ export interface ItemToken {
     id: string;
 }
 
-export interface License {
-    type: string;
-    licenseLocId: UUID;
+export interface TermsAndConditionsElement {
+    tcType: string;
+    tcLocId: UUID;
     details: string;
 }
 
