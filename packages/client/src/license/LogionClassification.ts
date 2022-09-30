@@ -3,7 +3,17 @@ import { AbstractTermsAndConditionsElement } from "./TermsAndConditions";
 import { Iso3166Alpha2Code } from "../Country";
 import { DateTime } from 'luxon';
 
-export type LogionTransferredRightCode = "PER-PRIV" | "PER-PUB" | "COM-NOMOD" | "COM-MOD" | "EX" | "NOEX" | "WW" | "REG" | "NOTIME" | "TIME";
+export type LogionTransferredRightCode =
+    "PER-PRIV"
+    | "PER-PUB"
+    | "COM-NOMOD"
+    | "COM-MOD"
+    | "EX"
+    | "NOEX"
+    | "WW"
+    | "REG"
+    | "NOTIME"
+    | "TIME";
 
 export type LogionTransferredRightDescription = {
     shortDescription: string
@@ -96,11 +106,15 @@ export interface LogionLicenseParameters {
     expiration?: string
 }
 
+type Condition = (_: LogionLicenseParameters) => boolean;
+
 export class LogionClassification extends AbstractTermsAndConditionsElement<LogionLicenseParameters> {
 
-    constructor(licenseLocId: UUID, parameters: LogionLicenseParameters) {
-        LogionClassification.requireIsoDate(parameters.expiration);
+    constructor(licenseLocId: UUID, parameters: LogionLicenseParameters, checkValidity = true) {
         super('logion_classification', licenseLocId, parameters);
+        if (checkValidity) {
+            this.checkValidity();
+        }
     }
 
     get transferredRights(): LogionTransferredRight[] {
@@ -119,19 +133,67 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
         return JSON.stringify(this.parameters)
     }
 
-    static fromDetails(licenseLocId: UUID, details: string): LogionClassification {
+    checkValidity() {
+        const expirationSet: Condition = params => params.expiration !== undefined && params.expiration.length > 0;
+        const regionalLimitSet: Condition = params => params.regionalLimit !== undefined && params.regionalLimit.length > 0;
+        new Validator(this.parameters)
+            .mutuallyExclusive("PER-PRIV", "PER-PUB")
+            .mutuallyExclusive("COM-NOMOD", "COM-MOD")
+            .mutuallyExclusive("EX", "NOEX")
+            .mutuallyExclusive("REG", "WW")
+            .mutuallyExclusive("TIME", "NOTIME")
+            .codePresentForCondition("TIME", expirationSet, "Transferred right TIME must be set if and only if expiration is set")
+            .codePresentForCondition("REG", regionalLimitSet, "Transferred right REG must be set if and only if a regional limit is set")
+            .validIsoDate(this.parameters.expiration)
+            .validOrThrow()
+    }
+
+    static fromDetails(licenseLocId: UUID, details: string, checkValidity = true): LogionClassification {
         const parameters = JSON.parse(details);
         if (parameters.transferredRights === undefined) {
             parameters.transferredRights = [];
         }
-        return new LogionClassification(licenseLocId, parameters);
+        return new LogionClassification(licenseLocId, parameters, checkValidity);
+    }
+}
+
+class Validator {
+
+    constructor(private parameters: LogionLicenseParameters) {
     }
 
-    static requireIsoDate(date: string | undefined) {
+    private errors: string[] = [];
+
+    validOrThrow() {
+        if (this.errors.length > 0) {
+            throw new Error(this.errors.join("; "));
+        }
+    }
+
+    mutuallyExclusive(code1: LogionTransferredRightCode, code2: LogionTransferredRightCode): Validator {
+        if (this.parameters.transferredRights.includes(code1) &&
+            this.parameters.transferredRights.includes(code2)) {
+            this.errors.push(`Transferred rights are mutually exclusive: ${ code1 } and ${ code2 }`);
+        }
+        return this;
+    }
+
+    codePresentForCondition(code: LogionTransferredRightCode, condition: Condition, message: string): Validator {
+        if (!this.parameters.transferredRights.includes(code) && condition(this.parameters)) {
+            this.errors.push(message);
+        }
+        if (this.parameters.transferredRights.includes(code) && !condition(this.parameters)) {
+            this.errors.push(message);
+        }
+        return this;
+    }
+
+    validIsoDate(date: string | undefined): Validator {
         if (date) {
             if (!DateTime.fromISO(date).isValid) {
-                throw new Error("Invalid date");
+                this.errors.push("Invalid date");
             }
         }
+        return this;
     }
 }

@@ -9,7 +9,7 @@ export function newTermsAndConditions(termsAndConditions: ChainTermsAndCondition
 
 export function newTermsAndConditionsElement(type: string, licenseLocId: UUID, details: string): TermsAndConditionsElement {
     if (type === 'logion_classification') {
-        return LogionClassification.fromDetails(licenseLocId, details);
+        return LogionClassification.fromDetails(licenseLocId, details, false);
     } else {
         return SpecificLicense.fromDetails(licenseLocId, details);
     }
