@@ -176,13 +176,15 @@ closedLoc = await closedLoc.addCollectionItem({
 
 ## Identity LOC
 
+Except for the request, described here, everything else is similar to the [Transaction LOC](#transaction-loc).
+
 ### Lifecycle
 
 ![Identity Loc State](img/identity-loc-state.png)
 
 ### Request
 
-An Identity LOc is requested this way:
+An Identity LOC is requested this way:
 
 ```typescript
 const pendingRequest = await locsState.requestIdentityLoc({
