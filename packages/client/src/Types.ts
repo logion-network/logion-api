@@ -26,3 +26,5 @@ export interface LegalOfficer {
     name: string;
     logoUrl: string;
 }
+
+export type Language = 'en' | 'fr';
