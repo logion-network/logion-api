@@ -261,7 +261,7 @@ export async function collectionLocWithUpload(state: State) {
         restrictedDelivery: true,
         logionClassification: new LogionClassification(logionClassificationLocRequest.locId, {
             regionalLimit: [ "BE", "FR", "LU" ],
-            transferredRights: [ "PER-PRIV" ],
+            transferredRights: [ "PER-PRIV", "REG", "TIME" ],
             expiration: "2025-01-01",
         }),
     });

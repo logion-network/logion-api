@@ -1,4 +1,14 @@
 @startuml
 hide empty description
+state "Decision" as decision <<choice>>
 [*] --> PendingRequest: requestIdentityLoc()
+PendingRequest --> decision
+decision --> RejectedRequest: LO rejects\n the Request
+decision --> OpenLoc: LO accepts\n the Request
+OpenLoc --> VoidedLOC: LO voids\n the LOC
+OpenLoc --> ClosedLoc: LO closes\n the LOC
+ClosedLoc --> VoidedLOC: LO voids\n the LOC
+VoidedLOC --> [*]
+OpenLoc --> OpenLoc: addMetadata(),\n addFile(),\n deleteMetadata(),\n deleteFile(),\n requestSof(),\n
+ClosedLoc --> ClosedLoc: requestSof(),\n
 @enduml
