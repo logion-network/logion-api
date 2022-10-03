@@ -12,33 +12,51 @@ describe("LogionClassification", () => {
             expiration: "2022-09-23"
         });
         expect(logionClassification.details).toEqual('{"transferredRights":["PER-PRIV","REG","TIME"],"regionalLimit":["BE","FR","US"],"expiration":"2022-09-23"}');
-        expect(logionClassification.transferredRights.length).toEqual(3);
-        expect(logionClassification.transferredRights[0].code).toEqual("PER-PRIV");
-        expect(logionClassification.transferredRights[1].code).toEqual("REG");
-        expect(logionClassification.transferredRights[2].code).toEqual("TIME");
-        expect(logionClassification.transferredRights[0].shortDescription).toEqual("PERSONAL, PRIVATE USE ONLY");
-        expect(logionClassification.transferredRights[1].shortDescription).toEqual("COUNTRY-SPECIFIC OR REGIONAL USE");
-        expect(logionClassification.transferredRights[2].shortDescription).toEqual("FOR A LIMITED PERIOD OF TIME");
+        expect(logionClassification.transferredRights().length).toEqual(3);
+        expect(logionClassification.transferredRights()[0].code).toEqual("PER-PRIV");
+        expect(logionClassification.transferredRights()[1].code).toEqual("REG");
+        expect(logionClassification.transferredRights()[2].code).toEqual("TIME");
+        expect(logionClassification.transferredRights()[0].shortDescription).toEqual("PERSONAL, PRIVATE USE ONLY");
+        expect(logionClassification.transferredRights()[1].shortDescription).toEqual("COUNTRY-SPECIFIC OR REGIONAL USE");
+        expect(logionClassification.transferredRights()[2].shortDescription).toEqual("FOR A LIMITED PERIOD OF TIME");
+        expect(logionClassification.tcLocId.toString()).toEqual(classificationLocId.toString());
+        expect(logionClassification.type).toEqual('logion_classification');
+    })
+
+    it("has correct details in french", () => {
+        const logionClassification = new LogionClassification(classificationLocId, {
+            transferredRights: [ "PER-PRIV", "REG", "TIME" ],
+            regionalLimit: [ "BE", "FR", "US" ],
+            expiration: "2022-09-23"
+        });
+        expect(logionClassification.details).toEqual('{"transferredRights":["PER-PRIV","REG","TIME"],"regionalLimit":["BE","FR","US"],"expiration":"2022-09-23"}');
+        expect(logionClassification.transferredRights('fr').length).toEqual(3);
+        expect(logionClassification.transferredRights('fr')[0].code).toEqual("PER-PRIV");
+        expect(logionClassification.transferredRights('fr')[1].code).toEqual("REG");
+        expect(logionClassification.transferredRights('fr')[2].code).toEqual("TIME");
+        expect(logionClassification.transferredRights('fr')[0].shortDescription).toEqual("USAGE PERSONNEL PRIVE");
+        expect(logionClassification.transferredRights('fr')[1].shortDescription).toEqual("USAGE PAR PAYS/REGION");
+        expect(logionClassification.transferredRights('fr')[2].shortDescription).toEqual("POUR UNE DUREE DETERMINEE");
         expect(logionClassification.tcLocId.toString()).toEqual(classificationLocId.toString());
         expect(logionClassification.type).toEqual('logion_classification');
     })
 
     it("instantiates from empty details", () => {
         const logionClassification = LogionClassification.fromDetails(classificationLocId, '{}');
-        expect(logionClassification.transferredRights.length).toEqual(0);
+        expect(logionClassification.transferredRights().length).toEqual(0);
         expect(logionClassification.expiration).toBeUndefined();
         expect(logionClassification.regionalLimit).toBeUndefined();
     })
 
-    it("instantiates from full details", () => {
+    it("instantiates from full details in french", () => {
         const logionClassification = LogionClassification.fromDetails(classificationLocId, '{"transferredRights":["PER-PRIV","REG","TIME"],"regionalLimit":["BE","FR","US"],"expiration":"2022-09-23"}');
-        expect(logionClassification.transferredRights.length).toEqual(3);
-        expect(logionClassification.transferredRights[0].code).toEqual("PER-PRIV");
-        expect(logionClassification.transferredRights[1].code).toEqual("REG");
-        expect(logionClassification.transferredRights[2].code).toEqual("TIME");
-        expect(logionClassification.transferredRights[0].shortDescription).toEqual("PERSONAL, PRIVATE USE ONLY");
-        expect(logionClassification.transferredRights[1].shortDescription).toEqual("COUNTRY-SPECIFIC OR REGIONAL USE");
-        expect(logionClassification.transferredRights[2].shortDescription).toEqual("FOR A LIMITED PERIOD OF TIME");
+        expect(logionClassification.transferredRights('fr').length).toEqual(3);
+        expect(logionClassification.transferredRights('fr')[0].code).toEqual("PER-PRIV");
+        expect(logionClassification.transferredRights('fr')[1].code).toEqual("REG");
+        expect(logionClassification.transferredRights('fr')[2].code).toEqual("TIME");
+        expect(logionClassification.transferredRights('fr')[0].shortDescription).toEqual("USAGE PERSONNEL PRIVE");
+        expect(logionClassification.transferredRights('fr')[1].shortDescription).toEqual("USAGE PAR PAYS/REGION");
+        expect(logionClassification.transferredRights('fr')[2].shortDescription).toEqual("POUR UNE DUREE DETERMINEE");
         expect(logionClassification.tcLocId.toString()).toEqual(classificationLocId.toString());
         expect(logionClassification.type).toEqual('logion_classification');
     })

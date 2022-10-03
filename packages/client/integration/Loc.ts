@@ -281,7 +281,7 @@ export async function collectionLocWithUpload(state: State) {
     expect(firstItem!.token).toEqual(firstItemToken);
     expect(firstItem!.restrictedDelivery).toBe(true);
     const logionClassification = firstItem!.logionClassification!;
-    expect(logionClassification.transferredRights[0].shortDescription).toEqual("PERSONAL, PRIVATE USE ONLY")
+    expect(logionClassification.transferredRights()[0].shortDescription).toEqual("PERSONAL, PRIVATE USE ONLY")
     expect(logionClassification.expiration).toEqual("2025-01-01")
     expect(logionClassification.regionalLimit![0]).toEqual("BE")
 
