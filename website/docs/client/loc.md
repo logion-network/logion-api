@@ -174,6 +174,39 @@ closedLoc = await closedLoc.addCollectionItem({
 });
 ```
 
+#### Terms and Conditions
+
+Terms and conditions can be added to the collection item, using either the `LogionClassification`,
+a set of `SpecificLicense`s, or both.
+
+As a prerequisite, a valid closed Transaction LOC defining the classification or license must exist.
+(referred as `logionClassification.locId` and `specificLicense.locId` in the example below).
+
+```typescript
+const itemId = "0xc53447c3d4e9d94d6f4ab926378c5b14bd66e28af619d4dcb066c862f8aeb455"; // SHA256 hash of "first-collection-item" (without the quotes)
+const itemDescription = "First collection item";
+const itemFileContent = "test";
+const itemFileHash = hash(itemFileContent);
+closedLoc = await closedLoc.addCollectionItem({
+    itemId,
+    itemDescription,
+    signer: state.signer,
+    logionClassification: new LogionClassification(logionClassificationLocRequest.locId, {
+        regionalLimit: [ "BE", "FR", "LU" ],
+        transferredRights: [ "PER-PRIV", "REG", "TIME" ],
+        expiration: "2025-01-01",
+    }),
+    specificLicenses: [ new SpecificLicense(specificLicense.locId, "Some details about the license") ]
+});
+```
+
+:::note Logion Classification
+* The Logion Classification allows to define a set of `transferredRights` to define precisely the scope of the terms and conditions.
+All possible transferred rights are available in `logionLicenseItems`.
+* With the code `TIME` it is possible to limit the right in time by setting the parameter `expiration`.
+* With the code `REG` it is possible to limit to some countries/regions with the parameter `regionalLimit`.
+:::
+
 ## Identity LOC
 
 Except for the request, described here, everything else is similar to the [Transaction LOC](#transaction-loc).
