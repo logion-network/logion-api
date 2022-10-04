@@ -28,30 +28,29 @@ import {
     LocRequest,
     Signer,
     SignParameters,
-    TermsAndConditionsElement,
     SpecificLicense
 } from "../src";
 import { SharedState } from "../src/SharedClient";
 import {
     ALICE,
     BOB,
+    CHARLIE,
     buildTestAuthenticatedSharedSate,
     LOGION_CLIENT_CONFIG,
     mockEmptyOption,
     REQUESTER,
-    SUCCESSFULL_SUBMISSION
+    SUCCESSFUL_SUBMISSION
 } from "./Utils";
 import { TestConfigFactory } from "./TestConfigFactory";
 import { FormDataLike } from "../src/ComponentFactory";
 import {
     buildCollectionItem,
-    buildLoc,
     buildLocRequest,
     buildOffchainCollectionItem,
     EXISTING_FILE_HASH,
     EXISTING_ITEM_ID,
     ITEM_DESCRIPTION,
-    mockVoidInfo
+    mockVoidInfo, buildLocAndRequest
 } from "./LocUtils";
 
 describe("LocsState", () => {
@@ -68,18 +67,27 @@ describe("LocsState", () => {
         expect(locs.openLocs.Transaction.length).toBe(2);
         const openLoc = locs.openLocs.Transaction[0];
         expect(openLoc).toBeInstanceOf(OpenLoc);
-        expect(openLoc.locId).toEqual(new UUID(ALICE_OPEN_TRANSACTION_LOC_REQUEST.id));
+        expect(openLoc.locId).toEqual(new UUID(ALICE_OPEN_TRANSACTION_LOC.request.id));
 
         expect(locs.closedLocs.Transaction.length).toBe(1);
         const closedTransactionLoc = locs.closedLocs.Transaction[0];
         expect(closedTransactionLoc).toBeInstanceOf(ClosedLoc);
-        expect(closedTransactionLoc.locId).toEqual(new UUID(ALICE_CLOSED_TRANSACTION_LOC_REQUEST.id));
+        expect(closedTransactionLoc.locId).toEqual(new UUID(ALICE_CLOSED_TRANSACTION_LOC.request.id));
 
         expect(locs.closedLocs.Collection.length).toBe(1);
         const closedCollectionLoc = locs.closedLocs.Collection[0];
         expect(closedCollectionLoc).toBeInstanceOf(ClosedCollectionLoc);
-        expect(closedCollectionLoc.locId).toEqual(new UUID(ALICE_CLOSED_COLLECTION_LOC_REQUEST.id));
+        expect(closedCollectionLoc.locId).toEqual(new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id));
     });
+
+    it("checks that user has valid identity", async() => {
+        const sharedState = await buildSharedState();
+        const locs = await LocsState.getInitialLocsState(sharedState);
+
+        expect(locs.hasValidIdentityLoc(ALICE)).toBeFalse();
+        expect(locs.hasValidIdentityLoc(BOB)).toBeTrue();
+        expect(locs.hasValidIdentityLoc(CHARLIE)).toBeFalse();
+    })
 });
 
 describe("PendingRequest", () => {
@@ -124,7 +132,7 @@ describe("OpenLoc", () => {
 
         expect(newState).toBeInstanceOf(OpenLoc);
         aliceAxiosMock.verify(instance => instance.post(
-                `/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC_REQUEST.id }/metadata`,
+                `/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC.request.id }/metadata`,
                 It.Is<AddMetadataParams & FetchParameters>((params: any) => params.name === "Test" && params.value === "Test Value")),
             Times.Once(),
         );
@@ -141,7 +149,7 @@ describe("OpenLoc", () => {
 
         expect(newState.state).toBeInstanceOf(OpenLoc);
         aliceAxiosMock.verify(instance => instance.post(
-                `/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC_REQUEST.id }/files`,
+                `/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC.request.id }/files`,
                 It.IsAny(),
                 It.Is((options: AxiosRequestConfig<FormDataLike>) => options.headers !== undefined && options.headers["Content-Type"] === "multipart/form-data")
             ),
@@ -157,7 +165,7 @@ describe("OpenLoc", () => {
         });
 
         expect(newState).toBeInstanceOf(OpenLoc);
-        aliceAxiosMock.verify(instance => instance.delete(`/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC_REQUEST.id }/metadata/Test`), Times.Once());
+        aliceAxiosMock.verify(instance => instance.delete(`/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC.request.id }/metadata/Test`), Times.Once());
     });
 
     it("deletes file", async () => {
@@ -169,7 +177,7 @@ describe("OpenLoc", () => {
 
         expect(newState).toBeInstanceOf(OpenLoc);
         aliceAxiosMock.verify(instance => instance.delete(
-            `/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC_REQUEST.id }/files/0x7bae16861c48edb6376401922729c4e3faaa5e203615b3ba6814ba4e85fb434c`
+            `/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC.request.id }/files/0x7bae16861c48edb6376401922729c4e3faaa5e203615b3ba6814ba4e85fb434c`
         ), Times.Once());
     });
 
@@ -196,7 +204,7 @@ describe("OpenLoc", () => {
     it("exposes expected data", async () => {
         const openLoc = await getOpenLoc();
         const data = openLoc.data();
-        expectDataToMatch(data, ALICE_OPEN_TRANSACTION_LOC_REQUEST);
+        expectDataToMatch(data, ALICE_OPEN_TRANSACTION_LOC.request);
     });
 });
 
@@ -225,7 +233,7 @@ describe("ClosedLoc", () => {
     it("exposes expected data", async () => {
         const closedLoc = await getClosedTransactionLoc();
         const data = closedLoc.data();
-        expectDataToMatch(data, ALICE_CLOSED_TRANSACTION_LOC_REQUEST);
+        expectDataToMatch(data, ALICE_CLOSED_TRANSACTION_LOC.request);
     });
 });
 
@@ -235,7 +243,7 @@ describe("ClosedCollectionLoc", () => {
         const closedLoc = await getClosedCollectionLoc();
 
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFULL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFUL_SUBMISSION);
         await closedLoc.addCollectionItem({
             itemId: ITEM_ID,
             itemDescription: ITEM_DESCRIPTION,
@@ -249,7 +257,7 @@ describe("ClosedCollectionLoc", () => {
         const closedLoc = await getClosedCollectionLoc();
 
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFULL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFUL_SUBMISSION);
         await closedLoc.addCollectionItem({
             itemId: ITEM_ID,
             itemDescription: ITEM_DESCRIPTION,
@@ -282,7 +290,7 @@ describe("ClosedCollectionLoc", () => {
         });
 
         aliceAxiosMock.verify(instance => instance.post(
-                `/api/collection/${ ALICE_CLOSED_COLLECTION_LOC_REQUEST.id }/${ ITEM_ID }/files`,
+                `/api/collection/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/${ ITEM_ID }/files`,
                 It.IsAny(),
                 It.Is((options: AxiosRequestConfig<FormDataLike>) => options.headers !== undefined && options.headers["Content-Type"] === "multipart/form-data")
             ),
@@ -310,7 +318,7 @@ describe("ClosedCollectionLoc", () => {
     it("exposes expected data", async () => {
         const closedLoc = await getClosedCollectionLoc();
         const data = closedLoc.data();
-        expectDataToMatch(data, ALICE_CLOSED_COLLECTION_LOC_REQUEST);
+        expectDataToMatch(data, ALICE_CLOSED_COLLECTION_LOC.request);
     });
 });
 
@@ -336,7 +344,7 @@ describe("VoidedLoc", () => {
     it("exposes expected data", async () => {
         const voidedLoc = await getVoidedTransactionLoc();
         const data = voidedLoc.data();
-        expectDataToMatch(data, BOB_VOID_TRANSACTION_LOC_REQUEST);
+        expectDataToMatch(data, BOB_VOID_TRANSACTION_LOC.request);
     });
 });
 
@@ -368,39 +376,37 @@ describe("VoidedCollectionLoc", () => {
     it("exposes expected data", async () => {
         const voidedLoc = await getVoidedCollectionLoc();
         const data = voidedLoc.data();
-        expectDataToMatch(data, BOB_VOID_COLLECTION_LOC_REQUEST);
+        expectDataToMatch(data, BOB_VOID_COLLECTION_LOC.request);
     });
 });
 
-const legalOfficers: LegalOfficer[] = [ ALICE, BOB ];
+const legalOfficers: LegalOfficer[] = [ ALICE, BOB, CHARLIE ];
 
 const ITEM_ID = "0x186bf67f32bb45187a1c50286dbd9adf8751874831aeba2a66760a74a9c898cc";
 
-const ALICE_OPEN_TRANSACTION_LOC_REQUEST = buildLocRequest(ALICE.address, "OPEN", "Transaction");
-const ALICE_OPEN_TRANSACTION_LOC = buildLoc(ALICE.address, "OPEN", "Transaction");
-const ALICE_CLOSED_TRANSACTION_LOC_REQUEST = buildLocRequest(ALICE.address, "CLOSED", "Transaction");
-const ALICE_CLOSED_TRANSACTION_LOC = buildLoc(ALICE.address, "CLOSED", "Transaction");
-const ALICE_CLOSED_COLLECTION_LOC_REQUEST = buildLocRequest(ALICE.address, "CLOSED", "Collection");
-const ALICE_CLOSED_COLLECTION_LOC = buildLoc(ALICE.address, "CLOSED", "Collection");
-const ALICE_REQUESTED_SOF = buildLoc(ALICE.address, "REQUESTED", "Transaction");
+const ALICE_OPEN_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "OPEN", "Transaction");
+const ALICE_CLOSED_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED", "Transaction");
+const ALICE_CLOSED_COLLECTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED", "Collection");
+const ALICE_REQUESTED_SOF_REQUEST = buildLocRequest(ALICE.address, "REQUESTED", "Transaction");
 const ALICE_REJECTED_TRANSACTION_LOC_REQUEST = buildLocRequest(ALICE.address, "REJECTED", "Transaction");
 
 const BOB_REQUESTED_TRANSACTION_LOC_REQUEST = buildLocRequest(BOB.address, "REQUESTED", "Transaction");
-const BOB_OPEN_TRANSACTION_LOC_REQUEST = buildLocRequest(BOB.address, "OPEN", "Transaction");
-const BOB_OPEN_TRANSACTION_LOC = buildLoc(BOB.address, "OPEN", "Transaction");
-const BOB_VOID_TRANSACTION_LOC_REQUEST = buildLocRequest(BOB.address, "CLOSED", "Transaction");
-const BOB_VOID_TRANSACTION_LOC = buildLoc(BOB.address, "CLOSED", "Transaction", mockVoidInfo());
-const BOB_VOID_COLLECTION_LOC_REQUEST = buildLocRequest(BOB.address, "CLOSED", "Collection", true);
-const BOB_VOID_COLLECTION_LOC = buildLoc(BOB.address, "CLOSED", "Collection", mockVoidInfo());
+const BOB_OPEN_TRANSACTION_LOC = buildLocAndRequest(BOB.address, "OPEN", "Transaction");
+const BOB_VOID_TRANSACTION_LOC = buildLocAndRequest(BOB.address, "CLOSED", "Transaction", mockVoidInfo());
+const BOB_VOID_COLLECTION_LOC = buildLocAndRequest(BOB.address, "CLOSED", "Collection", mockVoidInfo());
+const BOB_CLOSED_IDENTITY_LOC = buildLocAndRequest(BOB.address, "CLOSED", "Identity");
+
+const CHARLIE_VOID_IDENTITY_LOC = buildLocAndRequest(CHARLIE.address, "CLOSED", "Identity", mockVoidInfo());
 
 const COLLECTION_ITEM = buildCollectionItem();
-const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem(ALICE_CLOSED_COLLECTION_LOC_REQUEST.id);
+const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem(ALICE_CLOSED_COLLECTION_LOC.request.id);
 const SPECIFIC_LICENSES: SpecificLicense[] = [
     new SpecificLicense(new UUID("61ccd87f-765c-4ab0-bd91-af68887515d4"), "")
 ];
 
 let aliceAxiosMock: Mock<AxiosInstance>;
 let bobAxiosMock: Mock<AxiosInstance>;
+let charlieAxiosMock: Mock<AxiosInstance>;
 let nodeApiMock: Mock<LogionNodeApi>;
 
 async function buildSharedState(): Promise<SharedState> {
@@ -422,9 +428,9 @@ async function buildSharedState(): Promise<SharedState> {
 
             aliceAxiosMock = new Mock<AxiosInstance>();
             const aliceRequests: LocRequest[] = [
-                ALICE_OPEN_TRANSACTION_LOC_REQUEST,
-                ALICE_CLOSED_TRANSACTION_LOC_REQUEST,
-                ALICE_CLOSED_COLLECTION_LOC_REQUEST,
+                ALICE_OPEN_TRANSACTION_LOC.request,
+                ALICE_CLOSED_TRANSACTION_LOC.request,
+                ALICE_CLOSED_COLLECTION_LOC.request,
                 ALICE_REJECTED_TRANSACTION_LOC_REQUEST,
             ];
             aliceAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === REQUESTER)))
@@ -433,33 +439,26 @@ async function buildSharedState(): Promise<SharedState> {
                         requests: aliceRequests
                     }
                 } as AxiosResponse);
-            aliceAxiosMock.setup(instance => instance.post(`/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC_REQUEST.id }/metadata`, It.IsAny()))
+            aliceAxiosMock.setup(instance => instance.post(`/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC.request.id }/metadata`, It.IsAny()))
                 .returnsAsync({} as AxiosResponse);
-            aliceAxiosMock.setup(instance => instance.post(`/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC_REQUEST.id }/files`, It.IsAny(), It.IsAny()))
+            aliceAxiosMock.setup(instance => instance.post(`/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC.request.id }/files`, It.IsAny(), It.IsAny()))
                 .returnsAsync({
                     data: {
                         hash: "0x7bae16861c48edb6376401922729c4e3faaa5e203615b3ba6814ba4e85fb434c"
                     }
                 } as AxiosResponse);
-            aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC_REQUEST.id }`)).returnsAsync({
-                data: ALICE_OPEN_TRANSACTION_LOC_REQUEST
-            } as AxiosResponse);
-            aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ ALICE_CLOSED_TRANSACTION_LOC_REQUEST.id }`)).returnsAsync({
-                data: ALICE_CLOSED_TRANSACTION_LOC_REQUEST
-            } as AxiosResponse);
-            aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ ALICE_CLOSED_COLLECTION_LOC_REQUEST.id }`)).returnsAsync({
-                data: ALICE_CLOSED_COLLECTION_LOC_REQUEST
-            } as AxiosResponse);
-            aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ ALICE_REJECTED_TRANSACTION_LOC_REQUEST.id }`)).returnsAsync({
-                data: ALICE_REJECTED_TRANSACTION_LOC_REQUEST
-            } as AxiosResponse);
+            aliceRequests.forEach(request => {
+                aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }`)).returnsAsync({
+                    data: request
+                } as AxiosResponse);
+            });
             aliceAxiosMock.setup(instance => instance.delete(It.IsAny())).returnsAsync({
-                data: ALICE_OPEN_TRANSACTION_LOC_REQUEST
+                data: ALICE_OPEN_TRANSACTION_LOC.request
             } as AxiosResponse);
             aliceAxiosMock.setup(instance => instance.post(`/api/loc-request/sof`, It.IsAny())).returnsAsync({
-                data: ALICE_REQUESTED_SOF
+                data: ALICE_REQUESTED_SOF_REQUEST
             } as AxiosResponse);
-            aliceAxiosMock.setup(instance => instance.get(`/api/collection/${ ALICE_CLOSED_COLLECTION_LOC_REQUEST.id }/${ EXISTING_ITEM_ID }`)).returnsAsync({
+            aliceAxiosMock.setup(instance => instance.get(`/api/collection/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/${ EXISTING_ITEM_ID }`)).returnsAsync({
                 data: OFFCHAIN_COLLECTION_ITEM
             } as AxiosResponse);
             axiosFactoryMock.setup(instance => instance.buildAxiosInstance(ALICE.node, token))
@@ -468,9 +467,10 @@ async function buildSharedState(): Promise<SharedState> {
             bobAxiosMock = new Mock<AxiosInstance>();
             const bobRequests: LocRequest[] = [
                 BOB_REQUESTED_TRANSACTION_LOC_REQUEST,
-                BOB_OPEN_TRANSACTION_LOC_REQUEST,
-                BOB_VOID_TRANSACTION_LOC_REQUEST,
-                BOB_VOID_COLLECTION_LOC_REQUEST,
+                BOB_OPEN_TRANSACTION_LOC.request,
+                BOB_VOID_TRANSACTION_LOC.request,
+                BOB_VOID_COLLECTION_LOC.request,
+                BOB_CLOSED_IDENTITY_LOC.request,
             ];
             bobAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === REQUESTER)))
                 .returnsAsync({
@@ -478,38 +478,48 @@ async function buildSharedState(): Promise<SharedState> {
                         requests: bobRequests
                     }
                 } as AxiosResponse);
-            bobAxiosMock.setup(instance => instance.get(`/api/loc-request/${ BOB_REQUESTED_TRANSACTION_LOC_REQUEST.id }`)).returnsAsync({
-                data: BOB_REQUESTED_TRANSACTION_LOC_REQUEST
-            } as AxiosResponse);
-            bobAxiosMock.setup(instance => instance.get(`/api/loc-request/${ BOB_VOID_TRANSACTION_LOC_REQUEST.id }`)).returnsAsync({
-                data: BOB_VOID_TRANSACTION_LOC_REQUEST
-            } as AxiosResponse);
-            bobAxiosMock.setup(instance => instance.get(`/api/loc-request/${ BOB_VOID_COLLECTION_LOC_REQUEST.id }`)).returnsAsync({
-                data: BOB_VOID_COLLECTION_LOC_REQUEST
-            } as AxiosResponse);
-            bobAxiosMock.setup(instance => instance.get(`/api/collection/${ BOB_VOID_COLLECTION_LOC_REQUEST.id }/${ EXISTING_ITEM_ID }`)).returnsAsync({
+            bobRequests.forEach(request => {
+                bobAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }`)).returnsAsync({
+                    data: request
+                } as AxiosResponse);
+            })
+            bobAxiosMock.setup(instance => instance.get(`/api/collection/${ BOB_VOID_COLLECTION_LOC.request.id }/${ EXISTING_ITEM_ID }`)).returnsAsync({
                 data: OFFCHAIN_COLLECTION_ITEM
             } as AxiosResponse);
             axiosFactoryMock.setup(instance => instance.buildAxiosInstance(BOB.node, token))
                 .returns(bobAxiosMock.object());
 
+
+            charlieAxiosMock = new Mock<AxiosInstance>();
+            const charlieRequests: LocRequest[] = [
+                CHARLIE_VOID_IDENTITY_LOC.request,
+            ];
+            charlieAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === REQUESTER)))
+                .returnsAsync({
+                    data: {
+                        requests: charlieRequests
+                    }
+                } as AxiosResponse);
+            charlieRequests.forEach(request => {
+                charlieAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }`)).returnsAsync({
+                    data: request
+                } as AxiosResponse);
+            })
+            axiosFactoryMock.setup(instance => instance.buildAxiosInstance(CHARLIE.node, token))
+                .returns(charlieAxiosMock.object());
+
+
             nodeApiMock = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-            nodeApiMock.setup(instance => instance.query.logionLoc.locMap(new UUID(ALICE_OPEN_TRANSACTION_LOC_REQUEST.id).toHexString()))
-                .returnsAsync(ALICE_OPEN_TRANSACTION_LOC);
-            nodeApiMock.setup(instance => instance.query.logionLoc.locMap(new UUID(ALICE_CLOSED_TRANSACTION_LOC_REQUEST.id).toHexString()))
-                .returnsAsync(ALICE_CLOSED_TRANSACTION_LOC);
-            nodeApiMock.setup(instance => instance.query.logionLoc.locMap(new UUID(ALICE_CLOSED_COLLECTION_LOC_REQUEST.id).toHexString()))
-                .returnsAsync(ALICE_CLOSED_COLLECTION_LOC);
-            nodeApiMock.setup(instance => instance.query.logionLoc.locMap(new UUID(BOB_OPEN_TRANSACTION_LOC_REQUEST.id).toHexString()))
-                .returnsAsync(BOB_OPEN_TRANSACTION_LOC);
-            nodeApiMock.setup(instance => instance.query.logionLoc.locMap(new UUID(BOB_VOID_TRANSACTION_LOC_REQUEST.id).toHexString()))
-                .returnsAsync(BOB_VOID_TRANSACTION_LOC);
-            nodeApiMock.setup(instance => instance.query.logionLoc.locMap(new UUID(BOB_VOID_COLLECTION_LOC_REQUEST.id).toHexString()))
-                .returnsAsync(BOB_VOID_COLLECTION_LOC);
+
+            [ ALICE_OPEN_TRANSACTION_LOC, ALICE_CLOSED_TRANSACTION_LOC, ALICE_CLOSED_COLLECTION_LOC, BOB_OPEN_TRANSACTION_LOC, BOB_VOID_TRANSACTION_LOC, BOB_VOID_COLLECTION_LOC, BOB_CLOSED_IDENTITY_LOC, CHARLIE_VOID_IDENTITY_LOC ]
+                .forEach(locData => {
+                    nodeApiMock.setup(instance => instance.query.logionLoc.locMap(new UUID(locData.request.id).toHexString()))
+                        .returnsAsync(locData.loc);
+                })
 
             const addCollectionItemExtrinsic = new Mock<SubmittableExtrinsic>();
             nodeApiMock.setup(instance => instance.tx.logionLoc.addCollectionItem(
-                new UUID(ALICE_CLOSED_COLLECTION_LOC_REQUEST.id).toDecimalString(),
+                new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id).toDecimalString(),
                 ITEM_ID,
                 ITEM_DESCRIPTION,
                 [],
@@ -519,7 +529,7 @@ async function buildSharedState(): Promise<SharedState> {
 
             const addCollectionItemWithTermsAndConditionsExtrinsic = new Mock<SubmittableExtrinsic>();
             nodeApiMock.setup(instance => instance.tx.logionLoc.addCollectionItemWithTermsAndConditions(
-                new UUID(ALICE_CLOSED_COLLECTION_LOC_REQUEST.id).toDecimalString(),
+                new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id).toDecimalString(),
                 ITEM_ID,
                 ITEM_DESCRIPTION,
                 [],
@@ -529,13 +539,13 @@ async function buildSharedState(): Promise<SharedState> {
             )).returns(addCollectionItemWithTermsAndConditionsExtrinsic.object());
 
             nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(
-                It.Is<UUID>(locId => locId.toString() !== ALICE_CLOSED_COLLECTION_LOC_REQUEST.id),
+                It.Is<UUID>(locId => locId.toString() !== ALICE_CLOSED_COLLECTION_LOC.request.id),
                 It.Is<string>(itemId => itemId !== EXISTING_ITEM_ID
                 )))
                 .returnsAsync(mockEmptyOption());
-            nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(new UUID(ALICE_CLOSED_COLLECTION_LOC_REQUEST.id).toHexString(), EXISTING_ITEM_ID))
+            nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id).toHexString(), EXISTING_ITEM_ID))
                 .returnsAsync(COLLECTION_ITEM);
-            nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(new UUID(BOB_VOID_COLLECTION_LOC_REQUEST.id).toHexString(), EXISTING_ITEM_ID))
+            nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(new UUID(BOB_VOID_COLLECTION_LOC.request.id).toHexString(), EXISTING_ITEM_ID))
                 .returnsAsync(COLLECTION_ITEM);
         },
         currentAddress,

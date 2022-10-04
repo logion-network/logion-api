@@ -7,12 +7,12 @@ import { AxiosInstance, AxiosResponse } from 'axios';
 import { DateTime } from "luxon";
 import { It, Mock, Times } from 'moq.ts';
 
-import { buildTestConfig, LOGION_CLIENT_CONFIG, ALICE, BOB, buildTestAuthenticatedSharedSate, SUCCESSFULL_SUBMISSION } from "./Utils";
+import { buildTestConfig, LOGION_CLIENT_CONFIG, ALICE, BOB, buildTestAuthenticatedSharedSate, SUCCESSFUL_SUBMISSION } from "./Utils";
 import { AccountTokens, LogionClient } from "../src";
 import { Transaction } from "../src/TransactionClient";
 import { AxiosFactory } from "../src/AxiosFactory";
-import { BalanceState } from "../src/Balance";
-import { Signer } from "../src/Signer";
+import { BalanceState } from "../src";
+import { Signer } from "../src";
 
 const REQUESTER_ADDRESS = "5ERRWWYABvYjyUG2oLCNifkmcCQT44ijPpQNxtwZZFj86Jjd";
 
@@ -137,7 +137,7 @@ describe("Balance", () => {
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
             params.signerId === REQUESTER_ADDRESS
             && params.submittable === transfer.object()))
-        ).returns(Promise.resolve(SUCCESSFULL_SUBMISSION));
+        ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 
         await balanceState.transfer({
             signer: signer.object(),
@@ -202,7 +202,7 @@ describe("Balance", () => {
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
             params.signerId === REQUESTER_ADDRESS
             && params.submittable === asRecovered.object()))
-        ).returns(Promise.resolve(SUCCESSFULL_SUBMISSION));
+        ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 
         await balanceState.transfer({
             signer: signer.object(),

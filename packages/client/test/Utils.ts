@@ -2,11 +2,11 @@ import { DateTime } from "luxon";
 import { Option, Vec, bool } from "@polkadot/types-codec";
 import type { Codec } from '@polkadot/types-codec/types';
 
-import { AccountTokens } from "../src/AuthenticationClient";
+import { AccountTokens } from "../src";
 import { LegalOfficerEndpoint, LogionClientConfig, SharedState } from "../src/SharedClient";
-import { LegalOfficer, UserIdentity, LegalOfficerPostalAddress } from "../src/Types";
+import { LegalOfficer, UserIdentity, LegalOfficerPostalAddress } from "../src";
 import { TestConfigFactory } from "./TestConfigFactory";
-import { SuccessfulSubmission } from "../src/Signer";
+import { SuccessfulSubmission } from "../src";
 import { It } from "moq.ts";
 
 export const ALICE: LegalOfficer = {
@@ -129,7 +129,7 @@ export function mockOption<T extends Codec>(value: Partial<T>): Option<T> {
     } as unknown as Option<T>;
 }
 
-export const SUCCESSFULL_SUBMISSION: SuccessfulSubmission = {
+export const SUCCESSFUL_SUBMISSION: SuccessfulSubmission = {
     block: "0x1234567890abcdef",
     index: 1,
 };

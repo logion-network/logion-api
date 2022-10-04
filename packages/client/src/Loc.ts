@@ -87,6 +87,13 @@ export class LocsState {
         return this.withPredicate(loc => loc instanceof RejectedRequest);
     }
 
+    hasValidIdentityLoc(legalOfficer: LegalOfficer): boolean {
+        return this.filter('Identity', loc =>
+            loc instanceof ClosedLoc &&
+            loc.data().ownerAddress === legalOfficer.address
+        ).length > 0;
+    }
+
     private withPredicate<T extends LocRequestState>(predicate: (l: LocRequestState) => boolean): Record<LocType, T[]> {
         return {
             'Transaction': this.filter('Transaction', predicate),
