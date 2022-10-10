@@ -17,7 +17,7 @@ import {
     PendingProtection,
     PendingRecovery,
     RejectedProtection
-} from '../src/Recovery';
+} from '../src';
 import {
     ALICE,
     BOB,
@@ -25,16 +25,16 @@ import {
     LOGION_CLIENT_CONFIG,
     mockOption,
     mockEmptyOption,
-    SUCCESSFULL_SUBMISSION,
+    SUCCESSFUL_SUBMISSION,
     REQUESTER,
     RECOVERED_ADDRESS,
 } from './Utils';
 import { TestConfigFactory } from './TestConfigFactory';
-import { LegalOfficer, PostalAddress, UserIdentity } from '../src/Types';
+import { LegalOfficer, PostalAddress, UserIdentity } from '../src';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { AxiosFactory } from '../src/AxiosFactory';
-import { Signer } from '../src/Signer';
-import { AccountTokens } from '../src/AuthenticationClient';
+import { Signer } from '../src';
+import { AccountTokens } from '../src';
 
 describe("Recovery's getInitialState", () => {
 
@@ -474,7 +474,7 @@ describe("NoProtection", () => {
         const state = new NoProtection(sharedState);
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string }>(params => params.signerId === currentAddress)))
-            .returns(Promise.resolve(SUCCESSFULL_SUBMISSION));
+            .returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 
         const nextState = await state.requestRecovery({
             legalOfficer1: ALICE,
@@ -788,7 +788,7 @@ describe("AcceptedProtection", () => {
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
             params.signerId === currentAddress
             && params.submittable === submittable.object()))
-        ).returns(Promise.resolve(SUCCESSFULL_SUBMISSION));
+        ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 
         const nextState = await state.activate(signer.object());
 
@@ -861,7 +861,7 @@ describe("PendingRecovery", () => {
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
             params.signerId === currentAddress
             && params.submittable === submittable.object()))
-        ).returns(Promise.resolve(SUCCESSFULL_SUBMISSION));
+        ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 
         const nextState = await state.claimRecovery(signer.object());
 

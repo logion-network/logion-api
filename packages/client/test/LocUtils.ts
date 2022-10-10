@@ -24,6 +24,18 @@ export const EXISTING_FILE: LocFile = {
     submitter: REQUESTER,
 };
 
+export type LocAndRequest = {
+    request: LocRequest,
+    loc: Option<PalletLogionLocLegalOfficerCase>
+}
+
+export function buildLocAndRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: Option<PalletLogionLocLocVoidInfo>): LocAndRequest {
+    return {
+        request: buildLocRequest(ownerAddress, status, locType, voidInfo !== undefined),
+        loc: buildLoc(ownerAddress, status, locType, voidInfo)
+    }
+}
+
 export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voided?: boolean): LocRequest {
     return {
         id: new UUID().toString(),
