@@ -8,6 +8,7 @@ export * from './Balance';
 export * from './CollectionItem';
 export * from './DateTimeUtil';
 export * from './DirectoryClient';
+export * from './Ethereum';
 export * from './Hash';
 export * from './Http';
 export * from './Loc';
