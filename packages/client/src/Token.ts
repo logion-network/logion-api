@@ -5,10 +5,10 @@ export interface ItemTokenWithRestrictedType {
     id: string,
 }
 
-export type TokenType = 'ethereum_erc721' | 'owner';
+export type TokenType = 'ethereum_erc721' | 'ethereum_erc1155' | 'goerli_erc721' | 'goerli_erc1155' | 'owner';
 
 export function isTokenType(type: string): type is TokenType {
-    return type === 'ethereum_erc721' || type === 'owner';
+    return type === 'ethereum_erc721' || type === 'ethereum_erc1155' || type === 'goerli_erc721' || type === 'goerli_erc1155' || type === 'owner';
 }
 
 export interface TokenValidationResult {
@@ -17,7 +17,7 @@ export interface TokenValidationResult {
 }
 
 export function validateToken(itemToken: ItemTokenWithRestrictedType): TokenValidationResult {
-    if(itemToken.type === "ethereum_erc721") {
+    if(isErcToken(itemToken.type)) {
         let idObject;
         try {
             idObject = JSON.parse(itemToken.id);
@@ -72,6 +72,10 @@ export function validateToken(itemToken: ItemTokenWithRestrictedType): TokenVali
             error: `unsupported token type '${itemToken.type}'`,
         }
     }
+}
+
+export function isErcToken(type: TokenType): boolean {
+    return type === 'ethereum_erc721' || type === 'ethereum_erc1155' || type === 'goerli_erc721' || type === 'goerli_erc1155';
 }
 
 const ETHEREUM_ADDRESS_LENGTH_IN_BITS = 20 * 8;

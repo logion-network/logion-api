@@ -129,15 +129,21 @@ const item = await closedLoc.getCollectionItem({ itemId });
 
 #### Collection WITH upload support 
 
+A collection item may have attached files if the collection permits it. The files are then stored in logion's private IPFS network
+ensuring their availability over time. If a controlled delivery for attached files is needed, see "Collection with restricted delivery"
+below.
+
+There are 2 possibilities when attaching files to an item:
+- immediate upload of the files upon item creation or
+- item creation followed by an explicit upload later on.
+
+See the examples below.
+
 ```typescript title="Add Item and provide file content"
 const firstItemId = hashString("first-collection-item");
 const firstItemDescription = "First collection item";
 const firstFileContent = "test";
 const firstFileHash = hashString(firstFileContent);
-const firstItemToken: ItemTokenWithRestrictedType = {
-    type: "ethereum_erc721",
-    id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","id":"4391"}'
-};
 closedLoc = await closedLoc.addCollectionItem({
     itemId: firstItemId,
     itemDescription: firstItemDescription,
@@ -149,8 +155,6 @@ closedLoc = await closedLoc.addCollectionItem({
             hashOrContent: HashOrContent.fromContent(Buffer.from(firstFileContent)), // Let SDK compute hash and size
         })
     ],
-    itemToken: firstItemToken,
-    restrictedDelivery: true,
 });
 ```
 
@@ -173,6 +177,68 @@ closedLoc = await closedLoc.addCollectionItem({
     ]
 });
 ```
+
+```typescript title="Upload file for an existing item"
+closedLoc = await closedLoc.uploadCollectionItemFile({
+    itemId: secondItemId,
+    itemFile: new ItemFileWithContent({
+        name: "test2.txt",
+        contentType: MimeType.from("text/plain"),
+        hashOrContent: HashOrContent.fromContent(Buffer.from(firstFileContent)),
+    }),
+});
+```
+
+#### Collection with restricted delivery
+
+A collection item with restricted delivery requires a token definition i.e. the "address" of the token
+which opens access to the underlying files when owned. Below an example where the underlying files
+will be delivered to the owner of an ERC-721 token on Ethereum Mainnet.
+
+```typescript title="Add Item with restricted delivery"
+const firstItemId = generateEthereumTokenItemId("0x765df6da33c1ec1f83be42db171d7ee334a46df5", "4391");
+const firstItemDescription = "First collection item";
+const firstFileContent = "test";
+const firstFileHash = hashString(firstFileContent);
+const firstItemToken: ItemTokenWithRestrictedType = {
+    type: "ethereum_erc721",
+    id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","id":"4391"}'
+};
+closedLoc = await closedLoc.addCollectionItem({
+    itemId: firstItemId,
+    itemDescription: firstItemDescription,
+    signer: state.signer,
+    itemFiles: [
+        new ItemFileWithContent({
+            name: "test.txt",
+            contentType: MimeType.from("text/plain"),
+            hashOrContent: HashOrContent.fromContent(Buffer.from(firstFileContent)),
+        })
+    ],
+    itemToken: firstItemToken,
+    restrictedDelivery: true,
+});
+```
+
+:::danger
+In the above example, the item ID is generated using function `generateEthereumTokenItemId`. This ensures that the item ID
+matches the one computed by the [logion Smart Contract](https://github.com/logion-network/logion-smc-test/blob/main/contracts/SimpleNft.sol).
+**This is very important because otherwise, the bidirectional link between the item and its token would be broken.**
+
+One may consider not using the logion Smart Contract, leaving the choice of the item ID completely open, but this is not recommanded.
+:::
+
+This is the list of supported token types:
+- `ethereum_erc721`
+- `ethereum_erc1155`
+- `goerli_erc721`
+- `goerli_erc1155`
+
+With the above types, the `id` field must represent a valid JSON object with 2 fields: `contract` and `id`. Both fields are strings.
+
+`contract` is the address of the Smart Contract of the token.
+
+`id` is the token ID as assigned by the Smart Contract.
 
 #### Terms and Conditions
 
