@@ -12,6 +12,8 @@ import {
     getCollectionItem,
     getCollectionSize,
     GetLegalOfficerCaseParameters,
+    getCollectionItems,
+    CollectionItem,
 } from '@logion/node-api';
 import { AxiosInstance } from 'axios';
 
@@ -370,21 +372,7 @@ export abstract class LocClient {
         }
         try {
             const offchainItem = await this.getOffchainItem({ locId, itemId });
-            return {
-                id: itemId,
-                description: onchainItem.description,
-                addedOn: offchainItem.addedOn,
-                files: onchainItem.files.map(file => ({
-                    ...file,
-                    uploaded: offchainItem.files.includes(file.hash),
-                })),
-                token: onchainItem.token ? {
-                    type: onchainItem.token.type as TokenType,
-                    id: onchainItem.token.id,
-                } : undefined,
-                restrictedDelivery: onchainItem.restrictedDelivery,
-                termsAndConditions: newTermsAndConditions(onchainItem.termsAndConditions),
-            }
+            return this.mergeItems(onchainItem, offchainItem);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -394,6 +382,56 @@ export abstract class LocClient {
         const { locId, itemId } = parameters;
         const response = await this.backend().get(`/api/collection/${ locId.toString() }/${ itemId }`);
         return response.data;
+    }
+
+    private mergeItems(onchainItem: CollectionItem, offchainItem: OffchainCollectionItem): UploadableCollectionItem {
+        return {
+            id: onchainItem.id,
+            description: onchainItem.description,
+            addedOn: offchainItem.addedOn,
+            files: onchainItem.files.map(file => ({
+                ...file,
+                uploaded: offchainItem.files.includes(file.hash),
+            })),
+            token: onchainItem.token ? {
+                type: onchainItem.token.type as TokenType,
+                id: onchainItem.token.id,
+            } : undefined,
+            restrictedDelivery: onchainItem.restrictedDelivery,
+            termsAndConditions: newTermsAndConditions(onchainItem.termsAndConditions),
+        }
+    }
+
+    async getCollectionItems(parameters: FetchParameters): Promise<UploadableCollectionItem[]> {
+        const { locId } = parameters;
+        const onchainItems = await getCollectionItems({
+            api: this.nodeApi,
+            locId,
+        });
+
+        const onchainItemsMap: Record<string, CollectionItem> = {};
+        for(const item of onchainItems) {
+            onchainItemsMap[item.id] = item;
+        }
+
+        try {
+            const offchainItems = await this.getOffchainItems({ locId });
+
+            const offchainItemsMap: Record<string, OffchainCollectionItem> = {};
+            for(const item of offchainItems) {
+                offchainItemsMap[item.itemId] = item;
+            }
+
+            return offchainItems.map(item => this.mergeItems(onchainItemsMap[item.itemId], offchainItemsMap[item.itemId]));
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    private async getOffchainItems(parameters: { locId: UUID }): Promise<OffchainCollectionItem[]> {
+        const { locId } = parameters;
+        const response = await this.backend().get(`/api/collection/${ locId.toString() }`);
+        return response.data.items;
     }
 
     async getCollectionSize(parameters: FetchParameters): Promise<number | undefined> {

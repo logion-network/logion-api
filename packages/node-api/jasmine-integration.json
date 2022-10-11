@@ -1,0 +1,16 @@
+{
+  "spec_dir": "integration",
+  "spec_files": [
+    "**/*.spec.ts"
+  ],
+  "helpers": [
+    "../typescript.js"
+  ],
+  "stopSpecOnExpectationFailure": false,
+  "reporters": [
+    {
+      "name": "jasmine-spec-reporter#SpecReporter"
+    }
+  ],
+  "random": false
+}

@@ -15,7 +15,7 @@ import {
 } from './Types';
 import { CollectionSize } from './interfaces';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
-import { PalletLogionLocLegalOfficerCase } from '@polkadot/types/lookup';
+import { PalletLogionLocLegalOfficerCase, PalletLogionLocCollectionItem } from '@polkadot/types/lookup';
 
 export interface LogionIdentityLocCreationParameters {
     api: ApiPromise;
@@ -320,33 +320,48 @@ export async function getCollectionItem(
     }
 
     const result = await api.query.logionLoc.collectionItemsMap(locId.toHexString(), itemId);
-    if (result.isSome) {
-        const unwrappedResult = result.unwrap();
-        const description = unwrappedResult.description.toUtf8();
-        const token = unwrappedResult.token;
-        return {
-            id: itemId,
-            description,
-            files: unwrappedResult.files.map(resultFile => ({
-                name: resultFile.name.toUtf8(),
-                contentType: resultFile.contentType.toUtf8(),
-                hash: resultFile.hash_.toHex(),
-                size: resultFile.size_.toBigInt(),
-            })),
-            token: (token && token.isSome) ? {
-                type: token.unwrap().tokenType.toUtf8(),
-                id: token.unwrap().tokenId.toUtf8(),
-            } : undefined,
-            restrictedDelivery: unwrappedResult.restrictedDelivery.isTrue,
-            termsAndConditions: unwrappedResult.termsAndConditions.map(tc => ({
-                tcType: tc.tcType.toUtf8(),
-                tcLocId: UUID.fromDecimalStringOrThrow(tc.tcLoc.toString()),
-                details: tc.details.toUtf8(),
-            })),
-        };
+    if(result.isSome) {
+        return convertItem(itemId, result.unwrap());
     } else {
         return undefined;
     }
+}
+
+function convertItem(itemId: string, unwrappedResult: PalletLogionLocCollectionItem): CollectionItem {
+    const description = unwrappedResult.description.toUtf8();
+    const token = unwrappedResult.token;
+    return {
+        id: itemId,
+        description,
+        files: unwrappedResult.files.map(resultFile => ({
+            name: resultFile.name.toUtf8(),
+            contentType: resultFile.contentType.toUtf8(),
+            hash: resultFile.hash_.toHex(),
+            size: resultFile.size_.toBigInt(),
+        })),
+        token: (token && token.isSome) ? {
+            type: token.unwrap().tokenType.toUtf8(),
+            id: token.unwrap().tokenId.toUtf8(),
+        } : undefined,
+        restrictedDelivery: unwrappedResult.restrictedDelivery.isTrue,
+        termsAndConditions: unwrappedResult.termsAndConditions.map(tc => ({
+            tcType: tc.tcType.toUtf8(),
+            tcLocId: UUID.fromDecimalStringOrThrow(tc.tcLoc.toString()),
+            details: tc.details.toUtf8(),
+        })),
+    };
+}
+
+export async function getCollectionItems(
+    parameters: { api: ApiPromise, locId: UUID }
+): Promise<CollectionItem[]> {
+    const {
+        api,
+        locId,
+    } = parameters;
+
+    const result = await api.query.logionLoc.collectionItemsMap.entries<Option<PalletLogionLocCollectionItem>>(locId.toHexString());
+    return result.map(entry => convertItem(entry[0].args[1].toString(), entry[1].unwrap()));
 }
 
 export interface GetCollectionSizeParameters {
