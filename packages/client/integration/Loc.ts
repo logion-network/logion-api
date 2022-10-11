@@ -326,6 +326,9 @@ export async function collectionLocWithUpload(state: State) {
             uploaded: true,
         })
     ]));
+
+    const items = await closedLoc.getCollectionItems();
+    expect(items.length).toBe(2);
 }
 
 export async function identityLoc(state: State) {

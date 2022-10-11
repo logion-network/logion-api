@@ -529,6 +529,17 @@ class ClosedOrVoidCollectionLoc extends LocRequestState {
         });
     }
 
+    async getCollectionItems(): Promise<CollectionItemClass[]> {
+        const clientItems = await this.locSharedState.client.getCollectionItems({
+            locId: this.locId,
+        });
+        return clientItems.map(clientItem => new CollectionItemClass({
+            locId: this.locId,
+            locClient: this.locSharedState.client,
+            clientItem,
+        }));
+    }
+
     override async checkHash(hash: string): Promise<CheckHashResult> {
         const result = await super.checkHash(hash);
         const collectionItem = await this.getCollectionItem({ itemId: hash });
