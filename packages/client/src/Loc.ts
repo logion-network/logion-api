@@ -94,6 +94,10 @@ export class LocsState {
         ).length > 0;
     }
 
+    get legalOfficersWithValidIdentityLoc(): LegalOfficer[] {
+        return this.sharedState.legalOfficers.filter(lo => this.hasValidIdentityLoc(lo));
+    }
+
     private withPredicate<T extends LocRequestState>(predicate: (l: LocRequestState) => boolean): Record<LocType, T[]> {
         return {
             'Transaction': this.filter('Transaction', predicate),
