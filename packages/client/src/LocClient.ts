@@ -79,6 +79,7 @@ export interface LocRequest {
     id: string;
     status: LocRequestStatus;
     rejectReason?: string;
+    identityLoc?: string;
     userIdentity?: UserIdentity;
     userPostalAddress?: PostalAddress;
     closedOn?: string;

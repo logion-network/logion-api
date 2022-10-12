@@ -38,6 +38,7 @@ export interface LocData {
     voidInfo?: LocRequestVoidInfo & VoidInfo
     replacerOf?: UUID;
     rejectReason?: string;
+    identityLocId?: UUID;
     userIdentity?: UserIdentity;
     userPostalAddress?: PostalAddress;
     collectionLastBlockSubmission?: bigint;
@@ -342,6 +343,7 @@ export class LocRequestState {
             closed: false,
             replacerOf: undefined,
             voidInfo: undefined,
+            identityLocId: request.identityLoc ? new UUID(request.identityLoc) : undefined,
             metadata: request.metadata.map(item => LocRequestState.mergeMetadata(item)),
             files: request.files.map(item => LocRequestState.mergeFile(item)),
             links: request.links.map(item => LocRequestState.mergeLink(item)),
@@ -359,6 +361,7 @@ export class LocRequestState {
             description: request.description,
             rejectReason: request.rejectReason,
             status: request.status,
+            identityLocId: request.identityLoc ? new UUID(request.identityLoc) : undefined,
             userIdentity: request.userIdentity,
             userPostalAddress: request.userPostalAddress,
             metadata: request.metadata.map(item => LocRequestState.mergeMetadata(item, loc)),
