@@ -87,6 +87,9 @@ describe("LocsState", () => {
         expect(locs.hasValidIdentityLoc(ALICE)).toBeFalse();
         expect(locs.hasValidIdentityLoc(BOB)).toBeTrue();
         expect(locs.hasValidIdentityLoc(CHARLIE)).toBeFalse();
+
+        expect(locs.legalOfficersWithValidIdentityLoc.length).toEqual(1);
+        expect(locs.legalOfficersWithValidIdentityLoc[0]).toEqual(BOB);
     })
 });
 
