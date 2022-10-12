@@ -1,4 +1,4 @@
-import mimeDb from 'mime-db';
+import mimeDb, { MimeEntry } from 'mime-db';
 
 export class MimeType {
 
@@ -7,20 +7,32 @@ export class MimeType {
     }
 
     constructor(mimeType: string) {
-        if(!isValidMime(mimeType)) {
+        const entry = getMimeDbEntry(mimeType);
+        if(!entry) {
             throw new Error(`Unknown mime type: ${mimeType}`);
         }
         this._mimeType = mimeType;
+        this._entry = entry;
     }
 
     private _mimeType: string;
 
+    private _entry: MimeEntry;
+
     get mimeType() {
         return this._mimeType;
+    }
+
+    get extensions(): ReadonlyArray<string> {
+        return this._entry.extensions || [];
     }
 }
 
 export function isValidMime(mimeType: string): boolean {
+    return getMimeDbEntry(mimeType) !== undefined;
+}
+
+function getMimeDbEntry(mimeType: string): MimeEntry | undefined {
     const parametersIndex = mimeType.indexOf(";");
     let simpleType;
     if(parametersIndex !== -1) {
@@ -28,5 +40,5 @@ export function isValidMime(mimeType: string): boolean {
     } else {
         simpleType = mimeType;
     }
-    return simpleType in mimeDb;
+    return mimeDb[simpleType];
 }
