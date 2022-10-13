@@ -196,7 +196,7 @@ which opens access to the underlying files when owned. Below an example where th
 will be delivered to the owner of an ERC-721 token on Ethereum Mainnet.
 
 ```typescript title="Add Item with restricted delivery"
-const firstItemId = generateEthereumTokenItemId("0x765df6da33c1ec1f83be42db171d7ee334a46df5", "4391");
+const firstItemId = generateEthereumTokenItemId("202210131750", "4391");
 const firstItemDescription = "First collection item";
 const firstFileContent = "test";
 const firstFileHash = hashString(firstFileContent);
@@ -223,7 +223,8 @@ closedLoc = await closedLoc.addCollectionItem({
 :::danger
 In the above example, the item ID is generated using function `generateEthereumTokenItemId`. This ensures that the item ID
 matches the one computed by the [logion Smart Contract](https://github.com/logion-network/logion-solidity/blob/main/contracts/Logion.sol).
-**This is very important because otherwise, the bidirectional link between the item and its token would be broken.**
+**This is very important because otherwise, the bidirectional link between the item and its token would be broken.
+The nonce parameter must match the one in the Smart Contract.**
 
 One may consider not using the logion Smart Contract, leaving the choice of the item ID completely open, but this is not recommanded.
 :::

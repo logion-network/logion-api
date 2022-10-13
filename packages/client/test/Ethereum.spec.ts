@@ -3,10 +3,10 @@ import { generateEthereumTokenItemId } from "../src";
 describe("Ethereum", () => {
 
     it("generates expected item ID", () => {
-        const itemId = generateEthereumTokenItemId(contractAddress, tokenId);
-        expect(itemId).toBe("0xfb00f67fd24b8e3942435db71c3236ea3e272c13e42a3cbae9aa4d1d21a84466");
+        const itemId = generateEthereumTokenItemId(nonce, tokenId);
+        expect(itemId).toBe("0xc17b4efc90d044c63995a71bef37901e34401013a534e85c9d78522182046ff6");
     });
 });
 
-const contractAddress = "0xc78D69a25DE97E155FEed1c0377fCbF51e32A83D";
+const nonce = "some-nonce";
 const tokenId = "0";
