@@ -222,7 +222,7 @@ closedLoc = await closedLoc.addCollectionItem({
 
 :::danger
 In the above example, the item ID is generated using function `generateEthereumTokenItemId`. This ensures that the item ID
-matches the one computed by the [logion Smart Contract](https://github.com/logion-network/logion-smc-test/blob/main/contracts/SimpleNft.sol).
+matches the one computed by the [logion Smart Contract](https://github.com/logion-network/logion-solidity/blob/main/contracts/Logion.sol).
 **This is very important because otherwise, the bidirectional link between the item and its token would be broken.**
 
 One may consider not using the logion Smart Contract, leaving the choice of the item ID completely open, but this is not recommanded.
