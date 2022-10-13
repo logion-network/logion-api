@@ -188,6 +188,11 @@ export class LogionClient {
         return this.sharedState.allLegalOfficers.find(legalOfficer => legalOfficer.address === address) !== undefined;
     }
 
+    async isRegisteredLegalOfficer(address: string): Promise<boolean> {
+        const option = await this.sharedState.nodeApi.query.loAuthorityList.legalOfficerSet(address);
+        return option.isSome;
+    }
+
     buildAxios(legalOfficer: LegalOfficer): AxiosInstance {
         if(!legalOfficer.node) {
             throw new Error("Legal officer has currently no node");
