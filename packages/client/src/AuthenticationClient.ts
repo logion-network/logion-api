@@ -30,18 +30,18 @@ export class AuthenticationClient {
     private axiosFactory: AxiosFactory;
 
     async authenticate(addresses: string[], signer: RawSigner): Promise<AccountTokens> {
+        return this.doWithDirectoryOrFirstAvailableNode(axios => this.authenticateWithAxios(axios, addresses, signer));
+    }
+
+    private doWithDirectoryOrFirstAvailableNode<T>(axiosConsumer: (axios: AxiosInstance) => Promise<T>): Promise<T> {
         if(this.legalOfficers.length === 0) {
-            return await this.authenticateWithAxios(this.axiosFactory.buildAxiosInstance(this.directoryEndpoint), addresses, signer);
+            return axiosConsumer(this.axiosFactory.buildAxiosInstance(this.directoryEndpoint));
         } else {
-            try {
-                return this.doWithFirstAvailableNode(axios => this.authenticateWithAxios(axios, addresses, signer))
-            } catch (error) {
-                throw new Error(`Unable to authenticate: ${error}`);
-            }
+            return this.doWithFirstAvailableNode(axiosConsumer);
         }
     }
 
-    private async doWithFirstAvailableNode<T>(axiosConsumer: (axios: AxiosInstance) => Promise<T>): Promise<T> {
+    private doWithFirstAvailableNode<T>(axiosConsumer: (axios: AxiosInstance) => Promise<T>): Promise<T> {
         for(let i = 0; i < this.legalOfficers.length; ++i) {
             const legalOfficer = this.legalOfficers[i];
             try {
@@ -110,7 +110,7 @@ export class AuthenticationClient {
             }
         }
 
-        const authenticateResponse = await this.doWithFirstAvailableNode(axios =>
+        const authenticateResponse = await this.doWithDirectoryOrFirstAvailableNode(axios =>
             axios.put(`/api/auth/refresh`, {
                 tokens
             })
