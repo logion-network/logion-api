@@ -48,7 +48,7 @@ async function buildRequestCallSubmittable(parameters: BuildRequestVaultTransfer
     }
 
     const sortedLegalOfficers = [ ...legalOfficers ].sort();
-    return api.tx.vault.requestCall(sortedLegalOfficers, call.method.hash, weight)
+    return api.tx.vault.requestCall(sortedLegalOfficers, call.method.hash, { refTime: weight })
 }
 
 export async function buildVaultTransferCall(parameters: BuildRequestVaultTransferParameters & { requesterAddress: string }): Promise<Call> {
@@ -61,14 +61,14 @@ async function transferCallAndWeight(
     legalOfficers: string[],
     amount: bigint,
     destination: string,
-): Promise<{ call: SubmittableExtrinsic, weight: Weight, multisigOrigin: string }> {
+): Promise<{ call: SubmittableExtrinsic, weight: string, multisigOrigin: string }> {
     const multisigOrigin = getVaultAddress(requesterAddress, legalOfficers);
     const call = transferCall(api, destination, amount);
     const dispatchInfo = await call.paymentInfo(multisigOrigin);
     const maxWeight = dispatchInfo.weight;
     return {
         call,
-        weight: maxWeight,
+        weight: maxWeight.toString(),
         multisigOrigin
     }
 }
@@ -119,7 +119,7 @@ export async function approveVaultTransfer(parameters: VaultTransferApprovalPara
     const { call, weight } = await transferCallAndWeight(api, requester, recoveryConfig.legalOfficers, BigInt(actualAmount), destination);
 
     const otherSignatories = [ requester, otherLegalOfficer ].sort();
-    return api.tx.vault.approveCall(otherSignatories, call.method.toHex(), {height: block, index}, weight);
+    return api.tx.vault.approveCall(otherSignatories, call.method.toHex(), {height: block, index}, { refTime: weight });
 }
 
 export interface CancelVaultTransferParameters {
