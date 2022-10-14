@@ -70,7 +70,7 @@ describe("Vault", () => {
                 nodeApi.setup(instance => instance.query.multisig.multisigs(vaultAddress, transfer.method.hash)).returns(Promise.resolve(mockEmptyOption()));
                 nodeApi.setup(instance => instance.tx.vault.requestCall(It.Is<string[]>(legalOfficers =>
                     legalOfficers[0] === BOB.address && legalOfficers[1] === ALICE.address
-                ), transfer.method.hash, maxWeight)).returns(multisig.object());
+                ), transfer.method.hash, It.Is<{refTime: string}>(weight => weight.refTime === maxWeight))).returns(multisig.object());
 
                 const blockHeader = new Mock<Header>();
                 const blockNumber = new Mock<Compact<BlockNumber>>();
@@ -145,7 +145,7 @@ describe("Vault", () => {
                 const multisig = new Mock<SubmittableExtrinsic>();
                 nodeApi.setup(instance => instance.tx.vault.requestCall(It.Is<string[]>(legalOfficers =>
                     legalOfficers[0] === BOB.address && legalOfficers[1] === ALICE.address
-                ), transfer.method.hash, maxWeight)).returns(multisig.object());
+                ), transfer.method.hash, It.Is<{refTime: string}>(weight => weight.refTime === maxWeight))).returns(multisig.object());
 
                 const multisigCall = new Mock<Call>();
                 nodeApi.setup(instance => instance.createType("Call", multisig.object()))

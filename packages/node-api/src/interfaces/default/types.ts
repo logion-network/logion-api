@@ -168,8 +168,8 @@ export interface TAssetBalance extends u128 {}
 
 /** @name TermsAndConditionsElement */
 export interface TermsAndConditionsElement extends Struct {
-  readonly tc_type: Bytes;
-  readonly tc_loc: LocId;
+  readonly tcType: Bytes;
+  readonly tcLoc: LocId;
   readonly details: Bytes;
 }
 
