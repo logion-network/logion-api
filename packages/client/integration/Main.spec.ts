@@ -33,6 +33,10 @@ describe("Logion SDK", () => {
         await recoverLostAccount(state);
     });
 
+    it("provides Identity LOC", async () => {
+        await identityLoc(state);
+    })
+
     it("requests a Transaction LOC", async () => {
         await requestTransactionLoc(state);
     });
@@ -44,8 +48,4 @@ describe("Logion SDK", () => {
     it("provides Collection LOC with upload and restricted delivery", async () => {
         await collectionLocWithUpload(state);
     });
-
-    it("provides Identity LOC", async () => {
-        await identityLoc(state);
-    })
 });
