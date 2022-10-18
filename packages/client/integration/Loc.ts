@@ -33,12 +33,6 @@ export async function requestTransactionLoc(state: State) {
     const pendingRequest = await locsState.requestTransactionLoc({
         legalOfficer: alice,
         description: "This is a Transaction LOC",
-        userIdentity: {
-            email: "john.doe@invalid.domain",
-            firstName: "John",
-            lastName: "Doe",
-            phoneNumber: "+1234",
-        },
     })
 
     expect(pendingRequest).toBeInstanceOf(PendingRequest)
@@ -99,7 +93,15 @@ class LegalOfficerWorker {
         this.state = state;
     }
 
-    async createValidLogionClassificationLoc(id: UUID) {
+    async createValidLogionClassificationLoc(id: UUID): Promise<void> {
+        return this.openAndClose(id);
+    }
+
+    async createValidIdentityLoc(id: UUID): Promise<void> {
+        return this.openAndClose(id);
+    }
+
+    private async openAndClose(id: UUID): Promise<void> {
         await this.openTransactionLoc(id);
         return this.closeLoc(id);
     }
@@ -162,12 +164,6 @@ export async function collectionLoc(state: State) {
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficer: alice,
         description: "This is a Collection LOC",
-        userIdentity: {
-            email: "john.doe@invalid.domain",
-            firstName: "John",
-            lastName: "Doe",
-            phoneNumber: "+1234",
-        },
     });
 
     locsState = pendingRequest.locsState();
@@ -224,12 +220,6 @@ export async function collectionLocWithUpload(state: State) {
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficer: alice,
         description: "This is a Collection LOC with upload",
-        userIdentity: {
-            email: "john.doe@invalid.domain",
-            firstName: "John",
-            lastName: "Doe",
-            phoneNumber: "+1234",
-        },
     });
 
     await legalOfficer.openCollectionLoc(pendingRequest.locId, true);
@@ -334,6 +324,7 @@ export async function collectionLocWithUpload(state: State) {
 export async function identityLoc(state: State) {
 
     const { alice } = state;
+    const legalOfficer = new LegalOfficerWorker(alice, state);
     const client = state.client.withCurrentAddress(USER_ADDRESS);
     let locsState = await client.locsState();
 
@@ -357,4 +348,6 @@ export async function identityLoc(state: State) {
 
     locsState = pendingRequest.locsState();
     expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REQUESTED");
+
+    await legalOfficer.createValidIdentityLoc(pendingRequest.locId);
 }
