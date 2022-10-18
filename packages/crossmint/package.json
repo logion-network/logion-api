@@ -1,6 +1,6 @@
 {
   "name": "@logion/crossmint",
-  "version": "0.1.1",
+  "version": "0.1.2-1",
   "description": "logion SDK for Crossmint",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",

@@ -98,6 +98,7 @@ async function requestRecovery(state: State): Promise<PendingProtection> {
             firstName: "John",
             lastName: "Doe",
             phoneNumber: "+1234",
+            company: false,
         },
         postalAddress: {
             city: "",
