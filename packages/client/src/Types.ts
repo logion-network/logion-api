@@ -3,6 +3,7 @@ export interface UserIdentity {
     lastName: string,
     email: string,
     phoneNumber: string
+    company: boolean
 }
 
 export interface PostalAddress {

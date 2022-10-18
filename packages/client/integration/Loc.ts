@@ -336,6 +336,7 @@ export async function identityLoc(state: State) {
             firstName: "John",
             lastName: "Doe",
             phoneNumber: "+1234",
+            company: false,
         },
         userPostalAddress: {
             line1: "Peace Street",
