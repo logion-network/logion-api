@@ -1,4 +1,4 @@
-import { UUID, LegalOfficerCase, LocType, VoidInfo } from "@logion/node-api";
+import { UUID, LegalOfficerCase, LocType, VoidInfo, ItemFile } from "@logion/node-api";
 
 import {
     LocRequest,
@@ -223,6 +223,7 @@ export interface CheckHashResult {
     file?: MergedFile;
     metadataItem?: MergedMetadataItem;
     collectionItem?: CollectionItemClass;
+    collectionItemFile?: ItemFile;
 }
 
 export class LocRequestState {

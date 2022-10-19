@@ -38,23 +38,38 @@ describe("CollectionItem checkCertifiedCopy", () => {
         thenResultFully(result, CheckResultType.NEGATIVE);
     });
 
-    it("detects that latest copy hash comes from certified copy in unprivleged mode", async () => {
+    it("detects that latest copy hash comes from certified copy in unprivileged mode", async () => {
         const item = given(false);
         const result = await item.checkCertifiedCopy(copyHash);
         thenResultFully(result, CheckResultType.POSITIVE);
     });
 
-    it("detects old copy as non certified in unprivleged mode", async () => {
+    it("detects old copy as non certified in unprivileged mode", async () => {
         const item = given(false);
         const result = await item.checkCertifiedCopy(oldCopyHash);
         thenResultFully(result, CheckResultType.NEGATIVE);
     });
 
-    it("detects non certified copy in unprivleged mode", async () => {
+    it("detects non certified copy in unprivileged mode", async () => {
         const item = given(false);
         const result = await item.checkCertifiedCopy(otherHash);
         thenResultFully(result, CheckResultType.NEGATIVE);
     });
+});
+
+describe("CollectionItem checkHash", () => {
+
+    it("succeeds to check original hash", () => {
+        const item = given(false);
+        const result = item.checkHash(originalHash);
+        expect(result.collectionItemFile?.hash).toEqual(originalHash);
+    })
+
+    it("fails to check copy hash", () => {
+        const item = given(false);
+        const result = item.checkHash(copyHash);
+        expect(result.collectionItemFile).toBeUndefined();
+    })
 });
 
 function given(privileged: boolean, tc?: TermsAndConditionsElement[]): CollectionItem {
