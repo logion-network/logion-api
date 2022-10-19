@@ -88,6 +88,7 @@ export interface LocRequest {
     links: LocLink[];
     voidInfo?: LocRequestVoidInfo;
     seal?: string;
+    company?: string;
 }
 
 export type LocRequestStatus = "OPEN" | "REQUESTED" | "REJECTED" | "CLOSED";
@@ -199,6 +200,7 @@ export interface CreateLocRequest {
     locType: LocType;
     userIdentity?: UserIdentity;
     userPostalAddress?: PostalAddress;
+    company?: string;
 }
 
 export interface CreateSofRequest {

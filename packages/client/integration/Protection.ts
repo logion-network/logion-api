@@ -58,7 +58,6 @@ async function requestProtection(requester: string, state: State): Promise<Pendi
             firstName: "John",
             lastName: "Doe",
             phoneNumber: "+1234",
-            company: false,
         },
         postalAddress: {
             city: "",

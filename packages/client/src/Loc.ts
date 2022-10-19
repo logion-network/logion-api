@@ -48,6 +48,7 @@ export interface LocData {
     metadata: MergedMetadataItem[];
     links: MergedLink[];
     seal?: string;
+    company?: string;
 }
 
 export interface MergedLink extends LocLink, Published {
@@ -166,7 +167,7 @@ export class LocsState {
     }
 
     async requestLoc(params: CreateLocRequestParams & { locType: LocType }): Promise<PendingRequest> {
-        const { legalOfficer, locType, description, userIdentity, userPostalAddress } = params;
+        const { legalOfficer, locType, description, userIdentity, userPostalAddress, company } = params;
         const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
         const request = await client.createLocRequest({
             ownerAddress: legalOfficer.address,
@@ -175,6 +176,7 @@ export class LocsState {
             locType,
             userIdentity,
             userPostalAddress,
+            company,
         });
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
         return new PendingRequest(locSharedState, request).veryNew();
@@ -210,6 +212,7 @@ export interface CreateLocRequestParams {
     description: string;
     userIdentity?: UserIdentity;
     userPostalAddress?: PostalAddress;
+    company?: string;
 }
 
 export interface CreateSofRequestParams {
@@ -368,6 +371,7 @@ export class LocRequestState {
             files: request.files.map(item => LocRequestState.mergeFile(item, loc)),
             links: request.links.map(item => LocRequestState.mergeLink(item, loc)),
             seal: loc.closed ? loc.seal : request.seal,
+            company: request.company,
         };
 
         if(data.voidInfo && request.voidInfo) {
