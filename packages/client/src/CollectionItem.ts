@@ -3,6 +3,7 @@ import { UUID } from "@logion/node-api";
 import { ItemDelivery, LocClient, UploadableCollectionItem, UploadableItemFile } from "./LocClient";
 import { ItemTokenWithRestrictedType } from "./Token";
 import { LogionClassification, SpecificLicense, TermsAndConditionsElement } from "./license";
+import { CheckHashResult } from "./Loc";
 
 export class CollectionItem implements UploadableCollectionItem {
 
@@ -77,6 +78,16 @@ export class CollectionItem implements UploadableCollectionItem {
 
     get specificLicenses(): SpecificLicense[] {
         return this._specificLicenses;
+    }
+
+    getItemFile(hash: string): UploadableItemFile | undefined {
+        return this.clientItem.files.find(file => file.hash === hash);
+    }
+
+    checkHash(hash: string): CheckHashResult {
+        return {
+            collectionItemFile: this.getItemFile(hash)
+        }
     }
 
     async checkCertifiedCopy(hash: string): Promise<CheckCertifiedCopyResult> {

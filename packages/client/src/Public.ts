@@ -83,19 +83,29 @@ export class PublicLoc {
         return this._data;
     }
 
-    async checkHash(hash: string): Promise<CheckHashResult> {
+    async checkHash(hash: string, itemId?: string): Promise<CheckHashResult> {
         const result = LocRequestState.checkHash(this._data, hash);
         let collectionItem = undefined;
+        let collectionItemFile = undefined;
         if(this._data.locType === "Collection") {
             collectionItem = await getCollectionItem({
                 locClient: this.client,
                 locId: this._data.id,
                 itemId: hash,
             });
+            if (itemId) {
+                const collectionItemToInspect = await getCollectionItem({
+                    locClient: this.client,
+                    locId: this._data.id,
+                    itemId,
+                });
+                collectionItemFile = collectionItemToInspect?.getItemFile(hash);
+            }
         }
         return {
             ...result,
             collectionItem,
+            collectionItemFile
         };
     }
 

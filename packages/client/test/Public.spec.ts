@@ -6,7 +6,16 @@ import { AccountTokens, CollectionItem, FetchParameters, LocData, PublicLocClien
 import { SharedState } from "../src/SharedClient";
 import { ALICE, buildTestAuthenticatedSharedSate, LEGAL_OFFICERS, LOGION_CLIENT_CONFIG, mockEmptyOption } from "./Utils";
 import { TestConfigFactory } from "./TestConfigFactory";
-import { buildCollectionItem, buildLoc, buildLocRequest, buildOffchainCollectionItem, EXISTING_FILE, EXISTING_ITEM_ID, ITEM_DESCRIPTION } from "./LocUtils";
+import {
+    buildCollectionItem,
+    buildLoc,
+    buildLocRequest,
+    buildOffchainCollectionItem,
+    EXISTING_FILE,
+    EXISTING_ITEM_ID,
+    ITEM_DESCRIPTION,
+    EXISTING_ITEM_FILE, EXISTING_ITEM_FILE_HASH
+} from "./LocUtils";
 
 import { PublicApi, PublicLoc } from "../src";
 
@@ -81,6 +90,38 @@ describe("PublicLoc", () => {
         const result = await publicLoc.checkHash(EXISTING_ITEM_ID);
 
         expect(result.collectionItem).toBeDefined();
+    });
+
+    it("finds item file on check", async () => {
+        const locId = new UUID(LOC_REQUEST.id);
+
+        const data = new Mock<LocData>();
+        data.setup(instance => instance.id).returns(locId);
+        data.setup(instance => instance.locType).returns("Collection");
+        data.setup(instance => instance.files).returns([]);
+        data.setup(instance => instance.metadata).returns([]);
+
+        const client = new Mock<PublicLocClient>();
+        client.setup(instance => instance.getCollectionItem(It.Is<{ itemId: string } & FetchParameters>(args =>
+            args.itemId === EXISTING_ITEM_ID
+            && args.locId.toString() === locId.toString()
+        ))).returnsAsync({
+            addedOn: OFFCHAIN_COLLECTION_ITEM.addedOn,
+            description: ITEM_DESCRIPTION,
+            files: [ EXISTING_ITEM_FILE ],
+            id: EXISTING_ITEM_ID,
+            restrictedDelivery: false,
+            termsAndConditions: [],
+        });
+
+        const publicLoc = new PublicLoc({
+            data: data.object(),
+            client: client.object(),
+        });
+
+        const result = await publicLoc.checkHash(EXISTING_ITEM_FILE_HASH, EXISTING_ITEM_ID);
+
+        expect(result.collectionItemFile).toBeDefined();
     });
 });
 

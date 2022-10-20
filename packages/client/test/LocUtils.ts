@@ -12,7 +12,7 @@ import { Option, Bytes } from "@polkadot/types-codec";
 import { DateTime } from "luxon";
 import { Mock } from "moq.ts";
 
-import { LocFile, LocRequest, LocRequestStatus, OffchainCollectionItem } from "../src";
+import { LocFile, LocRequest, LocRequestStatus, OffchainCollectionItem, UploadableItemFile } from "../src";
 import { mockBool, mockCodecWithToHex, mockCodecWithToString, mockCodecWithToUtf8, mockEmptyOption, mockOption, mockVec, REQUESTER } from "./Utils";
 
 export const EXISTING_FILE_HASH = "0xa4d9f9f1a02baae960d1a7c4cedb25940a414ae4c545bf2f14ab24691fec09a5";
@@ -23,6 +23,16 @@ export const EXISTING_FILE: LocFile = {
     nature: "Some nature",
     submitter: REQUESTER,
 };
+
+export const EXISTING_ITEM_FILE_HASH = "0x8443d95fceccd27c0ca8d8c8d6c443ddc787afc234620a5548baf8c7b46aa277";
+
+export const EXISTING_ITEM_FILE: UploadableItemFile = {
+    name: "existing-item-file.txt",
+    hash: EXISTING_ITEM_FILE_HASH,
+    contentType: "text/plain",
+    size: 0n,
+    uploaded: false,
+}
 
 export type LocAndRequest = {
     request: LocRequest,
