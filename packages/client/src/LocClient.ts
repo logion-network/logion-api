@@ -14,6 +14,7 @@ import {
     GetLegalOfficerCaseParameters,
     getCollectionItems,
     CollectionItem,
+    TermsAndConditionsElement as ChainTermsAndConditionsElement
 } from '@logion/node-api';
 import { AxiosInstance } from 'axios';
 
@@ -29,7 +30,7 @@ import { newBackendError } from './Error';
 import { HashOrContent } from './Hash';
 import { MimeType } from './Mime';
 import { validateToken, ItemTokenWithRestrictedType, TokenType } from './Token';
-import { TermsAndConditionsElement, newTermsAndConditions, LogionClassification, SpecificLicense } from "./license";
+import { TermsAndConditionsElement, newTermsAndConditions, LogionClassification, SpecificLicense, CreativeCommons } from "./license";
 
 export interface AddedOn {
     addedOn: string;
@@ -133,7 +134,7 @@ export class ItemFileWithContent {
         this._hashOrContent = parameters.hashOrContent;
         this._size = parameters.size;
 
-        if(!this._size && !this._hashOrContent.hasContent) {
+        if (!this._size && !this._hashOrContent.hasContent) {
             throw new Error("File size must be provided if no content is");
         }
     }
@@ -183,6 +184,7 @@ export interface AddCollectionItemParams {
     restrictedDelivery?: boolean,
     logionClassification?: LogionClassification,
     specificLicenses?: SpecificLicense[],
+    creativeCommons?: CreativeCommons,
     signer: Signer,
     callback?: SignCallback,
 }
@@ -544,7 +546,16 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async addCollectionItem(parameters: AddCollectionItemParams & FetchParameters): Promise<void> {
-        const { itemId, itemDescription, signer, callback, locId, itemFiles, itemToken, restrictedDelivery } = parameters;
+        const {
+            itemId,
+            itemDescription,
+            signer,
+            callback,
+            locId,
+            itemFiles,
+            itemToken,
+            restrictedDelivery
+        } = parameters;
 
         const booleanRestrictedDelivery = restrictedDelivery !== undefined ? restrictedDelivery : false;
 
@@ -572,22 +583,26 @@ export class AuthenticatedLocClient extends LocClient {
             this.validTokenOrThrow(itemToken);
         }
 
-        const termsAndConditions = [];
+        const termsAndConditions: ChainTermsAndConditionsElement[] = [];
+
+        const addTC = (tc: TermsAndConditionsElement) => {
+            termsAndConditions.push({
+                tcType: tc.type,
+                tcLocId: tc.tcLocId,
+                details: tc.details,
+            })
+        };
 
         if(parameters.logionClassification) {
-            termsAndConditions.push({
-                tcType: parameters.logionClassification.type,
-                tcLocId: parameters.logionClassification.tcLocId,
-                details: parameters.logionClassification.details,
-            })
+            addTC(parameters.logionClassification);
+        }
+
+        if(parameters.creativeCommons) {
+            addTC(parameters.creativeCommons);
         }
 
         if(parameters.specificLicenses) {
-            parameters.specificLicenses.forEach(element => termsAndConditions.push({
-                tcType: element.type,
-                tcLocId: element.tcLocId,
-                details: element.details,
-            }));
+            parameters.specificLicenses.forEach(addTC);
         }
 
         const submittable = addCollectionItem({

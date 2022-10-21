@@ -1,6 +1,6 @@
 import { UUID } from "@logion/node-api";
 
-export type TermsAndConditionsElementType = "logion_classification" | "specific_license";
+export type TermsAndConditionsElementType = "logion_classification" | "specific_license" | "CC4.0";
 
 export interface TermsAndConditionsElement {
     readonly type: TermsAndConditionsElementType;

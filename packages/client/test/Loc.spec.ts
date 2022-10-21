@@ -28,7 +28,9 @@ import {
     LocRequest,
     Signer,
     SignParameters,
-    SpecificLicense
+    SpecificLicense,
+    LogionClassification,
+    CreativeCommons
 } from "../src";
 import { SharedState } from "../src/SharedClient";
 import {
@@ -265,7 +267,9 @@ describe("ClosedCollectionLoc", () => {
             itemId: ITEM_ID,
             itemDescription: ITEM_DESCRIPTION,
             signer: signer.object(),
-            specificLicenses: SPECIFIC_LICENSES
+            logionClassification: LOGION_CLASSIFICATION,
+            specificLicenses: SPECIFIC_LICENSES,
+            creativeCommons: CREATIVE_COMMONS,
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
         nodeApiMock.verify(instance => instance.tx.logionLoc.addCollectionItemWithTermsAndConditions(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
@@ -406,6 +410,8 @@ const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem(ALICE_CLOSED_COLLEC
 const SPECIFIC_LICENSES: SpecificLicense[] = [
     new SpecificLicense(new UUID("61ccd87f-765c-4ab0-bd91-af68887515d4"), "")
 ];
+const LOGION_CLASSIFICATION: LogionClassification = new LogionClassification(new UUID(), { transferredRights: ["COM-MOD"]});
+const CREATIVE_COMMONS: CreativeCommons = new CreativeCommons(new UUID(), "BY-SA");
 
 let aliceAxiosMock: Mock<AxiosInstance>;
 let bobAxiosMock: Mock<AxiosInstance>;

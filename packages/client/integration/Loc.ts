@@ -13,7 +13,8 @@ import {
     LocData,
     ClosedCollectionLoc,
     ItemTokenWithRestrictedType,
-    LogionClassification
+    LogionClassification,
+    CreativeCommons
 } from "../src";
 
 import { AxiosFactory } from "../src/AxiosFactory";
@@ -93,7 +94,7 @@ class LegalOfficerWorker {
         this.state = state;
     }
 
-    async createValidLogionClassificationLoc(id: UUID): Promise<void> {
+    async createValidTermsAndConditionsLoc(id: UUID): Promise<void> {
         return this.openAndClose(id);
     }
 
@@ -215,7 +216,12 @@ export async function collectionLocWithUpload(state: State) {
         legalOfficer: alice,
         description: "This is the Logion Classification LOC",
     });
-    await legalOfficer.createValidLogionClassificationLoc(logionClassificationLocRequest.locId);
+    await legalOfficer.createValidTermsAndConditionsLoc(logionClassificationLocRequest.locId);
+    const creativeCommonsLocRequest = await locsState.requestTransactionLoc({
+        legalOfficer: alice,
+        description: "This is the LOC acting usage of CreativeCommons on logion",
+    });
+    await legalOfficer.createValidTermsAndConditionsLoc(creativeCommonsLocRequest.locId);
 
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficer: alice,
@@ -254,6 +260,7 @@ export async function collectionLocWithUpload(state: State) {
             transferredRights: [ "PER-PRIV", "REG", "TIME" ],
             expiration: "2025-01-01",
         }),
+        creativeCommons: new CreativeCommons(creativeCommonsLocRequest.locId, "BY-NC-SA")
     });
 
     const firstItem = await closedLoc.getCollectionItem({ itemId: firstItemId });
