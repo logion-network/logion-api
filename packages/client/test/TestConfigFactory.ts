@@ -28,6 +28,7 @@ export class TestConfigFactory {
 
     setupNodeApiMock(config: LogionClientConfig): Mock<LogionNodeApi> {
         const nodeApi = new Mock<LogionNodeApi>();
+        nodeApi.setup(instance => instance.isConnected).returns(true);
         this._componentFactory.setup(instance => instance.buildNodeApi(config.rpcEndpoints))
             .returns(Promise.resolve(nodeApi.object()));
         return nodeApi;

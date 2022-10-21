@@ -23,6 +23,7 @@ import { BalanceState, getBalanceState } from "./Balance";
 import { VaultState } from "./Vault";
 import { PollingParameters, waitFor } from "./Polling";
 import { findOrThrow } from "./Collections";
+import { State } from "./State";
 
 export type ProtectionState =
     NoProtection
@@ -158,15 +159,20 @@ export function getInitialState(data: FetchAllResult, pSharedState: SharedState)
     }
 }
 
-export class NoProtection {
+export class NoProtection extends State {
 
     constructor(sharedState: SharedState) {
+        super();
         this.sharedState = sharedState;
     }
 
     private readonly sharedState: SharedState;
 
     async refresh(): Promise<NoProtection> {
+        return this.discardOnSuccess(() => this._refresh());
+    }
+
+    private async _refresh(): Promise<NoProtection> {
         const recoveryClient = newRecoveryClient(this.sharedState);
         const data = await recoveryClient.fetchAll(this.sharedState.legalOfficers);
         const state = getInitialState(data, this.sharedState);
@@ -183,7 +189,17 @@ export class NoProtection {
         userIdentity: UserIdentity,
         postalAddress: PostalAddress,
     }): Promise<PendingProtection> {
-        return this.requestProtectionOrRecovery({ ...params });
+        return this.requestProtectionOrRecoveryAndDiscard({ ...params });
+    }
+
+    private async requestProtectionOrRecoveryAndDiscard(params: {
+        legalOfficer1: LegalOfficer,
+        legalOfficer2: LegalOfficer,
+        userIdentity: UserIdentity,
+        postalAddress: PostalAddress,
+        recoveredAddress?: string,
+    }): Promise<PendingProtection> {
+        return this.discardOnSuccess(() => this.requestProtectionOrRecovery(params));
     }
 
     private async requestProtectionOrRecovery(params: {
@@ -265,7 +281,7 @@ export class NoProtection {
                 throw Error("Unable to find a valid Recovery config.");
             }
         }
-        return this.requestProtectionOrRecovery({ ...params });
+        return this.requestProtectionOrRecoveryAndDiscard({ ...params });
     }
 
     get protectionParameters(): ProtectionParameters {
@@ -353,9 +369,10 @@ function buildProtectionState(legalOfficer: LegalOfficer, request: ProtectionReq
     };
 }
 
-export class UnavailableProtection implements WithProtectionParameters {
+export class UnavailableProtection extends State implements WithProtectionParameters {
 
     constructor(sharedState: RecoverySharedState) {
+        super();
         this.sharedState = sharedState;
     }
 
@@ -375,15 +392,20 @@ export class UnavailableProtection implements WithProtectionParameters {
     }
 }
 
-export class PendingProtection implements WithProtectionParameters {
+export class PendingProtection extends State implements WithProtectionParameters {
 
     constructor(sharedState: RecoverySharedState) {
+        super();
         this.sharedState = sharedState;
     }
 
     private readonly sharedState: RecoverySharedState;
 
     async refresh(): Promise<PendingProtection | AcceptedProtection | RejectedProtection | RejectedRecovery> {
+        return this.discardOnSuccess(() => this._refresh());
+    }
+
+    private async _refresh(): Promise<PendingProtection | AcceptedProtection | RejectedProtection | RejectedRecovery> {
         const recoveryClient = newRecoveryClient(this.sharedState);
         const data = await recoveryClient.fetchAll(this.sharedState.legalOfficers);
         const state = getInitialState(data, this.sharedState);
@@ -399,6 +421,7 @@ export class PendingProtection implements WithProtectionParameters {
     }
 
     get protectionParameters(): ProtectionParameters {
+        this.ensureCurrent();
         return buildProtectionParameters(this.sharedState);
     }
 }
@@ -472,19 +495,25 @@ export class UpdatableReSubmittableRequest extends UpdatableRequest {
     }
 }
 
-export class RejectedRecovery implements WithProtectionParameters {
+export class RejectedRecovery extends State implements WithProtectionParameters {
 
     constructor(sharedState: RecoverySharedState) {
+        super();
         this.sharedState = sharedState;
     }
 
     protected readonly sharedState: RecoverySharedState;
 
     get protectionParameters(): ProtectionParameters {
+        this.ensureCurrent();
         return buildProtectionParameters(this.sharedState);
     }
 
     async cancel(): Promise<NoProtection> {
+        return this.discardOnSuccess(() => this._cancel());
+    }
+
+    private async _cancel(): Promise<NoProtection> {
         return Promise.all(this.sharedState.allRequests.map(request => {
             if (request instanceof CancellableRequest) {
                 request.cancel()
@@ -497,21 +526,28 @@ export class RejectedRecovery implements WithProtectionParameters {
     }
 
     async resubmit(currentLegalOfficer: LegalOfficer): Promise<PendingProtection> {
+        return this.discardOnSuccess(() => this._resubmit(currentLegalOfficer));
+    }
+
+    private async _resubmit(currentLegalOfficer: LegalOfficer): Promise<PendingProtection> {
         const request = this.sharedState.allRequests.find(request => request.legalOfficerAddress === currentLegalOfficer.address);
         if (request && (request instanceof ReSubmittableRequest || request instanceof UpdatableReSubmittableRequest)) {
             await request.resubmit();
-            return await new PendingProtection(this.sharedState).refresh() as PendingProtection
+            const pending = await new PendingProtection(this.sharedState).refresh() as PendingProtection;
+            return pending;
         }
         throw new Error("Unable to find the request to resubmit")
     }
-
 }
 
 
 export class RejectedProtection extends RejectedRecovery {
 
     async changeLegalOfficer(currentLegalOfficer: LegalOfficer, newLegalOfficer: LegalOfficer): Promise<PendingProtection> {
+        return this.discardOnSuccess(() => this._changeLegalOfficer(currentLegalOfficer, newLegalOfficer));
+    }
 
+    private async _changeLegalOfficer(currentLegalOfficer: LegalOfficer, newLegalOfficer: LegalOfficer): Promise<PendingProtection> {
         const cancel = this.cancelCurrentRequest(currentLegalOfficer)
         const update = this.updateOtherRequest(cancel.request, newLegalOfficer);
         const newProtection = this.createNewRequest(cancel.request, update.request, newLegalOfficer)
@@ -519,7 +555,7 @@ export class RejectedProtection extends RejectedRecovery {
         return Promise.all([ cancel.operation, update.operation, newProtection ])
             .then(async () => {
                 const state = await new PendingProtection(this.sharedState).refresh();
-                return state as PendingProtection
+                return state as PendingProtection;
             })
     }
 
@@ -552,15 +588,23 @@ export class RejectedProtection extends RejectedRecovery {
     }
 }
 
-export class AcceptedProtection implements WithProtectionParameters {
+export class AcceptedProtection extends State implements WithProtectionParameters {
 
     constructor(sharedState: RecoverySharedState) {
+        super();
         this.sharedState = sharedState;
     }
 
     private readonly sharedState: RecoverySharedState;
 
     async activate(
+        signer: Signer,
+        callback?: SignCallback,
+    ): Promise<ActiveProtection | PendingRecovery> {
+        return this.discardOnSuccess(() => this._activate(signer, callback));
+    }
+
+    private async _activate(
         signer: Signer,
         callback?: SignCallback,
     ): Promise<ActiveProtection | PendingRecovery> {
@@ -578,6 +622,7 @@ export class AcceptedProtection implements WithProtectionParameters {
                 legalOfficers: this.sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address)
             }
         };
+
         if (this.protectionParameters.isRecovery) {
             return new PendingRecovery(newSharedState);
         } else {
@@ -586,6 +631,7 @@ export class AcceptedProtection implements WithProtectionParameters {
     }
 
     get protectionParameters(): ProtectionParameters {
+        this.ensureCurrent();
         return buildProtectionParameters(this.sharedState);
     }
 }
@@ -604,28 +650,32 @@ export interface WithRefresh<T extends ProtectionState> {
     refresh(): Promise<T>;
 }
 
-export class ActiveProtection implements WithProtectionParameters, WithActiveProtection<ActiveProtection>, WithRefresh<ActiveProtection> {
+export class ActiveProtection extends State implements WithProtectionParameters, WithActiveProtection<ActiveProtection>, WithRefresh<ActiveProtection> {
 
     constructor(sharedState: RecoverySharedState) {
+        super();
         this.sharedState = sharedState;
     }
 
     private readonly sharedState: RecoverySharedState;
 
     get protectionParameters(): ProtectionParameters {
+        this.ensureCurrent();
         return buildProtectionParameters(this.sharedState);
     }
 
     isFullyReady(): boolean {
+        this.ensureCurrent();
         return isProtectionFullyReady(this.sharedState);
     }
 
     async vaultState(): Promise<VaultState> {
+        this.ensureCurrent();
         return vaultState(this.sharedState);
     }
 
     async refresh(): Promise<ActiveProtection> {
-        return refreshWithActiveProtection(this.sharedState, ActiveProtection);
+        return this.discardOnSuccess(() => refreshWithActiveProtection(this.sharedState, ActiveProtection));
     }
 
     async waitForFullyReady(pollingParameters?: PollingParameters): Promise<ActiveProtection> {
@@ -666,21 +716,29 @@ async function waitForProtectionFullyReady<T extends ProtectionState, S extends 
     } else {
         return waitFor<S>({
             predicate: newState => newState.isFullyReady(),
-            producer: async () => await state.refresh() as S,
+            producer: async (previousState) => (previousState ? await previousState.refresh() : await state.refresh()) as S,
             pollingParameters,
         });
     }
 }
 
-export class PendingRecovery implements WithProtectionParameters, WithActiveProtection<PendingRecovery>, WithRefresh<PendingRecovery> {
+export class PendingRecovery extends State implements WithProtectionParameters, WithActiveProtection<PendingRecovery>, WithRefresh<PendingRecovery> {
 
     constructor(sharedState: RecoverySharedState) {
+        super();
         this.sharedState = sharedState;
     }
 
     private readonly sharedState: RecoverySharedState;
 
     async claimRecovery(
+        signer: Signer,
+        callback?: SignCallback,
+    ): Promise<ClaimedRecovery> {
+        return this.discardOnSuccess(() => this._claimRecovery(signer, callback));
+    }
+
+    private async _claimRecovery(
         signer: Signer,
         callback?: SignCallback,
     ): Promise<ClaimedRecovery> {
@@ -700,19 +758,22 @@ export class PendingRecovery implements WithProtectionParameters, WithActiveProt
     }
 
     get protectionParameters(): ProtectionParameters {
+        this.ensureCurrent();
         return buildProtectionParameters(this.sharedState);
     }
 
     isFullyReady(): boolean {
+        this.ensureCurrent();
         return isProtectionFullyReady(this.sharedState);
     }
 
     async vaultState(): Promise<VaultState> {
+        this.ensureCurrent();
         return vaultState(this.sharedState);
     }
 
     async refresh(): Promise<PendingRecovery> {
-        return refreshWithActiveProtection(this.sharedState, PendingRecovery);
+        return this.discardOnSuccess(() => refreshWithActiveProtection(this.sharedState, PendingRecovery));
     }
 
     async waitForFullyReady(pollingParameters?: PollingParameters): Promise<PendingRecovery> {
@@ -720,27 +781,31 @@ export class PendingRecovery implements WithProtectionParameters, WithActiveProt
     }
 }
 
-export class ClaimedRecovery implements WithProtectionParameters {
+export class ClaimedRecovery extends State implements WithProtectionParameters {
     constructor(sharedState: RecoverySharedState) {
+        super();
         this.sharedState = sharedState;
     }
 
     private readonly sharedState: RecoverySharedState;
 
     get protectionParameters(): ProtectionParameters {
+        this.ensureCurrent();
         return buildProtectionParameters(this.sharedState);
     }
 
     isFullyReady(): boolean {
+        this.ensureCurrent();
         return isProtectionFullyReady(this.sharedState);
     }
 
     async vaultState(): Promise<VaultState> {
+        this.ensureCurrent();
         return vaultState(this.sharedState);
     }
 
     async refresh(): Promise<ClaimedRecovery> {
-        return refreshWithActiveProtection(this.sharedState, ClaimedRecovery);
+        return this.discardOnSuccess(() => refreshWithActiveProtection(this.sharedState, ClaimedRecovery));
     }
 
     async waitForFullyReady(pollingParameters?: PollingParameters): Promise<ClaimedRecovery> {
@@ -748,6 +813,7 @@ export class ClaimedRecovery implements WithProtectionParameters {
     }
 
     async recoveredVaultState(): Promise<VaultState> {
+        this.ensureCurrent();
         return VaultState.create({
             ...this.sharedState,
             isRecovery: true,
@@ -755,6 +821,7 @@ export class ClaimedRecovery implements WithProtectionParameters {
     }
 
     async recoveredBalanceState(): Promise<BalanceState> {
+        this.ensureCurrent();
         return getBalanceState({
             ...this.sharedState,
             isRecovery: true,

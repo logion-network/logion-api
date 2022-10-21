@@ -28,7 +28,8 @@ import {
     LocRequest,
     Signer,
     SignParameters,
-    SpecificLicense
+    SpecificLicense,
+    EditableRequest
 } from "../src";
 import { SharedState } from "../src/SharedClient";
 import {
@@ -93,6 +94,28 @@ describe("LocsState", () => {
     })
 });
 
+describe("DraftRequest", () => {
+
+    it("adds metadata", async () => testAddMetadata(await getDraftRequest()));
+    it("adds file", async () => testAddFile(await getDraftRequest()));
+    it("deletes metadata", async () => testDeleteMetadata(await getDraftRequest()));
+    it("deletes file", async () => testDeleteFile(await getDraftRequest()));
+
+    it("submits", async () => {
+        const draft = await getDraftRequest();
+        let newState = await draft.submit();
+    
+        expect(newState).toBeInstanceOf(PendingRequest);
+        aliceAxiosMock.verify(instance => instance.post(`/api/loc-request/${ draft.locId }/submit`), Times.Once());
+    });
+
+    it("cancels", async () => {
+        const draft = await getDraftRequest();
+        await draft.cancel();
+        aliceAxiosMock.verify(instance => instance.post(`/api/loc-request/${ draft.locId }/cancel`), Times.Once());
+    });
+});
+
 describe("PendingRequest", () => {
 
     it("refreshes", async () => {
@@ -125,64 +148,10 @@ describe("RejectedRequest", () => {
 
 describe("OpenLoc", () => {
 
-    it("adds metadata", async () => {
-        const openLoc = await getOpenLoc();
-
-        let newState = await openLoc.addMetadata({
-            name: "Test",
-            value: "Test Value"
-        });
-
-        expect(newState).toBeInstanceOf(OpenLoc);
-        aliceAxiosMock.verify(instance => instance.post(
-                `/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC.request.id }/metadata`,
-                It.Is<AddMetadataParams & FetchParameters>((params: any) => params.name === "Test" && params.value === "Test Value")),
-            Times.Once(),
-        );
-    });
-
-    it("adds file", async () => {
-        const openLoc = await getOpenLoc();
-
-        let newState = await openLoc.addFile({
-            file: Buffer.from("test"),
-            fileName: "test.txt",
-            nature: "Some nature",
-        });
-
-        expect(newState.state).toBeInstanceOf(OpenLoc);
-        aliceAxiosMock.verify(instance => instance.post(
-                `/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC.request.id }/files`,
-                It.IsAny(),
-                It.Is((options: AxiosRequestConfig<FormDataLike>) => options.headers !== undefined && options.headers["Content-Type"] === "multipart/form-data")
-            ),
-            Times.Once(),
-        );
-    });
-
-    it("deletes metadata", async () => {
-        const openLoc = await getOpenLoc();
-
-        let newState = await openLoc.deleteMetadata({
-            name: "Test",
-        });
-
-        expect(newState).toBeInstanceOf(OpenLoc);
-        aliceAxiosMock.verify(instance => instance.delete(`/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC.request.id }/metadata/Test`), Times.Once());
-    });
-
-    it("deletes file", async () => {
-        const openLoc = await getOpenLoc();
-
-        let newState = await openLoc.deleteFile({
-            hash: "0x7bae16861c48edb6376401922729c4e3faaa5e203615b3ba6814ba4e85fb434c",
-        });
-
-        expect(newState).toBeInstanceOf(OpenLoc);
-        aliceAxiosMock.verify(instance => instance.delete(
-            `/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC.request.id }/files/0x7bae16861c48edb6376401922729c4e3faaa5e203615b3ba6814ba4e85fb434c`
-        ), Times.Once());
-    });
+    it("adds metadata", async () => testAddMetadata(await getOpenLoc()));
+    it("adds file", async () => testAddFile(await getOpenLoc()));
+    it("deletes metadata", async () => testDeleteMetadata(await getOpenLoc()));
+    it("deletes file", async () => testDeleteFile(await getOpenLoc()));
 
     it("requests Statement of Facts (SoF)", async () => {
         const openLoc = await getOpenLoc();
@@ -387,6 +356,7 @@ const legalOfficers: LegalOfficer[] = [ ALICE, BOB, CHARLIE ];
 
 const ITEM_ID = "0x186bf67f32bb45187a1c50286dbd9adf8751874831aeba2a66760a74a9c898cc";
 
+const ALICE_DRAFT_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "DRAFT", "Transaction");
 const ALICE_OPEN_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "OPEN", "Transaction");
 const ALICE_CLOSED_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED", "Transaction");
 const ALICE_CLOSED_COLLECTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED", "Collection");
@@ -431,6 +401,7 @@ async function buildSharedState(): Promise<SharedState> {
 
             aliceAxiosMock = new Mock<AxiosInstance>();
             const aliceRequests: LocRequest[] = [
+                ALICE_DRAFT_TRANSACTION_LOC.request,
                 ALICE_OPEN_TRANSACTION_LOC.request,
                 ALICE_CLOSED_TRANSACTION_LOC.request,
                 ALICE_CLOSED_COLLECTION_LOC.request,
@@ -442,9 +413,19 @@ async function buildSharedState(): Promise<SharedState> {
                         requests: aliceRequests
                     }
                 } as AxiosResponse);
+
+            // Alice files and metadata
             aliceAxiosMock.setup(instance => instance.post(`/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC.request.id }/metadata`, It.IsAny()))
                 .returnsAsync({} as AxiosResponse);
             aliceAxiosMock.setup(instance => instance.post(`/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC.request.id }/files`, It.IsAny(), It.IsAny()))
+                .returnsAsync({
+                    data: {
+                        hash: "0x7bae16861c48edb6376401922729c4e3faaa5e203615b3ba6814ba4e85fb434c"
+                    }
+                } as AxiosResponse);
+            aliceAxiosMock.setup(instance => instance.post(`/api/loc-request/${ ALICE_DRAFT_TRANSACTION_LOC.request.id }/metadata`, It.IsAny()))
+                .returnsAsync({} as AxiosResponse);
+            aliceAxiosMock.setup(instance => instance.post(`/api/loc-request/${ ALICE_DRAFT_TRANSACTION_LOC.request.id }/files`, It.IsAny(), It.IsAny()))
                 .returnsAsync({
                     data: {
                         hash: "0x7bae16861c48edb6376401922729c4e3faaa5e203615b3ba6814ba4e85fb434c"
@@ -458,6 +439,10 @@ async function buildSharedState(): Promise<SharedState> {
             aliceAxiosMock.setup(instance => instance.delete(It.IsAny())).returnsAsync({
                 data: ALICE_OPEN_TRANSACTION_LOC.request
             } as AxiosResponse);
+            aliceAxiosMock.setup(instance => instance.delete(It.IsAny())).returnsAsync({
+                data: ALICE_DRAFT_TRANSACTION_LOC.request
+            } as AxiosResponse);
+
             aliceAxiosMock.setup(instance => instance.post(`/api/loc-request/sof`, It.IsAny())).returnsAsync({
                 data: ALICE_REQUESTED_SOF_REQUEST
             } as AxiosResponse);
@@ -564,6 +549,12 @@ function verifySoFRequested(axiosMock: Mock<AxiosInstance>, locId: UUID, itemId?
     ), Times.Once());
 }
 
+async function getDraftRequest() {
+    const sharedState = await buildSharedState();
+    const locs = await LocsState.getInitialLocsState(sharedState);
+    return locs.draftRequests.Transaction[0];
+}
+
 async function getPendingRequest() {
     const sharedState = await buildSharedState();
     const locs = await LocsState.getInitialLocsState(sharedState);
@@ -623,4 +614,53 @@ function expectDataToMatch(data: LocData, request: LocRequest) {
     expect(data.status).toBe(request.status);
     expect(data.voidInfo?.reason).toBe(request.voidInfo?.reason);
     expect(data.voidInfo?.voidedOn).toBe(request.voidInfo?.voidedOn);
+}
+
+async function testAddMetadata(editable: EditableRequest) {
+    let newState = await editable.addMetadata({
+        name: "Test",
+        value: "Test Value"
+    });
+
+    expect(newState).toBeInstanceOf(EditableRequest);
+    aliceAxiosMock.verify(instance => instance.post(
+            `/api/loc-request/${ editable.locId }/metadata`,
+            It.Is<AddMetadataParams & FetchParameters>((params: any) => params.name === "Test" && params.value === "Test Value")),
+        Times.Once(),
+    );
+}
+
+async function testAddFile(editable: EditableRequest) {
+    let newState = await editable.addFile({
+        file: Buffer.from("test"),
+        fileName: "test.txt",
+        nature: "Some nature",
+    });
+
+    expect(newState).toBeInstanceOf(EditableRequest);
+    aliceAxiosMock.verify(instance => instance.post(
+            `/api/loc-request/${ editable.locId }/files`,
+            It.IsAny(),
+            It.Is((options: AxiosRequestConfig<FormDataLike>) => options.headers !== undefined && options.headers["Content-Type"] === "multipart/form-data")
+        ),
+        Times.Once(),
+    );
+}
+
+async function testDeleteMetadata(editable: EditableRequest) {
+    let newState = await editable.deleteMetadata({
+        name: "Test",
+    });
+    expect(newState).toBeInstanceOf(EditableRequest);
+    aliceAxiosMock.verify(instance => instance.delete(`/api/loc-request/${ editable.locId }/metadata/Test`), Times.Once());
+}
+
+async function testDeleteFile(editable: EditableRequest) {
+    let newState = await editable.deleteFile({
+        hash: "0x7bae16861c48edb6376401922729c4e3faaa5e203615b3ba6814ba4e85fb434c",
+    });
+    expect(newState).toBeInstanceOf(EditableRequest);
+    aliceAxiosMock.verify(instance => instance.delete(
+        `/api/loc-request/${ editable.locId }/files/0x7bae16861c48edb6376401922729c4e3faaa5e203615b3ba6814ba4e85fb434c`
+    ), Times.Once());
 }
