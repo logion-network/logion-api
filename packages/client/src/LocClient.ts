@@ -188,6 +188,7 @@ export interface AddCollectionItemParams {
 }
 
 export interface FetchLocRequestSpecification {
+    ownerAddress?: string;
     requesterAddress?: string,
     statuses: LocRequestStatus[],
     locTypes: LocType[],
@@ -211,6 +212,11 @@ export interface CreateSofRequest {
 export interface GetDeliveriesRequest {
     locId: UUID;
     itemId: string;
+}
+
+export interface FetchAllLocsParams {
+    legalOfficers?: LegalOfficer[];
+    spec?: FetchLocRequestSpecification;
 }
 
 export class LocMultiClient {
@@ -266,8 +272,8 @@ export class LocMultiClient {
         })
     }
 
-    async fetchAll(legalOfficers?: LegalOfficer[]): Promise<LocRequest[]> {
-        const initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers);
+    async fetchAll(params?: FetchAllLocsParams): Promise<LocRequest[]> {
+        const initialState = initMultiSourceHttpClientState(this.networkState, params?.legalOfficers);
 
         const httpClient = new MultiSourceHttpClient<LegalOfficerEndpoint, LocRequest[]>(
             initialState,
@@ -275,12 +281,14 @@ export class LocMultiClient {
             this.token
         );
 
+        const defaultSpec: FetchLocRequestSpecification = {
+            requesterAddress: this.currentAddress,
+            locTypes: [ "Transaction", "Collection", "Identity" ],
+            statuses: [ "OPEN", "REQUESTED", "REJECTED", "CLOSED" ]
+        };
+
         const multiResponse = await httpClient.fetch(async axios => {
-            const specs: FetchLocRequestSpecification = {
-                requesterAddress: this.currentAddress,
-                locTypes: [ "Transaction", "Collection", "Identity" ],
-                statuses: [ "OPEN", "REQUESTED", "REJECTED", "CLOSED" ]
-            }
+            const specs: FetchLocRequestSpecification = params?.spec ? params?.spec : defaultSpec;
             const response = await axios.put("/api/loc-request", specs);
             return response.data.requests;
         });

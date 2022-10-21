@@ -17,6 +17,7 @@ import {
     Published,
     ItemFileWithContent,
     AuthenticatedLocClient,
+    FetchAllLocsParams,
 } from "./LocClient";
 import { SharedState } from "./SharedClient";
 import { LegalOfficer, UserIdentity, PostalAddress } from "./Types";
@@ -154,8 +155,8 @@ export class LocsState extends State {
         return new LocsState(this.sharedState, refreshedLocs);
     }
 
-    static async getInitialLocsState(sharedState: SharedState): Promise<LocsState> {
-        return new LocsState(sharedState, {}).refresh();
+    static async getInitialLocsState(sharedState: SharedState, params?: FetchAllLocsParams): Promise<LocsState> {
+        return new LocsState(sharedState, {}).refresh(params);
     }
 
     findById(locId: UUID): AnyLocState {
@@ -215,15 +216,15 @@ export class LocsState extends State {
         }
     }
 
-    async refresh(): Promise<LocsState> {
-        return this.discardOnSuccess(() => this._refresh());
+    async refresh(params?: FetchAllLocsParams): Promise<LocsState> {
+        return this.discardOnSuccess(() => this._refresh(params));
     }
 
-    private async _refresh(): Promise<LocsState> {
+    private async _refresh(params?: FetchAllLocsParams): Promise<LocsState> {
         const locsState = new LocsState(this.sharedState, {});
         const refreshedLocs: Record<string, LocRequestState> = {};
         const locMultiClient = LocMultiClient.newLocMultiClient(this.sharedState);
-        const locRequests = await locMultiClient.fetchAll();
+        const locRequests = await locMultiClient.fetchAll(params);
         for (const locRequest of locRequests) {
             const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === locRequest.ownerAddress)
             if (legalOfficer) {

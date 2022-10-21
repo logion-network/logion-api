@@ -14,6 +14,7 @@ import { RawSigner } from "./Signer";
 import { LegalOfficer } from "./Types";
 import { LocsState } from "./Loc";
 import { PublicApi } from "./Public";
+import { FetchAllLocsParams } from "./LocClient";
 
 export class LogionClient {
 
@@ -239,9 +240,9 @@ export class LogionClient {
         return isValidAccountId(this.sharedState.nodeApi, address);
     }
 
-    async locsState(): Promise<LocsState> {
+    async locsState(params?: FetchAllLocsParams): Promise<LocsState> {
         this.ensureConnected();
-        return LocsState.getInitialLocsState(this.sharedState);
+        return LocsState.getInitialLocsState(this.sharedState, params);
     }
 
     get public(): PublicApi {
