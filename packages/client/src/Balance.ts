@@ -11,6 +11,7 @@ import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { Transaction, TransactionClient } from "./TransactionClient";
 import { SignCallback, Signer } from "./Signer";
 import { SharedState } from "./SharedClient";
+import { State } from "./State";
 
 export interface TransferParam {
     signer: Signer;
@@ -51,23 +52,30 @@ function newTransactionClient(currentAddress: string, sharedState: SharedState):
     })
 }
 
-export class BalanceState {
+export class BalanceState extends State {
 
     constructor(state: BalanceSharedState) {
+        super();
         this.sharedState = state;
     }
 
     private sharedState: BalanceSharedState;
 
     get transactions(): Transaction[] {
+        this.ensureCurrent();
         return this.sharedState.transactions;
     }
 
     get balances(): CoinBalance[] {
+        this.ensureCurrent();
         return this.sharedState.balances;
     }
 
     async transfer(params: TransferParam): Promise<BalanceState> {
+        return this.discardOnSuccess(() => this._transfer(params));
+    }
+
+    private async _transfer(params: TransferParam): Promise<BalanceState> {
         const { signer, destination, amount, callback } = params;
 
         let submittable: SubmittableExtrinsic;
@@ -95,10 +103,14 @@ export class BalanceState {
             callback,
         })
 
-        return this.refresh();
+        return this._refresh();
+    }
+
+    private async _refresh(): Promise<BalanceState> {
+        return getBalanceState(this.sharedState);
     }
 
     async refresh(): Promise<BalanceState> {
-        return getBalanceState(this.sharedState);
+        return this.discardOnSuccess(() => this._refresh());
     }
 }

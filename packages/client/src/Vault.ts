@@ -17,6 +17,7 @@ import { SignCallback, Signer } from "./Signer";
 import { LegalOfficer } from "./Types";
 import { requestSort, VaultClient, VaultTransferRequest } from "./VaultClient";
 import { Transaction, TransactionClient } from "./TransactionClient";
+import { State } from "./State";
 
 export interface VaultSharedState extends SharedState {
     client: VaultClient,
@@ -37,7 +38,7 @@ export type VaultStateCreationParameters = SharedState & {
     recoveredAddress?: string,
 };
 
-export class VaultState {
+export class VaultState extends State {
 
     static async create(sharedState: VaultStateCreationParameters): Promise<VaultState> {
         const { currentAddress, token } = authenticatedCurrentAddress(sharedState);
@@ -96,24 +97,29 @@ export class VaultState {
     }
 
     constructor(state: VaultSharedState) {
+        super();
         this.sharedState = state;
     }
 
     private sharedState: VaultSharedState;
 
     get pendingVaultTransferRequests() {
+        this.ensureCurrent();
         return this.sharedState.pendingVaultTransferRequests;
     }
 
     get cancelledVaultTransferRequests() {
+        this.ensureCurrent();
         return this.sharedState.cancelledVaultTransferRequests;
     }
 
     get rejectedVaultTransferRequests() {
+        this.ensureCurrent();
         return this.sharedState.rejectedVaultTransferRequests;
     }
 
     get acceptedVaultTransferRequests() {
+        this.ensureCurrent();
         return this.sharedState.acceptedVaultTransferRequests;
     }
 
@@ -125,6 +131,16 @@ export class VaultState {
     }
 
     async createVaultTransferRequest(params: {
+        legalOfficer: LegalOfficer,
+        amount: PrefixedNumber,
+        destination: string,
+        signer: Signer,
+        callback?: SignCallback,
+    }): Promise<VaultState> {
+        return this.discardOnSuccess(() => this._createVaultTransferRequest(params));
+    }
+
+    private async _createVaultTransferRequest(params: {
         legalOfficer: LegalOfficer,
         amount: PrefixedNumber,
         destination: string,
@@ -211,6 +227,15 @@ export class VaultState {
         signer: Signer,
         callback?: SignCallback,
     ): Promise<VaultState> {
+        return this.discardOnSuccess(() => this._cancelVaultTransferRequest(legalOfficer, request, signer, callback));
+    }
+
+    private async _cancelVaultTransferRequest(
+        legalOfficer: LegalOfficer,
+        request: VaultTransferRequest,
+        signer: Signer,
+        callback?: SignCallback,
+    ): Promise<VaultState> {
         const signerId = getDefinedCurrentAddress(this.sharedState);
         const amount = new PrefixedNumber(request.amount, LGNT_SMALLEST_UNIT);
 
@@ -277,6 +302,13 @@ export class VaultState {
         legalOfficer: LegalOfficer,
         request: VaultTransferRequest,
     ): Promise<VaultState> {
+        return this.discardOnSuccess(() => this._resubmitVaultTransferRequest(legalOfficer, request));
+    }
+
+    private async _resubmitVaultTransferRequest(
+        legalOfficer: LegalOfficer,
+        request: VaultTransferRequest,
+    ): Promise<VaultState> {
         await this.sharedState.client.resubmitVaultTransferRequest(legalOfficer, request);
 
         const resubmittedRequest: VaultTransferRequest = {
@@ -299,6 +331,10 @@ export class VaultState {
     }
 
     async refresh(): Promise<VaultState> {
+        return this.discardOnSuccess(() => this._refresh());
+    }
+
+    private async _refresh(): Promise<VaultState> {
         const result = await this.sharedState.client.fetchAll(this.sharedState.legalOfficers);
         const transactionClient = VaultState.newTransactionClient(this.vaultAddress, this.sharedState);
         const transactions = await transactionClient.fetchTransactions();
@@ -312,14 +348,17 @@ export class VaultState {
     }
 
     get vaultAddress(): string {
+        this.ensureCurrent();
         return VaultState.getVaultAddress(this.sharedState);
     }
 
     get transactions(): Transaction[] {
+        this.ensureCurrent();
         return this.sharedState.transactions;
     }
 
     get balances(): CoinBalance[] {
+        this.ensureCurrent();
         return this.sharedState.balances;
     }
 }

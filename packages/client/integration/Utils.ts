@@ -79,3 +79,7 @@ async function transferTokens(config: LogionClientConfig, signer: Signer, source
         submittable: api.tx.balances.transfer(destination, amount)
     });
 }
+
+export async function tearDown(state: State) {
+    return state.client.disconnect();
+}

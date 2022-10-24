@@ -14,6 +14,7 @@ import { RawSigner } from "./Signer";
 import { LegalOfficer } from "./Types";
 import { LocsState } from "./Loc";
 import { PublicApi } from "./Public";
+import { FetchAllLocsParams } from "./LocClient";
 
 export class LogionClient {
 
@@ -77,13 +78,21 @@ export class LogionClient {
     }
 
     useTokens(tokens: AccountTokens): LogionClient {
+        this.ensureConnected();
         return new LogionClient({
             ...this.sharedState,
             tokens,
         });
     }
 
+    private ensureConnected() {
+        if(!this.sharedState.nodeApi.isConnected) {
+            throw new Error("Client was disconnected");
+        }
+    }
+
     async refreshTokens(now: DateTime, threshold?: DurationLike): Promise<LogionClient> {
+        this.ensureConnected();
         let actualThreshold;
         if(threshold !== undefined) {
             actualThreshold = threshold;
@@ -109,6 +118,7 @@ export class LogionClient {
     }
 
     withCurrentAddress(currentAddress?: string): LogionClient {
+        this.ensureConnected();
         let directoryClient: DirectoryClient;
         if(currentAddress !== undefined) {
             directoryClient = this.sharedState.componentFactory.buildDirectoryClient(
@@ -130,6 +140,7 @@ export class LogionClient {
     }
 
     logout(): LogionClient {
+        this.ensureConnected();
         const directoryClient = this.sharedState.componentFactory.buildDirectoryClient(
             this.sharedState.config.directoryEndpoint,
             this.sharedState.axiosFactory
@@ -151,6 +162,7 @@ export class LogionClient {
     }
 
     async protectionState(): Promise<ProtectionState> {
+        this.ensureConnected();
         const { currentAddress, token } = authenticatedCurrentAddress(this.sharedState);
         const recoveryClient = new RecoveryClient({
             axiosFactory: this.sharedState.axiosFactory,
@@ -168,6 +180,7 @@ export class LogionClient {
     }
 
     async authenticate(addresses: string[], signer: RawSigner): Promise<LogionClient> {
+        this.ensureConnected();
         const client = this.sharedState.componentFactory.buildAuthenticationClient(
             this.sharedState.config.directoryEndpoint,
             this.sharedState.legalOfficers,
@@ -185,15 +198,18 @@ export class LogionClient {
     }
 
     isLegalOfficer(address: string): boolean {
+        this.ensureConnected();
         return this.sharedState.allLegalOfficers.find(legalOfficer => legalOfficer.address === address) !== undefined;
     }
 
     async isRegisteredLegalOfficer(address: string): Promise<boolean> {
+        this.ensureConnected();
         const option = await this.sharedState.nodeApi.query.loAuthorityList.legalOfficerSet(address);
         return option.isSome;
     }
 
     buildAxios(legalOfficer: LegalOfficer): AxiosInstance {
+        this.ensureConnected();
         if(!legalOfficer.node) {
             throw new Error("Legal officer has currently no node");
         }
@@ -201,6 +217,7 @@ export class LogionClient {
     }
 
     async balanceState(): Promise<BalanceState> {
+        this.ensureConnected();
         if(!this.sharedState.currentAddress) {
             throw new Error("Current address was not selected");
         }
@@ -211,6 +228,7 @@ export class LogionClient {
     }
 
     async isProtected(address: string): Promise<boolean> {
+        this.ensureConnected();
         const config = await getRecoveryConfig({
             api: this.sharedState.nodeApi,
             accountId: address
@@ -222,12 +240,20 @@ export class LogionClient {
         return isValidAccountId(this.sharedState.nodeApi, address);
     }
 
-    async locsState(): Promise<LocsState> {
-        return LocsState.getInitialLocsState(this.sharedState);
+    async locsState(params?: FetchAllLocsParams): Promise<LocsState> {
+        this.ensureConnected();
+        return LocsState.getInitialLocsState(this.sharedState, params);
     }
 
     get public(): PublicApi {
+        this.ensureConnected();
         return this._public;
+    }
+
+    async disconnect() {
+        if(this.sharedState.nodeApi.isConnected) {
+            return this.sharedState.nodeApi.disconnect();
+        }
     }
 }
 

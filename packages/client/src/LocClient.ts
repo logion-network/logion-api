@@ -91,7 +91,7 @@ export interface LocRequest {
     company?: string;
 }
 
-export type LocRequestStatus = "OPEN" | "REQUESTED" | "REJECTED" | "CLOSED";
+export type LocRequestStatus = "DRAFT" | "OPEN" | "REQUESTED" | "REJECTED" | "CLOSED";
 
 export interface FetchParameters {
     locId: UUID,
@@ -188,6 +188,7 @@ export interface AddCollectionItemParams {
 }
 
 export interface FetchLocRequestSpecification {
+    ownerAddress?: string;
     requesterAddress?: string,
     statuses: LocRequestStatus[],
     locTypes: LocType[],
@@ -201,6 +202,7 @@ export interface CreateLocRequest {
     userIdentity?: UserIdentity;
     userPostalAddress?: PostalAddress;
     company?: string;
+    draft: boolean;
 }
 
 export interface CreateSofRequest {
@@ -210,6 +212,11 @@ export interface CreateSofRequest {
 export interface GetDeliveriesRequest {
     locId: UUID;
     itemId: string;
+}
+
+export interface FetchAllLocsParams {
+    legalOfficers?: LegalOfficer[];
+    spec?: FetchLocRequestSpecification;
 }
 
 export class LocMultiClient {
@@ -261,13 +268,12 @@ export class LocMultiClient {
             token: this.token,
             nodeApi: this.nodeApi,
             legalOfficer,
-            multiClient: this,
             componentFactory: this.componentFactory,
         })
     }
 
-    async fetchAll(legalOfficers?: LegalOfficer[]): Promise<LocRequest[]> {
-        const initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers);
+    async fetchAll(params?: FetchAllLocsParams): Promise<LocRequest[]> {
+        const initialState = initMultiSourceHttpClientState(this.networkState, params?.legalOfficers);
 
         const httpClient = new MultiSourceHttpClient<LegalOfficerEndpoint, LocRequest[]>(
             initialState,
@@ -275,12 +281,14 @@ export class LocMultiClient {
             this.token
         );
 
+        const defaultSpec: FetchLocRequestSpecification = {
+            requesterAddress: this.currentAddress,
+            locTypes: [ "Transaction", "Collection", "Identity" ],
+            statuses: [ "OPEN", "REQUESTED", "REJECTED", "CLOSED" ]
+        };
+
         const multiResponse = await httpClient.fetch(async axios => {
-            const specs: FetchLocRequestSpecification = {
-                requesterAddress: this.currentAddress,
-                locTypes: [ "Transaction", "Collection", "Identity" ],
-                statuses: [ "OPEN", "REQUESTED", "REJECTED", "CLOSED" ]
-            }
+            const specs: FetchLocRequestSpecification = params?.spec ? params?.spec : defaultSpec;
             const response = await axios.put("/api/loc-request", specs);
             return response.data.requests;
         });
@@ -473,7 +481,6 @@ export class AuthenticatedLocClient extends LocClient {
         token: string,
         nodeApi: LogionNodeApi,
         legalOfficer: LegalOfficer,
-        multiClient: LocMultiClient,
         componentFactory: ComponentFactory,
     }) {
         super({
@@ -483,13 +490,11 @@ export class AuthenticatedLocClient extends LocClient {
         });
         this.currentAddress = params.currentAddress;
         this.token = params.token;
-        this.multiClient = params.multiClient;
         this.componentFactory = params.componentFactory;
     }
 
     private readonly currentAddress: string;
     private readonly token: string;
-    private readonly multiClient: LocMultiClient;
     private readonly componentFactory: ComponentFactory;
 
     async createLocRequest(request: CreateLocRequest): Promise<LocRequest> {
@@ -648,5 +653,13 @@ export class AuthenticatedLocClient extends LocClient {
         const { locId, itemId } = parameters;
         const response = await this.backend().get(`/api/collection/${ locId }/${ itemId }/all-deliveries`);
         return response.data;
+    }
+
+    async submit(locId: UUID) {
+        await this.backend().post(`/api/loc-request/${ locId }/submit`);
+    }
+
+    async cancel(locId: UUID) {
+        await this.backend().post(`/api/loc-request/${ locId }/cancel`);
     }
 }

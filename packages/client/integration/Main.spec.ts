@@ -1,4 +1,4 @@
-import { setupInitialState, State } from "./Utils";
+import { setupInitialState, State, tearDown } from "./Utils";
 import { enablesProtection, requestsProtectionAndCancel } from "./Protection";
 import { transfers } from "./Balance";
 import { providesVault } from "./Vault";
@@ -48,4 +48,8 @@ describe("Logion SDK", () => {
     it("provides Collection LOC with upload and restricted delivery", async () => {
         await collectionLocWithUpload(state);
     });
+
+    afterAll(() => {
+        tearDown(state);
+    })
 });
