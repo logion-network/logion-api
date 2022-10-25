@@ -14,7 +14,8 @@ import {
     ClosedCollectionLoc,
     ItemTokenWithRestrictedType,
     LogionClassification,
-    CreativeCommons
+    CreativeCommons,
+    DraftRequest
 } from "../src";
 
 import { AxiosFactory } from "../src/AxiosFactory";
@@ -31,41 +32,48 @@ export async function requestTransactionLoc(state: State) {
 
     const legalOfficer = new LegalOfficerWorker(alice, state);
 
-    const pendingRequest = await locsState.requestTransactionLoc({
+    let draftRequest = await locsState.requestTransactionLoc({
         legalOfficer: alice,
         description: "This is a Transaction LOC",
-    })
+        draft: true,
+    }) as DraftRequest;
 
-    expect(pendingRequest).toBeInstanceOf(PendingRequest)
+    expect(draftRequest).toBeInstanceOf(DraftRequest);
 
+    locsState = draftRequest.locsState();
+    checkData(locsState.draftRequests["Transaction"][0].data(), "DRAFT");
+    checkData(draftRequest.data(), "DRAFT");
+
+    draftRequest = await draftRequest.addMetadata({
+        name: "Some name",
+        value: "Some value"
+    }) as DraftRequest;
+    expect(draftRequest.data().metadata[0].name).toBe("Some name");
+    expect(draftRequest.data().metadata[0].value).toBe("Some value");
+    expect(draftRequest.data().metadata[0].addedOn).toBeUndefined();
+
+    const pendingRequest = await draftRequest.submit();
+    expect(pendingRequest).toBeInstanceOf(PendingRequest);
     locsState = pendingRequest.locsState();
-    checkData(locsState.pendingRequests["Transaction"][0].data(), "REQUESTED")
-    checkData(pendingRequest.data(), "REQUESTED")
+    expect(locsState.draftRequests['Transaction'].length).toBe(0);
+    checkData(locsState.pendingRequests["Transaction"][0].data(), "REQUESTED");
+    checkData(pendingRequest.data(), "REQUESTED");
 
     await legalOfficer.openTransactionLoc(pendingRequest.locId);
 
     let openLoc = await pendingRequest.refresh() as OpenLoc;
     expect(openLoc).toBeInstanceOf(OpenLoc)
 
-    locsState = await locsState.refresh();
+    locsState = openLoc.locsState();
     checkData(locsState.openLocs["Transaction"][0].data(), "OPEN");
     checkData(openLoc.data(), "OPEN");
 
-    openLoc = await openLoc.addMetadata({
-        name: "Some name",
-        value: "Some value"
-    });
-    expect(openLoc.data().metadata[0].name).toBe("Some name");
-    expect(openLoc.data().metadata[0].value).toBe("Some value");
-    expect(openLoc.data().metadata[0].addedOn).toBeUndefined();
-
-    const addFileResult = await openLoc.addFile({
+    openLoc = await openLoc.addFile({
         fileName: "test.txt",
         nature: "Some file nature",
         file: Buffer.from("test"),
-    });
-    openLoc = addFileResult.state;
-    const hash = addFileResult.hash;
+    }) as OpenLoc;
+    const hash = openLoc.data().files[0].hash;
     expect(hash).toBe("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
     expect(openLoc.data().files[0].name).toBe("test.txt");
     expect(openLoc.data().files[0].hash).toBe(hash);
@@ -165,6 +173,7 @@ export async function collectionLoc(state: State) {
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficer: alice,
         description: "This is a Collection LOC",
+        draft: false,
     });
 
     locsState = pendingRequest.locsState();
@@ -215,17 +224,22 @@ export async function collectionLocWithUpload(state: State) {
     const logionClassificationLocRequest = await locsState.requestTransactionLoc({
         legalOfficer: alice,
         description: "This is the Logion Classification LOC",
+        draft: false,
     });
+    locsState = logionClassificationLocRequest.locsState();
     await legalOfficer.createValidTermsAndConditionsLoc(logionClassificationLocRequest.locId);
     const creativeCommonsLocRequest = await locsState.requestTransactionLoc({
         legalOfficer: alice,
         description: "This is the LOC acting usage of CreativeCommons on logion",
+        draft: false,
     });
+    locsState = creativeCommonsLocRequest.locsState();
     await legalOfficer.createValidTermsAndConditionsLoc(creativeCommonsLocRequest.locId);
 
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficer: alice,
         description: "This is a Collection LOC with upload",
+        draft: false,
     });
 
     await legalOfficer.openCollectionLoc(pendingRequest.locId, true);
@@ -350,7 +364,8 @@ export async function identityLoc(state: State) {
             postalCode: "10000",
             city: "MyCity",
             country: "Wonderland"
-        }
+        },
+        draft: false,
     });
 
     locsState = pendingRequest.locsState();
