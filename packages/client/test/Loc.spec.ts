@@ -29,6 +29,8 @@ import {
     Signer,
     SignParameters,
     SpecificLicense,
+    LogionClassification,
+    CreativeCommons,
     EditableRequest
 } from "../src";
 import { SharedState } from "../src/SharedClient";
@@ -51,7 +53,8 @@ import {
     EXISTING_FILE_HASH,
     EXISTING_ITEM_ID,
     ITEM_DESCRIPTION,
-    mockVoidInfo, buildLocAndRequest
+    mockVoidInfo,
+    buildLocAndRequest
 } from "./LocUtils";
 
 describe("LocsState", () => {
@@ -104,7 +107,7 @@ describe("DraftRequest", () => {
     it("submits", async () => {
         const draft = await getDraftRequest();
         let newState = await draft.submit();
-    
+
         expect(newState).toBeInstanceOf(PendingRequest);
         aliceAxiosMock.verify(instance => instance.post(`/api/loc-request/${ draft.locId }/submit`), Times.Once());
     });
@@ -225,7 +228,7 @@ describe("ClosedCollectionLoc", () => {
         nodeApiMock.verify(instance => instance.tx.logionLoc.addCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
     });
 
-    it("adds licensed collection item", async () => {
+    it("adds collection item with Logion Classification", async () => {
         const closedLoc = await getClosedCollectionLoc();
 
         const signer = new Mock<Signer>();
@@ -234,10 +237,44 @@ describe("ClosedCollectionLoc", () => {
             itemId: ITEM_ID,
             itemDescription: ITEM_DESCRIPTION,
             signer: signer.object(),
-            specificLicenses: SPECIFIC_LICENSES
+            logionClassification: LOGION_CLASSIFICATION,
+            specificLicenses: SPECIFIC_LICENSES,
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
         nodeApiMock.verify(instance => instance.tx.logionLoc.addCollectionItemWithTermsAndConditions(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+    });
+
+    it("adds collection item with Creative Commons", async () => {
+        const closedLoc = await getClosedCollectionLoc();
+
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        await closedLoc.addCollectionItem({
+            itemId: ITEM_ID,
+            itemDescription: ITEM_DESCRIPTION,
+            signer: signer.object(),
+            specificLicenses: SPECIFIC_LICENSES,
+            creativeCommons: CREATIVE_COMMONS,
+        });
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.tx.logionLoc.addCollectionItemWithTermsAndConditions(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+    });
+
+    it("fails to add collection item with both Logion Classification and Creative Commons", async () => {
+        const closedLoc = await getClosedCollectionLoc();
+
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        // expectAsync(closedCollectionLoc).toBeRejected("Logion Classification and Creative Commons are mutually exclusive.");
+        await expectAsync(closedLoc.addCollectionItem({
+                itemId: ITEM_ID,
+                itemDescription: ITEM_DESCRIPTION,
+                signer: signer.object(),
+                logionClassification: LOGION_CLASSIFICATION,
+                specificLicenses: SPECIFIC_LICENSES,
+                creativeCommons: CREATIVE_COMMONS,
+            })).toBeRejectedWithError("Logion Classification and Creative Commons are mutually exclusive.")
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Never());
     });
 
     it("requests Statement of Facts (SoF)", async () => {
@@ -376,6 +413,8 @@ const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem(ALICE_CLOSED_COLLEC
 const SPECIFIC_LICENSES: SpecificLicense[] = [
     new SpecificLicense(new UUID("61ccd87f-765c-4ab0-bd91-af68887515d4"), "")
 ];
+const LOGION_CLASSIFICATION: LogionClassification = new LogionClassification(new UUID(), { transferredRights: ["COM-MOD"]});
+const CREATIVE_COMMONS: CreativeCommons = new CreativeCommons(new UUID(), "BY-SA");
 
 let aliceAxiosMock: Mock<AxiosInstance>;
 let bobAxiosMock: Mock<AxiosInstance>;

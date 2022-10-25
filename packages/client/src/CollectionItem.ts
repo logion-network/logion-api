@@ -2,7 +2,7 @@ import { UUID } from "@logion/node-api";
 
 import { ItemDelivery, LocClient, UploadableCollectionItem, UploadableItemFile } from "./LocClient";
 import { ItemTokenWithRestrictedType } from "./Token";
-import { LogionClassification, SpecificLicense, TermsAndConditionsElement } from "./license";
+import { LogionClassification, SpecificLicense, TermsAndConditionsElement, CreativeCommons } from "./license";
 import { CheckHashResult } from "./Loc";
 
 export class CollectionItem implements UploadableCollectionItem {
@@ -25,6 +25,15 @@ export class CollectionItem implements UploadableCollectionItem {
             throw new Error("Terms and conditions must include at most one logion classification element");
         }
 
+        const creativeCommons = args.clientItem.termsAndConditions
+            .filter(element => element.type === "CC4.0")
+            .map(element => element as CreativeCommons);
+        if(creativeCommons.length > 0) {
+            this._creativeCommons = creativeCommons[0];
+        } else if(creativeCommons.length > 1) {
+            throw new Error("Terms and conditions must include at most one Creative Commons element");
+        }
+
         this._specificLicenses = args.clientItem.termsAndConditions
             .filter(element => element.type === "specific_license")
             .map(element => element as SpecificLicense);
@@ -36,9 +45,11 @@ export class CollectionItem implements UploadableCollectionItem {
 
     private clientItem: UploadableCollectionItem;
 
-    private _logionClassification: LogionClassification | undefined;
+    private readonly _logionClassification: LogionClassification | undefined;
 
-    private _specificLicenses: SpecificLicense[];
+    private readonly _specificLicenses: SpecificLicense[];
+
+    private readonly _creativeCommons: CreativeCommons | undefined;
 
     get locId(): UUID {
         return this._locId;
@@ -78,6 +89,10 @@ export class CollectionItem implements UploadableCollectionItem {
 
     get specificLicenses(): SpecificLicense[] {
         return this._specificLicenses;
+    }
+
+    get creativeCommons(): CreativeCommons | undefined {
+        return this._creativeCommons;
     }
 
     getItemFile(hash: string): UploadableItemFile | undefined {

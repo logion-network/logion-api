@@ -14,6 +14,7 @@ import {
     ClosedCollectionLoc,
     ItemTokenWithRestrictedType,
     LogionClassification,
+    CreativeCommons,
     DraftRequest
 } from "../src";
 
@@ -101,7 +102,7 @@ class LegalOfficerWorker {
         this.state = state;
     }
 
-    async createValidLogionClassificationLoc(id: UUID): Promise<void> {
+    async createValidTermsAndConditionsLoc(id: UUID): Promise<void> {
         return this.openAndClose(id);
     }
 
@@ -226,7 +227,14 @@ export async function collectionLocWithUpload(state: State) {
         draft: false,
     });
     locsState = logionClassificationLocRequest.locsState();
-    await legalOfficer.createValidLogionClassificationLoc(logionClassificationLocRequest.locId);
+    await legalOfficer.createValidTermsAndConditionsLoc(logionClassificationLocRequest.locId);
+    const creativeCommonsLocRequest = await locsState.requestTransactionLoc({
+        legalOfficer: alice,
+        description: "This is the LOC acting usage of CreativeCommons on logion",
+        draft: false,
+    });
+    locsState = creativeCommonsLocRequest.locsState();
+    await legalOfficer.createValidTermsAndConditionsLoc(creativeCommonsLocRequest.locId);
 
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficer: alice,
@@ -302,7 +310,8 @@ export async function collectionLocWithUpload(state: State) {
                 hashOrContent: HashOrContent.fromHash(secondFileHash), // No content, must upload later
                 size: 5n, // No content, must provide size
             })
-        ]
+        ],
+        creativeCommons: new CreativeCommons(creativeCommonsLocRequest.locId, "BY-NC-SA")
     });
 
     const secondItemNoUpload = await closedLoc.getCollectionItem({ itemId: secondItemId });
