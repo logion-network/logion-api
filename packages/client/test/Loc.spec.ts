@@ -53,7 +53,8 @@ import {
     EXISTING_FILE_HASH,
     EXISTING_ITEM_ID,
     ITEM_DESCRIPTION,
-    mockVoidInfo, buildLocAndRequest
+    mockVoidInfo,
+    buildLocAndRequest
 } from "./LocUtils";
 
 describe("LocsState", () => {
@@ -227,7 +228,7 @@ describe("ClosedCollectionLoc", () => {
         nodeApiMock.verify(instance => instance.tx.logionLoc.addCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
     });
 
-    it("adds licensed collection item", async () => {
+    it("adds collection item with Logion Classification", async () => {
         const closedLoc = await getClosedCollectionLoc();
 
         const signer = new Mock<Signer>();
@@ -238,10 +239,42 @@ describe("ClosedCollectionLoc", () => {
             signer: signer.object(),
             logionClassification: LOGION_CLASSIFICATION,
             specificLicenses: SPECIFIC_LICENSES,
+        });
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.tx.logionLoc.addCollectionItemWithTermsAndConditions(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+    });
+
+    it("adds collection item with Creative Commons", async () => {
+        const closedLoc = await getClosedCollectionLoc();
+
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        await closedLoc.addCollectionItem({
+            itemId: ITEM_ID,
+            itemDescription: ITEM_DESCRIPTION,
+            signer: signer.object(),
+            specificLicenses: SPECIFIC_LICENSES,
             creativeCommons: CREATIVE_COMMONS,
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
         nodeApiMock.verify(instance => instance.tx.logionLoc.addCollectionItemWithTermsAndConditions(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+    });
+
+    it("fails to add collection item with both Logion Classification and Creative Commons", async () => {
+        const closedLoc = await getClosedCollectionLoc();
+
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        // expectAsync(closedCollectionLoc).toBeRejected("Logion Classification and Creative Commons are mutually exclusive.");
+        await expectAsync(closedLoc.addCollectionItem({
+                itemId: ITEM_ID,
+                itemDescription: ITEM_DESCRIPTION,
+                signer: signer.object(),
+                logionClassification: LOGION_CLASSIFICATION,
+                specificLicenses: SPECIFIC_LICENSES,
+                creativeCommons: CREATIVE_COMMONS,
+            })).toBeRejectedWithError("Logion Classification and Creative Commons are mutually exclusive.")
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Never());
     });
 
     it("requests Statement of Facts (SoF)", async () => {

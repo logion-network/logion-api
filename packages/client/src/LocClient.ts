@@ -598,11 +598,11 @@ export class AuthenticatedLocClient extends LocClient {
             })
         };
 
-        if(parameters.logionClassification) {
+        if (parameters.logionClassification && parameters.creativeCommons) {
+            throw new Error("Logion Classification and Creative Commons are mutually exclusive.");
+        } else if(parameters.logionClassification) {
             addTC(parameters.logionClassification);
-        }
-
-        if(parameters.creativeCommons) {
+        } else if (parameters.creativeCommons) {
             addTC(parameters.creativeCommons);
         }
 

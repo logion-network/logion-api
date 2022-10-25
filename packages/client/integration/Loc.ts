@@ -274,7 +274,6 @@ export async function collectionLocWithUpload(state: State) {
             transferredRights: [ "PER-PRIV", "REG", "TIME" ],
             expiration: "2025-01-01",
         }),
-        creativeCommons: new CreativeCommons(creativeCommonsLocRequest.locId, "BY-NC-SA")
     });
 
     const firstItem = await closedLoc.getCollectionItem({ itemId: firstItemId });
@@ -311,7 +310,8 @@ export async function collectionLocWithUpload(state: State) {
                 hashOrContent: HashOrContent.fromHash(secondFileHash), // No content, must upload later
                 size: 5n, // No content, must provide size
             })
-        ]
+        ],
+        creativeCommons: new CreativeCommons(creativeCommonsLocRequest.locId, "BY-NC-SA")
     });
 
     const secondItemNoUpload = await closedLoc.getCollectionItem({ itemId: secondItemId });
