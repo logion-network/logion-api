@@ -2,12 +2,16 @@ import { UUID } from "@logion/node-api";
 import { AbstractTermsAndConditionsElement } from "./TermsAndConditions";
 import { Language } from "../Types";
 
-export type CreativeCommonsCode = "BY" | "BY-SA" | "BY-NC" | "BY-NC-SA" | "BY-ND" | "BY-NC-ND";
+const values = new Set(["BY", "BY-SA", "BY-NC", "BY-NC-SA", "BY-ND", "BY-NC-ND"] as const);
+export type CreativeCommonsCode = typeof values extends Set<infer T> ? T : never;
 
 export class CreativeCommons extends AbstractTermsAndConditionsElement<CreativeCommonsCode> {
 
     constructor(licenseLocId: UUID, parameters: CreativeCommonsCode) {
         super('CC4.0', licenseLocId, parameters);
+        if (!values.has(parameters)) {
+            throw new Error(`Invalid parameters: ${ parameters }. Valid values are: ${ (Array.from(values)) }.`)
+        }
     }
 
     deedUrl(language: Language = 'en'): string {

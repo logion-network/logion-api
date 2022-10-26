@@ -22,4 +22,9 @@ describe("CreativeCommons", () => {
             expect(creativeCommons.deedUrl("fr")).toEqual(expectedDeedUrls[code]);
         }
     });
+
+    it("fails to build from invalid parameters", () => {
+        expect(() => CreativeCommons.fromDetails(ccLocId, "ABC"))
+            .toThrowError("Invalid parameters: ABC. Valid values are: BY,BY-SA,BY-NC,BY-NC-SA,BY-ND,BY-NC-ND.")
+    })
 })
