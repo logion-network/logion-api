@@ -413,7 +413,7 @@ const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem(ALICE_CLOSED_COLLEC
 const SPECIFIC_LICENSES: SpecificLicense[] = [
     new SpecificLicense(new UUID("61ccd87f-765c-4ab0-bd91-af68887515d4"), "")
 ];
-const LOGION_CLASSIFICATION: LogionClassification = new LogionClassification(new UUID(), { transferredRights: ["COM-MOD"]});
+const LOGION_CLASSIFICATION: LogionClassification = new LogionClassification(new UUID(), { transferredRights: ["COM-MOD", "NOTIME", "WW"]});
 const CREATIVE_COMMONS: CreativeCommons = new CreativeCommons(new UUID(), "BY-SA");
 
 let aliceAxiosMock: Mock<AxiosInstance>;
