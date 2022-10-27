@@ -1,6 +1,6 @@
 import { UUID } from "@logion/node-api";
 import { AbstractTermsAndConditionsElement } from "./TermsAndConditions";
-import { Iso3166Alpha2Code } from "../Country";
+import { Iso3166Alpha2Code, ISO_3166_ALPHA_2_MAPPINGS } from "../Country";
 import { DateTime } from 'luxon';
 import { Language } from "../Types";
 
@@ -250,24 +250,34 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
     }
 
     checkValidity() {
+        const { transferredRights } = this.parameters;
         const expirationSet: Condition = params => params.expiration !== undefined && params.expiration.length > 0;
         const regionalLimitSet: Condition = params => params.regionalLimit !== undefined && params.regionalLimit.length > 0;
+        const oneAndOnlyOne = { min: 1, max: 1 };
         new Validator(this.parameters)
-            .mutuallyExclusive("PER-PRIV", "PER-PUB")
-            .mutuallyExclusive("COM-NOMOD", "COM-MOD")
+            .allCodesValid()
+            .allCountryCodesValid()
+            .contains(oneAndOnlyOne, [ "PER-PRIV", "PER-PUB", "COM-NOMOD", "COM-MOD" ])
             .mutuallyExclusive("EX", "NOEX")
             .mutuallyExclusive("REG", "WW")
             .mutuallyExclusive("TIME", "NOTIME")
             .codePresentForCondition("TIME", expirationSet, "Transferred right TIME must be set if and only if expiration is set")
             .codePresentForCondition("REG", regionalLimitSet, "Transferred right REG must be set if and only if a regional limit is set")
             .validIsoDate(this.parameters.expiration)
-            .validOrThrow()
+            .validOrThrow();
+        if (transferredRights.includes("COM-NOMOD") ||
+            transferredRights.includes("COM-MOD")) {
+            new Validator(this.parameters)
+                .contains(oneAndOnlyOne, ["REG", "WW"])
+                .contains(oneAndOnlyOne, ["TIME", "NOTIME"])
+                .validOrThrow("When using COM-NOMOD or COM-MOD: ")
+        }
     }
 
     static fromDetails(licenseLocId: UUID, details: string, checkValidity = true): LogionClassification {
         const parameters = JSON.parse(details);
-        if (parameters.transferredRights === undefined) {
-            parameters.transferredRights = [];
+        if (checkValidity && parameters.transferredRights === undefined) {
+            throw new Error('Details do not contain a valid JSON. Expecting something like { "transferredRights": ["PER-PUB"] }');
         }
         return new LogionClassification(licenseLocId, parameters, checkValidity);
     }
@@ -280,9 +290,9 @@ class Validator {
 
     private errors: string[] = [];
 
-    validOrThrow() {
+    validOrThrow(prefix = "") {
         if (this.errors.length > 0) {
-            throw new Error(this.errors.join("; "));
+            throw new Error(prefix + this.errors.join("; "));
         }
     }
 
@@ -308,6 +318,40 @@ class Validator {
         if (date) {
             if (!DateTime.fromISO(date).isValid) {
                 this.errors.push("Invalid date");
+            }
+        }
+        return this;
+    }
+
+    contains(params: { min: number, max: number }, subset: LogionTransferredRightCode[]): Validator {
+        const { min, max } = params;
+        const num = subset.filter(code => this.parameters.transferredRights.includes(code)).length;
+        if (num < min) {
+            this.errors.push(`Transferred rights must contain at least ${ min } code(s) from ${ subset }`);
+        }
+        if (num > max) {
+            this.errors.push(`Transferred rights must contain at most ${ max } code(s) from ${ subset }`);
+        }
+        return this;
+    }
+
+    allCodesValid(): Validator {
+        const unknownCodes = this.parameters.transferredRights
+            .filter(code => logionLicenseItems[code] === undefined)
+            .join(",");
+        if (unknownCodes.length > 0) {
+            this.errors.push(`Unknown code(s): ${ unknownCodes }`);
+        }
+        return this;
+    }
+
+    allCountryCodesValid(): Validator {
+        if (this.parameters.regionalLimit) {
+            const unknownCodes = this.parameters.regionalLimit
+                .filter(code => ISO_3166_ALPHA_2_MAPPINGS[code] === undefined)
+                .join(",");
+            if (unknownCodes.length > 0) {
+                this.errors.push(`Unknown Country code(s): ${ unknownCodes }`);
             }
         }
         return this;
