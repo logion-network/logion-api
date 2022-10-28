@@ -23,6 +23,7 @@ import { SharedState } from "./SharedClient";
 import { LegalOfficer, UserIdentity, PostalAddress } from "./Types";
 import { CollectionItem as CollectionItemClass } from './CollectionItem';
 import { State } from "./State";
+import { LogionClient } from "./LogionClient";
 
 export interface LocData {
     id: UUID
@@ -64,11 +65,13 @@ export interface MergedMetadataItem extends LocMetadataItem, Published {
 export class LocsState extends State {
     private readonly sharedState: SharedState;
     private _locs: Record<string, LocRequestState>;
+    private readonly _client: LogionClient;
 
-    constructor(sharedState: SharedState, locs: Record<string, LocRequestState>) {
+    constructor(sharedState: SharedState, locs: Record<string, LocRequestState>, client: LogionClient) {
         super();
         this.sharedState = sharedState;
         this._locs = locs;
+        this._client = client;
     }
 
     get draftRequests(): Record<LocType, DraftRequest[]> {
@@ -134,7 +137,7 @@ export class LocsState extends State {
     }
 
     private _refreshWith(loc: LocRequestState): LocsState {
-        const locsState = new LocsState(this.sharedState, {});
+        const locsState = new LocsState(this.sharedState, {}, this._client);
         const refreshedLocs: Record<string, LocRequestState> = {};
         for(const locId in this._locs) {
             const state = this._locs[locId];
@@ -152,11 +155,11 @@ export class LocsState extends State {
     private _refreshWithout(locId: UUID): LocsState {
         const refreshedLocs: Record<string, LocRequestState> = { ...this._locs };
         delete refreshedLocs[locId.toString()];
-        return new LocsState(this.sharedState, refreshedLocs);
+        return new LocsState(this.sharedState, refreshedLocs, this._client);
     }
 
-    static async getInitialLocsState(sharedState: SharedState, params?: FetchAllLocsParams): Promise<LocsState> {
-        return new LocsState(sharedState, {}).refresh(params);
+    static async getInitialLocsState(sharedState: SharedState, client: LogionClient, params?: FetchAllLocsParams): Promise<LocsState> {
+        return new LocsState(sharedState, {}, client).refresh(params);
     }
 
     findById(locId: UUID): AnyLocState {
@@ -221,7 +224,7 @@ export class LocsState extends State {
     }
 
     private async _refresh(params?: FetchAllLocsParams): Promise<LocsState> {
-        const locsState = new LocsState(this.sharedState, {});
+        const locsState = new LocsState(this.sharedState, {}, this._client);
         const refreshedLocs: Record<string, LocRequestState> = {};
         const locMultiClient = LocMultiClient.newLocMultiClient(this.sharedState);
         const locRequests = await locMultiClient.fetchAll(params);
@@ -243,6 +246,10 @@ export class LocsState extends State {
         }
         locsState._locs = refreshedLocs;
         return locsState;
+    }
+
+    get client(): LogionClient {
+        return this._client;
     }
 }
 

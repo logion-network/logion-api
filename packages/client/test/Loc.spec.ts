@@ -31,7 +31,8 @@ import {
     SpecificLicense,
     LogionClassification,
     CreativeCommons,
-    EditableRequest
+    EditableRequest,
+    LogionClient
 } from "../src";
 import { SharedState } from "../src/SharedClient";
 import {
@@ -61,7 +62,7 @@ describe("LocsState", () => {
 
     it("getInitialLocsState", async () => {
         const sharedState = await buildSharedState();
-        const locs = await LocsState.getInitialLocsState(sharedState);
+        const locs = await LocsState.getInitialLocsState(sharedState, client.object());
 
         expect(locs.pendingRequests.Transaction.length).toBe(1);
         const requestedLoc = locs.pendingRequests.Transaction[0];
@@ -86,7 +87,7 @@ describe("LocsState", () => {
 
     it("checks that user has valid identity", async() => {
         const sharedState = await buildSharedState();
-        const locs = await LocsState.getInitialLocsState(sharedState);
+        const locs = await LocsState.getInitialLocsState(sharedState, client.object());
 
         expect(locs.hasValidIdentityLoc(ALICE)).toBeFalse();
         expect(locs.hasValidIdentityLoc(BOB)).toBeTrue();
@@ -389,6 +390,8 @@ describe("VoidedCollectionLoc", () => {
     });
 });
 
+const client = new Mock<LogionClient>();
+
 const legalOfficers: LegalOfficer[] = [ ALICE, BOB, CHARLIE ];
 
 const ITEM_ID = "0x186bf67f32bb45187a1c50286dbd9adf8751874831aeba2a66760a74a9c898cc";
@@ -590,25 +593,25 @@ function verifySoFRequested(axiosMock: Mock<AxiosInstance>, locId: UUID, itemId?
 
 async function getDraftRequest() {
     const sharedState = await buildSharedState();
-    const locs = await LocsState.getInitialLocsState(sharedState);
+    const locs = await LocsState.getInitialLocsState(sharedState, client.object());
     return locs.draftRequests.Transaction[0];
 }
 
 async function getPendingRequest() {
     const sharedState = await buildSharedState();
-    const locs = await LocsState.getInitialLocsState(sharedState);
+    const locs = await LocsState.getInitialLocsState(sharedState, client.object());
     return locs.pendingRequests.Transaction[0];
 }
 
 async function getRejectedRequest() {
     const sharedState = await buildSharedState();
-    const locs = await LocsState.getInitialLocsState(sharedState);
+    const locs = await LocsState.getInitialLocsState(sharedState, client.object());
     return locs.rejectedRequests.Transaction[0];
 }
 
 async function getOpenLoc() {
     const sharedState = await buildSharedState();
-    const locs = await LocsState.getInitialLocsState(sharedState);
+    const locs = await LocsState.getInitialLocsState(sharedState, client.object());
     return locs.openLocs.Transaction[0];
 }
 
@@ -619,25 +622,25 @@ async function testCheckFileHash(state: LocRequestState) {
 
 async function getClosedTransactionLoc() {
     const sharedState = await buildSharedState();
-    const locs = await LocsState.getInitialLocsState(sharedState);
+    const locs = await LocsState.getInitialLocsState(sharedState, client.object());
     return locs.closedLocs.Transaction[0] as ClosedLoc;
 }
 
 async function getClosedCollectionLoc() {
     const sharedState = await buildSharedState();
-    const locs = await LocsState.getInitialLocsState(sharedState);
+    const locs = await LocsState.getInitialLocsState(sharedState, client.object());
     return locs.closedLocs.Collection[0] as ClosedCollectionLoc;
 }
 
 async function getVoidedTransactionLoc() {
     const sharedState = await buildSharedState();
-    const locs = await LocsState.getInitialLocsState(sharedState);
+    const locs = await LocsState.getInitialLocsState(sharedState, client.object());
     return locs.voidedLocs.Transaction[0] as VoidedLoc;
 }
 
 async function getVoidedCollectionLoc() {
     const sharedState = await buildSharedState();
-    const locs = await LocsState.getInitialLocsState(sharedState);
+    const locs = await LocsState.getInitialLocsState(sharedState, client.object());
     return locs.voidedLocs.Collection[0] as VoidedCollectionLoc;
 }
 

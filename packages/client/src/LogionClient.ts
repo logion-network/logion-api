@@ -1,6 +1,6 @@
 import { AxiosInstance } from "axios";
 import { DateTime, DurationLike } from "luxon";
-import { getRecoveryConfig, isValidAccountId } from "@logion/node-api";
+import { getRecoveryConfig, isValidAccountId, LogionNodeApi } from "@logion/node-api";
 
 import { AccountTokens } from "./AuthenticationClient";
 import { BalanceState, getBalanceState } from "./Balance";
@@ -75,6 +75,10 @@ export class LogionClient {
 
     get allLegalOfficers(): LegalOfficer[] {
         return this.sharedState.allLegalOfficers;
+    }
+
+    get nodeApi(): LogionNodeApi {
+        return this.sharedState.nodeApi;
     }
 
     useTokens(tokens: AccountTokens): LogionClient {
@@ -242,7 +246,7 @@ export class LogionClient {
 
     async locsState(params?: FetchAllLocsParams): Promise<LocsState> {
         this.ensureConnected();
-        return LocsState.getInitialLocsState(this.sharedState, params);
+        return LocsState.getInitialLocsState(this.sharedState, this, params);
     }
 
     get public(): PublicApi {
