@@ -57,6 +57,20 @@ describe("validateToken", () => {
             id: '0xa6db31d1aee06a3ad7e4e56de3775e80d2f5ea8'
         }, "token ID must be a valid Ethereum address");
     });
+
+    it("validates valid singular_kusama token", () => {
+        testValid({
+            type: "singular_kusama",
+            id: VALID_SINGULAR_KUSAMA_TOKEN_ID,
+        });
+    });
+
+    it("invalidates singular_kusama token with invalid ID", () => {
+        testInvalid({
+            type: "singular_kusama",
+            id: INVALID_SINGULAR_KUSAMA_TOKEN_ID
+        }, "token ID must be a valid Singular Kusama ID");
+    });
 });
 
 function testErcValidToken(type: TokenType) {
@@ -113,6 +127,10 @@ function testErcInvalidIdIdIsNotString(type: TokenType) {
     }, "token ID's 'id' field is not a string");
 }
 
+const VALID_SINGULAR_KUSAMA_TOKEN_ID = "15057162-acba02847598b67746-DSTEST1-LUXEMBOURG_HOUSE-00000001";
+
+const INVALID_SINGULAR_KUSAMA_TOKEN_ID = "*15057162-acba02847598b67746-DSTEST1-LUXEMBOURG_HOUSE-00000001";
+
 describe("isTokenType", () => {
 
     it("returns true given 'ethereum_erc721'", () => {
@@ -133,5 +151,9 @@ describe("isTokenType", () => {
 
     it("returns true given 'owner'", () => {
         expect(isTokenType("owner")).toBe(true);
+    });
+
+    it("returns true given 'singular_kusama'", () => {
+        expect(isTokenType("singular_kusama")).toBe(true);
     });
 });
