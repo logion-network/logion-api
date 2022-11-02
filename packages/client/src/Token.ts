@@ -5,10 +5,24 @@ export interface ItemTokenWithRestrictedType {
     id: string,
 }
 
-export type TokenType = 'ethereum_erc721' | 'ethereum_erc1155' | 'goerli_erc721' | 'goerli_erc1155' | 'owner';
+export type TokenType =
+    'ethereum_erc721'
+    | 'ethereum_erc1155'
+    | 'goerli_erc721'
+    | 'goerli_erc1155'
+    | 'singular_kusama'
+    | 'owner'
+;
 
 export function isTokenType(type: string): type is TokenType {
-    return type === 'ethereum_erc721' || type === 'ethereum_erc1155' || type === 'goerli_erc721' || type === 'goerli_erc1155' || type === 'owner';
+    return (
+        type === 'ethereum_erc721'
+        || type === 'ethereum_erc1155'
+        || type === 'goerli_erc721'
+        || type === 'goerli_erc1155'
+        || type === 'singular_kusama'
+        || type === 'owner'
+    );
 }
 
 export interface TokenValidationResult {
@@ -66,6 +80,15 @@ export function validateToken(itemToken: ItemTokenWithRestrictedType): TokenVali
                 error: "token ID must be a valid Ethereum address",
             }
         }
+    } else if(itemToken.type === "singular_kusama") {
+        if(isSingularKusamaId(itemToken.id)) {
+            return { valid: true };
+        } else {
+            return {
+                valid: false,
+                error: "token ID must be a valid Singular Kusama ID",
+            }
+        }
     } else {
         return {
             valid: false,
@@ -79,3 +102,7 @@ export function isErcToken(type: TokenType): boolean {
 }
 
 const ETHEREUM_ADDRESS_LENGTH_IN_BITS = 20 * 8;
+
+export function isSingularKusamaId(tokenId: string): boolean {
+    return /^[0-9a-zA-Z\-_]+$/.test(tokenId);
+}
