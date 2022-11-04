@@ -1,6 +1,7 @@
 import { ApiPromise, Keyring } from "@polkadot/api";
 import { IKeyringPair } from "@polkadot/types/types";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
+import { waitReady } from "@polkadot/wasm-crypto";
 
 import { buildApi } from "../src";
 
@@ -15,6 +16,7 @@ let state: State;
 
 export async function setup(): Promise<State> {
     if(!state) {
+        await waitReady();
         const keyring = new Keyring({ type: 'sr25519' });
         const alice = keyring.addFromUri(ALICE_SEED);
         const requester = keyring.addFromUri(REQUESTER_SECRET_SEED);
