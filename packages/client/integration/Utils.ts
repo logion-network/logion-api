@@ -2,9 +2,9 @@ import { buildApi } from "@logion/node-api";
 import { Keyring } from "@polkadot/api";
 import FormData from "form-data";
 
-import { FullSigner, KeyringSigner, Signer } from "../src/Signer";
+import { FullSigner, KeyringSigner, SignAndSendStrategy, Signer } from "../src/Signer";
 import { LogionClientConfig } from "../src/SharedClient";
-import { LegalOfficer, LogionClient } from "../src";
+import { ISubmittableResult, LegalOfficer, LogionClient } from "../src";
 import { ALICE, BOB, CHARLIE } from "../test/Utils";
 import { requireDefined } from "../src/assertions";
 
@@ -13,10 +13,17 @@ export const ALICE_SECRET_SEED = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90
 export const BOB_SECRET_SEED = "0x398f0c28f98885e046333d4a41c19cee4c37368a9832c6502f6cfd182e2aef89";
 export const CHARLIE_SECRET_SEED = "0xbc1ede780f784bb6991a585e4f6e61522c14e1cae6ad0895fb57b9a205a8f938";
 
+class IntegrationTestSignAndSendStrategy implements SignAndSendStrategy {
+
+    canUnsub(result: ISubmittableResult): boolean {
+        return result.isInBlock;
+    }
+}
+
 export function buildSigner(seeds: string []): FullSigner {
     const keyring = new Keyring({ type: 'sr25519' });
     seeds.forEach(seed => keyring.addFromUri(seed))
-    return new KeyringSigner(keyring);
+    return new KeyringSigner(keyring, new IntegrationTestSignAndSendStrategy());
 }
 
 export const TEST_LOGION_CLIENT_CONFIG: LogionClientConfig = {

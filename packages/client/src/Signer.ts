@@ -8,6 +8,7 @@ import { toHex, buildErrorMessage } from '@logion/node-api';
 import { Hash } from 'fast-sha256';
 
 import { toIsoString } from './DateTimeUtil';
+import { requireDefined } from "./assertions";
 
 export interface SignRawParameters {
     signerId: string;
@@ -51,7 +52,32 @@ export type FullSigner = RawSigner & Signer;
 
 export type SignAndSendFunction = (statusCallback: (result: ISubmittableResult) => void) => Promise<() => void>;
 
+export interface SignAndSendStrategy {
+    canUnsub(result: ISubmittableResult): boolean;
+}
+
+export class DefaultSignAndSendStrategy implements SignAndSendStrategy {
+
+    canUnsub(result: ISubmittableResult): boolean {
+        return result.status.isFinalized;
+    }
+}
+
+interface SubmissionState {
+    block?: string;
+}
+
 export abstract class BaseSigner implements FullSigner {
+
+    constructor(signAndSendStrategy?: SignAndSendStrategy) {
+        if(signAndSendStrategy) {
+            this.signAndSendStrategy = signAndSendStrategy;
+        } else {
+            this.signAndSendStrategy = new DefaultSignAndSendStrategy();
+        }
+    }
+
+    private signAndSendStrategy: SignAndSendStrategy;
 
     async signRaw(parameters: SignRawParameters): Promise<TypedSignature> {
         const message = this.buildMessage(parameters);
@@ -85,6 +111,7 @@ export abstract class BaseSigner implements FullSigner {
         const next = parameters.callback;
         return new Promise<SuccessfulSubmission>((resolve, reject) => {
             let unsub: (() => void) | undefined;
+            const submissionState: SubmissionState = {};
             parameters.signAndSend(result => {
                 if(unsub) {
                     this.signerCallback({
@@ -94,6 +121,8 @@ export abstract class BaseSigner implements FullSigner {
                         resolve,
                         registry,
                         next,
+                        submissionState,
+                        signAndSendStrategy: this.signAndSendStrategy,
                     });
                 }
             })
@@ -109,17 +138,22 @@ export abstract class BaseSigner implements FullSigner {
         reject: (error: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
         registry: Registry;
         result: ISubmittableResult;
+        submissionState: SubmissionState;
+        signAndSendStrategy: SignAndSendStrategy;
     }) {
         if(params.next !== undefined) {
             params.next(params.result);
         }
         if (params.result.status.isInBlock) {
+            params.submissionState.block = params.result.status.asInBlock.toString();
+        }
+        if (params.result.dispatchError || params.signAndSendStrategy.canUnsub(params.result)) {
             params.unsub();
             if(params.result.dispatchError) {
                 params.reject(new Error(buildErrorMessage(params.registry, params.result.dispatchError)));
             } else {
                 params.resolve({
-                    block: params.result.status.asInBlock.toString(),
+                    block: requireDefined(params.submissionState.block),
                     index: params.result.txIndex || -1
                 });
             }
@@ -130,8 +164,8 @@ export abstract class BaseSigner implements FullSigner {
 
 export class KeyringSigner extends BaseSigner {
 
-    constructor(keyring: Keyring) {
-        super();
+    constructor(keyring: Keyring, signAndSendStrategy?: SignAndSendStrategy) {
+        super(signAndSendStrategy);
         this.keyring = keyring;
     }
 
@@ -158,8 +192,4 @@ export function hashAttributes(attributes: any[]): string { // eslint-disable-li
         digest.update(bytes);
     }
     return base64Encode(digest.digest());
-}
-
-export function isSuccessful(result: ISubmittableResult): boolean {
-    return result.status.isInBlock && !result.dispatchError;
 }

@@ -1,8 +1,12 @@
-import { SignParameters, SignAndSendFunction, BaseSigner, TypedSignature, SignatureType } from '@logion/client';
+import { SignParameters, SignAndSendFunction, BaseSigner, TypedSignature, SignatureType, SignAndSendStrategy } from '@logion/client';
 import { web3FromAddress } from '@polkadot/extension-dapp';
 import { META_MASK_NAME } from "./Extension";
 
 export class ExtensionSigner extends BaseSigner {
+
+    constructor(signAndSendStrategy?: SignAndSendStrategy) {
+        super(signAndSendStrategy);
+    }
 
     async signToHex(signerId: string, message: string): Promise<TypedSignature> {
         const extension = await web3FromAddress(signerId);
