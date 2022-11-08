@@ -253,7 +253,7 @@ export class LocsState extends State {
     }
 }
 
-interface LocSharedState extends SharedState {
+export interface LocSharedState extends SharedState {
     legalOfficer: LegalOfficer;
     client: AuthenticatedLocClient;
     locsState: LocsState;

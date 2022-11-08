@@ -74,6 +74,11 @@ const config = {
             label: 'Client',
           },
           {
+            to: '/docs/api',
+            position: 'left',
+            label: 'API',
+          },
+          {
             href: 'https://github.com/logion-network/logion-api',
             label: 'GitHub',
             position: 'right',
