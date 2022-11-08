@@ -162,7 +162,7 @@ export class LocsState extends State {
         return new LocsState(sharedState, {}, client).refresh(params);
     }
 
-    findById(locId: UUID): AnyLocState {
+    findById(locId: UUID): LocRequestState {
         this.ensureCurrent();
         if(!(locId.toString() in this._locs)) {
             throw new Error("LOC not found");
@@ -338,7 +338,7 @@ export abstract class LocRequestState extends State {
         }
     }
 
-    async refresh(): Promise<AnyLocState> {
+    async refresh(): Promise<LocRequestState> {
         const client = this.locSharedState.client;
         const request = await client.getLocRequest({ locId: this.locId });
         const newState = await LocRequestState.createFromRequest(this.locSharedState, request);
@@ -600,6 +600,24 @@ export class PendingRequest extends LocRequestState {
 
 export class RejectedRequest extends LocRequestState {
 
+    async cancel(): Promise<LocsState> {
+        this.ensureCurrent();
+        await this.locSharedState.client.cancel(this.locId);
+        this.discard();
+        return this.locSharedState.locsState.refreshWithout(this.locId);
+    }
+
+    async rework(): Promise<DraftRequest> {
+        await this.locSharedState.client.rework(this.locId);
+        const request: LocRequest = {
+            ...this.request,
+            status: "DRAFT",
+        };
+        const tempDraft = new DraftRequest(this.locSharedState, request);
+        const newLocsState = this.locSharedState.locsState.refreshWith(tempDraft); // Discards this state
+        return newLocsState.findById(this.locId) as DraftRequest;
+    }
+
     override withLocs(locsState: LocsState): RejectedRequest {
         return this._withLocs(locsState, RejectedRequest);
     }
@@ -752,7 +770,7 @@ export class VoidedLoc extends LocRequestState {
         this.ensureCurrent();
         const replacer = this.data().voidInfo?.replacer;
         if (replacer) {
-            return await this.locSharedState.locsState.findById(replacer) as OpenLoc | ClosedLoc | VoidedLoc;
+            return this.locSharedState.locsState.findById(replacer) as OpenLoc | ClosedLoc | VoidedLoc;
         }
         return undefined;
     }
@@ -772,7 +790,7 @@ export class VoidedCollectionLoc extends ClosedOrVoidCollectionLoc {
         this.ensureCurrent();
         const replacer = this.data().voidInfo?.replacer;
         if (replacer) {
-            return await this.locSharedState.locsState.findById(replacer) as OpenLoc | ClosedCollectionLoc | VoidedCollectionLoc;
+            return this.locSharedState.locsState.findById(replacer) as OpenLoc | ClosedCollectionLoc | VoidedCollectionLoc;
         }
         return undefined;
     }
