@@ -674,7 +674,7 @@ async function testAddMetadata(editable: EditableRequest) {
 
 async function testAddFile(editable: EditableRequest) {
     let newState = await editable.addFile({
-        file: Buffer.from("test"),
+        file: HashOrContent.fromContent(Buffer.from("test")),
         fileName: "test.txt",
         nature: "Some nature",
     });
