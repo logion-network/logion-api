@@ -25,7 +25,7 @@ import { AxiosFactory } from "./AxiosFactory";
 import { requireDefined } from "./assertions";
 import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays } from "./Http";
 import { Signer, SignCallback } from "./Signer";
-import { ComponentFactory, FileLike } from './ComponentFactory';
+import { ComponentFactory } from './ComponentFactory';
 import { newBackendError } from './Error';
 import { HashOrContent } from './Hash';
 import { MimeType } from './Mime';
@@ -108,16 +108,12 @@ export interface DeleteMetadataParams {
 }
 
 export interface AddFileParams {
-    file: FileLike,
+    file: HashOrContent,
     fileName: string,
     nature: string,
 }
 
 export interface DeleteFileParams {
-    hash: string
-}
-
-export interface AddFileResult {
     hash: string
 }
 
@@ -533,16 +529,20 @@ export class AuthenticatedLocClient extends LocClient {
         await this.backend().delete(`/api/loc-request/${ locId.toString() }/metadata/${ encodeURIComponent(name) }`)
     }
 
-    async addFile(parameters: AddFileParams & FetchParameters): Promise<AddFileResult> {
-        const { file, fileName, nature, locId } = parameters
+    async addFile(parameters: AddFileParams & FetchParameters): Promise<void> {
+        const { file, fileName, nature, locId } = parameters;
+
+        await file.finalize();
+
         const formData = this.componentFactory.buildFormData();
-        formData.append('file', file, fileName);
+        formData.append('file', file.content, fileName);
         formData.append('nature', nature);
-        const response = await this.backend().post(
+        formData.append('hash', file.contentHash);
+        await this.backend().post(
             `/api/loc-request/${ locId.toString() }/files`,
             formData,
-            { headers: { "Content-Type": "multipart/form-data" } })
-        return response.data;
+            { headers: { "Content-Type": "multipart/form-data" } }
+        );
     }
 
     async deleteFile(parameters: DeleteFileParams & FetchParameters): Promise<void> {
@@ -646,6 +646,7 @@ export class AuthenticatedLocClient extends LocClient {
 
         const formData = this.componentFactory.buildFormData();
         formData.append('file', file.hashOrContent.content, file.name);
+        formData.append('hash', file.hashOrContent.contentHash);
         try {
             await this.backend().post(
                 `/api/collection/${ locId.toString() }/${ itemId }/files`,

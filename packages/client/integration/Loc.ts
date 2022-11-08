@@ -79,7 +79,7 @@ export async function requestTransactionLoc(state: State) {
     openLoc = await openLoc.addFile({
         fileName: "test.txt",
         nature: "Some file nature",
-        file: Buffer.from("test"),
+        file: HashOrContent.fromContent(Buffer.from("test")),
     }) as OpenLoc;
     const hash = openLoc.data().files[0].hash;
     expect(hash).toBe("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");

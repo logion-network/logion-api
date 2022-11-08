@@ -136,7 +136,7 @@ export class HashOrContent {
         } else if(isBuffer(this._content)) {
             const buffer = this._content as Buffer;
             return {
-                hash: await hashBuffer(buffer),
+                hash: hashBuffer(buffer),
                 size: BigInt(buffer.length)
             };
         } else if(typeof this._content === "string") {
