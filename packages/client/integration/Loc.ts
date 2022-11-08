@@ -15,7 +15,8 @@ import {
     ItemTokenWithRestrictedType,
     LogionClassification,
     CreativeCommons,
-    DraftRequest
+    DraftRequest,
+    RejectedRequest
 } from "../src";
 
 import { AxiosFactory } from "../src/AxiosFactory";
@@ -52,12 +53,19 @@ export async function requestTransactionLoc(state: State) {
     expect(draftRequest.data().metadata[0].value).toBe("Some value");
     expect(draftRequest.data().metadata[0].addedOn).toBeUndefined();
 
-    const pendingRequest = await draftRequest.submit();
+    let pendingRequest = await draftRequest.submit();
     expect(pendingRequest).toBeInstanceOf(PendingRequest);
     locsState = pendingRequest.locsState();
     expect(locsState.draftRequests['Transaction'].length).toBe(0);
     checkData(locsState.pendingRequests["Transaction"][0].data(), "REQUESTED");
     checkData(pendingRequest.data(), "REQUESTED");
+
+    await legalOfficer.rejectPendingLoc(pendingRequest.locId);
+    let rejectedRequest = await pendingRequest.refresh() as RejectedRequest;
+    expect(rejectedRequest).toBeInstanceOf(RejectedRequest);
+    draftRequest = await rejectedRequest.rework();
+    expect(draftRequest).toBeInstanceOf(DraftRequest);
+    pendingRequest = await draftRequest.submit();
 
     await legalOfficer.openTransactionLoc(pendingRequest.locId);
 
@@ -124,6 +132,11 @@ class LegalOfficerWorker {
 
         const axios = await this.buildLegalOfficerAxios(this.state.client, this.state.signer, this.legalOfficer);
         await axios.post(`/api/loc-request/${ id.toString() }/accept`);
+    }
+
+    async rejectPendingLoc(id: UUID) {
+        const axios = await this.buildLegalOfficerAxios(this.state.client, this.state.signer, this.legalOfficer);
+        await axios.post(`/api/loc-request/${ id.toString() }/reject`, {reason: "Because."});
     }
 
     async openCollectionLoc(id: UUID, withUpload: boolean) {

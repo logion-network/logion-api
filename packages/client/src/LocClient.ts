@@ -500,8 +500,12 @@ export class AuthenticatedLocClient extends LocClient {
     private readonly componentFactory: ComponentFactory;
 
     async createLocRequest(request: CreateLocRequest): Promise<LocRequest> {
-        const response = await this.backend().post(`/api/loc-request`, request);
-        return response.data;
+        try {
+            const response = await this.backend().post(`/api/loc-request`, request);
+            return response.data;
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async createSofRequest(request: CreateSofRequest & FetchParameters): Promise<LocRequest> {
@@ -676,5 +680,9 @@ export class AuthenticatedLocClient extends LocClient {
 
     async cancel(locId: UUID) {
         await this.backend().post(`/api/loc-request/${ locId }/cancel`);
+    }
+
+    async rework(locId: UUID) {
+        await this.backend().post(`/api/loc-request/${ locId }/rework`);
     }
 }
