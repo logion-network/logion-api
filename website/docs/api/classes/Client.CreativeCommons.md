@@ -4,6 +4,9 @@
 
 [Client](../modules/Client.md).CreativeCommons
 
+Provides Terms and Conditions under
+the [Creative Commons Attribution License 4.0](https://creativecommons.org/about/cclicenses/)
+
 ## Hierarchy
 
 - [`AbstractTermsAndConditionsElement`](Client.AbstractTermsAndConditionsElement.md)<[`CreativeCommonsCode`](../modules/Client.md#creativecommonscode)\>
@@ -34,12 +37,14 @@
 
 • **new CreativeCommons**(`licenseLocId`, `parameters`)
 
+Constructs a new CreativeCommons.
+
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `licenseLocId` | [`UUID`](Node_API.UUID.md) |
-| `parameters` | ``"BY"`` \| ``"BY-SA"`` \| ``"BY-NC"`` \| ``"BY-NC-SA"`` \| ``"BY-ND"`` \| ``"BY-NC-ND"`` |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `licenseLocId` | [`UUID`](Node_API.UUID.md) | the ID of the defining LOC. |
+| `parameters` | ``"BY"`` \| ``"BY-SA"`` \| ``"BY-NC"`` \| ``"BY-NC-SA"`` \| ``"BY-ND"`` \| ``"BY-NC-ND"`` | the code of the selected license. |
 
 #### Overrides
 
@@ -47,13 +52,15 @@
 
 #### Defined in
 
-[packages/client/src/license/CreativeCommons.ts:10](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/CreativeCommons.ts#L10)
+[packages/client/src/license/CreativeCommons.ts:20](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/CreativeCommons.ts#L20)
 
 ## Accessors
 
 ### details
 
 • `get` **details**(): `string`
+
+The serialized details.
 
 #### Returns
 
@@ -65,7 +72,7 @@ AbstractTermsAndConditionsElement.details
 
 #### Defined in
 
-[packages/client/src/license/CreativeCommons.ts:25](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/CreativeCommons.ts#L25)
+[packages/client/src/license/CreativeCommons.ts:46](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/CreativeCommons.ts#L46)
 
 ___
 
@@ -73,9 +80,13 @@ ___
 
 • `get` **parameters**(): `P`
 
+Provides the parameters.
+
 #### Returns
 
 `P`
+
+the parameters.
 
 #### Inherited from
 
@@ -83,13 +94,15 @@ AbstractTermsAndConditionsElement.parameters
 
 #### Defined in
 
-[packages/client/src/license/TermsAndConditions.ts:31](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L31)
+[packages/client/src/license/TermsAndConditions.ts:58](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L58)
 
 ___
 
 ### tcLocId
 
 • `get` **tcLocId**(): [`UUID`](Node_API.UUID.md)
+
+The id of the LOC enabling the usage of this T&C.
 
 #### Returns
 
@@ -101,13 +114,15 @@ AbstractTermsAndConditionsElement.tcLocId
 
 #### Defined in
 
-[packages/client/src/license/TermsAndConditions.ts:27](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L27)
+[packages/client/src/license/TermsAndConditions.ts:50](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L50)
 
 ___
 
 ### type
 
 • `get` **type**(): [`TermsAndConditionsElementType`](../modules/Client.md#termsandconditionselementtype)
+
+The type of this T&C element.
 
 #### Returns
 
@@ -119,7 +134,7 @@ AbstractTermsAndConditionsElement.type
 
 #### Defined in
 
-[packages/client/src/license/TermsAndConditions.ts:23](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L23)
+[packages/client/src/license/TermsAndConditions.ts:46](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L46)
 
 ## Methods
 
@@ -127,19 +142,23 @@ AbstractTermsAndConditionsElement.type
 
 ▸ **deedUrl**(`language?`): `string`
 
+Provides the deed url in the requested language.
+
 #### Parameters
 
-| Name | Type | Default value |
-| :------ | :------ | :------ |
-| `language` | [`Language`](../modules/Client.md#language) | `'en'` |
+| Name | Type | Default value | Description |
+| :------ | :------ | :------ | :------ |
+| `language` | [`Language`](../modules/Client.md#language) | `'en'` | the language |
 
 #### Returns
 
 `string`
 
+the url to the
+
 #### Defined in
 
-[packages/client/src/license/CreativeCommons.ts:17](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/CreativeCommons.ts#L17)
+[packages/client/src/license/CreativeCommons.ts:32](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/CreativeCommons.ts#L32)
 
 ___
 
@@ -147,17 +166,21 @@ ___
 
 ▸ `Static` **fromDetails**(`licenseLocId`, `details`): [`CreativeCommons`](Client.CreativeCommons.md)
 
+Constructs a new Creative Commons, based on parameters represented as a JSON string.
+
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `licenseLocId` | [`UUID`](Node_API.UUID.md) |
-| `details` | `string` |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `licenseLocId` | [`UUID`](Node_API.UUID.md) | the ID of the defining LOC. |
+| `details` | `string` | JSON string of the parameters |
 
 #### Returns
 
 [`CreativeCommons`](Client.CreativeCommons.md)
 
+the new Creative Commons
+
 #### Defined in
 
-[packages/client/src/license/CreativeCommons.ts:21](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/CreativeCommons.ts#L21)
+[packages/client/src/license/CreativeCommons.ts:42](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/CreativeCommons.ts#L42)

@@ -4,6 +4,9 @@
 
 [Client](../modules/Client.md).SpecificLicense
 
+A Terms and Conditions element defining a specific license,
+where details are stored "as is".
+
 ## Hierarchy
 
 - [`AbstractTermsAndConditionsElement`](Client.AbstractTermsAndConditionsElement.md)<`string`\>
@@ -33,12 +36,14 @@
 
 • **new SpecificLicense**(`licenseLocId`, `details`)
 
+Constructs a new Specific license.
+
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `licenseLocId` | [`UUID`](Node_API.UUID.md) |
-| `details` | `string` |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `licenseLocId` | [`UUID`](Node_API.UUID.md) | the ID of the defining LOC. |
+| `details` | `string` | details of the license, stored "as is". |
 
 #### Overrides
 
@@ -46,13 +51,15 @@
 
 #### Defined in
 
-[packages/client/src/license/SpecificLicense.ts:6](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/SpecificLicense.ts#L6)
+[packages/client/src/license/SpecificLicense.ts:16](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/SpecificLicense.ts#L16)
 
 ## Accessors
 
 ### details
 
 • `get` **details**(): `string`
+
+The serialized details.
 
 #### Returns
 
@@ -64,7 +71,7 @@ AbstractTermsAndConditionsElement.details
 
 #### Defined in
 
-[packages/client/src/license/SpecificLicense.ts:14](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/SpecificLicense.ts#L14)
+[packages/client/src/license/SpecificLicense.ts:24](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/SpecificLicense.ts#L24)
 
 ___
 
@@ -72,9 +79,13 @@ ___
 
 • `get` **parameters**(): `P`
 
+Provides the parameters.
+
 #### Returns
 
 `P`
+
+the parameters.
 
 #### Inherited from
 
@@ -82,13 +93,15 @@ AbstractTermsAndConditionsElement.parameters
 
 #### Defined in
 
-[packages/client/src/license/TermsAndConditions.ts:31](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L31)
+[packages/client/src/license/TermsAndConditions.ts:58](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L58)
 
 ___
 
 ### tcLocId
 
 • `get` **tcLocId**(): [`UUID`](Node_API.UUID.md)
+
+The id of the LOC enabling the usage of this T&C.
 
 #### Returns
 
@@ -100,13 +113,15 @@ AbstractTermsAndConditionsElement.tcLocId
 
 #### Defined in
 
-[packages/client/src/license/TermsAndConditions.ts:27](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L27)
+[packages/client/src/license/TermsAndConditions.ts:50](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L50)
 
 ___
 
 ### type
 
 • `get` **type**(): [`TermsAndConditionsElementType`](../modules/Client.md#termsandconditionselementtype)
+
+The type of this T&C element.
 
 #### Returns
 
@@ -118,7 +133,7 @@ AbstractTermsAndConditionsElement.type
 
 #### Defined in
 
-[packages/client/src/license/TermsAndConditions.ts:23](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L23)
+[packages/client/src/license/TermsAndConditions.ts:46](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L46)
 
 ## Methods
 
@@ -139,4 +154,4 @@ AbstractTermsAndConditionsElement.type
 
 #### Defined in
 
-[packages/client/src/license/SpecificLicense.ts:10](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/SpecificLicense.ts#L10)
+[packages/client/src/license/SpecificLicense.ts:20](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/SpecificLicense.ts#L20)

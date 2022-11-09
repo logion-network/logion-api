@@ -8,9 +8,24 @@
 
 - [CheckResultType](../enums/Client.CheckResultType.md)
 
-### Classes
+### TermsAndConditions
 
 - [AbstractTermsAndConditionsElement](../classes/Client.AbstractTermsAndConditionsElement.md)
+- [CreativeCommons](../classes/Client.CreativeCommons.md)
+- [LogionClassification](../classes/Client.LogionClassification.md)
+- [SpecificLicense](../classes/Client.SpecificLicense.md)
+- [LogionLicenseParameters](../interfaces/Client.LogionLicenseParameters.md)
+- [TermsAndConditionsElement](../interfaces/Client.TermsAndConditionsElement.md)
+- [LogionTransferredRight](Client.md#logiontransferredright)
+- [LogionTransferredRightCode](Client.md#logiontransferredrightcode)
+- [LogionTransferredRightDescription](Client.md#logiontransferredrightdescription)
+- [TermsAndConditionsElementType](Client.md#termsandconditionselementtype)
+- [logionLicenseItems](Client.md#logionlicenseitems)
+- [newTermsAndConditions](Client.md#newtermsandconditions)
+- [newTermsAndConditionsElement](Client.md#newtermsandconditionselement)
+
+### Classes
+
 - [AcceptedProtection](../classes/Client.AcceptedProtection.md)
 - [AccountTokens](../classes/Client.AccountTokens.md)
 - [ActiveProtection](../classes/Client.ActiveProtection.md)
@@ -25,7 +40,6 @@
 - [ClosedCollectionLoc](../classes/Client.ClosedCollectionLoc.md)
 - [ClosedLoc](../classes/Client.ClosedLoc.md)
 - [CollectionItem](../classes/Client.CollectionItem.md)
-- [CreativeCommons](../classes/Client.CreativeCommons.md)
 - [DefaultSignAndSendStrategy](../classes/Client.DefaultSignAndSendStrategy.md)
 - [DirectoryClient](../classes/Client.DirectoryClient.md)
 - [DraftRequest](../classes/Client.DraftRequest.md)
@@ -38,7 +52,6 @@
 - [LocMultiClient](../classes/Client.LocMultiClient.md)
 - [LocRequestState](../classes/Client.LocRequestState.md)
 - [LocsState](../classes/Client.LocsState.md)
-- [LogionClassification](../classes/Client.LogionClassification.md)
 - [LogionClient](../classes/Client.LogionClient.md)
 - [MimeType](../classes/Client.MimeType.md)
 - [MultiSourceHttpClient](../classes/Client.MultiSourceHttpClient.md)
@@ -55,7 +68,6 @@
 - [RejectedProtection](../classes/Client.RejectedProtection.md)
 - [RejectedRecovery](../classes/Client.RejectedRecovery.md)
 - [RejectedRequest](../classes/Client.RejectedRequest.md)
-- [SpecificLicense](../classes/Client.SpecificLicense.md)
 - [State](../classes/Client.State.md)
 - [TransactionClient](../classes/Client.TransactionClient.md)
 - [UnavailableProtection](../classes/Client.UnavailableProtection.md)
@@ -112,7 +124,6 @@
 - [LocRequestVoidInfo](../interfaces/Client.LocRequestVoidInfo.md)
 - [LocSharedState](../interfaces/Client.LocSharedState.md)
 - [LogionClientConfig](../interfaces/Client.LogionClientConfig.md)
-- [LogionLicenseParameters](../interfaces/Client.LogionLicenseParameters.md)
 - [MergedFile](../interfaces/Client.MergedFile.md)
 - [MergedLink](../interfaces/Client.MergedLink.md)
 - [MergedMetadataItem](../interfaces/Client.MergedMetadataItem.md)
@@ -131,7 +142,6 @@
 - [SignRawParameters](../interfaces/Client.SignRawParameters.md)
 - [Signer](../interfaces/Client.Signer.md)
 - [SuccessfulSubmission](../interfaces/Client.SuccessfulSubmission.md)
-- [TermsAndConditionsElement](../interfaces/Client.TermsAndConditionsElement.md)
 - [Token](../interfaces/Client.Token.md)
 - [TokenValidationResult](../interfaces/Client.TokenValidationResult.md)
 - [Transaction](../interfaces/Client.Transaction.md)
@@ -161,9 +171,6 @@
 - [FullSigner](Client.md#fullsigner)
 - [Language](Client.md#language)
 - [LocRequestStatus](Client.md#locrequeststatus)
-- [LogionTransferredRight](Client.md#logiontransferredright)
-- [LogionTransferredRightCode](Client.md#logiontransferredrightcode)
-- [LogionTransferredRightDescription](Client.md#logiontransferredrightdescription)
 - [MultiResponse](Client.md#multiresponse)
 - [OffchainLocState](Client.md#offchainlocstate)
 - [OnchainLocState](Client.md#onchainlocstate)
@@ -173,7 +180,6 @@
 - [SignAndSendFunction](Client.md#signandsendfunction)
 - [SignCallback](Client.md#signcallback)
 - [SignatureType](Client.md#signaturetype)
-- [TermsAndConditionsElementType](Client.md#termsandconditionselementtype)
 - [TokenType](Client.md#tokentype)
 - [TransferDirection](Client.md#transferdirection)
 - [VaultStateCreationParameters](Client.md#vaultstatecreationparameters)
@@ -184,7 +190,6 @@
 - [DEFAULT\_POLLING\_PARAMETERS](Client.md#default_polling_parameters)
 - [DefaultComponentFactory](Client.md#defaultcomponentfactory)
 - [ISO\_DATETIME\_PATTERN](Client.md#iso_datetime_pattern)
-- [logionLicenseItems](Client.md#logionlicenseitems)
 - [values](Client.md#values)
 
 ### Functions
@@ -209,13 +214,184 @@
 - [isSingularKusamaId](Client.md#issingularkusamaid)
 - [isTokenType](Client.md#istokentype)
 - [isValidMime](Client.md#isvalidmime)
-- [newTermsAndConditions](Client.md#newtermsandconditions)
-- [newTermsAndConditionsElement](Client.md#newtermsandconditionselement)
 - [requestSort](Client.md#requestsort)
 - [toIsoString](Client.md#toisostring)
 - [validHash](Client.md#validhash)
 - [validateToken](Client.md#validatetoken)
 - [waitFor](Client.md#waitfor)
+
+## TermsAndConditions
+
+• `Abstract` **AbstractTermsAndConditionsElement**<`P`\>: `Object`
+
+Provides a re-usable base implementation of [TermsAndConditionsElement](../interfaces/Client.TermsAndConditionsElement.md).
+
+#### Type parameters
+
+| Name | Description |
+| :------ | :------ |
+| `P` | Type of Terms&Conditions parameters. |
+
+#### Defined in
+
+[packages/client/src/license/TermsAndConditions.ts:34](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L34)
+
+• **CreativeCommons**: `Object`
+
+Provides Terms and Conditions under
+the [Creative Commons Attribution License 4.0](https://creativecommons.org/about/cclicenses/)
+
+#### Defined in
+
+[packages/client/src/license/CreativeCommons.ts:13](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/CreativeCommons.ts#L13)
+
+• **LogionClassification**: `Object`
+
+Provides a Logion Classification.
+
+#### Defined in
+
+[packages/client/src/license/LogionClassification.ts:266](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L266)
+
+• **SpecificLicense**: `Object`
+
+A Terms and Conditions element defining a specific license,
+where details are stored "as is".
+
+#### Defined in
+
+[packages/client/src/license/SpecificLicense.ts:9](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/SpecificLicense.ts#L9)
+
+• **LogionLicenseParameters**: `Object`
+
+Defines the parameters of a Logion Classification.
+
+#### Defined in
+
+[packages/client/src/license/LogionClassification.ts:245](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L245)
+
+• **TermsAndConditionsElement**: `Object`
+
+Common contract to all Terms and Conditions elements.
+
+#### Defined in
+
+[packages/client/src/license/TermsAndConditions.ts:13](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L13)
+
+### LogionTransferredRight
+
+Ƭ **LogionTransferredRight**: { `code`: [`LogionTransferredRightCode`](Client.md#logiontransferredrightcode)  } & [`LogionTransferredRightDescription`](Client.md#logiontransferredrightdescription)
+
+A transferred right code associated with description in one language.
+
+#### Defined in
+
+[packages/client/src/license/LogionClassification.ts:42](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L42)
+
+___
+
+### LogionTransferredRightCode
+
+Ƭ **LogionTransferredRightCode**: ``"PER-PRIV"`` \| ``"PER-PUB"`` \| ``"COM-NOMOD"`` \| ``"COM-MOD"`` \| ``"EX"`` \| ``"NOEX"`` \| ``"WW"`` \| ``"REG"`` \| ``"NOTIME"`` \| ``"TIME"``
+
+List of available code to describe transferred rights.
+
+#### Defined in
+
+[packages/client/src/license/LogionClassification.ts:11](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L11)
+
+___
+
+### LogionTransferredRightDescription
+
+Ƭ **LogionTransferredRightDescription**: `Object`
+
+Describes a transferred right.
+
+#### Type declaration
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `description` | `string` | Long description |
+| `shortDescription` | `string` | Short description |
+
+#### Defined in
+
+[packages/client/src/license/LogionClassification.ts:27](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L27)
+
+___
+
+### TermsAndConditionsElementType
+
+Ƭ **TermsAndConditionsElementType**: ``"logion_classification"`` \| ``"specific_license"`` \| ``"CC4.0"``
+
+Defines available Terms&Conditions types.
+
+#### Defined in
+
+[packages/client/src/license/TermsAndConditions.ts:7](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L7)
+
+___
+
+### logionLicenseItems
+
+• `Const` **logionLicenseItems**: `Record`<[`LogionTransferredRightCode`](Client.md#logiontransferredrightcode), `Record`<[`Language`](Client.md#language), [`LogionTransferredRightDescription`](Client.md#logiontransferredrightdescription)\>\>
+
+The dictionary of available transferred rights, with description in both `fr` and `en`.
+
+#### Defined in
+
+[packages/client/src/license/LogionClassification.ts:48](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L48)
+
+___
+
+### newTermsAndConditions
+
+▸ **newTermsAndConditions**(`termsAndConditions`): [`TermsAndConditionsElement`](../interfaces/Client.TermsAndConditionsElement.md)[]
+
+Creates a new Terms and Conditions, based on given type.
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `termsAndConditions` | [`TermsAndConditionsElement`](../interfaces/Node_API.TermsAndConditionsElement.md)[] | the Terms and Conditions elements, as stored on the chain. |
+
+#### Returns
+
+[`TermsAndConditionsElement`](../interfaces/Client.TermsAndConditionsElement.md)[]
+
+an array of terms and conditions element
+
+#### Defined in
+
+[packages/client/src/license/Factory.ts:13](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/Factory.ts#L13)
+
+___
+
+### newTermsAndConditionsElement
+
+▸ **newTermsAndConditionsElement**(`type`, `licenseLocId`, `details`): [`TermsAndConditionsElement`](../interfaces/Client.TermsAndConditionsElement.md)
+
+Creates a new Terms and Conditions, based on given type.
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `type` | `string` | the Terms and Conditions type. |
+| `licenseLocId` | [`UUID`](../classes/Node_API.UUID.md) | the ID the defining LOC. |
+| `details` | `string` | the details, as stored on the blockchain. |
+
+#### Returns
+
+[`TermsAndConditionsElement`](../interfaces/Client.TermsAndConditionsElement.md)
+
+the new terms and conditions element
+
+#### Defined in
+
+[packages/client/src/license/Factory.ts:25](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/Factory.ts#L25)
 
 ## Type Aliases
 
@@ -276,43 +452,6 @@ ___
 #### Defined in
 
 [packages/client/src/LocClient.ts:95](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L95)
-
-___
-
-### LogionTransferredRight
-
-Ƭ **LogionTransferredRight**: { `code`: [`LogionTransferredRightCode`](Client.md#logiontransferredrightcode)  } & [`LogionTransferredRightDescription`](Client.md#logiontransferredrightdescription)
-
-#### Defined in
-
-[packages/client/src/license/LogionClassification.ts:24](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L24)
-
-___
-
-### LogionTransferredRightCode
-
-Ƭ **LogionTransferredRightCode**: ``"PER-PRIV"`` \| ``"PER-PUB"`` \| ``"COM-NOMOD"`` \| ``"COM-MOD"`` \| ``"EX"`` \| ``"NOEX"`` \| ``"WW"`` \| ``"REG"`` \| ``"NOTIME"`` \| ``"TIME"``
-
-#### Defined in
-
-[packages/client/src/license/LogionClassification.ts:7](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L7)
-
-___
-
-### LogionTransferredRightDescription
-
-Ƭ **LogionTransferredRightDescription**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `description` | `string` |
-| `shortDescription` | `string` |
-
-#### Defined in
-
-[packages/client/src/license/LogionClassification.ts:19](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L19)
 
 ___
 
@@ -462,16 +601,6 @@ ___
 
 ___
 
-### TermsAndConditionsElementType
-
-Ƭ **TermsAndConditionsElementType**: ``"logion_classification"`` \| ``"specific_license"`` \| ``"CC4.0"``
-
-#### Defined in
-
-[packages/client/src/license/TermsAndConditions.ts:3](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L3)
-
-___
-
 ### TokenType
 
 Ƭ **TokenType**: ``"ethereum_erc721"`` \| ``"ethereum_erc1155"`` \| ``"goerli_erc721"`` \| ``"goerli_erc1155"`` \| ``"singular_kusama"`` \| ``"owner"``
@@ -539,16 +668,6 @@ ___
 #### Defined in
 
 [packages/client/src/DateTimeUtil.ts:12](https://github.com/logion-network/logion-api/blob/main/packages/client/src/DateTimeUtil.ts#L12)
-
-___
-
-### logionLicenseItems
-
-• `Const` **logionLicenseItems**: `Record`<[`LogionTransferredRightCode`](Client.md#logiontransferredrightcode), `Record`<[`Language`](Client.md#language), [`LogionTransferredRightDescription`](Client.md#logiontransferredrightdescription)\>\>
-
-#### Defined in
-
-[packages/client/src/license/LogionClassification.ts:26](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L26)
 
 ___
 
@@ -986,48 +1105,6 @@ ___
 #### Defined in
 
 [packages/client/src/Mime.ts:31](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Mime.ts#L31)
-
-___
-
-### newTermsAndConditions
-
-▸ **newTermsAndConditions**(`termsAndConditions`): [`TermsAndConditionsElement`](../interfaces/Client.TermsAndConditionsElement.md)[]
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `termsAndConditions` | [`TermsAndConditionsElement`](../interfaces/Node_API.TermsAndConditionsElement.md)[] |
-
-#### Returns
-
-[`TermsAndConditionsElement`](../interfaces/Client.TermsAndConditionsElement.md)[]
-
-#### Defined in
-
-[packages/client/src/license/Factory.ts:7](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/Factory.ts#L7)
-
-___
-
-### newTermsAndConditionsElement
-
-▸ **newTermsAndConditionsElement**(`type`, `licenseLocId`, `details`): [`TermsAndConditionsElement`](../interfaces/Client.TermsAndConditionsElement.md)
-
-#### Parameters
-
-| Name | Type |
-| :------ | :------ |
-| `type` | `string` |
-| `licenseLocId` | [`UUID`](../classes/Node_API.UUID.md) |
-| `details` | `string` |
-
-#### Returns
-
-[`TermsAndConditionsElement`](../interfaces/Client.TermsAndConditionsElement.md)
-
-#### Defined in
-
-[packages/client/src/license/Factory.ts:11](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/Factory.ts#L11)
 
 ___
 

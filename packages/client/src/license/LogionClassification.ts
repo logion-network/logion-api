@@ -4,6 +4,10 @@ import { Iso3166Alpha2Code, ISO_3166_ALPHA_2_MAPPINGS } from "../Country";
 import { DateTime } from 'luxon';
 import { Language } from "../Types";
 
+/**
+ * List of available code to describe transferred rights.
+ * @group TermsAndConditions
+ */
 export type LogionTransferredRightCode =
     "PER-PRIV"
     | "PER-PUB"
@@ -16,13 +20,31 @@ export type LogionTransferredRightCode =
     | "NOTIME"
     | "TIME";
 
+/**
+ * Describes a transferred right.
+ * @group TermsAndConditions
+ */
 export type LogionTransferredRightDescription = {
+    /**
+     * Short description
+     */
     shortDescription: string
+    /**
+     * Long description
+     */
     description: string
 }
 
+/**
+ * A transferred right code associated with description in one language.
+ * @group TermsAndConditions
+ */
 export type LogionTransferredRight = { code: LogionTransferredRightCode } & LogionTransferredRightDescription;
 
+/**
+ * The dictionary of available transferred rights, with description in both `fr` and `en`.
+ * @group TermsAndConditions
+ */
 export const logionLicenseItems: Record<LogionTransferredRightCode, Record<Language, LogionTransferredRightDescription>> = {
     "PER-PRIV": {
         "en": {
@@ -216,16 +238,48 @@ export const logionLicenseItems: Record<LogionTransferredRightCode, Record<Langu
     },
 }
 
+/**
+ * Defines the parameters of a Logion Classification.
+ * @group TermsAndConditions
+ */
 export interface LogionLicenseParameters {
+    /**
+     * Transferred rights
+     */
     transferredRights: LogionTransferredRightCode[],
+    /**
+     * Regional limit (if applicable)
+     */
     regionalLimit?: Iso3166Alpha2Code[],
+    /**
+     * Expiration date (ISO formatted, if applicable)
+     */
     expiration?: string
 }
 
 type Condition = (_: LogionLicenseParameters) => boolean;
 
+/**
+ * Provides a Logion Classification.
+ * @group TermsAndConditions
+ */
 export class LogionClassification extends AbstractTermsAndConditionsElement<LogionLicenseParameters> {
 
+    /**
+     * Constructs Terms and Conditions under Logion Classification.
+     *
+     * @param licenseLocId the ID of the defining LOC.
+     * @param parameters the parameters of the classification.
+     * @param checkValidity whether parameters must be validated or not.
+     *
+     * @example
+     * ```ts
+     * new LogionClassification({
+     *   transferredRights:["PER-PRIV","REG","TIME"],
+     *   regionalLimit:["BE","FR","US"],
+     *   expiration:"2022-09-23"})
+     * ```
+     */
     constructor(licenseLocId: UUID, parameters: LogionLicenseParameters, checkValidity = true) {
         super('logion_classification', licenseLocId, parameters);
         if (checkValidity) {
@@ -233,18 +287,37 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
         }
     }
 
+    /**
+     * Provides the transferred rights, in given language.
+     * @param lang the description language.
+     * @return the array of transferred rights.
+     */
     transferredRights(lang: Language = 'en'): LogionTransferredRight[] {
         return this.parameters.transferredRights.map(code => ({ ...logionLicenseItems[code][lang], code }))
     }
 
+    /**
+     * Provides the regional limits, if applicable.
+     * @return an array of ISO country codes, or undefined.
+     */
     get regionalLimit(): Iso3166Alpha2Code[] | undefined {
         return this.parameters.regionalLimit
     }
 
+    /**
+     * Provides the expiration date, if applicable.
+     * @return the expiration date (ISO formatted), or undefined.
+     */
     get expiration(): string | undefined {
         return this.parameters.expiration;
     }
 
+    /**
+     * @example The details are a JSON string of the parameters
+     * ```json
+     * {"transferredRights":["PER-PRIV","REG","TIME"],"regionalLimit":["BE","FR","US"],"expiration":"2022-09-23"}
+     * ```
+     */
     get details(): string {
         return JSON.stringify(this.parameters)
     }
@@ -274,6 +347,13 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
         }
     }
 
+    /**
+     * Constructs a new Logion Classification, based on parameters represented as a JSON string.
+     * @param licenseLocId the ID of the defining LOC.
+     * @param details JSON string of the parameters
+     * @param checkValidity whether parameters must be validated or not.
+     * @return the new Logion Classification.
+     */
     static fromDetails(licenseLocId: UUID, details: string, checkValidity = true): LogionClassification {
         const parameters = JSON.parse(details);
         if (checkValidity && parameters.transferredRights === undefined) {

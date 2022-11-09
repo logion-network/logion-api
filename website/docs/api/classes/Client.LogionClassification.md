@@ -4,6 +4,8 @@
 
 [Client](../modules/Client.md).LogionClassification
 
+Provides a Logion Classification.
+
 ## Hierarchy
 
 - [`AbstractTermsAndConditionsElement`](Client.AbstractTermsAndConditionsElement.md)<[`LogionLicenseParameters`](../interfaces/Client.LogionLicenseParameters.md)\>
@@ -37,13 +39,24 @@
 
 • **new LogionClassification**(`licenseLocId`, `parameters`, `checkValidity?`)
 
+Constructs Terms and Conditions under Logion Classification.
+
+**`Example`**
+
+```ts
+new LogionClassification({
+  transferredRights:["PER-PRIV","REG","TIME"],
+  regionalLimit:["BE","FR","US"],
+  expiration:"2022-09-23"})
+```
+
 #### Parameters
 
-| Name | Type | Default value |
-| :------ | :------ | :------ |
-| `licenseLocId` | [`UUID`](Node_API.UUID.md) | `undefined` |
-| `parameters` | [`LogionLicenseParameters`](../interfaces/Client.LogionLicenseParameters.md) | `undefined` |
-| `checkValidity` | `boolean` | `true` |
+| Name | Type | Default value | Description |
+| :------ | :------ | :------ | :------ |
+| `licenseLocId` | [`UUID`](Node_API.UUID.md) | `undefined` | the ID of the defining LOC. |
+| `parameters` | [`LogionLicenseParameters`](../interfaces/Client.LogionLicenseParameters.md) | `undefined` | the parameters of the classification. |
+| `checkValidity` | `boolean` | `true` | whether parameters must be validated or not. |
 
 #### Overrides
 
@@ -51,13 +64,20 @@
 
 #### Defined in
 
-[packages/client/src/license/LogionClassification.ts:229](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L229)
+[packages/client/src/license/LogionClassification.ts:283](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L283)
 
 ## Accessors
 
 ### details
 
 • `get` **details**(): `string`
+
+**`Example`**
+
+The details are a JSON string of the parameters
+```json
+{"transferredRights":["PER-PRIV","REG","TIME"],"regionalLimit":["BE","FR","US"],"expiration":"2022-09-23"}
+```
 
 #### Returns
 
@@ -69,7 +89,7 @@ AbstractTermsAndConditionsElement.details
 
 #### Defined in
 
-[packages/client/src/license/LogionClassification.ts:248](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L248)
+[packages/client/src/license/LogionClassification.ts:321](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L321)
 
 ___
 
@@ -77,13 +97,17 @@ ___
 
 • `get` **expiration**(): `undefined` \| `string`
 
+Provides the expiration date, if applicable.
+
 #### Returns
 
 `undefined` \| `string`
 
+the expiration date (ISO formatted), or undefined.
+
 #### Defined in
 
-[packages/client/src/license/LogionClassification.ts:244](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L244)
+[packages/client/src/license/LogionClassification.ts:311](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L311)
 
 ___
 
@@ -91,9 +115,13 @@ ___
 
 • `get` **parameters**(): `P`
 
+Provides the parameters.
+
 #### Returns
 
 `P`
+
+the parameters.
 
 #### Inherited from
 
@@ -101,7 +129,7 @@ AbstractTermsAndConditionsElement.parameters
 
 #### Defined in
 
-[packages/client/src/license/TermsAndConditions.ts:31](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L31)
+[packages/client/src/license/TermsAndConditions.ts:58](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L58)
 
 ___
 
@@ -109,19 +137,25 @@ ___
 
 • `get` **regionalLimit**(): `undefined` \| (``"AD"`` \| ``"AE"`` \| ``"AF"`` \| ``"AG"`` \| ``"AI"`` \| ``"AL"`` \| ``"AM"`` \| ``"AO"`` \| ``"AQ"`` \| ``"AR"`` \| ``"AS"`` \| ``"AT"`` \| ``"AU"`` \| ``"AW"`` \| ``"AX"`` \| ``"AZ"`` \| ``"BA"`` \| ``"BB"`` \| ``"BD"`` \| ``"BE"`` \| ``"BF"`` \| ``"BG"`` \| ``"BH"`` \| ``"BI"`` \| ``"BJ"`` \| ``"BL"`` \| ``"BM"`` \| ``"BN"`` \| ``"BO"`` \| ``"BQ"`` \| ``"BR"`` \| ``"BS"`` \| ``"BT"`` \| ``"BV"`` \| ``"BW"`` \| ``"BY"`` \| ``"BZ"`` \| ``"CA"`` \| ``"CC"`` \| ``"CD"`` \| ``"CF"`` \| ``"CG"`` \| ``"CH"`` \| ``"CI"`` \| ``"CK"`` \| ``"CL"`` \| ``"CM"`` \| ``"CN"`` \| ``"CO"`` \| ``"CR"`` \| ``"CU"`` \| ``"CV"`` \| ``"CW"`` \| ``"CX"`` \| ``"CY"`` \| ``"CZ"`` \| ``"DE"`` \| ``"DJ"`` \| ``"DK"`` \| ``"DM"`` \| ``"DO"`` \| ``"DZ"`` \| ``"EC"`` \| ``"EE"`` \| ``"EG"`` \| ``"EH"`` \| ``"ER"`` \| ``"ES"`` \| ``"ET"`` \| ``"FI"`` \| ``"FJ"`` \| ``"FK"`` \| ``"FM"`` \| ``"FO"`` \| ``"FR"`` \| ``"GA"`` \| ``"GB"`` \| ``"GD"`` \| ``"GE"`` \| ``"GF"`` \| ``"GG"`` \| ``"GH"`` \| ``"GI"`` \| ``"GL"`` \| ``"GM"`` \| ``"GN"`` \| ``"GP"`` \| ``"GQ"`` \| ``"GR"`` \| ``"GS"`` \| ``"GT"`` \| ``"GU"`` \| ``"GW"`` \| ``"GY"`` \| ``"HK"`` \| ``"HM"`` \| ``"HN"`` \| ``"HR"`` \| ``"HT"`` \| ``"HU"`` \| ``"ID"`` \| ``"IE"`` \| ``"IL"`` \| ``"IM"`` \| ``"IN"`` \| ``"IO"`` \| ``"IQ"`` \| ``"IR"`` \| ``"IS"`` \| ``"IT"`` \| ``"JE"`` \| ``"JM"`` \| ``"JO"`` \| ``"JP"`` \| ``"KE"`` \| ``"KG"`` \| ``"KH"`` \| ``"KI"`` \| ``"KM"`` \| ``"KN"`` \| ``"KP"`` \| ``"KR"`` \| ``"KW"`` \| ``"KY"`` \| ``"KZ"`` \| ``"LA"`` \| ``"LB"`` \| ``"LC"`` \| ``"LI"`` \| ``"LK"`` \| ``"LR"`` \| ``"LS"`` \| ``"LT"`` \| ``"LU"`` \| ``"LV"`` \| ``"LY"`` \| ``"MA"`` \| ``"MC"`` \| ``"MD"`` \| ``"ME"`` \| ``"MF"`` \| ``"MG"`` \| ``"MH"`` \| ``"MK"`` \| ``"ML"`` \| ``"MM"`` \| ``"MN"`` \| ``"MO"`` \| ``"MP"`` \| ``"MQ"`` \| ``"MR"`` \| ``"MS"`` \| ``"MT"`` \| ``"MU"`` \| ``"MV"`` \| ``"MW"`` \| ``"MX"`` \| ``"MY"`` \| ``"MZ"`` \| ``"NA"`` \| ``"NC"`` \| ``"NE"`` \| ``"NF"`` \| ``"NG"`` \| ``"NI"`` \| ``"NL"`` \| ``"NO"`` \| ``"NP"`` \| ``"NR"`` \| ``"NU"`` \| ``"NZ"`` \| ``"OM"`` \| ``"PA"`` \| ``"PE"`` \| ``"PF"`` \| ``"PG"`` \| ``"PH"`` \| ``"PK"`` \| ``"PL"`` \| ``"PM"`` \| ``"PN"`` \| ``"PR"`` \| ``"PS"`` \| ``"PT"`` \| ``"PW"`` \| ``"PY"`` \| ``"QA"`` \| ``"RE"`` \| ``"RO"`` \| ``"RS"`` \| ``"RU"`` \| ``"RW"`` \| ``"SA"`` \| ``"SB"`` \| ``"SC"`` \| ``"SD"`` \| ``"SE"`` \| ``"SG"`` \| ``"SH"`` \| ``"SI"`` \| ``"SJ"`` \| ``"SK"`` \| ``"SL"`` \| ``"SM"`` \| ``"SN"`` \| ``"SO"`` \| ``"SR"`` \| ``"SS"`` \| ``"ST"`` \| ``"SV"`` \| ``"SX"`` \| ``"SY"`` \| ``"SZ"`` \| ``"TC"`` \| ``"TD"`` \| ``"TF"`` \| ``"TG"`` \| ``"TH"`` \| ``"TJ"`` \| ``"TK"`` \| ``"TL"`` \| ``"TM"`` \| ``"TN"`` \| ``"TO"`` \| ``"TR"`` \| ``"TT"`` \| ``"TV"`` \| ``"TW"`` \| ``"TZ"`` \| ``"UA"`` \| ``"UG"`` \| ``"UM"`` \| ``"US"`` \| ``"UY"`` \| ``"UZ"`` \| ``"VA"`` \| ``"VC"`` \| ``"VE"`` \| ``"VG"`` \| ``"VI"`` \| ``"VN"`` \| ``"VU"`` \| ``"WF"`` \| ``"WS"`` \| ``"XK"`` \| ``"YE"`` \| ``"YT"`` \| ``"ZA"`` \| ``"ZM"`` \| ``"ZW"``)[]
 
+Provides the regional limits, if applicable.
+
 #### Returns
 
 `undefined` \| (``"AD"`` \| ``"AE"`` \| ``"AF"`` \| ``"AG"`` \| ``"AI"`` \| ``"AL"`` \| ``"AM"`` \| ``"AO"`` \| ``"AQ"`` \| ``"AR"`` \| ``"AS"`` \| ``"AT"`` \| ``"AU"`` \| ``"AW"`` \| ``"AX"`` \| ``"AZ"`` \| ``"BA"`` \| ``"BB"`` \| ``"BD"`` \| ``"BE"`` \| ``"BF"`` \| ``"BG"`` \| ``"BH"`` \| ``"BI"`` \| ``"BJ"`` \| ``"BL"`` \| ``"BM"`` \| ``"BN"`` \| ``"BO"`` \| ``"BQ"`` \| ``"BR"`` \| ``"BS"`` \| ``"BT"`` \| ``"BV"`` \| ``"BW"`` \| ``"BY"`` \| ``"BZ"`` \| ``"CA"`` \| ``"CC"`` \| ``"CD"`` \| ``"CF"`` \| ``"CG"`` \| ``"CH"`` \| ``"CI"`` \| ``"CK"`` \| ``"CL"`` \| ``"CM"`` \| ``"CN"`` \| ``"CO"`` \| ``"CR"`` \| ``"CU"`` \| ``"CV"`` \| ``"CW"`` \| ``"CX"`` \| ``"CY"`` \| ``"CZ"`` \| ``"DE"`` \| ``"DJ"`` \| ``"DK"`` \| ``"DM"`` \| ``"DO"`` \| ``"DZ"`` \| ``"EC"`` \| ``"EE"`` \| ``"EG"`` \| ``"EH"`` \| ``"ER"`` \| ``"ES"`` \| ``"ET"`` \| ``"FI"`` \| ``"FJ"`` \| ``"FK"`` \| ``"FM"`` \| ``"FO"`` \| ``"FR"`` \| ``"GA"`` \| ``"GB"`` \| ``"GD"`` \| ``"GE"`` \| ``"GF"`` \| ``"GG"`` \| ``"GH"`` \| ``"GI"`` \| ``"GL"`` \| ``"GM"`` \| ``"GN"`` \| ``"GP"`` \| ``"GQ"`` \| ``"GR"`` \| ``"GS"`` \| ``"GT"`` \| ``"GU"`` \| ``"GW"`` \| ``"GY"`` \| ``"HK"`` \| ``"HM"`` \| ``"HN"`` \| ``"HR"`` \| ``"HT"`` \| ``"HU"`` \| ``"ID"`` \| ``"IE"`` \| ``"IL"`` \| ``"IM"`` \| ``"IN"`` \| ``"IO"`` \| ``"IQ"`` \| ``"IR"`` \| ``"IS"`` \| ``"IT"`` \| ``"JE"`` \| ``"JM"`` \| ``"JO"`` \| ``"JP"`` \| ``"KE"`` \| ``"KG"`` \| ``"KH"`` \| ``"KI"`` \| ``"KM"`` \| ``"KN"`` \| ``"KP"`` \| ``"KR"`` \| ``"KW"`` \| ``"KY"`` \| ``"KZ"`` \| ``"LA"`` \| ``"LB"`` \| ``"LC"`` \| ``"LI"`` \| ``"LK"`` \| ``"LR"`` \| ``"LS"`` \| ``"LT"`` \| ``"LU"`` \| ``"LV"`` \| ``"LY"`` \| ``"MA"`` \| ``"MC"`` \| ``"MD"`` \| ``"ME"`` \| ``"MF"`` \| ``"MG"`` \| ``"MH"`` \| ``"MK"`` \| ``"ML"`` \| ``"MM"`` \| ``"MN"`` \| ``"MO"`` \| ``"MP"`` \| ``"MQ"`` \| ``"MR"`` \| ``"MS"`` \| ``"MT"`` \| ``"MU"`` \| ``"MV"`` \| ``"MW"`` \| ``"MX"`` \| ``"MY"`` \| ``"MZ"`` \| ``"NA"`` \| ``"NC"`` \| ``"NE"`` \| ``"NF"`` \| ``"NG"`` \| ``"NI"`` \| ``"NL"`` \| ``"NO"`` \| ``"NP"`` \| ``"NR"`` \| ``"NU"`` \| ``"NZ"`` \| ``"OM"`` \| ``"PA"`` \| ``"PE"`` \| ``"PF"`` \| ``"PG"`` \| ``"PH"`` \| ``"PK"`` \| ``"PL"`` \| ``"PM"`` \| ``"PN"`` \| ``"PR"`` \| ``"PS"`` \| ``"PT"`` \| ``"PW"`` \| ``"PY"`` \| ``"QA"`` \| ``"RE"`` \| ``"RO"`` \| ``"RS"`` \| ``"RU"`` \| ``"RW"`` \| ``"SA"`` \| ``"SB"`` \| ``"SC"`` \| ``"SD"`` \| ``"SE"`` \| ``"SG"`` \| ``"SH"`` \| ``"SI"`` \| ``"SJ"`` \| ``"SK"`` \| ``"SL"`` \| ``"SM"`` \| ``"SN"`` \| ``"SO"`` \| ``"SR"`` \| ``"SS"`` \| ``"ST"`` \| ``"SV"`` \| ``"SX"`` \| ``"SY"`` \| ``"SZ"`` \| ``"TC"`` \| ``"TD"`` \| ``"TF"`` \| ``"TG"`` \| ``"TH"`` \| ``"TJ"`` \| ``"TK"`` \| ``"TL"`` \| ``"TM"`` \| ``"TN"`` \| ``"TO"`` \| ``"TR"`` \| ``"TT"`` \| ``"TV"`` \| ``"TW"`` \| ``"TZ"`` \| ``"UA"`` \| ``"UG"`` \| ``"UM"`` \| ``"US"`` \| ``"UY"`` \| ``"UZ"`` \| ``"VA"`` \| ``"VC"`` \| ``"VE"`` \| ``"VG"`` \| ``"VI"`` \| ``"VN"`` \| ``"VU"`` \| ``"WF"`` \| ``"WS"`` \| ``"XK"`` \| ``"YE"`` \| ``"YT"`` \| ``"ZA"`` \| ``"ZM"`` \| ``"ZW"``)[]
 
+an array of ISO country codes, or undefined.
+
 #### Defined in
 
-[packages/client/src/license/LogionClassification.ts:240](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L240)
+[packages/client/src/license/LogionClassification.ts:303](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L303)
 
 ___
 
 ### tcLocId
 
 • `get` **tcLocId**(): [`UUID`](Node_API.UUID.md)
+
+The id of the LOC enabling the usage of this T&C.
 
 #### Returns
 
@@ -133,13 +167,15 @@ AbstractTermsAndConditionsElement.tcLocId
 
 #### Defined in
 
-[packages/client/src/license/TermsAndConditions.ts:27](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L27)
+[packages/client/src/license/TermsAndConditions.ts:50](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L50)
 
 ___
 
 ### type
 
 • `get` **type**(): [`TermsAndConditionsElementType`](../modules/Client.md#termsandconditionselementtype)
+
+The type of this T&C element.
 
 #### Returns
 
@@ -151,7 +187,7 @@ AbstractTermsAndConditionsElement.type
 
 #### Defined in
 
-[packages/client/src/license/TermsAndConditions.ts:23](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L23)
+[packages/client/src/license/TermsAndConditions.ts:46](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L46)
 
 ## Methods
 
@@ -165,7 +201,7 @@ AbstractTermsAndConditionsElement.type
 
 #### Defined in
 
-[packages/client/src/license/LogionClassification.ts:252](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L252)
+[packages/client/src/license/LogionClassification.ts:325](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L325)
 
 ___
 
@@ -173,19 +209,23 @@ ___
 
 ▸ **transferredRights**(`lang?`): [`LogionTransferredRight`](../modules/Client.md#logiontransferredright)[]
 
+Provides the transferred rights, in given language.
+
 #### Parameters
 
-| Name | Type | Default value |
-| :------ | :------ | :------ |
-| `lang` | [`Language`](../modules/Client.md#language) | `'en'` |
+| Name | Type | Default value | Description |
+| :------ | :------ | :------ | :------ |
+| `lang` | [`Language`](../modules/Client.md#language) | `'en'` | the description language. |
 
 #### Returns
 
 [`LogionTransferredRight`](../modules/Client.md#logiontransferredright)[]
 
+the array of transferred rights.
+
 #### Defined in
 
-[packages/client/src/license/LogionClassification.ts:236](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L236)
+[packages/client/src/license/LogionClassification.ts:295](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L295)
 
 ___
 
@@ -193,18 +233,22 @@ ___
 
 ▸ `Static` **fromDetails**(`licenseLocId`, `details`, `checkValidity?`): [`LogionClassification`](Client.LogionClassification.md)
 
+Constructs a new Logion Classification, based on parameters represented as a JSON string.
+
 #### Parameters
 
-| Name | Type | Default value |
-| :------ | :------ | :------ |
-| `licenseLocId` | [`UUID`](Node_API.UUID.md) | `undefined` |
-| `details` | `string` | `undefined` |
-| `checkValidity` | `boolean` | `true` |
+| Name | Type | Default value | Description |
+| :------ | :------ | :------ | :------ |
+| `licenseLocId` | [`UUID`](Node_API.UUID.md) | `undefined` | the ID of the defining LOC. |
+| `details` | `string` | `undefined` | JSON string of the parameters |
+| `checkValidity` | `boolean` | `true` | whether parameters must be validated or not. |
 
 #### Returns
 
 [`LogionClassification`](Client.LogionClassification.md)
 
+the new Logion Classification.
+
 #### Defined in
 
-[packages/client/src/license/LogionClassification.ts:277](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L277)
+[packages/client/src/license/LogionClassification.ts:357](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/LogionClassification.ts#L357)

@@ -4,11 +4,13 @@
 
 [Client](../modules/Client.md).AbstractTermsAndConditionsElement
 
+Provides a re-usable base implementation of [TermsAndConditionsElement](../interfaces/Client.TermsAndConditionsElement.md).
+
 ## Type parameters
 
-| Name |
-| :------ |
-| `P` |
+| Name | Description |
+| :------ | :------ |
+| `P` | Type of Terms&Conditions parameters. |
 
 ## Hierarchy
 
@@ -59,13 +61,15 @@
 
 #### Defined in
 
-[packages/client/src/license/TermsAndConditions.ts:17](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L17)
+[packages/client/src/license/TermsAndConditions.ts:40](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L40)
 
 ## Accessors
 
 ### details
 
 • `Abstract` `get` **details**(): `string`
+
+The serialized details.
 
 #### Returns
 
@@ -77,7 +81,7 @@
 
 #### Defined in
 
-[packages/client/src/license/TermsAndConditions.ts:35](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L35)
+[packages/client/src/license/TermsAndConditions.ts:62](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L62)
 
 ___
 
@@ -85,19 +89,25 @@ ___
 
 • `get` **parameters**(): `P`
 
+Provides the parameters.
+
 #### Returns
 
 `P`
 
+the parameters.
+
 #### Defined in
 
-[packages/client/src/license/TermsAndConditions.ts:31](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L31)
+[packages/client/src/license/TermsAndConditions.ts:58](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L58)
 
 ___
 
 ### tcLocId
 
 • `get` **tcLocId**(): [`UUID`](Node_API.UUID.md)
+
+The id of the LOC enabling the usage of this T&C.
 
 #### Returns
 
@@ -109,13 +119,15 @@ ___
 
 #### Defined in
 
-[packages/client/src/license/TermsAndConditions.ts:27](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L27)
+[packages/client/src/license/TermsAndConditions.ts:50](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L50)
 
 ___
 
 ### type
 
 • `get` **type**(): [`TermsAndConditionsElementType`](../modules/Client.md#termsandconditionselementtype)
+
+The type of this T&C element.
 
 #### Returns
 
@@ -127,4 +139,4 @@ ___
 
 #### Defined in
 
-[packages/client/src/license/TermsAndConditions.ts:23](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L23)
+[packages/client/src/license/TermsAndConditions.ts:46](https://github.com/logion-network/logion-api/blob/main/packages/client/src/license/TermsAndConditions.ts#L46)
