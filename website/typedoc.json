@@ -14,8 +14,9 @@
   "skipErrorChecking": true,
   "entryDocument": "API.md",
   "hideBreadcrumbs": false,
-  "hideInPageTOC": true,
+  "hideInPageTOC": false,
   "name": "API",
   "excludePrivate": true,
-  "excludeInternal": true
+  "excludeInternal": true,
+  "gitRevision": "main"
 }
