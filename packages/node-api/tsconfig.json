@@ -2,7 +2,9 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
+    "baseUrl": ".",
     "paths": {
+        "@logion/node-api/dist/interfaces/*": ["src/interfaces/*"],
         "@polkadot/api/augment": ["src/interfaces/augment-api.ts"],
         "@polkadot/types/augment": ["src/interfaces/augment-types.ts"]
     }

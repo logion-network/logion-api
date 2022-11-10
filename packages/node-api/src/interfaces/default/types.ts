@@ -1,16 +1,13 @@
 // Auto-generated via `yarn polkadot-types-from-defs`, do not edit
 /* eslint-disable */
 
-import type { Bytes, Enum, Option, Struct, Vec, bool, u128, u32, u64, u8 } from '@polkadot/types-codec';
-import type { AccountId, Balance, BlockNumber, Hash, MultiAddress } from '@polkadot/types/interfaces/runtime';
+import type { AccountId, Balance, BlockNumber, Hash } from '@logion/node-api/dist/interfaces/runtime';
+import type { Bytes, Enum, Option, Struct, Vec, bool, u128, u32, u8 } from '@polkadot/types-codec';
 import type { AccountInfoWithDualRefCount } from '@polkadot/types/interfaces/system';
 import type { DepositBalance } from '@polkadot/types/interfaces/uniques';
 
 /** @name AccountInfo */
 export interface AccountInfo extends AccountInfoWithDualRefCount {}
-
-/** @name Address */
-export interface Address extends MultiAddress {}
 
 /** @name AssetDetails */
 export interface AssetDetails extends Struct {
@@ -26,9 +23,6 @@ export interface AssetDetails extends Struct {
   readonly accounts: u32;
   readonly is_frozen: bool;
 }
-
-/** @name AssetId */
-export interface AssetId extends u64 {}
 
 /** @name AssetMetadata */
 export interface AssetMetadata extends Struct {
@@ -125,9 +119,6 @@ export interface LocType extends Enum {
 export interface LocVoidInfo extends Struct {
   readonly replacer: Option<LocId>;
 }
-
-/** @name LookupSource */
-export interface LookupSource extends MultiAddress {}
 
 /** @name MetadataItem */
 export interface MetadataItem extends Struct {

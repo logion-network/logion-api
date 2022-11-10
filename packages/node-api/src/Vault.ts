@@ -1,8 +1,8 @@
 import { ApiPromise } from "@polkadot/api";
-import { Weight } from '@polkadot/types/interfaces/runtime';
 import { createKeyMulti, encodeAddress } from '@polkadot/util-crypto';
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { Call } from "@polkadot/types/interfaces";
+import { Weight } from "./interfaces/runtime";
 
 import { getRecoveryConfig } from "./Recovery";
 import { PrefixedNumber } from "./numbers";
@@ -65,10 +65,10 @@ async function transferCallAndWeight(
     const multisigOrigin = getVaultAddress(requesterAddress, legalOfficers);
     const call = transferCall(api, destination, amount);
     const dispatchInfo = await call.paymentInfo(multisigOrigin);
-    const maxWeight = dispatchInfo.weight;
+    const maxWeight = dispatchInfo.weight as unknown as Weight;
     return {
         call,
-        weight: maxWeight.toString(),
+        weight: maxWeight.refTime.toString(),
         multisigOrigin
     }
 }
@@ -119,7 +119,7 @@ export async function approveVaultTransfer(parameters: VaultTransferApprovalPara
     const { call, weight } = await transferCallAndWeight(api, requester, recoveryConfig.legalOfficers, BigInt(actualAmount), destination);
 
     const otherSignatories = [ requester, otherLegalOfficer ].sort();
-    return api.tx.vault.approveCall(otherSignatories, call.method.toHex(), {height: block, index}, { refTime: weight });
+    return api.tx.vault.approveCall(otherSignatories, call.method, {height: block, index}, { refTime: weight });
 }
 
 export interface CancelVaultTransferParameters {

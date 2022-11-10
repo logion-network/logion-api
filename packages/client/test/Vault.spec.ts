@@ -343,7 +343,9 @@ function buildTokens(currentAddress: string): AccountTokens {
 function buildTransferSubmittable(vaultAddress: string, weight: string): SubmittableExtrinsic {
     const transfer = new Mock<SubmittableExtrinsic>();
     transfer.setup(instance => instance.paymentInfo(vaultAddress)).returns(Promise.resolve({
-        weight,
+        weight: {
+            refTime: weight,
+        },
     } as unknown as RuntimeDispatchInfo));
     const transferHash = {} as IU8a;
     transfer.setup(instance => instance.method.hash).returns(transferHash);

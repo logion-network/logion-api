@@ -1,16 +1,9 @@
 /* eslint-disable */
+import * as session from "@polkadot/types/interfaces/session/definitions";
+
 export default {
     types: {
-        FullIdentification: 'Exposure',
-        IdentificationTuple: '(ValidatorId, FullIdentification)',
-        MembershipProof: {
-            session: 'SessionIndex',
-            trieNodes: 'Vec<Vec<u8>>',
-            validatorCount: 'ValidatorCount'
-        },
-        SessionIndex: 'u32',
-        ValidatorCount: 'u32',
-        SessionKeys2: "(AccountId, AccountId)",
+        ...session.default.types,
         Keys: "SessionKeys2"
     }
 };

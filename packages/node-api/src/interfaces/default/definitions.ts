@@ -6,12 +6,9 @@ export default {
         }
     },
     types: {
-        Address: "MultiAddress",
-        LookupSource: "MultiAddress",
         OpaquePeerId: "Vec<u8>",
         AccountInfo: "AccountInfoWithDualRefCount",
         TAssetBalance: "u128",
-        AssetId: "u64",
         AssetDetails: {
             owner: "AccountId",
             issuer: "AccountId",
