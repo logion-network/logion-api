@@ -6,11 +6,11 @@
 import '@polkadot/api-base/types/storage';
 
 import type { ApiTypes, AugmentedQuery, QueryableStorageEntry } from '@polkadot/api-base/types';
-import type { BTreeSet, Bytes, Option, U8aFixed, Vec, WrapperKeepOpaque, bool, u128, u32, u64 } from '@polkadot/types-codec';
+import type { BTreeSet, Bytes, Option, U8aFixed, Vec, bool, u128, u32, u64 } from '@polkadot/types-codec';
 import type { AnyNumber, ITuple } from '@polkadot/types-codec/types';
 import type { OpaquePeerId } from './default';
-import type { AccountId32, Call, H256 } from '@polkadot/types/interfaces/runtime';
-import type { FrameSupportWeightsPerDispatchClassWeight, FrameSystemAccountInfo, FrameSystemEventRecord, FrameSystemLastRuntimeUpgradeInfo, FrameSystemPhase, LogionNodeRuntimeOpaqueSessionKeys, PalletAssetsApproval, PalletAssetsAssetAccount, PalletAssetsAssetDetails, PalletAssetsAssetMetadata, PalletBalancesAccountData, PalletBalancesBalanceLock, PalletBalancesReleases, PalletBalancesReserveData, PalletGrandpaStoredPendingChange, PalletGrandpaStoredState, PalletLoAuthorityListLegalOfficerData, PalletLoAuthorityListStorageVersion, PalletLogionLocCollectionItem, PalletLogionLocLegalOfficerCase, PalletLogionLocStorageVersion, PalletMultisigMultisig, PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig, PalletTransactionPaymentReleases, SpConsensusAuraSr25519AppSr25519Public, SpCoreCryptoKeyTypeId, SpRuntimeDigest } from '@polkadot/types/lookup';
+import type { AccountId32, H256 } from '@polkadot/types/interfaces/runtime';
+import type { FrameSupportDispatchPerDispatchClassWeight, FrameSystemAccountInfo, FrameSystemEventRecord, FrameSystemLastRuntimeUpgradeInfo, FrameSystemPhase, LogionNodeRuntimeOpaqueSessionKeys, PalletAssetsApproval, PalletAssetsAssetAccount, PalletAssetsAssetDetails, PalletAssetsAssetMetadata, PalletBalancesAccountData, PalletBalancesBalanceLock, PalletBalancesReleases, PalletBalancesReserveData, PalletGrandpaStoredPendingChange, PalletGrandpaStoredState, PalletLoAuthorityListLegalOfficerData, PalletLoAuthorityListStorageVersion, PalletLogionLocCollectionItem, PalletLogionLocLegalOfficerCase, PalletLogionLocStorageVersion, PalletMultisigMultisig, PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig, PalletTransactionPaymentReleases, SpConsensusAuraSr25519AppSr25519Public, SpCoreCryptoKeyTypeId, SpRuntimeDigest } from '@polkadot/types/lookup';
 import type { Observable } from '@polkadot/types/types';
 
 export type __AugmentedQuery<ApiType extends ApiTypes> = AugmentedQuery<ApiType, () => unknown>;
@@ -193,7 +193,6 @@ declare module '@polkadot/api-base/types/storage' {
       [key: string]: QueryableStorageEntry<ApiType>;
     };
     multisig: {
-      calls: AugmentedQuery<ApiType, (arg: U8aFixed | string | Uint8Array) => Observable<Option<ITuple<[WrapperKeepOpaque<Call>, AccountId32, u128]>>>, [U8aFixed]> & QueryableStorageEntry<ApiType, [U8aFixed]>;
       /**
        * The set of open multisig operations.
        **/
@@ -322,7 +321,7 @@ declare module '@polkadot/api-base/types/storage' {
       /**
        * The current weight for the block.
        **/
-      blockWeight: AugmentedQuery<ApiType, () => Observable<FrameSupportWeightsPerDispatchClassWeight>, []> & QueryableStorageEntry<ApiType, []>;
+      blockWeight: AugmentedQuery<ApiType, () => Observable<FrameSupportDispatchPerDispatchClassWeight>, []> & QueryableStorageEntry<ApiType, []>;
       /**
        * Digest of the current block, also part of the block header.
        **/

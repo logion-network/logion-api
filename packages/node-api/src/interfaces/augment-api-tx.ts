@@ -6,11 +6,11 @@
 import '@polkadot/api-base/types/submittable';
 
 import type { ApiTypes, AugmentedSubmittable, SubmittableExtrinsic, SubmittableExtrinsicFunction } from '@polkadot/api-base/types';
-import type { Bytes, Compact, Option, U8aFixed, Vec, WrapperKeepOpaque, bool, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
+import type { Bytes, Compact, Option, U8aFixed, Vec, bool, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
 import type { OpaquePeerId } from './default';
 import type { AccountId32, Call, H256, MultiAddress, Perbill } from '@polkadot/types/interfaces/runtime';
-import type { FrameSupportWeightsWeightV2Weight, LogionNodeRuntimeOpaqueSessionKeys, PalletAssetsDestroyWitness, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFile, PalletLogionLocLocLink, PalletLogionLocMetadataItem, PalletLogionLocTermsAndConditionsElement, PalletMultisigTimepoint, SpCoreVoid, SpFinalityGrandpaEquivocationProof } from '@polkadot/types/lookup';
+import type { LogionNodeRuntimeOpaqueSessionKeys, PalletAssetsDestroyWitness, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFile, PalletLogionLocLocLink, PalletLogionLocMetadataItem, PalletLogionLocTermsAndConditionsElement, PalletMultisigTimepoint, SpCoreVoid, SpFinalityGrandpaEquivocationProof, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
 
 export type __AugmentedSubmittable = AugmentedSubmittable<() => unknown>;
 export type __SubmittableExtrinsic<ApiType extends ApiTypes> = SubmittableExtrinsic<ApiType>;
@@ -699,7 +699,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - Write: Multisig Storage, [Caller Account]
        * # </weight>
        **/
-      approveAsMulti: AugmentedSubmittable<(threshold: u16 | AnyNumber | Uint8Array, otherSignatories: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], maybeTimepoint: Option<PalletMultisigTimepoint> | null | Uint8Array | PalletMultisigTimepoint | { height?: any; index?: any } | string, callHash: U8aFixed | string | Uint8Array, maxWeight: FrameSupportWeightsWeightV2Weight | { refTime?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u16, Vec<AccountId32>, Option<PalletMultisigTimepoint>, U8aFixed, FrameSupportWeightsWeightV2Weight]>;
+      approveAsMulti: AugmentedSubmittable<(threshold: u16 | AnyNumber | Uint8Array, otherSignatories: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], maybeTimepoint: Option<PalletMultisigTimepoint> | null | Uint8Array | PalletMultisigTimepoint | { height?: any; index?: any } | string, callHash: U8aFixed | string | Uint8Array, maxWeight: SpWeightsWeightV2Weight | { refTime?: any; proofSize?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u16, Vec<AccountId32>, Option<PalletMultisigTimepoint>, U8aFixed, SpWeightsWeightV2Weight]>;
       /**
        * Register approval for a dispatch to be made from a deterministic composite account if
        * approved by a total of `threshold - 1` of `other_signatories`.
@@ -742,12 +742,12 @@ declare module '@polkadot/api-base/types/submittable' {
        * taken for its lifetime of `DepositBase + threshold * DepositFactor`.
        * -------------------------------
        * - DB Weight:
-       * - Reads: Multisig Storage, [Caller Account], Calls (if `store_call`)
-       * - Writes: Multisig Storage, [Caller Account], Calls (if `store_call`)
+       * - Reads: Multisig Storage, [Caller Account]
+       * - Writes: Multisig Storage, [Caller Account]
        * - Plus Call Weight
        * # </weight>
        **/
-      asMulti: AugmentedSubmittable<(threshold: u16 | AnyNumber | Uint8Array, otherSignatories: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], maybeTimepoint: Option<PalletMultisigTimepoint> | null | Uint8Array | PalletMultisigTimepoint | { height?: any; index?: any } | string, call: WrapperKeepOpaque<Call> | object | string | Uint8Array, storeCall: bool | boolean | Uint8Array, maxWeight: FrameSupportWeightsWeightV2Weight | { refTime?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u16, Vec<AccountId32>, Option<PalletMultisigTimepoint>, WrapperKeepOpaque<Call>, bool, FrameSupportWeightsWeightV2Weight]>;
+      asMulti: AugmentedSubmittable<(threshold: u16 | AnyNumber | Uint8Array, otherSignatories: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], maybeTimepoint: Option<PalletMultisigTimepoint> | null | Uint8Array | PalletMultisigTimepoint | { height?: any; index?: any } | string, call: Call | IMethod | string | Uint8Array, maxWeight: SpWeightsWeightV2Weight | { refTime?: any; proofSize?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u16, Vec<AccountId32>, Option<PalletMultisigTimepoint>, Call, SpWeightsWeightV2Weight]>;
       /**
        * Immediately dispatch a multi-signature call using a single approval from the caller.
        * 
@@ -791,8 +791,8 @@ declare module '@polkadot/api-base/types/submittable' {
        * - Storage: removes one item.
        * ----------------------------------
        * - DB Weight:
-       * - Read: Multisig Storage, [Caller Account], Refund Account, Calls
-       * - Write: Multisig Storage, [Caller Account], Refund Account, Calls
+       * - Read: Multisig Storage, [Caller Account], Refund Account
+       * - Write: Multisig Storage, [Caller Account], Refund Account
        * # </weight>
        **/
       cancelAsMulti: AugmentedSubmittable<(threshold: u16 | AnyNumber | Uint8Array, otherSignatories: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], timepoint: PalletMultisigTimepoint | { height?: any; index?: any } | string | Uint8Array, callHash: U8aFixed | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u16, Vec<AccountId32>, PalletMultisigTimepoint, U8aFixed]>;
@@ -1102,7 +1102,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - The weight of this call is defined by the caller.
        * # </weight>
        **/
-      sudoUncheckedWeight: AugmentedSubmittable<(call: Call | IMethod | string | Uint8Array, weight: FrameSupportWeightsWeightV2Weight | { refTime?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Call, FrameSupportWeightsWeightV2Weight]>;
+      sudoUncheckedWeight: AugmentedSubmittable<(call: Call | IMethod | string | Uint8Array, weight: SpWeightsWeightV2Weight | { refTime?: any; proofSize?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Call, SpWeightsWeightV2Weight]>;
       /**
        * Generic tx
        **/
@@ -1234,11 +1234,11 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * Approves a vault transfer.
        **/
-      approveCall: AugmentedSubmittable<(otherSignatories: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], call: WrapperKeepOpaque<Call> | object | string | Uint8Array, timepoint: PalletMultisigTimepoint | { height?: any; index?: any } | string | Uint8Array, maxWeight: FrameSupportWeightsWeightV2Weight | { refTime?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Vec<AccountId32>, WrapperKeepOpaque<Call>, PalletMultisigTimepoint, FrameSupportWeightsWeightV2Weight]>;
+      approveCall: AugmentedSubmittable<(otherSignatories: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], call: Call | IMethod | string | Uint8Array, timepoint: PalletMultisigTimepoint | { height?: any; index?: any } | string | Uint8Array, maxWeight: SpWeightsWeightV2Weight | { refTime?: any; proofSize?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Vec<AccountId32>, Call, PalletMultisigTimepoint, SpWeightsWeightV2Weight]>;
       /**
        * Create a vault transfer. The creator must not be a legal officer.
        **/
-      requestCall: AugmentedSubmittable<(legalOfficers: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], callHash: U8aFixed | string | Uint8Array, maxWeight: FrameSupportWeightsWeightV2Weight | { refTime?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Vec<AccountId32>, U8aFixed, FrameSupportWeightsWeightV2Weight]>;
+      requestCall: AugmentedSubmittable<(legalOfficers: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], callHash: U8aFixed | string | Uint8Array, maxWeight: SpWeightsWeightV2Weight | { refTime?: any; proofSize?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Vec<AccountId32>, U8aFixed, SpWeightsWeightV2Weight]>;
       /**
        * Generic tx
        **/
