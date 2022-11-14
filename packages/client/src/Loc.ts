@@ -51,6 +51,7 @@ export interface LocData {
     links: MergedLink[];
     seal?: string;
     company?: string;
+    verifiedThirdParty: boolean;
 }
 
 export interface MergedLink extends LocLink, Published {
@@ -442,6 +443,7 @@ export abstract class LocRequestState extends State {
             links: request.links.map(item => LocRequestState.mergeLink(item, loc)),
             seal: loc.closed ? loc.seal : request.seal,
             company: request.company,
+            verifiedThirdParty: request.verifiedThirdParty,
         };
 
         if(data.voidInfo && request.voidInfo) {

@@ -90,6 +90,7 @@ export interface LocRequest {
     voidInfo?: LocRequestVoidInfo;
     seal?: string;
     company?: string;
+    verifiedThirdParty: boolean;
 }
 
 export type LocRequestStatus = "DRAFT" | "OPEN" | "REQUESTED" | "REJECTED" | "CLOSED";
