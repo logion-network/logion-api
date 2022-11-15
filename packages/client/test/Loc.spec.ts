@@ -96,6 +96,18 @@ describe("LocsState", () => {
         expect(locs.legalOfficersWithValidIdentityLoc.length).toEqual(1);
         expect(locs.legalOfficersWithValidIdentityLoc[0]).toEqual(BOB);
     })
+
+    it("detects that user is not a verified third party", async() => {
+        const sharedState = await buildSharedState();
+        const locs = await LocsState.getInitialLocsState(sharedState, client.object());
+        expect(locs.isVerifiedThirdParty).toBeFalse();
+    })
+
+    it("detects that user is a verified third party", async() => {
+        const sharedState = await buildSharedState(true);
+        const locs = await LocsState.getInitialLocsState(sharedState, client.object());
+        expect(locs.isVerifiedThirdParty).toBeTrue();
+    })
 });
 
 describe("DraftRequest", () => {
@@ -402,6 +414,7 @@ const ALICE_CLOSED_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED",
 const ALICE_CLOSED_COLLECTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED", "Collection");
 const ALICE_REQUESTED_SOF_REQUEST = buildLocRequest(ALICE.address, "REQUESTED", "Transaction");
 const ALICE_REJECTED_TRANSACTION_LOC_REQUEST = buildLocRequest(ALICE.address, "REJECTED", "Transaction");
+const ALICE_CLOSED_IDENTITY_LOC_WITH_VTP = buildLocAndRequest(ALICE.address, "CLOSED", "Identity", undefined, true);
 
 const BOB_REQUESTED_TRANSACTION_LOC_REQUEST = buildLocRequest(BOB.address, "REQUESTED", "Transaction");
 const BOB_OPEN_TRANSACTION_LOC = buildLocAndRequest(BOB.address, "OPEN", "Transaction");
@@ -424,7 +437,7 @@ let bobAxiosMock: Mock<AxiosInstance>;
 let charlieAxiosMock: Mock<AxiosInstance>;
 let nodeApiMock: Mock<LogionNodeApi>;
 
-async function buildSharedState(): Promise<SharedState> {
+async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<SharedState> {
     const currentAddress = REQUESTER;
     const token = "some-token";
     const tokens = new AccountTokens({
@@ -449,6 +462,9 @@ async function buildSharedState(): Promise<SharedState> {
                 ALICE_CLOSED_COLLECTION_LOC.request,
                 ALICE_REJECTED_TRANSACTION_LOC_REQUEST,
             ];
+            if(isVerifiedThirdParty) {
+                aliceRequests.push(ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request);
+            }
             aliceAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === REQUESTER)))
                 .returnsAsync({
                     data: {
@@ -541,11 +557,20 @@ async function buildSharedState(): Promise<SharedState> {
 
             nodeApiMock = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
 
-            [ ALICE_OPEN_TRANSACTION_LOC, ALICE_CLOSED_TRANSACTION_LOC, ALICE_CLOSED_COLLECTION_LOC, BOB_OPEN_TRANSACTION_LOC, BOB_VOID_TRANSACTION_LOC, BOB_VOID_COLLECTION_LOC, BOB_CLOSED_IDENTITY_LOC, CHARLIE_VOID_IDENTITY_LOC ]
-                .forEach(locData => {
-                    nodeApiMock.setup(instance => instance.query.logionLoc.locMap(new UUID(locData.request.id).toHexString()))
-                        .returnsAsync(locData.loc);
-                })
+            [
+                ALICE_OPEN_TRANSACTION_LOC,
+                ALICE_CLOSED_TRANSACTION_LOC,
+                ALICE_CLOSED_COLLECTION_LOC,
+                ALICE_CLOSED_IDENTITY_LOC_WITH_VTP,
+                BOB_OPEN_TRANSACTION_LOC,
+                BOB_VOID_TRANSACTION_LOC,
+                BOB_VOID_COLLECTION_LOC,
+                BOB_CLOSED_IDENTITY_LOC,
+                CHARLIE_VOID_IDENTITY_LOC
+            ].forEach(locData => {
+                nodeApiMock.setup(instance => instance.query.logionLoc.locMap(new UUID(locData.request.id).toHexString()))
+                    .returnsAsync(locData.loc);
+            });
 
             const addCollectionItemExtrinsic = new Mock<SubmittableExtrinsic>();
             nodeApiMock.setup(instance => instance.tx.logionLoc.addCollectionItem(

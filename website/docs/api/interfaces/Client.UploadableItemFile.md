@@ -84,4 +84,4 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:323](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L323)
+[packages/client/src/LocClient.ts:324](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L324)

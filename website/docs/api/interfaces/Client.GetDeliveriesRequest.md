@@ -19,7 +19,7 @@
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:212](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L212)
+[packages/client/src/LocClient.ts:213](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L213)
 
 ___
 
@@ -29,4 +29,4 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:211](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L211)
+[packages/client/src/LocClient.ts:212](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L212)

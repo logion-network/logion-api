@@ -39,14 +39,14 @@ export type LocAndRequest = {
     loc: Option<PalletLogionLocLegalOfficerCase>
 }
 
-export function buildLocAndRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: Option<PalletLogionLocLocVoidInfo>): LocAndRequest {
+export function buildLocAndRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: Option<PalletLogionLocLocVoidInfo>, verifiedThirdParty: boolean = false): LocAndRequest {
     return {
-        request: buildLocRequest(ownerAddress, status, locType, voidInfo !== undefined),
+        request: buildLocRequest(ownerAddress, status, locType, voidInfo !== undefined, verifiedThirdParty),
         loc: buildLoc(ownerAddress, status, locType, voidInfo)
     }
 }
 
-export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voided?: boolean): LocRequest {
+export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voided?: boolean, verifiedThirdParty: boolean = false): LocRequest {
     return {
         id: new UUID().toString(),
         createdOn: DateTime.now().toISO(),
@@ -59,7 +59,7 @@ export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, 
         status,
         locType,
         voidInfo: voided ? { reason: "Some voiding reason.", voidedOn: DateTime.now().toISO() } : undefined,
-        verifiedThirdParty: false,
+        verifiedThirdParty,
     };
 }
 

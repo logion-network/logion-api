@@ -401,7 +401,7 @@ the new terms and conditions element
 
 #### Defined in
 
-[packages/client/src/Loc.ts:282](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L282)
+[packages/client/src/Loc.ts:299](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L299)
 
 ___
 
@@ -451,7 +451,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:95](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L95)
+[packages/client/src/LocClient.ts:96](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L96)
 
 ___
 
@@ -477,7 +477,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/Loc.ts:284](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L284)
+[packages/client/src/Loc.ts:301](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L301)
 
 ___
 
@@ -487,7 +487,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/Loc.ts:286](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L286)
+[packages/client/src/Loc.ts:303](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L303)
 
 ___
 
@@ -841,7 +841,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/Loc.ts:656](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L656)
+[packages/client/src/Loc.ts:674](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L674)
 
 ___
 
