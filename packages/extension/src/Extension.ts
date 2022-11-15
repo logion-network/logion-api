@@ -8,9 +8,9 @@ export function isExtensionAvailable(): boolean {
 
 export type InjectedAccount = InjectedAccountWithMeta;
 
-type InjectedAccountsConsumer = (accounts: InjectedAccount[]) => void;
+export type InjectedAccountsConsumer = (accounts: InjectedAccount[]) => void;
 
-type InjectedAccountsConsumerRegister = (consumer: InjectedAccountsConsumer) => void;
+export type InjectedAccountsConsumerRegister = (consumer: InjectedAccountsConsumer) => void;
 
 export async function enableExtensions(appName: string): Promise<InjectedAccountsConsumerRegister> {
     await web3Enable(appName);

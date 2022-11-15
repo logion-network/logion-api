@@ -55,5 +55,9 @@
   },
   "engines": {
     "node": ">=16"
+  },
+  "typedoc": {
+    "entryPoint": "./src/index.ts",
+    "displayName": "Node API"
   }
 }

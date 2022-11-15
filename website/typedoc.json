@@ -1,0 +1,22 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "out": "docs/api",
+  "plugin": ["typedoc-plugin-markdown", "typedoc-plugin-resolve-crossmodule-references"],
+  "excludeExternals": false,
+  "entryPointStrategy": "packages",
+  "entryPoints": [
+    "../packages/client",
+    "../packages/crossmint",
+    "../packages/extension",
+    "../packages/node-api"
+  ],
+  "readme": "src/API.md",
+  "skipErrorChecking": true,
+  "entryDocument": "API.md",
+  "hideBreadcrumbs": false,
+  "hideInPageTOC": false,
+  "name": "API",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "gitRevision": "main"
+}
