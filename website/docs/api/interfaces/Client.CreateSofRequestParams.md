@@ -18,4 +18,4 @@
 
 #### Defined in
 
-[packages/client/src/Loc.ts:272](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L272)
+[packages/client/src/Loc.ts:289](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L289)

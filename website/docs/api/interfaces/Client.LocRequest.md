@@ -27,6 +27,7 @@
 - [status](Client.LocRequest.md#status)
 - [userIdentity](Client.LocRequest.md#useridentity)
 - [userPostalAddress](Client.LocRequest.md#userpostaladdress)
+- [verifiedThirdParty](Client.LocRequest.md#verifiedthirdparty)
 - [voidInfo](Client.LocRequest.md#voidinfo)
 
 ## Properties
@@ -218,6 +219,16 @@ ___
 #### Defined in
 
 [packages/client/src/LocClient.ts:85](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L85)
+
+___
+
+### verifiedThirdParty
+
+• **verifiedThirdParty**: `boolean`
+
+#### Defined in
+
+[packages/client/src/LocClient.ts:93](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L93)
 
 ___
 

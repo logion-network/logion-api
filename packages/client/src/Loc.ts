@@ -252,6 +252,22 @@ export class LocsState extends State {
     get client(): LogionClient {
         return this._client;
     }
+
+    /**
+     * Tells if current user is a Verified Third Party.
+     * 
+     * @returns True if it is, false otherwise.
+     */
+    get isVerifiedThirdParty(): boolean {
+        this._isVerifiedThirdParty ||= this.computeIsVerifiedThirdParty();
+        return this._isVerifiedThirdParty;
+    }
+
+    private _isVerifiedThirdParty: boolean | undefined;
+
+    private computeIsVerifiedThirdParty(): boolean {
+        return this.closedLocs["Identity"].find(loc => loc.data().verifiedThirdParty) !== undefined;
+    }
 }
 
 export interface LocSharedState extends SharedState {

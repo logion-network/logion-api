@@ -67,7 +67,7 @@
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:476](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L476)
+[packages/client/src/LocClient.ts:477](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L477)
 
 ## Properties
 
@@ -81,7 +81,7 @@
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:360](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L360)
+[packages/client/src/LocClient.ts:361](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L361)
 
 ___
 
@@ -95,7 +95,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:362](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L362)
+[packages/client/src/LocClient.ts:363](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L363)
 
 ___
 
@@ -109,7 +109,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:361](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L361)
+[packages/client/src/LocClient.ts:362](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L362)
 
 ## Methods
 
@@ -129,7 +129,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:557](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L557)
+[packages/client/src/LocClient.ts:558](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L558)
 
 ___
 
@@ -149,7 +149,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:532](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L532)
+[packages/client/src/LocClient.ts:533](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L533)
 
 ___
 
@@ -169,7 +169,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:522](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L522)
+[packages/client/src/LocClient.ts:523](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L523)
 
 ___
 
@@ -187,7 +187,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:553](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L553)
+[packages/client/src/LocClient.ts:554](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L554)
 
 ___
 
@@ -207,7 +207,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:682](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L682)
+[packages/client/src/LocClient.ts:683](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L683)
 
 ___
 
@@ -227,7 +227,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:498](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L498)
+[packages/client/src/LocClient.ts:499](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L499)
 
 ___
 
@@ -247,7 +247,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:507](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L507)
+[packages/client/src/LocClient.ts:508](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L508)
 
 ___
 
@@ -267,7 +267,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:548](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L548)
+[packages/client/src/LocClient.ts:549](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L549)
 
 ___
 
@@ -287,7 +287,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:527](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L527)
+[packages/client/src/LocClient.ts:528](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L528)
 
 ___
 
@@ -311,7 +311,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:372](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L372)
+[packages/client/src/LocClient.ts:373](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L373)
 
 ___
 
@@ -335,7 +335,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:414](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L414)
+[packages/client/src/LocClient.ts:415](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L415)
 
 ___
 
@@ -359,7 +359,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:446](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L446)
+[packages/client/src/LocClient.ts:447](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L447)
 
 ___
 
@@ -383,7 +383,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:672](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L672)
+[packages/client/src/LocClient.ts:673](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L673)
 
 ___
 
@@ -407,7 +407,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:364](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L364)
+[packages/client/src/LocClient.ts:365](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L365)
 
 ___
 
@@ -431,7 +431,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:516](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L516)
+[packages/client/src/LocClient.ts:517](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L517)
 
 ___
 
@@ -451,7 +451,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:686](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L686)
+[packages/client/src/LocClient.ts:687](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L687)
 
 ___
 
@@ -471,7 +471,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:678](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L678)
+[packages/client/src/LocClient.ts:679](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L679)
 
 ___
 
@@ -494,4 +494,4 @@ ___
 
 #### Defined in
 
-[packages/client/src/LocClient.ts:642](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L642)
+[packages/client/src/LocClient.ts:643](https://github.com/logion-network/logion-api/blob/main/packages/client/src/LocClient.ts#L643)

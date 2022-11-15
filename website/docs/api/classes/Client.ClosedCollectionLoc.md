@@ -73,7 +73,7 @@ ClosedOrVoidCollectionLoc.constructor
 
 #### Defined in
 
-[packages/client/src/Loc.ts:294](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L294)
+[packages/client/src/Loc.ts:311](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L311)
 
 ## Properties
 
@@ -87,7 +87,7 @@ ClosedOrVoidCollectionLoc.legalOfficerCase
 
 #### Defined in
 
-[packages/client/src/Loc.ts:292](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L292)
+[packages/client/src/Loc.ts:309](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L309)
 
 ___
 
@@ -101,7 +101,7 @@ ClosedOrVoidCollectionLoc.locSharedState
 
 #### Defined in
 
-[packages/client/src/Loc.ts:290](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L290)
+[packages/client/src/Loc.ts:307](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L307)
 
 ___
 
@@ -115,7 +115,7 @@ ClosedOrVoidCollectionLoc.request
 
 #### Defined in
 
-[packages/client/src/Loc.ts:291](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L291)
+[packages/client/src/Loc.ts:308](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L308)
 
 ## Accessors
 
@@ -155,7 +155,7 @@ ClosedOrVoidCollectionLoc.locId
 
 #### Defined in
 
-[packages/client/src/Loc.ts:301](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L301)
+[packages/client/src/Loc.ts:318](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L318)
 
 ## Methods
 
@@ -186,7 +186,7 @@ ClosedOrVoidCollectionLoc.\_withLocs
 
 #### Defined in
 
-[packages/client/src/Loc.ts:508](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L508)
+[packages/client/src/Loc.ts:526](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L526)
 
 ___
 
@@ -206,7 +206,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/Loc.ts:722](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L722)
+[packages/client/src/Loc.ts:740](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L740)
 
 ___
 
@@ -230,7 +230,7 @@ ClosedOrVoidCollectionLoc.checkHash
 
 #### Defined in
 
-[packages/client/src/Loc.ts:696](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L696)
+[packages/client/src/Loc.ts:714](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L714)
 
 ___
 
@@ -248,7 +248,7 @@ ClosedOrVoidCollectionLoc.data
 
 #### Defined in
 
-[packages/client/src/Loc.ts:354](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L354)
+[packages/client/src/Loc.ts:371](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L371)
 
 ___
 
@@ -357,7 +357,7 @@ ClosedOrVoidCollectionLoc.getCollectionItem
 
 #### Defined in
 
-[packages/client/src/Loc.ts:675](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L675)
+[packages/client/src/Loc.ts:693](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L693)
 
 ___
 
@@ -375,7 +375,7 @@ ClosedOrVoidCollectionLoc.getCollectionItems
 
 #### Defined in
 
-[packages/client/src/Loc.ts:684](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L684)
+[packages/client/src/Loc.ts:702](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L702)
 
 ___
 
@@ -393,7 +393,7 @@ ClosedOrVoidCollectionLoc.isLogionData
 
 #### Defined in
 
-[packages/client/src/Loc.ts:382](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L382)
+[packages/client/src/Loc.ts:399](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L399)
 
 ___
 
@@ -411,7 +411,7 @@ ClosedOrVoidCollectionLoc.isLogionIdentity
 
 #### Defined in
 
-[packages/client/src/Loc.ts:376](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L376)
+[packages/client/src/Loc.ts:393](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L393)
 
 ___
 
@@ -429,7 +429,7 @@ ClosedOrVoidCollectionLoc.locsState
 
 #### Defined in
 
-[packages/client/src/Loc.ts:349](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L349)
+[packages/client/src/Loc.ts:366](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L366)
 
 ___
 
@@ -447,7 +447,7 @@ ClosedOrVoidCollectionLoc.refresh
 
 #### Defined in
 
-[packages/client/src/Loc.ts:752](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L752)
+[packages/client/src/Loc.ts:770](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L770)
 
 ___
 
@@ -467,7 +467,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/Loc.ts:748](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L748)
+[packages/client/src/Loc.ts:766](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L766)
 
 ___
 
@@ -485,7 +485,7 @@ ClosedOrVoidCollectionLoc.size
 
 #### Defined in
 
-[packages/client/src/Loc.ts:706](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L706)
+[packages/client/src/Loc.ts:724](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L724)
 
 ___
 
@@ -503,7 +503,7 @@ ClosedOrVoidCollectionLoc.supersededLoc
 
 #### Defined in
 
-[packages/client/src/Loc.ts:367](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L367)
+[packages/client/src/Loc.ts:384](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L384)
 
 ___
 
@@ -559,7 +559,7 @@ ___
 
 #### Defined in
 
-[packages/client/src/Loc.ts:737](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L737)
+[packages/client/src/Loc.ts:755](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L755)
 
 ___
 
@@ -583,7 +583,7 @@ ClosedOrVoidCollectionLoc.withLocs
 
 #### Defined in
 
-[packages/client/src/Loc.ts:756](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L756)
+[packages/client/src/Loc.ts:774](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L774)
 
 ___
 
@@ -608,7 +608,7 @@ ClosedOrVoidCollectionLoc.buildLocData
 
 #### Defined in
 
-[packages/client/src/Loc.ts:359](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L359)
+[packages/client/src/Loc.ts:376](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L376)
 
 ___
 
@@ -633,7 +633,7 @@ ClosedOrVoidCollectionLoc.checkHash
 
 #### Defined in
 
-[packages/client/src/Loc.ts:393](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L393)
+[packages/client/src/Loc.ts:410](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L410)
 
 ___
 
@@ -659,7 +659,7 @@ ClosedOrVoidCollectionLoc.createFromLoc
 
 #### Defined in
 
-[packages/client/src/Loc.ts:318](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L318)
+[packages/client/src/Loc.ts:335](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L335)
 
 ___
 
@@ -684,4 +684,4 @@ ClosedOrVoidCollectionLoc.createFromRequest
 
 #### Defined in
 
-[packages/client/src/Loc.ts:305](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L305)
+[packages/client/src/Loc.ts:322](https://github.com/logion-network/logion-api/blob/main/packages/client/src/Loc.ts#L322)
