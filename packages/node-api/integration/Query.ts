@@ -1,4 +1,4 @@
-import { Compact, Struct, u64 } from '@polkadot/types-codec';
+import { Compact, Struct } from '@polkadot/types-codec';
 
 import { NONE, PrefixedNumber, transferSubmittable } from "../src";
 import { Weight } from '../src/interfaces';
@@ -17,6 +17,10 @@ export async function queryInfos() {
     const actualWeight = dispatchInfo.weight as unknown as Weight;
     expect(actualWeight.refTime).toBeInstanceOf(Compact);
 
-    const queriedDispatchInfo = await api.rpc.payment.queryInfo(transferExtrinsic.toHex());
-    expect(queriedDispatchInfo.weight).toBeInstanceOf(u64);
+    const queriedDispatchInfo = await api.call.transactionPaymentApi.queryInfo(transferExtrinsic, 0);
+    expect(queriedDispatchInfo.weight).toBeInstanceOf(Struct);
+    const actualQueriedWeight = queriedDispatchInfo.weight as unknown as Weight;
+    expect(actualQueriedWeight.refTime).toBeInstanceOf(Compact);
+
+    expect(actualWeight.refTime.toString()).toBe(actualQueriedWeight.refTime.toString());
 }
