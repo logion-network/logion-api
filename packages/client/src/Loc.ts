@@ -429,6 +429,7 @@ export abstract class LocRequestState extends State {
         return {
             ...request,
             requesterAddress: request.requesterAddress || undefined,
+            requesterLocId: request.requesterIdentityLoc ? new UUID(request.requesterIdentityLoc) : undefined,
             id: new UUID(request.id),
             closed: false,
             replacerOf: undefined,
