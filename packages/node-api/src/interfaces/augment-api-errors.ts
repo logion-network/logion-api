@@ -217,6 +217,18 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       DuplicateFile: AugmentedError<ApiType>;
       /**
+       * Cannot add several files with same hash to LOC
+       **/
+      DuplicateLocFile: AugmentedError<ApiType>;
+      /**
+       * Cannot add several links with same target to LOC
+       **/
+      DuplicateLocLink: AugmentedError<ApiType>;
+      /**
+       * Cannot add several metadata items with same name to LOC
+       **/
+      DuplicateLocMetadata: AugmentedError<ApiType>;
+      /**
        * File cannot be added to given LOC because submitted data are invalid
        **/
       FileInvalid: AugmentedError<ApiType>;
