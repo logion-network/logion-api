@@ -11,7 +11,13 @@ export type LogionNodeApi = ApiPromise;
 export async function buildApi(endpoint: string | string[]): Promise<LogionNodeApi> {
     const provider = buildProvider(endpoint);
     const types = Object.values(definitions).reduce((res, { types }): object => ({ ...res, ...types }), {});
-    return await ApiPromise.create({ provider, types, rpc: { ...jsonrpc } });
+    const customRpc = { ...jsonrpc };
+    customRpc.payment.queryInfo.type = "RuntimeDispatchInfoV1";
+    return await ApiPromise.create({
+        provider,
+        types,
+        rpc: customRpc,
+    });
 }
 
 function buildProvider(endpoint: string | string[]): WsProvider {
