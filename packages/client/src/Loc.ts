@@ -53,7 +53,7 @@ export interface LocData {
     seal?: string;
     company?: string;
     verifiedThirdParty: boolean;
-    nominatedParties: VerifiedThirdParty[];
+    selectedParties: VerifiedThirdParty[];
 }
 
 export interface MergedLink extends LocLink, Published {
@@ -463,7 +463,7 @@ export abstract class LocRequestState extends State {
             seal: loc.closed ? loc.seal : request.seal,
             company: request.company,
             verifiedThirdParty: request.verifiedThirdParty,
-            nominatedParties: request.nominatedParties,
+            selectedParties: request.selectedParties,
         };
 
         if(data.voidInfo && request.voidInfo) {

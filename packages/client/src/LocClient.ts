@@ -97,7 +97,7 @@ export interface LocRequest {
     seal?: string;
     company?: string;
     verifiedThirdParty: boolean;
-    nominatedParties: VerifiedThirdParty[];
+    selectedParties: VerifiedThirdParty[];
 }
 
 export type LocRequestStatus = "DRAFT" | "OPEN" | "REQUESTED" | "REJECTED" | "CLOSED";
