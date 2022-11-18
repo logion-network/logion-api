@@ -69,6 +69,12 @@ export interface LocRequestVoidInfo {
     voidedOn?: string;
 }
 
+export interface VerifiedThirdParty {
+    firstName: string;
+    lastName: string;
+    identityLocId: string;
+}
+
 export interface LocRequest {
     ownerAddress: string;
     requesterAddress?: string | null;
@@ -91,6 +97,7 @@ export interface LocRequest {
     seal?: string;
     company?: string;
     verifiedThirdParty: boolean;
+    nominatedParties: VerifiedThirdParty[];
 }
 
 export type LocRequestStatus = "DRAFT" | "OPEN" | "REQUESTED" | "REJECTED" | "CLOSED";

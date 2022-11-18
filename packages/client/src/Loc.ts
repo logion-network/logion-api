@@ -18,6 +18,7 @@ import {
     ItemFileWithContent,
     AuthenticatedLocClient,
     FetchAllLocsParams,
+    VerifiedThirdParty,
 } from "./LocClient";
 import { SharedState } from "./SharedClient";
 import { LegalOfficer, UserIdentity, PostalAddress } from "./Types";
@@ -52,6 +53,7 @@ export interface LocData {
     seal?: string;
     company?: string;
     verifiedThirdParty: boolean;
+    nominatedParties: VerifiedThirdParty[];
 }
 
 export interface MergedLink extends LocLink, Published {
@@ -461,6 +463,7 @@ export abstract class LocRequestState extends State {
             seal: loc.closed ? loc.seal : request.seal,
             company: request.company,
             verifiedThirdParty: request.verifiedThirdParty,
+            nominatedParties: request.nominatedParties,
         };
 
         if(data.voidInfo && request.voidInfo) {
