@@ -4,6 +4,7 @@ import { transfers } from "./Balance";
 import { providesVault } from "./Vault";
 import { recoverLostAccount, requestRecoveryAndCancel } from "./Recovery";
 import { requestTransactionLoc, collectionLoc, collectionLocWithUpload, identityLoc } from "./Loc";
+import { verifiedThirdParty } from "./VerifiedThirdParty";
 
 describe("Logion SDK", () => {
 
@@ -35,7 +36,7 @@ describe("Logion SDK", () => {
 
     it("provides Identity LOC", async () => {
         await identityLoc(state);
-    })
+    });
 
     it("requests a Transaction LOC", async () => {
         await requestTransactionLoc(state);
@@ -47,6 +48,10 @@ describe("Logion SDK", () => {
 
     it("provides Collection LOC with upload and restricted delivery", async () => {
         await collectionLocWithUpload(state);
+    });
+
+    it("provides VTP", async () => {
+        await verifiedThirdParty(state);
     });
 
     afterAll(() => {
