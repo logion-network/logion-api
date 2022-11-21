@@ -302,6 +302,23 @@ export class LocMultiClient {
         return aggregateArrays(multiResponse);
     }
 
+    async fetchAllForVerifiedThirdParty(legalOfficers: LegalOfficer[]): Promise<LocRequest[]> {
+        const initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers);
+
+        const httpClient = new MultiSourceHttpClient<LegalOfficerEndpoint, LocRequest[]>(
+            initialState,
+            this.axiosFactory,
+            this.token
+        );
+
+        const multiResponse = await httpClient.fetch(async axios => {
+            const response = await axios.get("/api/verified-third-party-loc-requests");
+            return response.data.requests;
+        });
+
+        return aggregateArrays(multiResponse);
+    }
+
     async getLoc(parameters: FetchParameters): Promise<LegalOfficerCase> {
         return LocMultiClient.getLoc({
             ...parameters,
