@@ -1,8 +1,4 @@
-import { UUID, buildApi } from "@logion/node-api";
 import {
-    LegalOfficer,
-    LogionClient,
-    FullSigner,
     HashOrContent,
     hashString,
     ItemFileWithContent,
@@ -19,9 +15,7 @@ import {
     RejectedRequest
 } from "../src";
 
-import { AxiosFactory } from "../src/AxiosFactory";
-
-import { State, TEST_LOGION_CLIENT_CONFIG, NEW_ADDRESS, initRequesterBalance } from "./Utils";
+import { State, TEST_LOGION_CLIENT_CONFIG, NEW_ADDRESS, initRequesterBalance, LegalOfficerWorker } from "./Utils";
 
 const USER_ADDRESS = NEW_ADDRESS;
 
@@ -67,7 +61,7 @@ export async function requestTransactionLoc(state: State) {
     expect(draftRequest).toBeInstanceOf(DraftRequest);
     pendingRequest = await draftRequest.submit();
 
-    await legalOfficer.openTransactionLoc(pendingRequest.locId);
+    await legalOfficer.openTransactionLoc(pendingRequest.locId, USER_ADDRESS);
 
     let openLoc = await pendingRequest.refresh() as OpenLoc;
     expect(openLoc).toBeInstanceOf(OpenLoc)
@@ -100,79 +94,6 @@ function checkData(data: LocData, locRequestStatus: LocRequestStatus) {
     expect(data.status).toEqual(locRequestStatus);
 }
 
-class LegalOfficerWorker {
-
-    legalOfficer: LegalOfficer;
-    state: State;
-
-    constructor(legalOfficer: LegalOfficer, state: State) {
-        this.legalOfficer = legalOfficer;
-        this.state = state;
-    }
-
-    async createValidTermsAndConditionsLoc(id: UUID): Promise<void> {
-        return this.openAndClose(id);
-    }
-
-    async createValidIdentityLoc(id: UUID): Promise<void> {
-        return this.openAndClose(id);
-    }
-
-    private async openAndClose(id: UUID): Promise<void> {
-        await this.openTransactionLoc(id);
-        return this.closeLoc(id);
-    }
-
-    async openTransactionLoc(id: UUID) {
-        const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        await this.state.signer.signAndSend({
-            signerId: this.legalOfficer.address,
-            submittable: api.tx.logionLoc.createPolkadotTransactionLoc(id.toDecimalString(), USER_ADDRESS)
-        });
-
-        const axios = await this.buildLegalOfficerAxios(this.state.client, this.state.signer, this.legalOfficer);
-        await axios.post(`/api/loc-request/${ id.toString() }/accept`);
-    }
-
-    async rejectPendingLoc(id: UUID) {
-        const axios = await this.buildLegalOfficerAxios(this.state.client, this.state.signer, this.legalOfficer);
-        await axios.post(`/api/loc-request/${ id.toString() }/reject`, {reason: "Because."});
-    }
-
-    async openCollectionLoc(id: UUID, withUpload: boolean) {
-        const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        await this.state.signer.signAndSend({
-            signerId: this.legalOfficer.address,
-            submittable: api.tx.logionLoc.createCollectionLoc(id.toDecimalString(), USER_ADDRESS, null, "100", withUpload)
-        });
-
-        const axios = await this.buildLegalOfficerAxios(this.state.client, this.state.signer, this.legalOfficer);
-        await axios.post(`/api/loc-request/${ id.toString() }/accept`);
-    }
-
-    async closeLoc(id: UUID) {
-        const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        await this.state.signer.signAndSend({
-            signerId: this.legalOfficer.address,
-            submittable: api.tx.logionLoc.close(id.toDecimalString())
-        });
-
-        const axios = await this.buildLegalOfficerAxios(this.state.client, this.state.signer, this.legalOfficer);
-        await axios.post(`/api/loc-request/${ id.toString() }/close`);
-    }
-
-    async buildLegalOfficerAxios(
-        client: LogionClient,
-        signer: FullSigner,
-        legalOfficer: LegalOfficer,
-    ) {
-        const authenticatedClient = await client.authenticate([ legalOfficer.address ], signer);
-        const token = authenticatedClient.tokens.get(legalOfficer.address)!;
-        const axiosFactory = new AxiosFactory();
-        return axiosFactory.buildAxiosInstance(legalOfficer.node, token.value);
-    }
-}
-
 export async function collectionLoc(state: State) {
 
     const { alice } = state;
@@ -193,7 +114,7 @@ export async function collectionLoc(state: State) {
     expect(locsState.pendingRequests["Collection"][0].data().status).toBe("REQUESTED");
 
     const locId = pendingRequest.locId;
-    await legalOfficer.openCollectionLoc(locId, false);
+    await legalOfficer.openCollectionLoc(locId, USER_ADDRESS, false);
 
     let openLoc = await pendingRequest.refresh() as OpenLoc;
     await legalOfficer.closeLoc(locId);
@@ -240,14 +161,14 @@ export async function collectionLocWithUpload(state: State) {
         draft: false,
     });
     locsState = logionClassificationLocRequest.locsState();
-    await legalOfficer.createValidTermsAndConditionsLoc(logionClassificationLocRequest.locId);
+    await legalOfficer.createValidTermsAndConditionsLoc(logionClassificationLocRequest.locId, USER_ADDRESS);
     const creativeCommonsLocRequest = await locsState.requestTransactionLoc({
         legalOfficer: alice,
         description: "This is the LOC acting usage of CreativeCommons on logion",
         draft: false,
     });
     locsState = creativeCommonsLocRequest.locsState();
-    await legalOfficer.createValidTermsAndConditionsLoc(creativeCommonsLocRequest.locId);
+    await legalOfficer.createValidTermsAndConditionsLoc(creativeCommonsLocRequest.locId, USER_ADDRESS);
 
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficer: alice,
@@ -255,7 +176,7 @@ export async function collectionLocWithUpload(state: State) {
         draft: false,
     });
 
-    await legalOfficer.openCollectionLoc(pendingRequest.locId, true);
+    await legalOfficer.openCollectionLoc(pendingRequest.locId, USER_ADDRESS, true);
 
     let openLoc = await pendingRequest.refresh() as OpenLoc;
     await legalOfficer.closeLoc(openLoc.locId);
@@ -384,5 +305,5 @@ export async function identityLoc(state: State) {
     locsState = pendingRequest.locsState();
     expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REQUESTED");
 
-    await legalOfficer.createValidIdentityLoc(pendingRequest.locId);
+    await legalOfficer.createValidIdentityLoc(pendingRequest.locId, USER_ADDRESS);
 }
