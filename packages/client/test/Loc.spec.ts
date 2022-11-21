@@ -60,30 +60,8 @@ import {
 
 describe("LocsState", () => {
 
-    it("getInitialLocsState", async () => {
-        const sharedState = await buildSharedState();
-        const locs = await LocsState.getInitialLocsState(sharedState, client.object());
-
-        expect(locs.pendingRequests.Transaction.length).toBe(1);
-        const requestedLoc = locs.pendingRequests.Transaction[0];
-        expect(requestedLoc).toBeInstanceOf(PendingRequest);
-        expect(requestedLoc.locId).toEqual(new UUID(BOB_REQUESTED_TRANSACTION_LOC_REQUEST.id));
-
-        expect(locs.openLocs.Transaction.length).toBe(2);
-        const openLoc = locs.openLocs.Transaction[0];
-        expect(openLoc).toBeInstanceOf(OpenLoc);
-        expect(openLoc.locId).toEqual(new UUID(ALICE_OPEN_TRANSACTION_LOC.request.id));
-
-        expect(locs.closedLocs.Transaction.length).toBe(1);
-        const closedTransactionLoc = locs.closedLocs.Transaction[0];
-        expect(closedTransactionLoc).toBeInstanceOf(ClosedLoc);
-        expect(closedTransactionLoc.locId).toEqual(new UUID(ALICE_CLOSED_TRANSACTION_LOC.request.id));
-
-        expect(locs.closedLocs.Collection.length).toBe(1);
-        const closedCollectionLoc = locs.closedLocs.Collection[0];
-        expect(closedCollectionLoc).toBeInstanceOf(ClosedCollectionLoc);
-        expect(closedCollectionLoc.locId).toEqual(new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id));
-    });
+    it("getInitialLocsState - not VTP", async () => testGetInitialState(false));
+    it("getInitialLocsState - VTP", async () => testGetInitialState(true));
 
     it("checks that user has valid identity", async() => {
         const sharedState = await buildSharedState();
@@ -109,6 +87,36 @@ describe("LocsState", () => {
         expect(locs.isVerifiedThirdParty).toBeTrue();
     })
 });
+
+async function testGetInitialState(isVerifiedThirdParty: boolean) {
+    const sharedState = await buildSharedState(isVerifiedThirdParty);
+    const locs = await LocsState.getInitialLocsState(sharedState, client.object());
+
+    expect(locs.pendingRequests.Transaction.length).toBe(1);
+    const requestedLoc = locs.pendingRequests.Transaction[0];
+    expect(requestedLoc).toBeInstanceOf(PendingRequest);
+    expect(requestedLoc.locId).toEqual(new UUID(BOB_REQUESTED_TRANSACTION_LOC_REQUEST.id));
+
+    expect(locs.openLocs.Transaction.length).toBe(2);
+    const openLoc = locs.openLocs.Transaction[0];
+    expect(openLoc).toBeInstanceOf(OpenLoc);
+    expect(openLoc.locId).toEqual(new UUID(ALICE_OPEN_TRANSACTION_LOC.request.id));
+
+    expect(locs.closedLocs.Transaction.length).toBe(1);
+    const closedTransactionLoc = locs.closedLocs.Transaction[0];
+    expect(closedTransactionLoc).toBeInstanceOf(ClosedLoc);
+    expect(closedTransactionLoc.locId).toEqual(new UUID(ALICE_CLOSED_TRANSACTION_LOC.request.id));
+
+    expect(locs.closedLocs.Collection.length).toBe(1);
+    const closedCollectionLoc = locs.closedLocs.Collection[0];
+    expect(closedCollectionLoc).toBeInstanceOf(ClosedCollectionLoc);
+    expect(closedCollectionLoc.locId).toEqual(new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id));
+
+    if(isVerifiedThirdParty) {
+        expect(locs.openVerifiedThirdPartyLocs["Transaction"].length).toBe(1);
+        expect(locs.closedVerifiedThirdPartyLocs["Transaction"].length).toBe(1);
+    }
+}
 
 describe("DraftRequest", () => {
 
@@ -415,6 +423,8 @@ const ALICE_CLOSED_COLLECTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED", 
 const ALICE_REQUESTED_SOF_REQUEST = buildLocRequest(ALICE.address, "REQUESTED", "Transaction");
 const ALICE_REJECTED_TRANSACTION_LOC_REQUEST = buildLocRequest(ALICE.address, "REJECTED", "Transaction");
 const ALICE_CLOSED_IDENTITY_LOC_WITH_VTP = buildLocAndRequest(ALICE.address, "CLOSED", "Identity", undefined, true);
+const ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VTP = buildLocAndRequest(ALICE.address, "OPEN", "Transaction");
+const ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VTP = buildLocAndRequest(ALICE.address, "CLOSED", "Transaction");
 
 const BOB_REQUESTED_TRANSACTION_LOC_REQUEST = buildLocRequest(BOB.address, "REQUESTED", "Transaction");
 const BOB_OPEN_TRANSACTION_LOC = buildLocAndRequest(BOB.address, "OPEN", "Transaction");
@@ -471,6 +481,17 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                         requests: aliceRequests
                     }
                 } as AxiosResponse);
+            if(isVerifiedThirdParty) {
+                aliceAxiosMock.setup(instance => instance.get("/api/verified-third-party-loc-requests"))
+                .returnsAsync({
+                    data: {
+                        requests: [
+                            ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VTP.request,
+                            ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VTP.request,
+                        ]
+                    }
+                } as AxiosResponse);
+            }
 
             // Alice files and metadata
             aliceAxiosMock.setup(instance => instance.post(`/api/loc-request/${ ALICE_OPEN_TRANSACTION_LOC.request.id }/metadata`, It.IsAny()))
@@ -489,7 +510,11 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                         hash: "0x7bae16861c48edb6376401922729c4e3faaa5e203615b3ba6814ba4e85fb434c"
                     }
                 } as AxiosResponse);
-            aliceRequests.forEach(request => {
+            [
+                ...aliceRequests,
+                ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VTP.request,
+                ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VTP.request,
+            ].forEach(request => {
                 aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }`)).returnsAsync({
                     data: request
                 } as AxiosResponse);
@@ -562,6 +587,8 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                 ALICE_CLOSED_TRANSACTION_LOC,
                 ALICE_CLOSED_COLLECTION_LOC,
                 ALICE_CLOSED_IDENTITY_LOC_WITH_VTP,
+                ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VTP,
+                ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VTP,
                 BOB_OPEN_TRANSACTION_LOC,
                 BOB_VOID_TRANSACTION_LOC,
                 BOB_VOID_COLLECTION_LOC,

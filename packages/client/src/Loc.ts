@@ -68,48 +68,55 @@ export interface MergedMetadataItem extends LocMetadataItem, Published {
 export class LocsState extends State {
     private readonly sharedState: SharedState;
     private _locs: Record<string, LocRequestState>;
+    private _verifiedThirdPartyLocs: Record<string, LocRequestState>;
     private readonly _client: LogionClient;
 
-    constructor(sharedState: SharedState, locs: Record<string, LocRequestState>, client: LogionClient) {
+    constructor(
+        sharedState: SharedState,
+        locs: Record<string, LocRequestState>,
+        client: LogionClient,
+        verifiedThirdPartyLocs: Record<string, LocRequestState>
+    ) {
         super();
         this.sharedState = sharedState;
         this._locs = locs;
+        this._verifiedThirdPartyLocs = verifiedThirdPartyLocs;
         this._client = client;
     }
 
     get draftRequests(): Record<LocType, DraftRequest[]> {
         this.ensureCurrent();
-        return this.withPredicate(loc => loc instanceof DraftRequest);
+        return this.withPredicate(this._locs, loc => loc instanceof DraftRequest);
     }
 
     get openLocs(): Record<LocType, OpenLoc[]> {
         this.ensureCurrent();
-        return this.withPredicate(loc => loc instanceof OpenLoc);
+        return this.withPredicate(this._locs, loc => loc instanceof OpenLoc);
     }
 
     get closedLocs(): Record<LocType, (ClosedLoc | ClosedCollectionLoc)[]> {
         this.ensureCurrent();
-        return this.withPredicate(loc => loc instanceof ClosedLoc || loc instanceof ClosedCollectionLoc);
+        return this.withPredicate(this._locs, loc => loc instanceof ClosedLoc || loc instanceof ClosedCollectionLoc);
     }
 
     get voidedLocs(): Record<LocType, (VoidedLoc | VoidedCollectionLoc)[]> {
         this.ensureCurrent();
-        return this.withPredicate(loc => loc instanceof VoidedLoc || loc instanceof VoidedCollectionLoc);
+        return this.withPredicate(this._locs, loc => loc instanceof VoidedLoc || loc instanceof VoidedCollectionLoc);
     }
 
     get pendingRequests(): Record<LocType, PendingRequest[]> {
         this.ensureCurrent();
-        return this.withPredicate(loc => loc instanceof PendingRequest);
+        return this.withPredicate(this._locs, loc => loc instanceof PendingRequest);
     }
 
     get rejectedRequests(): Record<LocType, RejectedRequest[]> {
         this.ensureCurrent();
-        return this.withPredicate(loc => loc instanceof RejectedRequest);
+        return this.withPredicate(this._locs, loc => loc instanceof RejectedRequest);
     }
 
     hasValidIdentityLoc(legalOfficer: LegalOfficer): boolean {
         this.ensureCurrent();
-        return this.filter('Identity', loc =>
+        return this.filter(this._locs, 'Identity', loc =>
             loc instanceof ClosedLoc &&
             loc.data().ownerAddress === legalOfficer.address
         ).length > 0;
@@ -120,19 +127,19 @@ export class LocsState extends State {
         return this.sharedState.legalOfficers.filter(lo => this.hasValidIdentityLoc(lo));
     }
 
-    private withPredicate<T extends LocRequestState>(predicate: (l: LocRequestState) => boolean): Record<LocType, T[]> {
+    private withPredicate<T extends LocRequestState>(locs: Record<string, LocRequestState>, predicate: (l: LocRequestState) => boolean): Record<LocType, T[]> {
         return {
-            'Transaction': this.filter('Transaction', predicate),
-            'Collection': this.filter('Collection', predicate),
-            'Identity': this.filter('Identity', predicate),
+            'Transaction': this.filter(locs, 'Transaction', predicate),
+            'Collection': this.filter(locs, 'Collection', predicate),
+            'Identity': this.filter(locs, 'Identity', predicate),
         };
     }
 
-    private filter<T extends LocRequestState>(locType: LocType, predicate: (loc: LocRequestState) => boolean): T[] {
-        const locs = Object.values(this._locs)
+    private filter<T extends LocRequestState>(locs: Record<string, LocRequestState>, locType: LocType, predicate: (loc: LocRequestState) => boolean): T[] {
+        const filteredLocs = Object.values(locs)
             .filter(predicate)
             .filter(value => value.data().locType === locType)
-        return locs as T[];
+        return filteredLocs as T[];
     }
 
     refreshWith(loc: LocRequestState): LocsState {
@@ -140,15 +147,30 @@ export class LocsState extends State {
     }
 
     private _refreshWith(loc: LocRequestState): LocsState {
-        const locsState = new LocsState(this.sharedState, {}, this._client);
+        const locsState = new LocsState(this.sharedState, {}, this._client, {});
+        const refreshedLocs = this.refreshStates(locsState, this._locs);
+        const refreshedVerifiedThirdPartyLocs = this.refreshStates(locsState, this._verifiedThirdPartyLocs);
+        if(this.isVerifiedThirdPartyLoc(loc)) {
+            refreshedVerifiedThirdPartyLocs[loc.locId.toString()] = loc.withLocs(locsState);
+        } else {
+            refreshedLocs[loc.locId.toString()] = loc.withLocs(locsState);
+        }
+        locsState._locs = refreshedLocs;
+        locsState._verifiedThirdPartyLocs = refreshedVerifiedThirdPartyLocs;
+        return locsState;
+    }
+
+    private refreshStates(locsState: LocsState, states: Record<string, LocRequestState>): Record<string, LocRequestState> {
         const refreshedLocs: Record<string, LocRequestState> = {};
-        for(const locId in this._locs) {
+        for(const locId in states) {
             const state = this._locs[locId];
             refreshedLocs[locId.toString()] = state.withLocs(locsState);
         }
-        refreshedLocs[loc.locId.toString()] = loc.withLocs(locsState);
-        locsState._locs = refreshedLocs;
-        return locsState;
+        return refreshedLocs;
+    }
+
+    private isVerifiedThirdPartyLoc(loc: LocRequestState): boolean {
+        return loc.locId.toString() in this._verifiedThirdPartyLocs;
     }
 
     refreshWithout(locId: UUID): LocsState {
@@ -158,19 +180,25 @@ export class LocsState extends State {
     private _refreshWithout(locId: UUID): LocsState {
         const refreshedLocs: Record<string, LocRequestState> = { ...this._locs };
         delete refreshedLocs[locId.toString()];
-        return new LocsState(this.sharedState, refreshedLocs, this._client);
+        const refreshedVerifiedThirdPartyLocs: Record<string, LocRequestState> = { ...this._verifiedThirdPartyLocs };
+        delete refreshedVerifiedThirdPartyLocs[locId.toString()];
+        return new LocsState(this.sharedState, refreshedLocs, this._client, refreshedVerifiedThirdPartyLocs);
     }
 
     static async getInitialLocsState(sharedState: SharedState, client: LogionClient, params?: FetchAllLocsParams): Promise<LocsState> {
-        return new LocsState(sharedState, {}, client).refresh(params);
+        return new LocsState(sharedState, {}, client, {}).refresh(params);
     }
 
     findById(locId: UUID): LocRequestState {
         this.ensureCurrent();
-        if(!(locId.toString() in this._locs)) {
+        const stringLocId = locId.toString();
+        if(stringLocId in this._locs) {
+            return this._locs[stringLocId];
+        } else if(stringLocId in this._verifiedThirdPartyLocs) {
+            return this._verifiedThirdPartyLocs[stringLocId];
+        } else {
             throw new Error("LOC not found");
         }
-        return this._locs[locId.toString()];
     }
 
     async requestTransactionLoc(params: CreateLocRequestParams): Promise<DraftRequest | PendingRequest> {
@@ -227,28 +255,60 @@ export class LocsState extends State {
     }
 
     private async _refresh(params?: FetchAllLocsParams): Promise<LocsState> {
-        const locsState = new LocsState(this.sharedState, {}, this._client);
-        const refreshedLocs: Record<string, LocRequestState> = {};
+        const locsState = new LocsState(this.sharedState, {}, this._client, {});
         const locMultiClient = LocMultiClient.newLocMultiClient(this.sharedState);
+
         const locRequests = await locMultiClient.fetchAll(params);
+        locsState._locs = await this.toStates(locMultiClient, locsState, locRequests);
+
+        if(locsState.isVerifiedThirdParty) {
+            const legalOfficers: LegalOfficer[] = this.getVerifiedThirdPartyLegalOfficers(locsState);
+            const verifiedThirdPartyRequests = await locMultiClient.fetchAllForVerifiedThirdParty(legalOfficers);
+            locsState._verifiedThirdPartyLocs = await this.toStates(locMultiClient, locsState, verifiedThirdPartyRequests);
+        }
+
+        return locsState;
+    }
+
+    private async toStates(locMultiClient: LocMultiClient, locsState: LocsState, locRequests: LocRequest[]): Promise<Record<string, LocRequestState>> {
+        const refreshedLocs: Record<string, LocRequestState> = {};
         for (const locRequest of locRequests) {
-            const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === locRequest.ownerAddress)
-            if (legalOfficer) {
-                const client = locMultiClient.newLocClient(legalOfficer);
-                const locSharedState: LocSharedState = {
-                    ...this.sharedState,
-                    legalOfficer,
-                    client,
-                    locsState,
-                };
-                const state = await LocRequestState.createFromRequest(locSharedState, locRequest)
+            try {
+                const state = await this.toState(locMultiClient, locsState, locRequest);
                 refreshedLocs[state.locId.toString()] = state;
-            } else {
-                console.error("Can not find owner %s of LOC %S among LO list", locRequest.ownerAddress, locRequest.id)
+            } catch(e) {
+                console.warn(e);
             }
         }
-        locsState._locs = refreshedLocs;
-        return locsState;
+        return refreshedLocs;
+    }
+
+    private async toState(locMultiClient: LocMultiClient, locsState: LocsState, locRequest: LocRequest): Promise<AnyLocState> {
+        const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === locRequest.ownerAddress);
+        if (legalOfficer) {
+            const client = locMultiClient.newLocClient(legalOfficer);
+            const locSharedState: LocSharedState = {
+                ...this.sharedState,
+                legalOfficer,
+                client,
+                locsState,
+            };
+            return LocRequestState.createFromRequest(locSharedState, locRequest);
+        } else {
+            throw new Error(`Can not find owner ${ locRequest.ownerAddress } of LOC ${ locRequest.id } among LO list`);
+        }
+    }
+
+    private getVerifiedThirdPartyLegalOfficers(locsState: LocsState): LegalOfficer[] {
+        return locsState.closedLocs["Identity"]
+            .filter(loc => loc.data().verifiedThirdParty)
+            .map(loc => loc.data().ownerAddress)
+            .map(address => locsState.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === address))
+            .filter(this.isDefinedLegalOfficer);
+    }
+
+    private isDefinedLegalOfficer(legalOfficer: LegalOfficer | undefined): legalOfficer is LegalOfficer {
+        return legalOfficer !== undefined;
     }
 
     get client(): LogionClient {
@@ -261,6 +321,7 @@ export class LocsState extends State {
      * @returns True if it is, false otherwise.
      */
     get isVerifiedThirdParty(): boolean {
+        this.ensureCurrent();
         this._isVerifiedThirdParty ||= this.computeIsVerifiedThirdParty();
         return this._isVerifiedThirdParty;
     }
@@ -269,6 +330,22 @@ export class LocsState extends State {
 
     private computeIsVerifiedThirdParty(): boolean {
         return this.closedLocs["Identity"].find(loc => loc.data().verifiedThirdParty) !== undefined;
+    }
+
+    get openVerifiedThirdPartyLocs(): Record<LocType, OpenLoc[]> {
+        this.ensureCurrent();
+        if(!this.isVerifiedThirdParty) {
+            throw new Error("Authenticated user is not a Verified Third Party");
+        }
+        return this.withPredicate(this._verifiedThirdPartyLocs, loc => loc instanceof OpenLoc);
+    }
+
+    get closedVerifiedThirdPartyLocs(): Record<LocType, (ClosedLoc | ClosedCollectionLoc)[]> {
+        this.ensureCurrent();
+        if(!this.isVerifiedThirdParty) {
+            throw new Error("Authenticated user is not a Verified Third Party");
+        }
+        return this.withPredicate(this._verifiedThirdPartyLocs, loc => loc instanceof ClosedLoc || loc instanceof ClosedCollectionLoc);
     }
 }
 
