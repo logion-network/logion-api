@@ -1,4 +1,4 @@
-import { ClosedLoc, LocRequestState } from "../src";
+import { ClosedLoc, EditableRequest, HashOrContent, LocRequestState, OpenLoc } from "../src";
 import { LegalOfficerWorker, NEW_ADDRESS, State, VTP_ADDRESS } from "./Utils";
 
 export async function verifiedThirdParty(state: State) {
@@ -45,4 +45,20 @@ export async function verifiedThirdParty(state: State) {
 
     vtpLocsState = await vtpClient.locsState();
     expect(vtpLocsState.openVerifiedThirdPartyLocs["Transaction"].length).toBe(1);
+    let vtpLoc = vtpLocsState.findById(newLoc.data().id);
+
+    let openVtpLoc = await vtpLoc.refresh() as EditableRequest;
+    openVtpLoc = await openVtpLoc.addMetadata({
+        name: "VTP data name",
+        value: "VTP data value"
+    });
+    openVtpLoc = await openVtpLoc.deleteMetadata({ name: "VTP data name" });
+
+    const file = HashOrContent.fromContent(Buffer.from("test"));
+    openVtpLoc = await openVtpLoc.addFile({
+        fileName: "test.txt",
+        nature: "Some file nature",
+        file,
+    });
+    openVtpLoc = await openVtpLoc.deleteFile({ hash: file.contentHash });
 }

@@ -163,7 +163,7 @@ export class LocsState extends State {
     private refreshStates(locsState: LocsState, states: Record<string, LocRequestState>): Record<string, LocRequestState> {
         const refreshedLocs: Record<string, LocRequestState> = {};
         for(const locId in states) {
-            const state = this._locs[locId];
+            const state = states[locId];
             refreshedLocs[locId.toString()] = state.withLocs(locsState);
         }
         return refreshedLocs;
