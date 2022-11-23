@@ -73,6 +73,7 @@ export interface VerifiedThirdParty {
     firstName: string;
     lastName: string;
     identityLocId: string;
+    address: string;
 }
 
 export interface LocRequest {
