@@ -74,6 +74,7 @@ export interface VerifiedThirdParty {
     lastName: string;
     identityLocId: string;
     address: string;
+    selected?: boolean; // undefined if used out of the context of a LOC
 }
 
 export interface LocRequest {
@@ -540,19 +541,31 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     override async getLocRequest(parameters: FetchParameters): Promise<LocRequest> {
-        const { locId } = parameters;
-        const response = await this.backend().get(`/api/loc-request/${ locId.toString() }`);
-        return response.data;
+        try {
+            const { locId } = parameters;
+            const response = await this.backend().get(`/api/loc-request/${ locId.toString() }`);
+            return response.data;
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async addMetadata(parameters: AddMetadataParams & FetchParameters): Promise<void> {
-        const { name, value, locId } = parameters;
-        await this.backend().post(`/api/loc-request/${ locId.toString() }/metadata`, { name, value })
+        try {
+            const { name, value, locId } = parameters;
+            await this.backend().post(`/api/loc-request/${ locId.toString() }/metadata`, { name, value });
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async deleteMetadata(parameters: DeleteMetadataParams & FetchParameters): Promise<void> {
-        const { name, locId } = parameters;
-        await this.backend().delete(`/api/loc-request/${ locId.toString() }/metadata/${ encodeURIComponent(name) }`)
+        try {
+            const { name, locId } = parameters;
+            await this.backend().delete(`/api/loc-request/${ locId.toString() }/metadata/${ encodeURIComponent(name) }`)
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async addFile(parameters: AddFileParams & FetchParameters): Promise<void> {
@@ -564,16 +577,25 @@ export class AuthenticatedLocClient extends LocClient {
         formData.append('file', file.content, fileName);
         formData.append('nature', nature);
         formData.append('hash', file.contentHash);
-        await this.backend().post(
-            `/api/loc-request/${ locId.toString() }/files`,
-            formData,
-            { headers: { "Content-Type": "multipart/form-data" } }
-        );
+
+        try {
+            await this.backend().post(
+                `/api/loc-request/${ locId.toString() }/files`,
+                formData,
+                { headers: { "Content-Type": "multipart/form-data" } }
+            );
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async deleteFile(parameters: DeleteFileParams & FetchParameters): Promise<void> {
-        const { hash, locId } = parameters;
-        await this.backend().delete(`/api/loc-request/${ locId.toString() }/files/${ hash }`)
+        try {
+            const { hash, locId } = parameters;
+            await this.backend().delete(`/api/loc-request/${ locId.toString() }/files/${ hash }`)
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     override backend(): AxiosInstance {
@@ -696,20 +718,36 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     override async getDeliveries(parameters: GetDeliveriesRequest): Promise<ItemDeliveries> {
-        const { locId, itemId } = parameters;
-        const response = await this.backend().get(`/api/collection/${ locId }/${ itemId }/all-deliveries`);
-        return response.data;
+        try {
+            const { locId, itemId } = parameters;
+            const response = await this.backend().get(`/api/collection/${ locId }/${ itemId }/all-deliveries`);
+            return response.data;
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async submit(locId: UUID) {
-        await this.backend().post(`/api/loc-request/${ locId }/submit`);
+        try {
+            await this.backend().post(`/api/loc-request/${ locId }/submit`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async cancel(locId: UUID) {
-        await this.backend().post(`/api/loc-request/${ locId }/cancel`);
+        try {
+            await this.backend().post(`/api/loc-request/${ locId }/cancel`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async rework(locId: UUID) {
-        await this.backend().post(`/api/loc-request/${ locId }/rework`);
+        try {
+            await this.backend().post(`/api/loc-request/${ locId }/rework`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 }
