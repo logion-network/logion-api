@@ -8,6 +8,7 @@ import { LogionClientConfig } from "../src/SharedClient";
 import { AxiosFactory, ISubmittableResult, LegalOfficer, LogionClient } from "../src";
 import { ALICE, BOB, CHARLIE } from "../test/Utils";
 import { requireDefined } from "../src/assertions";
+import { newBackendError } from "../src/Error";
 
 
 export const ALICE_SECRET_SEED = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a";
@@ -135,7 +136,11 @@ export class LegalOfficerWorker {
             submittable,
         });
         const axios = await this.buildLegalOfficerAxios();
-        await axios.post(`/api/loc-request/${ id.toString() }/accept`);
+        try {
+            await axios.post(`/api/loc-request/${ id.toString() }/accept`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async buildLegalOfficerAxios() {
@@ -148,7 +153,11 @@ export class LegalOfficerWorker {
 
     async rejectPendingLoc(id: UUID) {
         const axios = await this.buildLegalOfficerAxios();
-        await axios.post(`/api/loc-request/${ id.toString() }/reject`, {reason: "Because."});
+        try {
+            await axios.post(`/api/loc-request/${ id.toString() }/reject`, {reason: "Because."});
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async openCollectionLoc(id: UUID, requesterAccountId: string, withUpload: boolean) {
@@ -159,7 +168,11 @@ export class LegalOfficerWorker {
         });
 
         const axios = await this.buildLegalOfficerAxios();
-        await axios.post(`/api/loc-request/${ id.toString() }/accept`);
+        try {
+            await axios.post(`/api/loc-request/${ id.toString() }/accept`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async closeLoc(id: UUID) {
@@ -170,16 +183,28 @@ export class LegalOfficerWorker {
         });
 
         const axios = await this.buildLegalOfficerAxios();
-        await axios.post(`/api/loc-request/${ id.toString() }/close`);
+        try {
+            await axios.post(`/api/loc-request/${ id.toString() }/close`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async nominateVerifiedThirdParty(locId: UUID) {
         const axios = await this.buildLegalOfficerAxios();
-        await axios.put(`/api/loc-request/${ locId.toString() }/verified-third-party`, { isVerifiedThirdParty: true });
+        try {
+            await axios.put(`/api/loc-request/${ locId.toString() }/verified-third-party`, { isVerifiedThirdParty: true });
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async selectVtp(locId: UUID, vtpLocId: UUID) {
         const axios = await this.buildLegalOfficerAxios();
-        await axios.post(`/api/loc-request/${ locId.toString() }/selected-parties`, { identityLocId: vtpLocId.toString() });
+        try {
+            await axios.post(`/api/loc-request/${ locId.toString() }/selected-parties`, { identityLocId: vtpLocId.toString() });
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 }

@@ -42,6 +42,7 @@ export async function verifiedThirdParty(state: State) {
     newLoc = await newLoc.refresh();
     expect(newLoc.data().selectedParties.length).toBe(1);
     expect(newLoc.data().selectedParties[0].identityLocId).toBe(closedIdentityLoc.locId.toString());
+    expect(newLoc.data().selectedParties[0].selected).toBe(true);
 
     vtpLocsState = await vtpClient.locsState();
     expect(vtpLocsState.openVerifiedThirdPartyLocs["Transaction"].length).toBe(1);
