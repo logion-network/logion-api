@@ -1,6 +1,6 @@
 {
   "name": "@logion/client",
-  "version": "0.17.0-9",
+  "version": "0.17.0-10",
   "description": "logion SDK for client applications",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",

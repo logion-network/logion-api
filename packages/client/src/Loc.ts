@@ -329,7 +329,7 @@ export class LocsState extends State {
     private _isVerifiedThirdParty: boolean | undefined;
 
     private computeIsVerifiedThirdParty(): boolean {
-        return this.closedLocs["Identity"].find(loc => loc.data().verifiedThirdParty) !== undefined;
+        return this.closedLocs["Identity"].find(loc => loc.data().verifiedThirdParty && loc.data().requesterAddress === this.sharedState.currentAddress) !== undefined;
     }
 
     get openVerifiedThirdPartyLocs(): Record<LocType, OpenLoc[]> {
