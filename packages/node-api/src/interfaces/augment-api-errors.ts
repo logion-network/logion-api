@@ -93,7 +93,7 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       ExistingVestingSchedule: AugmentedError<ApiType>;
       /**
-       * Balance too low to send value
+       * Balance too low to send value.
        **/
       InsufficientBalance: AugmentedError<ApiType>;
       /**
@@ -158,6 +158,26 @@ declare module '@polkadot/api-base/types/errors' {
        * The LO is already in the list.
        **/
       AlreadyExists: AugmentedError<ApiType>;
+      /**
+       * Guest cannot update
+       **/
+      GuestCannotUpdate: AugmentedError<ApiType>;
+      /**
+       * Trying to add a guest with another guest as host
+       **/
+      GuestOfGuest: AugmentedError<ApiType>;
+      /**
+       * Host cannot convert itself into a guest
+       **/
+      HostCannotConvert: AugmentedError<ApiType>;
+      /**
+       * The host has at least one guest and cannot become a guest or be removed
+       **/
+      HostHasGuest: AugmentedError<ApiType>;
+      /**
+       * Trying to add a guest with unknown host
+       **/
+      HostNotFound: AugmentedError<ApiType>;
       /**
        * The LO is not in the list.
        **/

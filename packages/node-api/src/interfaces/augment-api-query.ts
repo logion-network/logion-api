@@ -8,7 +8,7 @@ import '@polkadot/api-base/types/storage';
 import type { ApiTypes, AugmentedQuery, QueryableStorageEntry } from '@polkadot/api-base/types';
 import type { BTreeSet, Bytes, Option, U8aFixed, Vec, bool, u128, u32, u64 } from '@polkadot/types-codec';
 import type { AnyNumber, ITuple } from '@polkadot/types-codec/types';
-import type { OpaquePeerId } from './default';
+import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, H256 } from '@polkadot/types/interfaces/runtime';
 import type { FrameSupportDispatchPerDispatchClassWeight, FrameSystemAccountInfo, FrameSystemEventRecord, FrameSystemLastRuntimeUpgradeInfo, FrameSystemPhase, LogionNodeRuntimeOpaqueSessionKeys, PalletAssetsApproval, PalletAssetsAssetAccount, PalletAssetsAssetDetails, PalletAssetsAssetMetadata, PalletBalancesAccountData, PalletBalancesBalanceLock, PalletBalancesReleases, PalletBalancesReserveData, PalletGrandpaStoredPendingChange, PalletGrandpaStoredState, PalletLoAuthorityListLegalOfficerData, PalletLoAuthorityListStorageVersion, PalletLogionLocCollectionItem, PalletLogionLocLegalOfficerCase, PalletLogionLocStorageVersion, PalletMultisigMultisig, PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig, PalletTransactionPaymentReleases, SpConsensusAuraSr25519AppSr25519Public, SpCoreCryptoKeyTypeId, SpRuntimeDigest } from '@polkadot/types/lookup';
 import type { Observable } from '@polkadot/types/types';

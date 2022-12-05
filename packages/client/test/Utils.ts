@@ -17,6 +17,7 @@ export const ALICE: LegalOfficer = {
     node: "https://alice.logion.network",
     postalAddress: {} as LegalOfficerPostalAddress,
     userIdentity: {} as UserIdentity,
+    nodeId: "12D3KooWBmAwcd4PJNJvfV89HwE48nwkRmAgo8Vy3uQEyNNHBox2",
 };
 
 export const BOB: LegalOfficer = {
@@ -27,6 +28,7 @@ export const BOB: LegalOfficer = {
     node: "https://bob.logion.network",
     postalAddress: {} as LegalOfficerPostalAddress,
     userIdentity: {} as UserIdentity,
+    nodeId: "12D3KooWQYV9dGMFoRzNStwpXztXaBUjtPqi6aU76ZgUriHhKust",
 };
 
 export const CHARLIE: LegalOfficer = {
@@ -37,6 +39,7 @@ export const CHARLIE: LegalOfficer = {
     node: "https://charlie.logion.network",
     postalAddress: {} as LegalOfficerPostalAddress,
     userIdentity: {} as UserIdentity,
+    nodeId: "12D3KooWJvyP3VJYymTqG7eH4PM5rN4T2agk5cdNCfNymAqwqcvZ",
 };
 
 export const LEGAL_OFFICERS = [ ALICE, BOB, CHARLIE ];
