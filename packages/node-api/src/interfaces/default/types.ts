@@ -68,6 +68,12 @@ export interface File extends Struct {
   readonly submitter: AccountId;
 }
 
+/** @name HostData */
+export interface HostData extends Struct {
+  readonly node_id: Option<OpaquePeerId>;
+  readonly base_url: Option<Bytes>;
+}
+
 /** @name LegalOfficerCaseOf */
 export interface LegalOfficerCaseOf extends Struct {
   readonly owner: AccountId;
@@ -86,16 +92,20 @@ export interface LegalOfficerCaseOf extends Struct {
 }
 
 /** @name LegalOfficerData */
-export interface LegalOfficerData extends Struct {
-  readonly node_id: Option<OpaquePeerId>;
-  readonly base_url: Option<Bytes>;
+export interface LegalOfficerData extends Enum {
+  readonly isHost: boolean;
+  readonly asHost: HostData;
+  readonly isGuest: boolean;
+  readonly asGuest: AccountId;
+  readonly type: 'Host' | 'Guest';
 }
 
 /** @name LoAuthorityListStorageVersion */
 export interface LoAuthorityListStorageVersion extends Enum {
   readonly isV1: boolean;
   readonly isV2AddOnchainSettings: boolean;
-  readonly type: 'V1' | 'V2AddOnchainSettings';
+  readonly isV3GuestLegalOfficers: boolean;
+  readonly type: 'V1' | 'V2AddOnchainSettings' | 'V3GuestLegalOfficers';
 }
 
 /** @name LocId */

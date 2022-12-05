@@ -25,6 +25,7 @@ export interface LegalOfficer {
     node: string;
     name: string;
     logoUrl: string;
+    nodeId: string;
 }
 
 export type Language = 'en' | 'fr';

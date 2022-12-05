@@ -95,7 +95,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * 
        * This new asset class has no assets initially and its owner is the origin.
        * 
-       * The origin must be Signed and the sender must have sufficient funds free.
+       * The origin must conform to the configured `CreateOrigin` and have sufficient funds free.
        * 
        * Funds of sender are reserved by `AssetDeposit`.
        * 
@@ -585,7 +585,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * Adds a new LO to the list
        **/
-      addLegalOfficer: AugmentedSubmittable<(legalOfficerId: AccountId32 | string | Uint8Array, data: PalletLoAuthorityListLegalOfficerData | { nodeId?: any; baseUrl?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [AccountId32, PalletLoAuthorityListLegalOfficerData]>;
+      addLegalOfficer: AugmentedSubmittable<(legalOfficerId: AccountId32 | string | Uint8Array, data: PalletLoAuthorityListLegalOfficerData | { Host: any } | { Guest: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [AccountId32, PalletLoAuthorityListLegalOfficerData]>;
       /**
        * Removes a LO from the list
        **/
@@ -593,7 +593,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * Updates an existing LO's data
        **/
-      updateLegalOfficer: AugmentedSubmittable<(legalOfficerId: AccountId32 | string | Uint8Array, data: PalletLoAuthorityListLegalOfficerData | { nodeId?: any; baseUrl?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [AccountId32, PalletLoAuthorityListLegalOfficerData]>;
+      updateLegalOfficer: AugmentedSubmittable<(legalOfficerId: AccountId32 | string | Uint8Array, data: PalletLoAuthorityListLegalOfficerData | { Host: any } | { Guest: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [AccountId32, PalletLoAuthorityListLegalOfficerData]>;
       /**
        * Generic tx
        **/

@@ -108,6 +108,12 @@ export default {
 	        token_id: "Vec<u8>",
         },
         LegalOfficerData: {
+            "_enum": {
+                "Host": "HostData",
+                "Guest": "AccountId"
+            }
+        },
+        HostData: {
             node_id: "Option<OpaquePeerId>",
             base_url: "Option<Vec<u8>>",
         },
@@ -115,6 +121,7 @@ export default {
             "_enum": [
                 "V1",
                 "V2AddOnchainSettings",
+                "V3GuestLegalOfficers"
             ]
         },
         TermsAndConditionsElement: {
