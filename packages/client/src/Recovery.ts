@@ -212,6 +212,7 @@ export class NoProtection extends State {
         const loRecoveryClient1 = newLoRecoveryClient(this.sharedState, params.legalOfficer1);
         const protection1 = await loRecoveryClient1.createProtectionRequest({
             requesterAddress: getDefinedCurrentAddress(this.sharedState),
+            legalOfficerAddress: params.legalOfficer1.address,
             otherLegalOfficerAddress: params.legalOfficer2.address,
             userIdentity: params.userIdentity,
             userPostalAddress: params.postalAddress,
@@ -221,6 +222,7 @@ export class NoProtection extends State {
         const loRecoveryClient2 = newLoRecoveryClient(this.sharedState, params.legalOfficer2);
         const protection2 = await loRecoveryClient2.createProtectionRequest({
             requesterAddress: getDefinedCurrentAddress(this.sharedState),
+            legalOfficerAddress: params.legalOfficer2.address,
             otherLegalOfficerAddress: params.legalOfficer1.address,
             userIdentity: params.userIdentity,
             userPostalAddress: params.postalAddress,
@@ -533,8 +535,7 @@ export class RejectedRecovery extends State implements WithProtectionParameters 
         const request = this.sharedState.allRequests.find(request => request.legalOfficerAddress === currentLegalOfficer.address);
         if (request && (request instanceof ReSubmittableRequest || request instanceof UpdatableReSubmittableRequest)) {
             await request.resubmit();
-            const pending = await new PendingProtection(this.sharedState).refresh() as PendingProtection;
-            return pending;
+            return await new PendingProtection(this.sharedState).refresh() as PendingProtection;
         }
         throw new Error("Unable to find the request to resubmit")
     }
@@ -579,6 +580,7 @@ export class RejectedProtection extends RejectedRecovery {
         const loRecoveryClient = newLoRecoveryClient(this.sharedState, newLegalOfficer);
         return loRecoveryClient.createProtectionRequest({
             requesterAddress: getDefinedCurrentAddress(this.sharedState),
+            legalOfficerAddress: newLegalOfficer.address,
             otherLegalOfficerAddress: otherRequest.legalOfficerAddress,
             userIdentity: requestToCancel.userIdentity,
             userPostalAddress: requestToCancel.userPostalAddress,

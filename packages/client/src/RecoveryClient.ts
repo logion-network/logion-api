@@ -50,6 +50,7 @@ export interface CreateProtectionRequest {
     userPostalAddress: PostalAddress,
     isRecovery: boolean,
     addressToRecover: string,
+    legalOfficerAddress: string,
     otherLegalOfficerAddress: string,
 }
 
