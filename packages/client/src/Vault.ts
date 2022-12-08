@@ -175,6 +175,7 @@ export class VaultState extends State {
         const newPendingRequest = await this.sharedState.client.createVaultTransferRequest(legalOfficer, {
             origin,
             destination,
+            legalOfficerAddress: legalOfficer.address,
             block: blockHeader.number.toString(),
             index: successfulSubmission.index,
             amount: amount.convertTo(LGNT_SMALLEST_UNIT).coefficient.unnormalize().toString(),

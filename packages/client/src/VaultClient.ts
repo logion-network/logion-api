@@ -30,6 +30,7 @@ export interface VaultTransferRequest {
 export interface CreateVaultTransferRequest {
     origin: string;
     destination: string;
+    legalOfficerAddress: string;
     amount: string;
     block: string;
     index: number;
