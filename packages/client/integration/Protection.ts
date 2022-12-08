@@ -107,6 +107,7 @@ export async function rejectRequest(
     const axios = await buildLegalOfficerAxios(client, signer, legalOfficer);
 
     const response = await axios.put("/api/protection-request",{
+        legalOfficerAddress: legalOfficer.address,
         statuses: ["PENDING"],
         requesterAddress
     });
@@ -128,6 +129,7 @@ export async function acceptRequest(
     const axios = await buildLegalOfficerAxios(client, signer, legalOfficer);
 
     const response = await axios.put("/api/protection-request", {
+        legalOfficerAddress: legalOfficer.address,
         statuses: ["PENDING"],
         requesterAddress
     });
