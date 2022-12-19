@@ -1,3 +1,4 @@
+import { arrayEquals } from "./Collections";
 import { Endpoint } from "./Http";
 
 export class NetworkState<E extends Endpoint> {
@@ -26,5 +27,10 @@ export class NetworkState<E extends Endpoint> {
     update(params: { nodesUp: E[], nodesDown: E[] }) {
         this._nodesUp = params.nodesUp;
         this._nodesDown = params.nodesDown;
+    }
+
+    equals(otherState: NetworkState<E>): boolean {
+        return arrayEquals(this._nodesUp.map(endpoint => endpoint.url), otherState._nodesUp.map(endpoint => endpoint.url))
+            && arrayEquals(this._nodesDown.map(endpoint => endpoint.url), otherState._nodesDown.map(endpoint => endpoint.url));
     }
 }

@@ -81,7 +81,7 @@ export class VaultClient {
     async fetchAll(legalOfficers?: LegalOfficer[]): Promise<FetchAllResult> {
         const initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers);
 
-        const vaultTransferRequestsMultiClient = new MultiSourceHttpClient<LegalOfficerEndpoint, VaultTransferRequest[]>(
+        const vaultTransferRequestsMultiClient = new MultiSourceHttpClient<LegalOfficerEndpoint>(
             initialState,
             this.axiosFactory,
             this.token

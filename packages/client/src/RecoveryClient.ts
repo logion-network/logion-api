@@ -100,7 +100,7 @@ export class RecoveryClient {
     async fetchAll(legalOfficers?: LegalOfficer[]): Promise<FetchAllResult> {
         const initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers)
 
-        const multiClient = new MultiSourceHttpClient<LegalOfficerEndpoint, ProtectionRequest[]>(
+        const multiClient = new MultiSourceHttpClient<LegalOfficerEndpoint>(
             initialState,
             this.axiosFactory,
             this.token
@@ -180,7 +180,7 @@ export class RecoveryClient {
             })),
             nodesDown: [],
         };
-        const multiClient = new MultiSourceHttpClient<LegalOfficerEndpoint, ProtectionRequest[]>(
+        const multiClient = new MultiSourceHttpClient<LegalOfficerEndpoint>(
             initialState,
             this.axiosFactory,
             this.token

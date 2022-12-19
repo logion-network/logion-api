@@ -6,7 +6,7 @@ import { AccountTokens } from "./AuthenticationClient";
 import { BalanceState, getBalanceState } from "./Balance";
 import { ComponentFactory, DefaultComponentFactory } from "./ComponentFactory";
 import { DirectoryClient } from "./DirectoryClient";
-import { Token } from "./Http";
+import { initMultiSourceHttpClientState, MultiSourceHttpClient, Token } from "./Http";
 import { getInitialState, ProtectionState } from "./Recovery";
 import { RecoveryClient } from "./RecoveryClient";
 import { authenticatedCurrentAddress, LegalOfficerEndpoint, LogionClientConfig, SharedState } from "./SharedClient";
@@ -15,6 +15,7 @@ import { LegalOfficer } from "./Types";
 import { LocsState } from "./Loc";
 import { PublicApi } from "./Public";
 import { FetchAllLocsParams } from "./LocClient";
+import { NetworkState } from "./NetworkState";
 
 export class LogionClient {
 
@@ -218,6 +219,44 @@ export class LogionClient {
             throw new Error("Legal officer has currently no node");
         }
         return this.sharedState.axiosFactory.buildAxiosInstance(legalOfficer.node, this.token?.value);
+    }
+
+    buildMultiSourceHttpClient(): MultiSourceHttpClient<LegalOfficerEndpoint> {
+        const initialState = initMultiSourceHttpClientState(this.sharedState.networkState, this.sharedState.legalOfficers);
+        const token = this.sharedState.tokens.get(this.sharedState.currentAddress || "");
+        if(!token) {
+            throw new Error("Authentication required");
+        }
+
+        return new MultiSourceHttpClient<LegalOfficerEndpoint>(
+            initialState,
+            this.sharedState.axiosFactory,
+            token.value,
+        );
+    }
+
+    updateNetworkState(multiSourceClient: MultiSourceHttpClient<LegalOfficerEndpoint>): LogionClient {
+        const { nodesUp, nodesDown } = multiSourceClient.getState();
+        const networkState = this.sharedState.componentFactory.buildNetworkState(nodesUp, nodesDown);
+        if(networkState.equals(this.sharedState.networkState)) {
+            return this;
+        } else {
+            this.sharedState.networkState.update({ nodesUp, nodesDown }); // To stay backward compatible, see RecoveryClient, LocClient and VaultClient
+
+            // Future code should use returned client so that LogionClient becomes immutable (i.e. NetworkState.update() can be removed)
+            const unavailableNodesSet = new Set(nodesDown.map(endpoint => endpoint.url));
+            const legalOfficers = this.sharedState.legalOfficers.filter(legalOfficer => legalOfficer.node && !unavailableNodesSet.has(legalOfficer.node));
+            const sharedState: SharedState = {
+                ...this.sharedState,
+                legalOfficers,
+                networkState,
+            };
+            return new LogionClient(sharedState);
+        }
+    }
+
+    get networkState(): NetworkState<LegalOfficerEndpoint> {
+        return this.sharedState.networkState;
     }
 
     async balanceState(): Promise<BalanceState> {

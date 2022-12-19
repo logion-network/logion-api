@@ -31,7 +31,7 @@ export function allUp<E extends Endpoint>(endpoints: E[]): MultiSourceHttpClient
 
 export type Query<E, R> = (axios: AxiosInstance, endpoint: E) => Promise<R>;
 
-export class MultiSourceHttpClient<E extends Endpoint, R> {
+export class MultiSourceHttpClient<E extends Endpoint> {
 
     constructor(initialState: MultiSourceHttpClientState<E>, axiosFactory: AxiosFactory, token?: string) {
         this.nodesUp = initialState.nodesUp.slice(0);
@@ -48,7 +48,7 @@ export class MultiSourceHttpClient<E extends Endpoint, R> {
 
     private axiosFactory: AxiosFactory;
 
-    async fetch(query: Query<E, R>): Promise<MultiResponse<R>> {
+    async fetch<R>(query: Query<E, R>): Promise<MultiResponse<R>> {
         const currentNodesUp = this.nodesUp.slice(0);
         this.nodesUp = [];
 
