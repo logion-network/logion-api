@@ -19,6 +19,7 @@ import {
     AuthenticatedLocClient,
     FetchAllLocsParams,
     VerifiedThirdParty,
+    IdenfyVerificationSession,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress } from "./Types.js";
@@ -54,6 +55,7 @@ export interface LocData {
     company?: string;
     verifiedThirdParty: boolean;
     selectedParties: VerifiedThirdParty[];
+    iDenfy?: IdenfyVerificationSession;
 }
 
 export interface MergedLink extends LocLink, Published {
@@ -541,6 +543,7 @@ export abstract class LocRequestState extends State {
             company: request.company,
             verifiedThirdParty: request.verifiedThirdParty,
             selectedParties: request.selectedParties,
+            iDenfy: request.iDenfy,
         };
 
         if(data.voidInfo && request.voidInfo) {
