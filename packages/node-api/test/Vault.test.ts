@@ -1,4 +1,4 @@
-import { getVaultAddress } from "../src/Vault";
+import { getVaultAddress } from "../src";
 import { DEFAULT_LEGAL_OFFICER, ANOTHER_LEGAL_OFFICER } from "./TestData";
 
 describe("Vault", () => {

@@ -1,2 +1,2 @@
-export * from './ExtensionSigner';
-export * from './Extension';
+export * from './ExtensionSigner.js';
+export * from './Extension.js';

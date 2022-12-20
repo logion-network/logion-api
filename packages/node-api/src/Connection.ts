@@ -1,10 +1,10 @@
-import './interfaces/types-lookup';
-import './interfaces/augment-api';
-import './interfaces/augment-types';
+import './interfaces/types-lookup.js';
+import './interfaces/augment-api.js';
+import './interfaces/augment-types.js';
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import jsonrpc from '@polkadot/types/interfaces/jsonrpc';
 
-import * as definitions from './interfaces/definitions';
+import * as definitions from './interfaces/definitions.js';
 
 export type LogionNodeApi = ApiPromise;
 

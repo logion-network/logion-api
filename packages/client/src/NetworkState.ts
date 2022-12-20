@@ -1,5 +1,5 @@
-import { arrayEquals } from "./Collections";
-import { Endpoint } from "./Http";
+import { arrayEquals } from "./Collections.js";
+import { Endpoint } from "./Http.js";
 
 export class NetworkState<E extends Endpoint> {
 

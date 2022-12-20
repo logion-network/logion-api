@@ -1,5 +1,5 @@
 import { Hash } from 'fast-sha256';
-import { FileLike } from './ComponentFactory';
+import { FileLike } from "./ComponentFactory.js";
 
 export function hashString(data: string): string {
     const digest = new Hash();

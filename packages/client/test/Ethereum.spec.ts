@@ -1,4 +1,4 @@
-import { generateEthereumTokenItemId } from "../src";
+import { generateEthereumTokenItemId } from "../src/index.js";
 
 describe("Ethereum", () => {
 

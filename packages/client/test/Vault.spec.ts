@@ -8,13 +8,28 @@ import { Call } from "@polkadot/types/interfaces";
 import { DateTime } from 'luxon';
 import { It, Mock } from "moq.ts";
 
-import { AccountTokens } from '../src/AuthenticationClient';
-import { Signer, SignParameters } from '../src/Signer';
-import { VaultState } from "../src/Vault";
-import { CreateVaultTransferRequest, VaultClient, VaultTransferRequest } from '../src/VaultClient';
-import { TestConfigFactory } from "./TestConfigFactory";
-import { ALICE, BOB, buildTestAuthenticatedSharedSate, LEGAL_OFFICERS, LOGION_CLIENT_CONFIG, mockEmptyOption, REQUESTER, RECOVERED_ADDRESS as RECOVERING_ADDRESS, itSpies } from "./Utils";
-import { LegalOfficer, PostalAddress, UserIdentity } from '../src';
+import {
+    AccountTokens,
+    Signer,
+    SignParameters,
+    VaultState,
+    CreateVaultTransferRequest,
+    VaultClient,
+    VaultTransferRequest,
+    PostalAddress,
+    UserIdentity
+} from '../src/index.js';
+import { TestConfigFactory } from "./TestConfigFactory.js";
+import {
+    ALICE,
+    BOB,
+    buildTestAuthenticatedSharedSate,
+    LEGAL_OFFICERS,
+    LOGION_CLIENT_CONFIG,
+    mockEmptyOption,
+    REQUESTER,
+    RECOVERED_ADDRESS as RECOVERING_ADDRESS
+} from "./Utils.js";
 
 describe("Vault", () => {
 

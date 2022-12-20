@@ -1,1 +1,1 @@
-export * from './CrossmintSigner';
+export * from './CrossmintSigner.js';

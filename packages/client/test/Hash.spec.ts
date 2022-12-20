@@ -1,4 +1,4 @@
-import { HashOrContent } from "../src";
+import { HashOrContent } from "../src/index.js";
 
 describe("HashOrContent", () => {
 

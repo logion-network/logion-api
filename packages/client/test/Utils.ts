@@ -2,11 +2,17 @@ import { DateTime } from "luxon";
 import { Option, Vec, bool } from "@polkadot/types-codec";
 import type { Codec } from '@polkadot/types-codec/types';
 
-import { AccountTokens } from "../src";
-import { LegalOfficerEndpoint, LogionClientConfig, SharedState } from "../src/SharedClient";
-import { LegalOfficer, UserIdentity, LegalOfficerPostalAddress } from "../src";
-import { TestConfigFactory } from "./TestConfigFactory";
-import { SuccessfulSubmission } from "../src";
+import {
+    AccountTokens,
+    LegalOfficerEndpoint,
+    LogionClientConfig,
+    SharedState,
+    LegalOfficer,
+    UserIdentity,
+    LegalOfficerPostalAddress,
+    SuccessfulSubmission
+} from "../src/index.js";
+import { TestConfigFactory } from "./TestConfigFactory.js";
 import { It } from "moq.ts";
 
 export const ALICE: LegalOfficer = {

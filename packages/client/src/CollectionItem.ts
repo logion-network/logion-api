@@ -1,9 +1,9 @@
 import { UUID } from "@logion/node-api";
 
-import { ItemDelivery, LocClient, UploadableCollectionItem, UploadableItemFile } from "./LocClient";
-import { ItemTokenWithRestrictedType } from "./Token";
-import { LogionClassification, SpecificLicense, TermsAndConditionsElement, CreativeCommons } from "./license";
-import { CheckHashResult } from "./Loc";
+import { ItemDelivery, LocClient, UploadableCollectionItem, UploadableItemFile } from "./LocClient.js";
+import { ItemTokenWithRestrictedType } from "./Token.js";
+import { LogionClassification, SpecificLicense, TermsAndConditionsElement, CreativeCommons } from "./license/index.js";
+import { CheckHashResult } from "./Loc.js";
 
 export class CollectionItem implements UploadableCollectionItem {
 

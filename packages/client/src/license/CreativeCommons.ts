@@ -1,6 +1,6 @@
 import { UUID } from "@logion/node-api";
-import { AbstractTermsAndConditionsElement } from "./TermsAndConditions";
-import { Language } from "../Types";
+import { AbstractTermsAndConditionsElement } from "./TermsAndConditions.js";
+import { Language } from "../Types.js";
 
 export const values = new Set(["BY", "BY-SA", "BY-NC", "BY-NC-SA", "BY-ND", "BY-NC-ND"] as const);
 export type CreativeCommonsCode = typeof values extends Set<infer T> ? T : never;

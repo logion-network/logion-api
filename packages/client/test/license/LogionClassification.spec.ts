@@ -1,5 +1,5 @@
 import { UUID } from "@logion/node-api";
-import { LogionClassification } from "../../src";
+import { LogionClassification } from "../../src/index.js";
 
 const classificationLocId: UUID = new UUID("61ccd87f-765c-4ab0-bd91-af68887515d4")
 

@@ -7,8 +7,8 @@ import { Registry } from '@polkadot/types-codec/types';
 import { toHex, buildErrorMessage } from '@logion/node-api';
 import { Hash } from 'fast-sha256';
 
-import { toIsoString } from './DateTimeUtil';
-import { requireDefined } from "./assertions";
+import { toIsoString } from "./DateTimeUtil.js";
+import { requireDefined } from "./assertions.js";
 
 export interface SignRawParameters {
     signerId: string;

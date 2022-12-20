@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
 
-import { toIsoString, ISO_DATETIME_PATTERN, fromIsoString } from '../src/DateTimeUtil';
+import { toIsoString, ISO_DATETIME_PATTERN, fromIsoString } from '../src/index.js';
 
 describe("DateTimeUtil", () => {
 

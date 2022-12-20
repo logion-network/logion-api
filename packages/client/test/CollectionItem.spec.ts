@@ -9,7 +9,7 @@ import {
     LocClient,
     UploadableCollectionItem,
     TermsAndConditionsElement
-} from "../src";
+} from "../src/index.js";
 
 const locId = new UUID("eff6da24-1364-4594-965a-3b31f1e1df25");
 const collectionItemId = "0x7411e1c74c64430ea9700cc695be6685";

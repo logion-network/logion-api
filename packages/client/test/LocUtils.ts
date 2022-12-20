@@ -12,8 +12,8 @@ import { Option, Bytes } from "@polkadot/types-codec";
 import { DateTime } from "luxon";
 import { Mock } from "moq.ts";
 
-import { LocFile, LocRequest, LocRequestStatus, OffchainCollectionItem, UploadableItemFile } from "../src";
-import { mockBool, mockCodecWithToHex, mockCodecWithToString, mockCodecWithToUtf8, mockEmptyOption, mockOption, mockVec, REQUESTER } from "./Utils";
+import { LocFile, LocRequest, LocRequestStatus, OffchainCollectionItem, UploadableItemFile } from "../src/index.js";
+import { mockBool, mockCodecWithToHex, mockCodecWithToString, mockCodecWithToUtf8, mockEmptyOption, mockOption, mockVec, REQUESTER } from "./Utils.js";
 
 export const EXISTING_FILE_HASH = "0xa4d9f9f1a02baae960d1a7c4cedb25940a414ae4c545bf2f14ab24691fec09a5";
 

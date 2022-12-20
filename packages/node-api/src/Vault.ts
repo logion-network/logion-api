@@ -4,9 +4,9 @@ import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { Call } from "@polkadot/types/interfaces";
 import { Weight } from "./interfaces/runtime";
 
-import { getRecoveryConfig } from "./Recovery";
-import { PrefixedNumber } from "./numbers";
-import { LGNT_SMALLEST_UNIT } from './Balances';
+import { getRecoveryConfig } from "./Recovery.js";
+import { PrefixedNumber } from "./numbers.js";
+import { LGNT_SMALLEST_UNIT } from './Balances.js';
 
 const THRESHOLD = 2;
 

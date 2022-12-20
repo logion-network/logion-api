@@ -13,9 +13,9 @@ import {
     CreativeCommons,
     DraftRequest,
     RejectedRequest
-} from "../src";
+} from "../src/index.js";
 
-import { State, TEST_LOGION_CLIENT_CONFIG, NEW_ADDRESS, initRequesterBalance, LegalOfficerWorker } from "./Utils";
+import { State, TEST_LOGION_CLIENT_CONFIG, NEW_ADDRESS, initRequesterBalance, LegalOfficerWorker } from "./Utils.js";
 
 const USER_ADDRESS = NEW_ADDRESS;
 

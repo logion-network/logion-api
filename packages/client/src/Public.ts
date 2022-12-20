@@ -1,9 +1,9 @@
 import { LegalOfficerCase, UUID } from "@logion/node-api";
 
-import { CollectionItem } from "./CollectionItem";
-import { CheckHashResult, getCollectionItem, LocData, LocRequestState } from "./Loc";
-import { FetchParameters, LocClient, LocMultiClient, PublicLocClient } from "./LocClient";
-import { SharedState } from "./SharedClient";
+import { CollectionItem } from "./CollectionItem.js";
+import { CheckHashResult, getCollectionItem, LocData, LocRequestState } from "./Loc.js";
+import { FetchParameters, LocClient, LocMultiClient, PublicLocClient } from "./LocClient.js";
+import { SharedState } from "./SharedClient.js";
 
 export class PublicApi {
 

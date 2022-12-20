@@ -1,4 +1,4 @@
-import { ItemTokenWithRestrictedType, TokenType, validateToken, isTokenType } from "../src/Token";
+import { ItemTokenWithRestrictedType, TokenType, validateToken, isTokenType } from "../src/index.js";
 
 describe("validateToken", () => {
 

@@ -1,8 +1,9 @@
 import { UUID } from "@logion/node-api";
-import { AbstractTermsAndConditionsElement } from "./TermsAndConditions";
-import { Iso3166Alpha2Code, ISO_3166_ALPHA_2_MAPPINGS } from "../Country";
 import { DateTime } from 'luxon';
-import { Language } from "../Types";
+
+import { AbstractTermsAndConditionsElement } from "./TermsAndConditions.js";
+import { Iso3166Alpha2Code, ISO_3166_ALPHA_2_MAPPINGS } from "../Country.js";
+import { Language } from "../Types.js";
 
 /**
  * List of available code to describe transferred rights.

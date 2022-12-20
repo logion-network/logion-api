@@ -1,5 +1,5 @@
-import { ClosedLoc, EditableRequest, HashOrContent, LocRequestState, OpenLoc } from "../src";
-import { LegalOfficerWorker, NEW_ADDRESS, State, VTP_ADDRESS } from "./Utils";
+import { ClosedLoc, EditableRequest, HashOrContent, LocRequestState } from "../src/index.js";
+import { LegalOfficerWorker, NEW_ADDRESS, State, VTP_ADDRESS } from "./Utils.js";
 
 export async function verifiedThirdParty(state: State) {
     const { alice } = state;

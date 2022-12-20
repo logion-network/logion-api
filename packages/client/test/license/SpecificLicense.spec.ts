@@ -1,5 +1,5 @@
 import { UUID } from "@logion/node-api";
-import { SpecificLicense } from "../../src";
+import { SpecificLicense } from "../../src/index.js";
 
 describe("SpecificLicense", () => {
 

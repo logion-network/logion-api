@@ -1,11 +1,11 @@
 import { LogionNodeApi, getProxy, getRecoveryConfig, RecoveryConfig } from "@logion/node-api";
 import { AxiosInstance } from "axios";
 
-import { AxiosFactory } from "./AxiosFactory";
-import { aggregateArrays, MultiResponse, MultiSourceHttpClient, initMultiSourceHttpClientState } from "./Http";
-import { NetworkState } from "./NetworkState";
-import { LegalOfficerEndpoint } from "./SharedClient";
-import { LegalOfficer, PostalAddress, UserIdentity } from "./Types";
+import { AxiosFactory } from "./AxiosFactory.js";
+import { aggregateArrays, MultiResponse, MultiSourceHttpClient, initMultiSourceHttpClientState } from "./Http.js";
+import { NetworkState } from "./NetworkState.js";
+import { LegalOfficerEndpoint } from "./SharedClient.js";
+import { LegalOfficer, PostalAddress, UserIdentity } from "./Types.js";
 
 export interface LegalOfficerDecision {
     rejectReason: string | null,

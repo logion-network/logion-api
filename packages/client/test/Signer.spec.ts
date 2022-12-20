@@ -1,4 +1,4 @@
-import { hashAttributes } from '../src/Signer';
+import { hashAttributes } from '../src/Signer.js';
 
 describe("Signer", () => {
 

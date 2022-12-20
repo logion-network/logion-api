@@ -1,8 +1,8 @@
 import { PrefixedNumber, KILO, CoinBalance } from "@logion/node-api";
 
-import { State, REQUESTER_ADDRESS } from "./Utils";
-import { ALICE } from "../test/Utils";
-import { BalanceState } from "../src/Balance";
+import { State, REQUESTER_ADDRESS } from "./Utils.js";
+import { ALICE } from "../test/Utils.js";
+import { BalanceState } from "../src/Balance.js";
 
 export async function transfers(state: State) {
     const { client, signer } = state;

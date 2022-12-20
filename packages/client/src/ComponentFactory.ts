@@ -1,10 +1,10 @@
 import { LogionNodeApi, buildApi } from "@logion/node-api";
-import { AuthenticationClient } from "./AuthenticationClient";
-import { AxiosFactory } from "./AxiosFactory";
-import { DirectoryClient } from "./DirectoryClient";
-import { NetworkState } from "./NetworkState";
-import { LegalOfficerEndpoint } from "./SharedClient";
-import { LegalOfficer } from "./Types";
+import { AuthenticationClient } from "./AuthenticationClient.js";
+import { AxiosFactory } from "./AxiosFactory.js";
+import { DirectoryClient } from "./DirectoryClient.js";
+import { NetworkState } from "./NetworkState.js";
+import { LegalOfficerEndpoint } from "./SharedClient.js";
+import { LegalOfficer } from "./Types.js";
 
 export interface FormDataLike {
     append(name: string, value: any, fileName?: string): void; // eslint-disable-line @typescript-eslint/no-explicit-any

@@ -3,12 +3,20 @@ import { Keyring } from "@polkadot/api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import FormData from "form-data";
 
-import { FullSigner, KeyringSigner, SignAndSendStrategy, Signer } from "../src/Signer";
-import { LogionClientConfig } from "../src/SharedClient";
-import { AxiosFactory, ISubmittableResult, LegalOfficer, LogionClient } from "../src";
-import { ALICE, BOB, CHARLIE } from "../test/Utils";
-import { requireDefined } from "../src/assertions";
-import { newBackendError } from "../src/Error";
+import {
+    FullSigner,
+    KeyringSigner,
+    SignAndSendStrategy,
+    Signer,
+    LogionClientConfig,
+    AxiosFactory,
+    ISubmittableResult,
+    LegalOfficer,
+    LogionClient
+} from "../src/index.js";
+import { ALICE, BOB, CHARLIE } from "../test/Utils.js";
+import { requireDefined } from "../src/assertions.js";
+import { newBackendError } from "../src/Error.js";
 
 
 export const ALICE_SECRET_SEED = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a";

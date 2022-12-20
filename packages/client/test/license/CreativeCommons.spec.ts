@@ -1,5 +1,5 @@
 import { UUID } from "@logion/node-api";
-import { CreativeCommons, CreativeCommonsCode } from "../../src";
+import { CreativeCommons, CreativeCommonsCode } from "../../src/index.js";
 
 describe("CreativeCommons", () => {
 
