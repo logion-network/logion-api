@@ -1,6 +1,6 @@
 import { AxiosInstance } from "axios";
-import { AxiosFactory } from "./AxiosFactory";
-import { LegalOfficer } from "./Types";
+import { AxiosFactory } from "./AxiosFactory.js";
+import { LegalOfficer } from "./Types.js";
 
 export class DirectoryClient {
 

@@ -1,9 +1,9 @@
 import { AxiosInstance } from "axios";
-import { AxiosFactory } from "./AxiosFactory";
-import { aggregateArrays, MultiSourceHttpClient, initMultiSourceHttpClientState } from "./Http";
-import { NetworkState } from "./NetworkState";
-import { LegalOfficerEndpoint } from "./SharedClient";
-import { LegalOfficer, PostalAddress, UserIdentity } from "./Types";
+import { AxiosFactory } from "./AxiosFactory.js";
+import { aggregateArrays, MultiSourceHttpClient, initMultiSourceHttpClientState } from "./Http.js";
+import { NetworkState } from "./NetworkState.js";
+import { LegalOfficerEndpoint } from "./SharedClient.js";
+import { LegalOfficer, PostalAddress, UserIdentity } from "./Types.js";
 
 export type VaultTransferRequestStatus = "ACCEPTED" | "PENDING" | "REJECTED" | "CANCELLED" | "REJECTED_CANCELLED";
 

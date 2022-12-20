@@ -14,16 +14,16 @@ import {
     RecoveryClient,
     LoRecoveryClient,
     UpdateParameters
-} from "./RecoveryClient";
+} from "./RecoveryClient.js";
 
-import { authenticatedCurrentAddress, getDefinedCurrentAddress, getLegalOfficer, SharedState } from "./SharedClient";
-import { SignCallback, Signer } from "./Signer";
-import { LegalOfficer, PostalAddress, UserIdentity } from "./Types";
-import { BalanceState, getBalanceState } from "./Balance";
-import { VaultState } from "./Vault";
-import { PollingParameters, waitFor } from "./Polling";
-import { findOrThrow } from "./Collections";
-import { State } from "./State";
+import { authenticatedCurrentAddress, getDefinedCurrentAddress, getLegalOfficer, SharedState } from "./SharedClient.js";
+import { SignCallback, Signer } from "./Signer.js";
+import { LegalOfficer, PostalAddress, UserIdentity } from "./Types.js";
+import { BalanceState, getBalanceState } from "./Balance.js";
+import { VaultState } from "./Vault.js";
+import { PollingParameters, waitFor } from "./Polling.js";
+import { findOrThrow } from "./Collections.js";
+import { State } from "./State.js";
 
 export type ProtectionState =
     NoProtection

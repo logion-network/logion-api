@@ -1,8 +1,9 @@
-import { NetworkState } from "./NetworkState";
-import { LegalOfficerEndpoint } from "./SharedClient";
-import { AxiosFactory } from "./AxiosFactory";
-import { AnySourceHttpClient, Endpoint } from "./Http";
 import { AxiosInstance } from "axios";
+
+import { NetworkState } from "./NetworkState.js";
+import { LegalOfficerEndpoint } from "./SharedClient.js";
+import { AxiosFactory } from "./AxiosFactory.js";
+import { AnySourceHttpClient, Endpoint } from "./Http.js";
 
 interface FetchTransactionsSpecification {
     address: string,

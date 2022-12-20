@@ -1,10 +1,10 @@
 import { AxiosInstance } from 'axios';
 import { DateTime } from 'luxon';
 
-import { AxiosFactory } from './AxiosFactory';
-import { LegalOfficerEndpoint } from "./SharedClient";
-import { LegalOfficer } from "./Types";
-import { NetworkState } from "./NetworkState";
+import { AxiosFactory } from "./AxiosFactory.js";
+import { LegalOfficerEndpoint } from "./SharedClient.js";
+import { LegalOfficer } from "./Types.js";
+import { NetworkState } from "./NetworkState.js";
 
 export interface Token {
     readonly value: string;

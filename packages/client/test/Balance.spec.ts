@@ -1,5 +1,5 @@
 import { PrefixedNumber, ATTO } from "@logion/node-api";
-import "@logion/node-api/dist/interfaces/types-lookup";
+import "@logion/node-api/dist/interfaces/types-lookup.js";
 import { FrameSystemAccountInfo } from "@polkadot/types/lookup";
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { Call } from "@polkadot/types/interfaces";
@@ -7,12 +7,15 @@ import { AxiosInstance, AxiosResponse } from 'axios';
 import { DateTime } from "luxon";
 import { It, Mock, Times } from 'moq.ts';
 
-import { buildTestConfig, LOGION_CLIENT_CONFIG, ALICE, BOB, buildTestAuthenticatedSharedSate, SUCCESSFUL_SUBMISSION } from "./Utils";
-import { AccountTokens, LogionClient } from "../src";
-import { Transaction } from "../src/TransactionClient";
-import { AxiosFactory } from "../src/AxiosFactory";
-import { BalanceState } from "../src";
-import { Signer } from "../src";
+import {
+    buildTestConfig,
+    LOGION_CLIENT_CONFIG,
+    ALICE,
+    BOB,
+    buildTestAuthenticatedSharedSate,
+    SUCCESSFUL_SUBMISSION
+} from "./Utils.js";
+import { AccountTokens, LogionClient, Transaction, AxiosFactory, BalanceState, Signer } from "../src/index.js";
 
 const REQUESTER_ADDRESS = "5ERRWWYABvYjyUG2oLCNifkmcCQT44ijPpQNxtwZZFj86Jjd";
 

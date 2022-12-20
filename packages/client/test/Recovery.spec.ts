@@ -1,14 +1,15 @@
 import type { Option, Vec } from '@polkadot/types-codec';
-import "@logion/node-api/dist/interfaces/types-lookup";
+import "@logion/node-api/dist/interfaces/types-lookup.js";
 import { PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig } from "@polkadot/types/lookup";
 import type { AccountId } from '@polkadot/types/interfaces/runtime';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { DateTime } from 'luxon';
 import { It, Mock } from 'moq.ts';
+import { AxiosInstance, AxiosResponse } from 'axios';
 
-import { CreateProtectionRequest, FetchAllResult, ProtectionRequest } from '../src/RecoveryClient';
-import { SharedState } from '../src/SharedClient';
+import { CreateProtectionRequest, FetchAllResult, ProtectionRequest } from '../src/RecoveryClient.js';
 import {
+    SharedState,
     AcceptedProtection,
     ActiveProtection,
     ClaimedRecovery,
@@ -16,8 +17,13 @@ import {
     NoProtection,
     PendingProtection,
     PendingRecovery,
-    RejectedProtection
-} from '../src';
+    RejectedProtection,
+    LegalOfficer,
+    PostalAddress,
+    UserIdentity,
+    Signer,
+    AccountTokens
+} from '../src/index.js';
 import {
     ALICE,
     BOB,
@@ -28,13 +34,9 @@ import {
     SUCCESSFUL_SUBMISSION,
     REQUESTER,
     RECOVERED_ADDRESS,
-} from './Utils';
-import { TestConfigFactory } from './TestConfigFactory';
-import { LegalOfficer, PostalAddress, UserIdentity } from '../src';
-import { AxiosInstance, AxiosResponse } from 'axios';
-import { AxiosFactory } from '../src/AxiosFactory';
-import { Signer } from '../src';
-import { AccountTokens } from '../src';
+} from './Utils.js';
+import { TestConfigFactory } from './TestConfigFactory.js';
+import { AxiosFactory } from '../src/AxiosFactory.js';
 
 describe("Recovery's getInitialState", () => {
 

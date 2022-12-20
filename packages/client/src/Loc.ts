@@ -19,12 +19,12 @@ import {
     AuthenticatedLocClient,
     FetchAllLocsParams,
     VerifiedThirdParty,
-} from "./LocClient";
-import { SharedState } from "./SharedClient";
-import { LegalOfficer, UserIdentity, PostalAddress } from "./Types";
-import { CollectionItem as CollectionItemClass } from './CollectionItem';
-import { State } from "./State";
-import { LogionClient } from "./LogionClient";
+} from "./LocClient.js";
+import { SharedState } from "./SharedClient.js";
+import { LegalOfficer, UserIdentity, PostalAddress } from "./Types.js";
+import { CollectionItem as CollectionItemClass } from "./CollectionItem.js";
+import { State } from "./State.js";
+import { LogionClient } from "./LogionClient.js";
 
 export interface LocData {
     id: UUID

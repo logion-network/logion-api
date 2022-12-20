@@ -2,10 +2,24 @@ import { LogionNodeApi, UUID } from "@logion/node-api";
 import { AxiosInstance, AxiosResponse } from "axios";
 import { It, Mock } from "moq.ts";
 
-import { AccountTokens, CollectionItem, FetchParameters, LocData, PublicLocClient } from "../src";
-import { SharedState } from "../src/SharedClient";
-import { ALICE, buildTestAuthenticatedSharedSate, LEGAL_OFFICERS, LOGION_CLIENT_CONFIG, mockEmptyOption } from "./Utils";
-import { TestConfigFactory } from "./TestConfigFactory";
+import {
+    AccountTokens,
+    CollectionItem,
+    FetchParameters,
+    LocData,
+    PublicLocClient,
+    SharedState,
+    PublicApi,
+    PublicLoc
+} from "../src/index.js";
+import {
+    ALICE,
+    buildTestAuthenticatedSharedSate,
+    LEGAL_OFFICERS,
+    LOGION_CLIENT_CONFIG,
+    mockEmptyOption
+} from "./Utils.js";
+import { TestConfigFactory } from "./TestConfigFactory.js";
 import {
     buildCollectionItem,
     buildLoc,
@@ -14,10 +28,9 @@ import {
     EXISTING_FILE,
     EXISTING_ITEM_ID,
     ITEM_DESCRIPTION,
-    EXISTING_ITEM_FILE, EXISTING_ITEM_FILE_HASH
-} from "./LocUtils";
-
-import { PublicApi, PublicLoc } from "../src";
+    EXISTING_ITEM_FILE,
+    EXISTING_ITEM_FILE_HASH
+} from "./LocUtils.js";
 
 describe("PublicApi", () => {
 

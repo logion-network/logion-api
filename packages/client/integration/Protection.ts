@@ -1,20 +1,20 @@
 import { buildApi, UUID } from '@logion/node-api';
 
-import { LogionClient } from '../src/';
-import { AxiosFactory } from '../src/AxiosFactory';
 import {
+    LogionClient,
+    AxiosFactory,
     AcceptedProtection,
     ActiveProtection,
     NoProtection,
     PendingRecovery,
     RejectedProtection,
-    PendingProtection
-} from '../src/Recovery';
-import { LogionClientConfig } from '../src/SharedClient';
-import { FullSigner } from '../src/Signer';
-import { LegalOfficer } from '../src/Types';
-import { ProtectionRequest } from '../src/RecoveryClient';
-import { initRequesterBalance, REQUESTER_ADDRESS, State, TEST_LOGION_CLIENT_CONFIG } from "./Utils";
+    PendingProtection,
+    LogionClientConfig,
+    FullSigner,
+    LegalOfficer,
+    ProtectionRequest
+} from '../src/index.js';
+import { initRequesterBalance, REQUESTER_ADDRESS, State, TEST_LOGION_CLIENT_CONFIG } from "./Utils.js";
 
 export async function enablesProtection(state: State) {
     const activate = await enableProtection(REQUESTER_ADDRESS, state);

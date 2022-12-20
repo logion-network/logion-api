@@ -38,6 +38,12 @@ declare module '@polkadot/api-base/types/consts' {
        **/
       metadataDepositPerByte: u128 & AugmentedConst<ApiType>;
       /**
+       * Max number of items to destroy per `destroy_accounts` and `destroy_approvals` call.
+       * 
+       * Must be configured to result in a weight that makes each call fit in a block.
+       **/
+      removeItemsLimit: u32 & AugmentedConst<ApiType>;
+      /**
        * The maximum length of a name or symbol stored on-chain.
        **/
       stringLimit: u32 & AugmentedConst<ApiType>;

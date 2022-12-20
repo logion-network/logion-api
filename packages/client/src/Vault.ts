@@ -12,12 +12,12 @@ import {
 } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
-import { authenticatedCurrentAddress, getDefinedCurrentAddress, SharedState } from "./SharedClient";
-import { SignCallback, Signer } from "./Signer";
-import { LegalOfficer } from "./Types";
-import { requestSort, VaultClient, VaultTransferRequest } from "./VaultClient";
-import { Transaction, TransactionClient } from "./TransactionClient";
-import { State } from "./State";
+import { authenticatedCurrentAddress, getDefinedCurrentAddress, SharedState } from "./SharedClient.js";
+import { SignCallback, Signer } from "./Signer.js";
+import { LegalOfficer } from "./Types.js";
+import { requestSort, VaultClient, VaultTransferRequest } from "./VaultClient.js";
+import { Transaction, TransactionClient } from "./TransactionClient.js";
+import { State } from "./State.js";
 
 export interface VaultSharedState extends SharedState {
     client: VaultClient,

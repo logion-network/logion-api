@@ -1,10 +1,8 @@
-import { buildApi, LGNT_SMALLEST_UNIT, NONE, PrefixedNumber } from "@logion/node-api";
-import { approveVaultTransfer } from "@logion/node-api";
+import { buildApi, LGNT_SMALLEST_UNIT, NONE, PrefixedNumber, approveVaultTransfer } from "@logion/node-api";
 
-import { ActiveProtection } from "../src";
-import { REQUESTER_ADDRESS, State } from "./Utils";
-import { checkCoinBalance } from "./Balance";
-import { VaultTransferRequest } from "../src/VaultClient";
+import { ActiveProtection, VaultTransferRequest } from "../src/index.js";
+import { REQUESTER_ADDRESS, State } from "./Utils.js";
+import { checkCoinBalance } from "./Balance.js";
 
 export async function providesVault(state: State) {
     const { client, signer, alice } = state;

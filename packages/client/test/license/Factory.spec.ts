@@ -1,6 +1,10 @@
 import { UUID } from "@logion/node-api";
-import { newTermsAndConditionsElement, LogionClassification, SpecificLicense } from "../../src";
-import { CreativeCommons } from "../../src";
+import {
+    newTermsAndConditionsElement,
+    LogionClassification,
+    SpecificLicense,
+    CreativeCommons
+} from "../../src/index.js";
 
 describe("Factory", () => {
 

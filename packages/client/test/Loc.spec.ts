@@ -1,4 +1,4 @@
-import "@logion/node-api/dist/interfaces/types-lookup";
+import "@logion/node-api/dist/interfaces/types-lookup.js";
 
 import { LogionNodeApi, UUID } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
@@ -32,9 +32,10 @@ import {
     LogionClassification,
     CreativeCommons,
     EditableRequest,
-    LogionClient
-} from "../src";
-import { SharedState } from "../src/SharedClient";
+    LogionClient,
+    SharedState,
+    FormDataLike
+} from "../src/index.js";
 import {
     ALICE,
     BOB,
@@ -44,9 +45,8 @@ import {
     mockEmptyOption,
     REQUESTER,
     SUCCESSFUL_SUBMISSION
-} from "./Utils";
-import { TestConfigFactory } from "./TestConfigFactory";
-import { FormDataLike } from "../src/ComponentFactory";
+} from "./Utils.js";
+import { TestConfigFactory } from "./TestConfigFactory.js";
 import {
     buildCollectionItem,
     buildLocRequest,
@@ -56,7 +56,7 @@ import {
     ITEM_DESCRIPTION,
     mockVoidInfo,
     buildLocAndRequest
-} from "./LocUtils";
+} from "./LocUtils.js";
 
 describe("LocsState", () => {
 

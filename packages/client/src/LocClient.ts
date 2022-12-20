@@ -18,19 +18,19 @@ import {
 } from '@logion/node-api';
 import { AxiosInstance } from 'axios';
 
-import { UserIdentity, LegalOfficer, PostalAddress } from "./Types";
-import { NetworkState } from "./NetworkState";
-import { authenticatedCurrentAddress, LegalOfficerEndpoint, SharedState } from "./SharedClient";
-import { AxiosFactory } from "./AxiosFactory";
-import { requireDefined } from "./assertions";
-import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays } from "./Http";
-import { Signer, SignCallback } from "./Signer";
-import { ComponentFactory } from './ComponentFactory';
-import { newBackendError } from './Error';
-import { HashOrContent } from './Hash';
-import { MimeType } from './Mime';
-import { validateToken, ItemTokenWithRestrictedType, TokenType } from './Token';
-import { TermsAndConditionsElement, newTermsAndConditions, LogionClassification, SpecificLicense, CreativeCommons } from "./license";
+import { UserIdentity, LegalOfficer, PostalAddress } from "./Types.js";
+import { NetworkState } from "./NetworkState.js";
+import { authenticatedCurrentAddress, LegalOfficerEndpoint, SharedState } from "./SharedClient.js";
+import { AxiosFactory } from "./AxiosFactory.js";
+import { requireDefined } from "./assertions.js";
+import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays } from "./Http.js";
+import { Signer, SignCallback } from "./Signer.js";
+import { ComponentFactory } from "./ComponentFactory.js";
+import { newBackendError } from "./Error.js";
+import { HashOrContent } from "./Hash.js";
+import { MimeType } from "./Mime.js";
+import { validateToken, ItemTokenWithRestrictedType, TokenType } from "./Token.js";
+import { TermsAndConditionsElement, newTermsAndConditions, LogionClassification, SpecificLicense, CreativeCommons } from "./license/index.js";
 
 export interface AddedOn {
     addedOn: string;

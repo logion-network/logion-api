@@ -3705,7 +3705,7 @@ __metadata:
   resolution: "@logion/client@workspace:packages/client"
   dependencies:
     "@logion/node-api": "workspace:^"
-    "@tsconfig/node16": ^1.0.3
+    "@tsconfig/node18": ^1.0.1
     "@types/jasmine": ^4.0.3
     "@types/luxon": ^3.0.0
     "@types/mime-db": ^1.43.1
@@ -3731,7 +3731,7 @@ __metadata:
   dependencies:
     "@crossmint/embed": ^0.0.2
     "@logion/client": "workspace:^"
-    "@tsconfig/node16": ^1.0.3
+    "@tsconfig/node18": ^1.0.1
     "@types/node": ^18.6.1
     "@typescript-eslint/eslint-plugin": latest
     "@typescript-eslint/parser": latest
@@ -3751,7 +3751,7 @@ __metadata:
     "@logion/client": "workspace:^"
     "@polkadot/extension-compat-metamask": ^0.44.6
     "@polkadot/extension-dapp": ^0.44.6
-    "@tsconfig/node16": ^1.0.3
+    "@tsconfig/node18": ^1.0.1
     "@types/node": ^18.6.1
     "@typescript-eslint/eslint-plugin": latest
     "@typescript-eslint/parser": latest
@@ -3772,7 +3772,7 @@ __metadata:
     "@polkadot/typegen": ^9.10.1
     "@polkadot/util": ^10.2.1
     "@polkadot/util-crypto": ^10.2.1
-    "@tsconfig/node16": ^1.0.3
+    "@tsconfig/node18": ^1.0.1
     "@types/jasmine": ^4.0.3
     "@types/jest": ^28.1.6
     "@types/node": ^18.6.1
@@ -4795,10 +4795,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tsconfig/node16@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "@tsconfig/node16@npm:1.0.3"
-  checksum: 3a8b657dd047495b7ad23437d6afd20297ce90380ff0bdee93fc7d39a900dbd8d9e26e53ff6b465e7967ce2adf0b218782590ce9013285121e6a5928fbd6819f
+"@tsconfig/node18@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@tsconfig/node18@npm:1.0.1"
+  checksum: aba11b453e40b03a33321e5b2bd51ba2d5213503bb95f1ecd56a5dd0be31eef1ab9ddfe06b4eae99075692641de905d57a38d671a9288bacac82327d393de1e2
   languageName: node
   linkType: hard
 

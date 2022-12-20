@@ -2,20 +2,20 @@ import { AxiosInstance } from "axios";
 import { DateTime, DurationLike } from "luxon";
 import { getRecoveryConfig, isValidAccountId, LogionNodeApi } from "@logion/node-api";
 
-import { AccountTokens } from "./AuthenticationClient";
-import { BalanceState, getBalanceState } from "./Balance";
-import { ComponentFactory, DefaultComponentFactory } from "./ComponentFactory";
-import { DirectoryClient } from "./DirectoryClient";
-import { initMultiSourceHttpClientState, MultiSourceHttpClient, Token } from "./Http";
-import { getInitialState, ProtectionState } from "./Recovery";
-import { RecoveryClient } from "./RecoveryClient";
-import { authenticatedCurrentAddress, LegalOfficerEndpoint, LogionClientConfig, SharedState } from "./SharedClient";
-import { RawSigner } from "./Signer";
-import { LegalOfficer } from "./Types";
-import { LocsState } from "./Loc";
-import { PublicApi } from "./Public";
-import { FetchAllLocsParams } from "./LocClient";
-import { NetworkState } from "./NetworkState";
+import { AccountTokens } from "./AuthenticationClient.js";
+import { BalanceState, getBalanceState } from "./Balance.js";
+import { ComponentFactory, DefaultComponentFactory } from "./ComponentFactory.js";
+import { DirectoryClient } from "./DirectoryClient.js";
+import { initMultiSourceHttpClientState, MultiSourceHttpClient, Token } from "./Http.js";
+import { getInitialState, ProtectionState } from "./Recovery.js";
+import { RecoveryClient } from "./RecoveryClient.js";
+import { authenticatedCurrentAddress, LegalOfficerEndpoint, LogionClientConfig, SharedState } from "./SharedClient.js";
+import { RawSigner } from "./Signer.js";
+import { LegalOfficer } from "./Types.js";
+import { LocsState } from "./Loc.js";
+import { PublicApi } from "./Public.js";
+import { FetchAllLocsParams } from "./LocClient.js";
+import { NetworkState } from "./NetworkState.js";
 
 export class LogionClient {
 

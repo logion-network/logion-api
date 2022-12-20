@@ -1,5 +1,5 @@
 import { UUID } from "@logion/node-api";
-import { AbstractTermsAndConditionsElement } from "./TermsAndConditions";
+import { AbstractTermsAndConditionsElement } from "./TermsAndConditions.js";
 
 /**
  * A Terms and Conditions element defining a specific license,

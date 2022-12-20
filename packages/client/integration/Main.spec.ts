@@ -1,10 +1,10 @@
-import { setupInitialState, State, tearDown } from "./Utils";
-import { enablesProtection, requestsProtectionAndCancel } from "./Protection";
-import { transfers } from "./Balance";
-import { providesVault } from "./Vault";
-import { recoverLostAccount, requestRecoveryAndCancel } from "./Recovery";
-import { requestTransactionLoc, collectionLoc, collectionLocWithUpload, identityLoc } from "./Loc";
-import { verifiedThirdParty } from "./VerifiedThirdParty";
+import { setupInitialState, State, tearDown } from "./Utils.js";
+import { enablesProtection, requestsProtectionAndCancel } from "./Protection.js";
+import { transfers } from "./Balance.js";
+import { providesVault } from "./Vault.js";
+import { recoverLostAccount, requestRecoveryAndCancel } from "./Recovery.js";
+import { requestTransactionLoc, collectionLoc, collectionLocWithUpload, identityLoc } from "./Loc.js";
+import { verifiedThirdParty } from "./VerifiedThirdParty.js";
 
 describe("Logion SDK", () => {
 

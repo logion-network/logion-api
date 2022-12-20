@@ -1,4 +1,4 @@
-import { NetworkState } from "../src";
+import { NetworkState } from "../src/index.js";
 
 describe("NetworkState", () => {
 

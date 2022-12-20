@@ -5,8 +5,8 @@ import { ApiPromise } from '@polkadot/api';
 import {
     getAccountData,
     getBalances,
-} from '../src/Balances';
-import { PrefixedNumber, ATTO, NONE } from '../src/numbers';
+} from '../src/Balances.js';
+import { PrefixedNumber, ATTO, NONE } from '../src/numbers.js';
 
 test("Getting account data", async () => {
     const api = new ApiPromise();

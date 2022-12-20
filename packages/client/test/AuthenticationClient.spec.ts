@@ -2,12 +2,12 @@ import { AxiosInstance, AxiosResponse } from "axios";
 import { DateTime } from "luxon";
 import { It, Mock } from 'moq.ts';
 
-import { AccountTokens, AuthenticationClient } from "../src/AuthenticationClient";
-import { AxiosFactory } from "../src/AxiosFactory";
-import { Token } from "../src/Http";
-import { RawSigner, SignRawParameters } from "../src/Signer";
-import { LegalOfficer } from "../src/Types";
-import { ALICE, buildAliceTokens, DIRECTORY_ENDPOINT } from "./Utils";
+import { AccountTokens, AuthenticationClient } from "../src/index.js";
+import { AxiosFactory } from "../src/index.js";
+import { Token } from "../src/index.js";
+import { RawSigner, SignRawParameters } from "../src/index.js";
+import { LegalOfficer } from "../src/index.js";
+import { ALICE, buildAliceTokens, DIRECTORY_ENDPOINT } from "./Utils.js";
 
 describe("AuthenticationClient", () => {
 

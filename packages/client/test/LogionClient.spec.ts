@@ -1,13 +1,26 @@
-import { HashOrContent, ItemFileWithContent, MimeType } from '../src';
 import { DateTime } from 'luxon';
 import { It, Mock, Times } from 'moq.ts';
-import { AuthenticationClient } from '../src/AuthenticationClient';
-
-import { LogionClient } from '../src/LogionClient';
-import { RawSigner } from '../src/Signer';
-import { LegalOfficer } from '../src/Types';
-import { TestConfigFactory } from './TestConfigFactory';
-import { ALICE, BOB, DIRECTORY_ENDPOINT, buildAliceAndBobTokens, buildAliceTokens, buildAuthenticatedSharedStateUsingTestConfig, buildTestAuthenticatedSharedSate, buildTestConfig, LOGION_CLIENT_CONFIG } from './Utils';
+import { TestConfigFactory } from './TestConfigFactory.js';
+import {
+    HashOrContent,
+    ItemFileWithContent,
+    MimeType,
+    AuthenticationClient,
+    LogionClient,
+    RawSigner,
+    LegalOfficer
+} from '../src/index.js';
+import {
+    ALICE,
+    BOB,
+    DIRECTORY_ENDPOINT,
+    buildAliceAndBobTokens,
+    buildAliceTokens,
+    buildAuthenticatedSharedStateUsingTestConfig,
+    buildTestAuthenticatedSharedSate,
+    buildTestConfig,
+    LOGION_CLIENT_CONFIG
+} from './Utils.js';
 
 describe("LogionClient", () => {
 

@@ -8,10 +8,10 @@ import {
 } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types'; 
 
-import { Transaction, TransactionClient } from "./TransactionClient";
-import { SignCallback, Signer } from "./Signer";
-import { SharedState } from "./SharedClient";
-import { State } from "./State";
+import { Transaction, TransactionClient } from "./TransactionClient.js";
+import { SignCallback, Signer } from "./Signer.js";
+import { SharedState } from "./SharedClient.js";
+import { State } from "./State.js";
 
 export interface TransferParam {
     signer: Signer;

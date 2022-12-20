@@ -1,4 +1,4 @@
-import { MimeType } from "../src";
+import { MimeType } from "../src/index.js";
 
 describe("MimeType", () => {
 

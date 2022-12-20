@@ -2,13 +2,15 @@ import { LogionNodeApi } from "@logion/node-api";
 import FormData from "form-data";
 import { IMock, IPresetBuilder, It, Mock, Times } from "moq.ts";
 import { IExpression } from "moq.ts/lib/reflector/expression-reflector";
-import { AuthenticationClient } from "../src/AuthenticationClient";
-import { AxiosFactory } from "../src/AxiosFactory";
-
-import { ComponentFactory, DefaultComponentFactory } from "../src/ComponentFactory";
-import { DirectoryClient } from "../src/DirectoryClient";
-import { LogionClientConfig } from "../src/SharedClient";
-import { LegalOfficer } from "../src/Types";
+import {
+    AuthenticationClient,
+    AxiosFactory,
+    ComponentFactory,
+    DefaultComponentFactory,
+    DirectoryClient,
+    LogionClientConfig,
+    LegalOfficer
+} from "../src/index.js";
 
 export class TestConfigFactory {
 

@@ -1,6 +1,6 @@
 import { SignParameters, SignAndSendFunction, BaseSigner, TypedSignature, SignatureType, SignAndSendStrategy } from '@logion/client';
 import { web3FromAddress } from '@polkadot/extension-dapp';
-import { META_MASK_NAME } from "./Extension";
+import { META_MASK_NAME } from "./Extension.js";
 
 export class ExtensionSigner extends BaseSigner {
 

@@ -8,12 +8,12 @@ import {
     NoProtection,
     PendingRecovery,
     PendingProtection,
-    RejectedProtection
-} from "../src";
-import { LogionClientConfig } from "../src/SharedClient";
-import { acceptRequest, rejectRequest } from "./Protection";
-import { aliceAcceptsTransfer } from './Vault';
-import { initRequesterBalance, NEW_ADDRESS, REQUESTER_ADDRESS, State } from "./Utils";
+    RejectedProtection,
+    LogionClientConfig
+} from "../src/index.js";
+import { acceptRequest, rejectRequest } from "./Protection.js";
+import { aliceAcceptsTransfer } from "./Vault.js";
+import { initRequesterBalance, NEW_ADDRESS, REQUESTER_ADDRESS, State } from "./Utils.js";
 
 export async function requestRecoveryAndCancel(state: State) {
     const { client, signer, alice, charlie } = state;

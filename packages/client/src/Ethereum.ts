@@ -1,4 +1,4 @@
-import { hashString } from "./Hash";
+import { hashString } from "./Hash.js";
 
 /**
  * This is a rewrite of the function `getItemId` implemented by Logion Smart Contract:

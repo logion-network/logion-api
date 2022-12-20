@@ -1,8 +1,8 @@
 import { TermsAndConditionsElement as ChainTermsAndConditionsElement, UUID } from "@logion/node-api";
-import { LogionClassification } from "./LogionClassification";
-import { TermsAndConditionsElement } from "./TermsAndConditions";
-import { SpecificLicense } from "./SpecificLicense";
-import { CreativeCommons } from "./CreativeCommons";
+import { LogionClassification } from "./LogionClassification.js";
+import { TermsAndConditionsElement } from "./TermsAndConditions.js";
+import { SpecificLicense } from "./SpecificLicense.js";
+import { CreativeCommons } from "./CreativeCommons.js";
 
 /**
  * Creates a new Terms and Conditions, based on given type.

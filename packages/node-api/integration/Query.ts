@@ -1,8 +1,8 @@
 import { Compact, Struct } from '@polkadot/types-codec';
 
-import { NONE, PrefixedNumber, transferSubmittable } from "../src";
+import { NONE, PrefixedNumber, transferSubmittable } from "../src/index.js";
 import { Weight } from '../src/interfaces';
-import { REQUESTER, setup } from "./Util";
+import { REQUESTER, setup } from "./Util.js";
 
 export async function queryInfos() {
     const { alice, api } = await setup();

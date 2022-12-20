@@ -1,5 +1,5 @@
-import { getBalances, NONE, PrefixedNumber, transferSubmittable } from "../src";
-import { REQUESTER, setup, signAndSend } from "./Util";
+import { getBalances, NONE, PrefixedNumber, transferSubmittable } from "../src/index.js";
+import { REQUESTER, setup, signAndSend } from "./Util.js";
 
 export async function transferTokens() {
     const { alice, api } = await setup();
