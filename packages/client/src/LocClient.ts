@@ -100,7 +100,15 @@ export interface LocRequest {
     company?: string;
     verifiedThirdParty: boolean;
     selectedParties: VerifiedThirdParty[];
+    iDenfy?: IdenfyVerificationSession;
 }
+
+export interface IdenfyVerificationSession {
+    status: IdenfySessionStatus;
+    redirectUrl?: string;
+}
+
+export type IdenfySessionStatus = "APPROVED" | "DENIED" | "SUSPECTED" | "EXPIRED" | "PENDING";
 
 export type LocRequestStatus = "DRAFT" | "OPEN" | "REQUESTED" | "REJECTED" | "CLOSED";
 
