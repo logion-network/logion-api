@@ -6,3 +6,11 @@ export function findOrThrow<T>(array: T[], predicate: (item: T) => boolean, mess
         return legalOfficer;
     }
 }
+
+export function arrayEquals<T>(array1: T[], array2: T[]): boolean {
+    if(array1.length !== array2.length) {
+        return false;
+    } else {
+        return array1.every((item, index) => item === array2[index]);
+    }
+}

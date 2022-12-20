@@ -283,7 +283,7 @@ export class LocMultiClient {
     async fetchAll(params?: FetchAllLocsParams): Promise<LocRequest[]> {
         const initialState = initMultiSourceHttpClientState(this.networkState, params?.legalOfficers);
 
-        const httpClient = new MultiSourceHttpClient<LegalOfficerEndpoint, LocRequest[]>(
+        const httpClient = new MultiSourceHttpClient<LegalOfficerEndpoint>(
             initialState,
             this.axiosFactory,
             this.token
@@ -307,7 +307,7 @@ export class LocMultiClient {
     async fetchAllForVerifiedThirdParty(legalOfficers: LegalOfficer[]): Promise<LocRequest[]> {
         const initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers);
 
-        const httpClient = new MultiSourceHttpClient<LegalOfficerEndpoint, LocRequest[]>(
+        const httpClient = new MultiSourceHttpClient<LegalOfficerEndpoint>(
             initialState,
             this.axiosFactory,
             this.token
