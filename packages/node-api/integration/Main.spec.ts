@@ -1,4 +1,4 @@
-import { transferTokens } from "./Balances.js";
+import { transferTokens, failedTransfer } from "./Balances.js";
 import { addCollectionItemTest, closeCollectionLocTest, createCollectionLocLimitedInSizeTest } from "./CollectionLoc.js";
 import { queryInfos } from "./Query.js";
 import { addFileToTransactionLocTest, createTransactionLocTest } from "./TransactionLoc.js";
@@ -10,6 +10,7 @@ describe("Logion Node API", () => {
     it("queries extrinsic infos", queryInfos);
 
     it("transfers logion tokens", transferTokens);
+    it("fails transferring more logion tokens than available", failedTransfer);
 
     it("creates transaction LOCs", createTransactionLocTest);
     it("adds file to transaction LOC", addFileToTransactionLocTest);

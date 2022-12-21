@@ -4,7 +4,7 @@ import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { ISubmittableResult } from '@polkadot/types/types';
 import { base64Encode } from '@polkadot/util-crypto';
 import { Registry } from '@polkadot/types-codec/types';
-import { toHex, buildErrorMessage } from '@logion/node-api';
+import { toHex, getErrorMessage, Event, getExtrinsicEvents } from '@logion/node-api';
 import { Hash } from 'fast-sha256';
 
 import { toIsoString } from "./DateTimeUtil.js";
@@ -41,6 +41,7 @@ export interface SignParameters {
 export interface SuccessfulSubmission {
     readonly block: string;
     readonly index: number;
+    readonly events: Event[];
 }
 
 export interface Signer {
@@ -150,11 +151,12 @@ export abstract class BaseSigner implements FullSigner {
         if (params.result.dispatchError || params.signAndSendStrategy.canUnsub(params.result)) {
             params.unsub();
             if(params.result.dispatchError) {
-                params.reject(new Error(buildErrorMessage(params.registry, params.result.dispatchError)));
+                params.reject(new Error(getErrorMessage(params.result.dispatchError)));
             } else {
                 params.resolve({
                     block: requireDefined(params.submissionState.block),
-                    index: params.result.txIndex || -1
+                    index: params.result.txIndex || -1,
+                    events: getExtrinsicEvents(params.result),
                 });
             }
         }

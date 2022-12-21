@@ -141,6 +141,7 @@ export function mockOption<T extends Codec>(value: Partial<T>): Option<T> {
 export const SUCCESSFUL_SUBMISSION: SuccessfulSubmission = {
     block: "0x1234567890abcdef",
     index: 1,
+    events: [],
 };
 
 export const RECOVERED_ADDRESS = "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb";
