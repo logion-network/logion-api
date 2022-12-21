@@ -730,7 +730,7 @@ describe("AcceptedProtection", () => {
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
             params.signerId === currentAddress
             && params.submittable === submittable.object()))
-        ).returns(Promise.resolve({block: "hash", index: 1}));
+        ).returns(Promise.resolve({ block: "hash", index: 1, events: [] }));
 
         const nextState = await state.activate(signer.object());
 

@@ -70,6 +70,7 @@ describe("Vault", () => {
         )).returns(Promise.resolve({
             block: multisigBlockHash,
             index: 1,
+            events: [],
         }));
 
         const client = buildVaultClientForCreation(expectedPendingRequest);
@@ -144,6 +145,7 @@ describe("Vault", () => {
         )).returns(Promise.resolve({
             block: asRecoveredBlockHash,
             index: 1,
+            events: [],
         }));
 
         const client = buildVaultClientForCreation(expectedPendingRequest);
@@ -224,6 +226,7 @@ describe("Vault", () => {
         )).returns(Promise.resolve({
             block: multisigBlockHash,
             index: 1,
+            events: [],
         }));
 
         const requestToCancel = expectedPendingRequest;
@@ -288,6 +291,7 @@ describe("Vault", () => {
         )).returns(Promise.resolve({
             block: multisigBlockHash,
             index: 1,
+            events: [],
         }));
 
         const requestToCancel = expectedPendingRequest;

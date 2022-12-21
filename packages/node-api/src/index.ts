@@ -3,7 +3,7 @@ export * from "./Balances.js";
 export * from "./ChainTime.js";
 export * from "./Codec.js";
 export * from "./Connection.js";
-export * from "./Error.js";
+export * from "./Extrinsics.js";
 export * from "./LogionLoc.js";
 export * from "./numbers.js";
 export * from "./Recovery.js";

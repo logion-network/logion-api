@@ -1,6 +1,6 @@
 {
   "name": "@logion/node-api",
-  "version": "0.9.0-1",
+  "version": "0.9.0-2",
   "description": "logion API",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
@@ -9,7 +9,7 @@
     "build": "yarn lint && tsc",
     "lint": "yarn eslint src/**",
     "test": "jest",
-    "integration-test": "docker-compose up -d && NODE_TLS_REJECT_UNAUTHORIZED=0 jasmine --config=jasmine-integration.json ; docker-compose down",
+    "integration-test": "docker-compose up -d && NODE_OPTIONS=--loader=ts-node/esm jasmine --config=jasmine-integration.json ; docker-compose down",
     "generate:defs-meta": "yarn generate:defs && yarn generate:meta",
     "generate:defs": "ts-node --skip-project ../../node_modules/.bin/polkadot-types-from-defs --endpoint ws://localhost:9944 --input ./src/interfaces/ --package @logion/node-api/dist/interfaces",
     "generate:meta": "ts-node --skip-project ../../node_modules/.bin/polkadot-types-from-chain --endpoint ws://localhost:9944 --output ./src/interfaces/ --package @logion/node-api/dist/interfaces"

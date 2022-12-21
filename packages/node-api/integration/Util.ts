@@ -1,5 +1,5 @@
 import { ApiPromise, Keyring } from "@polkadot/api";
-import { IKeyringPair } from "@polkadot/types/types";
+import { IKeyringPair, ISubmittableResult } from "@polkadot/types/types";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { waitReady } from "@polkadot/wasm-crypto";
 
@@ -39,16 +39,20 @@ const REQUESTER_SECRET_SEED = "unique chase zone team upset caution match west e
 
 export const REQUESTER = "5DPLBrBxniGbGdFe1Lmdpkt6K3aNjhoNPJrSJ51rwcmhH2Tn";
 
-export function signAndSend(keypair: IKeyringPair, extrinsic: SubmittableExtrinsic): Promise<void> {
+export function signAndSend(keypair: IKeyringPair, extrinsic: SubmittableExtrinsic): Promise<ISubmittableResult> {
     let unsub: () => void;
     return new Promise((resolve, error) => {
         extrinsic.signAndSend(keypair, (result) => {
             if(result.isError) {
                 unsub();
-                error();
+                error(result.dispatchError);
             } else if (result.status.isInBlock) {
                 unsub();
-                resolve();
+                if(result.dispatchError) {
+                    error(result.dispatchError);
+                } else {
+                    resolve(result);
+                }
             }
         })
         .then(_unsub => unsub = _unsub)
