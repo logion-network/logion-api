@@ -2,6 +2,7 @@ import { transferTokens, failedTransfer } from "./Balances.js";
 import { addCollectionItemTest, closeCollectionLocTest, createCollectionLocLimitedInSizeTest } from "./CollectionLoc.js";
 import { queryInfos } from "./Query.js";
 import { addFileToTransactionLocTest, createTransactionLocTest } from "./TransactionLoc.js";
+import { createVote } from "./Vote.js";
 
 describe("Logion Node API", () => {
 
@@ -18,4 +19,6 @@ describe("Logion Node API", () => {
     it("creates collection LOC limited in size", createCollectionLocLimitedInSizeTest);
     it("closes collection LOC", closeCollectionLocTest);
     it("adds collection item", addCollectionItemTest);
+
+    it("creates a vote", createVote);
 });

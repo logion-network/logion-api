@@ -107,7 +107,7 @@ export function asJsonCall(anyJson: AnyJson): JsonCall {
 export interface Event {
     name: string;
     section: string;
-    data: JsonObject;
+    data: JsonObject | AnyJson[];
 }
 
 export function getExtrinsicEvents(result: ISubmittableResult): Event[] {
@@ -117,8 +117,16 @@ export function getExtrinsicEvents(result: ISubmittableResult): Event[] {
         .map(json => ({
             name: json.method as string,
             section: json.section as string,
-            data: asJsonObject(json.data),
+            data: getEventData(json.data),
         }));
+}
+
+function getEventData(json: AnyJson): JsonObject | AnyJson[] {
+    if(isArray(json)) {
+        return asArray(json);
+    } else {
+        return asJsonObject(json);
+    }
 }
 
 export interface ErrorMetadata {
