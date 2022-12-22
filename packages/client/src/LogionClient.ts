@@ -16,6 +16,7 @@ import { LocsState } from "./Loc.js";
 import { PublicApi } from "./Public.js";
 import { FetchAllLocsParams } from "./LocClient.js";
 import { NetworkState } from "./NetworkState.js";
+import { VoterApi } from "./Voter.js";
 
 export class LogionClient {
 
@@ -48,11 +49,14 @@ export class LogionClient {
     constructor(sharedState: SharedState) {
         this.sharedState = sharedState;
         this._public = new PublicApi({ sharedState });
+        this._voter = new VoterApi({ sharedState, logionClient: this });
     }
 
     private sharedState: SharedState;
 
     private _public: PublicApi;
+
+    private _voter: VoterApi;
 
     get config(): LogionClientConfig {
         return this.sharedState.config;
@@ -291,6 +295,11 @@ export class LogionClient {
     get public(): PublicApi {
         this.ensureConnected();
         return this._public;
+    }
+
+    get voter(): VoterApi {
+        this.ensureConnected();
+        return this._voter;
     }
 
     async disconnect() {
