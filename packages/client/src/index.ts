@@ -30,4 +30,5 @@ export * from './TransactionClient.js';
 export * from './Types.js';
 export * from './Vault.js';
 export * from './VaultClient.js';
+export * from './Voter.js';
 export * from './license/index.js';

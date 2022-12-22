@@ -101,6 +101,7 @@ export interface LocRequest {
     verifiedThirdParty: boolean;
     selectedParties: VerifiedThirdParty[];
     iDenfy?: IdenfyVerificationSession;
+    voteId?: string | null;
 }
 
 export interface IdenfyVerificationSession {

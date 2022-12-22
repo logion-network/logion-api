@@ -56,6 +56,7 @@ export interface LocData {
     verifiedThirdParty: boolean;
     selectedParties: VerifiedThirdParty[];
     iDenfy?: IdenfyVerificationSession;
+    voteId?: string;
 }
 
 export interface MergedLink extends LocLink, Published {
@@ -519,6 +520,7 @@ export abstract class LocRequestState extends State {
             metadata: request.metadata.map(item => LocRequestState.mergeMetadata(item)),
             files: request.files.map(item => LocRequestState.mergeFile(item)),
             links: request.links.map(item => LocRequestState.mergeLink(item)),
+            voteId: request.voteId ? request.voteId : undefined,
         };
     }
 
@@ -544,6 +546,7 @@ export abstract class LocRequestState extends State {
             verifiedThirdParty: request.verifiedThirdParty,
             selectedParties: request.selectedParties,
             iDenfy: request.iDenfy,
+            voteId: request.voteId ? request.voteId : undefined,
         };
 
         if(data.voidInfo && request.voidInfo) {
@@ -903,5 +906,16 @@ export class VoidedCollectionLoc extends ClosedOrVoidCollectionLoc {
 
     override withLocs(locsState: LocsState): VoidedCollectionLoc {
         return this._withLocs(locsState, VoidedCollectionLoc);
+    }
+}
+
+export class ReadOnlyLocState extends LocRequestState {
+
+    constructor(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase?: LegalOfficerCase) {
+        super(locSharedState, request, legalOfficerCase);
+    }
+
+    withLocs(locsState: LocsState): LocRequestState {
+        return this._withLocs(locsState, ReadOnlyLocState);
     }
 }
