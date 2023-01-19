@@ -5,6 +5,7 @@
 // this is required to allow for ambient/previous definitions
 import '@polkadot/types/types/registry';
 
+import type { CollectionItem, CollectionItemFile, CollectionItemId, CollectionItemToken, CollectionSize, File, HostData, LegalOfficerCaseOf, LegalOfficerData, LoAuthorityListStorageVersion, LocId, LocLink, LocType, LocVoidInfo, MetadataItem, OpaquePeerId, StorageVersion, TermsAndConditionsElement } from '@logion/node-api/dist/interfaces/default';
 import type { Data, StorageKey } from '@polkadot/types';
 import type { BitVec, Bool, Bytes, F32, F64, I128, I16, I256, I32, I64, I8, Json, Null, OptionBool, Raw, Text, Type, U128, U16, U256, U32, U64, U8, USize, bool, f32, f64, i128, i16, i256, i32, i64, i8, u128, u16, u256, u32, u64, u8, usize } from '@polkadot/types-codec';
 import type { AssetApproval, AssetApprovalKey, AssetBalance, AssetDestroyWitness, AssetDetails, AssetMetadata, TAssetBalance, TAssetDepositBalance } from '@polkadot/types/interfaces/assets';
@@ -38,7 +39,7 @@ import type { AssetOptions, Owner, PermissionLatest, PermissionVersions, Permiss
 import type { ActiveGilt, ActiveGiltsTotal, ActiveIndex, GiltBid } from '@polkadot/types/interfaces/gilt';
 import type { AuthorityIndex, AuthorityList, AuthoritySet, AuthoritySetChange, AuthoritySetChanges, AuthorityWeight, DelayKind, DelayKindBest, EncodedFinalityProofs, ForkTreePendingChange, ForkTreePendingChangeNode, GrandpaCommit, GrandpaEquivocation, GrandpaEquivocationProof, GrandpaEquivocationValue, GrandpaJustification, GrandpaPrecommit, GrandpaPrevote, GrandpaSignedPrecommit, JustificationNotification, KeyOwnerProof, NextAuthority, PendingChange, PendingPause, PendingResume, Precommits, Prevotes, ReportedRoundStates, RoundState, SetId, StoredPendingChange, StoredState } from '@polkadot/types/interfaces/grandpa';
 import type { IdentityFields, IdentityInfo, IdentityInfoAdditional, IdentityInfoTo198, IdentityJudgement, RegistrarIndex, RegistrarInfo, Registration, RegistrationJudgement, RegistrationTo198 } from '@polkadot/types/interfaces/identity';
-import type { AuthIndex, AuthoritySignature, Heartbeat, HeartbeatTo244, OpaqueMultiaddr, OpaqueNetworkState, OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
+import type { AuthIndex, AuthoritySignature, Heartbeat, HeartbeatTo244, OpaqueMultiaddr, OpaqueNetworkState } from '@polkadot/types/interfaces/imOnline';
 import type { CallIndex, LotteryConfig } from '@polkadot/types/interfaces/lottery';
 import type { ErrorMetadataLatest, ErrorMetadataV10, ErrorMetadataV11, ErrorMetadataV12, ErrorMetadataV13, ErrorMetadataV14, ErrorMetadataV9, EventMetadataLatest, EventMetadataV10, EventMetadataV11, EventMetadataV12, EventMetadataV13, EventMetadataV14, EventMetadataV9, ExtrinsicMetadataLatest, ExtrinsicMetadataV11, ExtrinsicMetadataV12, ExtrinsicMetadataV13, ExtrinsicMetadataV14, FunctionArgumentMetadataLatest, FunctionArgumentMetadataV10, FunctionArgumentMetadataV11, FunctionArgumentMetadataV12, FunctionArgumentMetadataV13, FunctionArgumentMetadataV14, FunctionArgumentMetadataV9, FunctionMetadataLatest, FunctionMetadataV10, FunctionMetadataV11, FunctionMetadataV12, FunctionMetadataV13, FunctionMetadataV14, FunctionMetadataV9, MetadataAll, MetadataLatest, MetadataV10, MetadataV11, MetadataV12, MetadataV13, MetadataV14, MetadataV9, ModuleConstantMetadataV10, ModuleConstantMetadataV11, ModuleConstantMetadataV12, ModuleConstantMetadataV13, ModuleConstantMetadataV9, ModuleMetadataV10, ModuleMetadataV11, ModuleMetadataV12, ModuleMetadataV13, ModuleMetadataV9, OpaqueMetadata, PalletCallMetadataLatest, PalletCallMetadataV14, PalletConstantMetadataLatest, PalletConstantMetadataV14, PalletErrorMetadataLatest, PalletErrorMetadataV14, PalletEventMetadataLatest, PalletEventMetadataV14, PalletMetadataLatest, PalletMetadataV14, PalletStorageMetadataLatest, PalletStorageMetadataV14, PortableType, PortableTypeV14, SignedExtensionMetadataLatest, SignedExtensionMetadataV14, StorageEntryMetadataLatest, StorageEntryMetadataV10, StorageEntryMetadataV11, StorageEntryMetadataV12, StorageEntryMetadataV13, StorageEntryMetadataV14, StorageEntryMetadataV9, StorageEntryModifierLatest, StorageEntryModifierV10, StorageEntryModifierV11, StorageEntryModifierV12, StorageEntryModifierV13, StorageEntryModifierV14, StorageEntryModifierV9, StorageEntryTypeLatest, StorageEntryTypeV10, StorageEntryTypeV11, StorageEntryTypeV12, StorageEntryTypeV13, StorageEntryTypeV14, StorageEntryTypeV9, StorageHasher, StorageHasherV10, StorageHasherV11, StorageHasherV12, StorageHasherV13, StorageHasherV14, StorageHasherV9, StorageMetadataV10, StorageMetadataV11, StorageMetadataV12, StorageMetadataV13, StorageMetadataV9 } from '@polkadot/types/interfaces/metadata';
 import type { MmrBatchProof, MmrEncodableOpaqueLeaf, MmrError, MmrLeafBatchProof, MmrLeafIndex, MmrLeafProof, MmrNodeIndex, MmrProof } from '@polkadot/types/interfaces/mmr';
@@ -229,6 +230,11 @@ declare module '@polkadot/types/types/registry' {
     CollationInfoV1: CollationInfoV1;
     CollatorId: CollatorId;
     CollatorSignature: CollatorSignature;
+    CollectionItem: CollectionItem;
+    CollectionItemFile: CollectionItemFile;
+    CollectionItemId: CollectionItemId;
+    CollectionItemToken: CollectionItemToken;
+    CollectionSize: CollectionSize;
     CollectiveOrigin: CollectiveOrigin;
     CommittedCandidateReceipt: CommittedCandidateReceipt;
     CompactAssignments: CompactAssignments;
@@ -468,6 +474,7 @@ declare module '@polkadot/types/types/registry' {
     f64: f64;
     F64: F64;
     FeeDetails: FeeDetails;
+    File: File;
     Fixed128: Fixed128;
     Fixed64: Fixed64;
     FixedI128: FixedI128;
@@ -528,6 +535,7 @@ declare module '@polkadot/types/types/registry' {
     Heartbeat: Heartbeat;
     HeartbeatTo244: HeartbeatTo244;
     HostConfiguration: HostConfiguration;
+    HostData: HostData;
     HostFnWeights: HostFnWeights;
     HostFnWeightsTo264: HostFnWeightsTo264;
     HrmpChannel: HrmpChannel;
@@ -610,10 +618,17 @@ declare module '@polkadot/types/types/registry' {
     LeasePeriod: LeasePeriod;
     LeasePeriodOf: LeasePeriodOf;
     LegacyTransaction: LegacyTransaction;
+    LegalOfficerCaseOf: LegalOfficerCaseOf;
+    LegalOfficerData: LegalOfficerData;
     Limits: Limits;
     LimitsTo264: LimitsTo264;
+    LoAuthorityListStorageVersion: LoAuthorityListStorageVersion;
     LocalValidationData: LocalValidationData;
+    LocId: LocId;
     LockIdentifier: LockIdentifier;
+    LocLink: LocLink;
+    LocType: LocType;
+    LocVoidInfo: LocVoidInfo;
     LookupSource: LookupSource;
     LookupTarget: LookupTarget;
     LotteryConfig: LotteryConfig;
@@ -632,6 +647,7 @@ declare module '@polkadot/types/types/registry' {
     MessagingStateSnapshot: MessagingStateSnapshot;
     MessagingStateSnapshotEgressEntry: MessagingStateSnapshotEgressEntry;
     MetadataAll: MetadataAll;
+    MetadataItem: MetadataItem;
     MetadataLatest: MetadataLatest;
     MetadataV10: MetadataV10;
     MetadataV11: MetadataV11;
@@ -1041,6 +1057,7 @@ declare module '@polkadot/types/types/registry' {
     StorageMetadataV13: StorageMetadataV13;
     StorageMetadataV9: StorageMetadataV9;
     StorageProof: StorageProof;
+    StorageVersion: StorageVersion;
     StoredPendingChange: StoredPendingChange;
     StoredState: StoredState;
     StrikeCount: StrikeCount;
@@ -1054,6 +1071,7 @@ declare module '@polkadot/types/types/registry' {
     TaskAddress: TaskAddress;
     TAssetBalance: TAssetBalance;
     TAssetDepositBalance: TAssetDepositBalance;
+    TermsAndConditionsElement: TermsAndConditionsElement;
     Text: Text;
     Timepoint: Timepoint;
     TokenError: TokenError;

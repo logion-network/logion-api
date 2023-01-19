@@ -128,6 +128,28 @@ export default {
             tcType: "Vec<u8>",
             tcLoc: "LocId",
             details: "Vec<u8>",
+        },
+        Vote: {
+            locId: "LocId",
+            ballots: "Vec<Ballot>"
+        },
+        Ballot: {
+            voter: "LocId",
+            status: "AccountId"
+        },
+        BallotStatus: {
+            _enum: [
+                "NotVoted",
+                "VotedYes",
+                "VotedNo"
+            ]
+        },
+        VoteId: "u64",
+        VoteClosed: "bool",
+        VoteApproved: "bool",
+        LegalOfficerCaseSummary: {
+            owner: "AccountId",
+            requester: "Option<AccountId>",
         }
     }
 };

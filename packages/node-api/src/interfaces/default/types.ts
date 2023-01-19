@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 import type { AccountId, Balance, BlockNumber, Hash } from '@logion/node-api/dist/interfaces/runtime';
-import type { Bytes, Enum, Option, Struct, Vec, bool, u128, u32, u8 } from '@polkadot/types-codec';
+import type { Bytes, Enum, Option, Struct, Vec, bool, u128, u64, u32, u8 } from '@polkadot/types-codec';
 import type { AccountInfoWithDualRefCount } from '@polkadot/types/interfaces/system';
 import type { DepositBalance } from '@polkadot/types/interfaces/uniques';
 
@@ -172,6 +172,41 @@ export interface TermsAndConditionsElement extends Struct {
   readonly tcType: Bytes;
   readonly tcLoc: LocId;
   readonly details: Bytes;
+}
+
+/** @name Vote */
+export interface Vote extends Struct {
+  readonly locId: LocId;
+  readonly ballots: Vec<Ballot>;
+}
+
+/** @name Ballot */
+export interface Ballot extends Struct {
+  readonly voter: AccountId;
+  readonly status: BallotStatus;
+}
+
+/** @name BallotStatus */
+export interface BallotStatus extends Enum {
+  readonly isNotVoted: boolean;
+  readonly isVotedYes: boolean;
+  readonly isVotedNo: boolean;
+  readonly type: 'NotVoted' | 'VotedYes' | 'VotedNo';
+}
+
+/** @name VoteId */
+export interface VoteId extends u64 {}
+
+/** @name VoteClosed */
+export interface VoteClosed extends bool {}
+
+/** @name VoteApproved */
+export interface VoteApproved extends bool {}
+
+/** @name LegalOfficerCaseSummary */
+export interface LegalOfficerCaseSummary extends Struct {
+  readonly owner: AccountId;
+  readonly requester: Option<AccountId>;
 }
 
 export type PHANTOM_DEFAULT = 'default';
