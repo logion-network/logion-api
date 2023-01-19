@@ -638,9 +638,21 @@ declare module '@polkadot/api-base/types/errors' {
     };
     vote: {
       /**
+       * User has already voted on given vote.
+       **/
+      AlreadyVoted: AugmentedError<ApiType>;
+      /**
        * Given LOC is not valid (not found, or not closed or void) or does not belong to vote requester.
        **/
       InvalidLoc: AugmentedError<ApiType>;
+      /**
+       * User is not allowed to vote on given vote.
+       **/
+      NotAllowed: AugmentedError<ApiType>;
+      /**
+       * Given vote does not exist.
+       **/
+      VoteNotFound: AugmentedError<ApiType>;
       /**
        * Generic error
        **/
