@@ -46,6 +46,7 @@ export interface Published {
 export interface LocFile extends BlockchainFile, Partial<AddedOn> {
     name: string;
     restrictedDelivery: boolean;
+    contentType: string;
 }
 
 /**
