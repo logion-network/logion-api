@@ -5,8 +5,7 @@
 // this is required to allow for ambient/previous definitions
 import '@polkadot/types/types/registry';
 
-import type { Vote, Ballot, BallotStatus, VoteId, VoteClosed, VoteApproved, LegalOfficerCaseSummary } from '@logion/node-api/dist/interfaces/default';
-import type { CollectionItem, CollectionItemFile, CollectionItemId, CollectionItemToken, CollectionSize, File, HostData, LegalOfficerCaseOf, LegalOfficerData, LoAuthorityListStorageVersion, LocId, LocLink, LocType, LocVoidInfo, MetadataItem, OpaquePeerId, Requester, StorageVersion, TermsAndConditionsElement } from '@logion/node-api/dist/interfaces/default';
+import type { Ballot, BallotStatus, CollectionItem, CollectionItemFile, CollectionItemId, CollectionItemToken, CollectionSize, File, HostData, LegalOfficerCaseOf, LegalOfficerCaseSummary, LegalOfficerData, LoAuthorityListStorageVersion, LocId, LocLink, LocType, LocVoidInfo, LogionVote, MetadataItem, Requester, StorageVersion, TermsAndConditionsElement, VoteApproved, VoteClosed, VoteId } from '@logion/node-api/dist/interfaces/default';
 import type { AccountId, AccountId20, AccountId32, AccountId33, AccountIdOf, AccountIndex, Address, AssetId, Balance, BalanceOf, Block, BlockNumber, BlockNumberFor, BlockNumberOf, Call, CallHash, CallHashOf, ChangesTrieConfiguration, ChangesTrieSignal, CodecHash, Consensus, ConsensusEngineId, CrateVersion, Digest, DigestItem, EncodedJustification, ExtrinsicsWeight, Fixed128, Fixed64, FixedI128, FixedI64, FixedU128, FixedU64, H1024, H128, H160, H2048, H256, H32, H512, H64, Hash, Header, HeaderPartial, I32F32, Index, IndicesLookupSource, Justification, Justifications, KeyTypeId, KeyValue, LockIdentifier, LookupSource, LookupTarget, ModuleId, Moment, MultiAddress, MultiSigner, OpaqueCall, Origin, OriginCaller, PalletId, PalletVersion, PalletsOrigin, Pays, PerU16, Perbill, Percent, Permill, Perquintill, Phantom, PhantomData, PreRuntime, Releases, RuntimeDbWeight, Seal, SealV0, SignedBlock, SignedBlockWithJustification, SignedBlockWithJustifications, Slot, SlotDuration, StorageData, StorageInfo, StorageProof, TransactionInfo, TransactionLongevity, TransactionPriority, TransactionStorageProof, TransactionTag, U32F32, ValidatorId, ValidatorIdOf, Weight, WeightMultiplier, WeightV1, WeightV2 } from '@logion/node-api/dist/interfaces/runtime';
 import type { BeefyKey, FullIdentification, IdentificationTuple, Keys, MembershipProof, SessionIndex, SessionKeys1, SessionKeys10, SessionKeys10B, SessionKeys2, SessionKeys3, SessionKeys4, SessionKeys5, SessionKeys6, SessionKeys6B, SessionKeys7, SessionKeys7B, SessionKeys8, SessionKeys8B, SessionKeys9, SessionKeys9B, ValidatorCount } from '@logion/node-api/dist/interfaces/session';
 import type { Data, StorageKey } from '@polkadot/types';
@@ -33,6 +32,7 @@ import type { FundIndex, FundInfo, LastContribution, TrieIndex } from '@polkadot
 import type { CollationInfo, CollationInfoV1, ConfigData, MessageId, OverweightIndex, PageCounter, PageIndexData } from '@polkadot/types/interfaces/cumulus';
 import type { AccountVote, AccountVoteSplit, AccountVoteStandard, Conviction, Delegations, PreimageStatus, PreimageStatusAvailable, PriorLock, PropIndex, Proposal, ProxyState, ReferendumIndex, ReferendumInfo, ReferendumInfoFinished, ReferendumInfoTo239, ReferendumStatus, Tally, Voting, VotingDelegating, VotingDirect, VotingDirectVote } from '@polkadot/types/interfaces/democracy';
 import type { BlockStats } from '@polkadot/types/interfaces/dev';
+import type { ApprovalFlag, DefunctVoter, Renouncing, SetIndex, Vote, VoteIndex, VoteThreshold, VoterInfo } from '@polkadot/types/interfaces/elections';
 import type { CreatedBlock, ImportedAux } from '@polkadot/types/interfaces/engine';
 import type { BlockV0, BlockV1, BlockV2, EIP1559Transaction, EIP2930Transaction, EthAccessList, EthAccessListItem, EthAccount, EthAddress, EthBlock, EthBloom, EthCallRequest, EthFeeHistory, EthFilter, EthFilterAddress, EthFilterChanges, EthFilterTopic, EthFilterTopicEntry, EthFilterTopicInner, EthHeader, EthLog, EthReceipt, EthReceiptV0, EthReceiptV3, EthRichBlock, EthRichHeader, EthStorageProof, EthSubKind, EthSubParams, EthSubResult, EthSyncInfo, EthSyncStatus, EthTransaction, EthTransactionAction, EthTransactionCondition, EthTransactionRequest, EthTransactionSignature, EthTransactionStatus, EthWork, EthereumAccountId, EthereumAddress, EthereumLookupSource, EthereumSignature, LegacyTransaction, TransactionV0, TransactionV1, TransactionV2 } from '@polkadot/types/interfaces/eth';
 import type { EvmAccount, EvmCallInfo, EvmCreateInfo, EvmLog, EvmVicinity, ExitError, ExitFatal, ExitReason, ExitRevert, ExitSucceed } from '@polkadot/types/interfaces/evm';
@@ -41,7 +41,7 @@ import type { AssetOptions, Owner, PermissionLatest, PermissionVersions, Permiss
 import type { ActiveGilt, ActiveGiltsTotal, ActiveIndex, GiltBid } from '@polkadot/types/interfaces/gilt';
 import type { AuthorityIndex, AuthorityList, AuthoritySet, AuthoritySetChange, AuthoritySetChanges, AuthorityWeight, DelayKind, DelayKindBest, EncodedFinalityProofs, ForkTreePendingChange, ForkTreePendingChangeNode, GrandpaCommit, GrandpaEquivocation, GrandpaEquivocationProof, GrandpaEquivocationValue, GrandpaJustification, GrandpaPrecommit, GrandpaPrevote, GrandpaSignedPrecommit, JustificationNotification, KeyOwnerProof, NextAuthority, PendingChange, PendingPause, PendingResume, Precommits, Prevotes, ReportedRoundStates, RoundState, SetId, StoredPendingChange, StoredState } from '@polkadot/types/interfaces/grandpa';
 import type { IdentityFields, IdentityInfo, IdentityInfoAdditional, IdentityInfoTo198, IdentityJudgement, RegistrarIndex, RegistrarInfo, Registration, RegistrationJudgement, RegistrationTo198 } from '@polkadot/types/interfaces/identity';
-import type { AuthIndex, AuthoritySignature, Heartbeat, HeartbeatTo244, OpaqueMultiaddr, OpaqueNetworkState } from '@polkadot/types/interfaces/imOnline';
+import type { AuthIndex, AuthoritySignature, Heartbeat, HeartbeatTo244, OpaqueMultiaddr, OpaqueNetworkState, OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { CallIndex, LotteryConfig } from '@polkadot/types/interfaces/lottery';
 import type { ErrorMetadataLatest, ErrorMetadataV10, ErrorMetadataV11, ErrorMetadataV12, ErrorMetadataV13, ErrorMetadataV14, ErrorMetadataV9, EventMetadataLatest, EventMetadataV10, EventMetadataV11, EventMetadataV12, EventMetadataV13, EventMetadataV14, EventMetadataV9, ExtrinsicMetadataLatest, ExtrinsicMetadataV11, ExtrinsicMetadataV12, ExtrinsicMetadataV13, ExtrinsicMetadataV14, FunctionArgumentMetadataLatest, FunctionArgumentMetadataV10, FunctionArgumentMetadataV11, FunctionArgumentMetadataV12, FunctionArgumentMetadataV13, FunctionArgumentMetadataV14, FunctionArgumentMetadataV9, FunctionMetadataLatest, FunctionMetadataV10, FunctionMetadataV11, FunctionMetadataV12, FunctionMetadataV13, FunctionMetadataV14, FunctionMetadataV9, MetadataAll, MetadataLatest, MetadataV10, MetadataV11, MetadataV12, MetadataV13, MetadataV14, MetadataV9, ModuleConstantMetadataV10, ModuleConstantMetadataV11, ModuleConstantMetadataV12, ModuleConstantMetadataV13, ModuleConstantMetadataV9, ModuleMetadataV10, ModuleMetadataV11, ModuleMetadataV12, ModuleMetadataV13, ModuleMetadataV9, OpaqueMetadata, PalletCallMetadataLatest, PalletCallMetadataV14, PalletConstantMetadataLatest, PalletConstantMetadataV14, PalletErrorMetadataLatest, PalletErrorMetadataV14, PalletEventMetadataLatest, PalletEventMetadataV14, PalletMetadataLatest, PalletMetadataV14, PalletStorageMetadataLatest, PalletStorageMetadataV14, PortableType, PortableTypeV14, SignedExtensionMetadataLatest, SignedExtensionMetadataV14, StorageEntryMetadataLatest, StorageEntryMetadataV10, StorageEntryMetadataV11, StorageEntryMetadataV12, StorageEntryMetadataV13, StorageEntryMetadataV14, StorageEntryMetadataV9, StorageEntryModifierLatest, StorageEntryModifierV10, StorageEntryModifierV11, StorageEntryModifierV12, StorageEntryModifierV13, StorageEntryModifierV14, StorageEntryModifierV9, StorageEntryTypeLatest, StorageEntryTypeV10, StorageEntryTypeV11, StorageEntryTypeV12, StorageEntryTypeV13, StorageEntryTypeV14, StorageEntryTypeV9, StorageHasher, StorageHasherV10, StorageHasherV11, StorageHasherV12, StorageHasherV13, StorageHasherV14, StorageHasherV9, StorageMetadataV10, StorageMetadataV11, StorageMetadataV12, StorageMetadataV13, StorageMetadataV9 } from '@polkadot/types/interfaces/metadata';
 import type { MmrBatchProof, MmrEncodableOpaqueLeaf, MmrError, MmrLeafBatchProof, MmrLeafIndex, MmrLeafProof, MmrNodeIndex, MmrProof } from '@polkadot/types/interfaces/mmr';
@@ -105,6 +105,7 @@ declare module '@polkadot/types/types/registry' {
     ApiId: ApiId;
     ApplyExtrinsicResult: ApplyExtrinsicResult;
     ApplyExtrinsicResultPre6: ApplyExtrinsicResultPre6;
+    ApprovalFlag: ApprovalFlag;
     Approvals: Approvals;
     ArithmeticError: ArithmeticError;
     AssetApproval: AssetApproval;
@@ -148,6 +149,8 @@ declare module '@polkadot/types/types/registry' {
     BalanceLockTo212: BalanceLockTo212;
     BalanceOf: BalanceOf;
     BalanceStatus: BalanceStatus;
+    Ballot: Ballot;
+    BallotStatus: BallotStatus;
     BeefyAuthoritySet: BeefyAuthoritySet;
     BeefyCommitment: BeefyCommitment;
     BeefyId: BeefyId;
@@ -324,6 +327,7 @@ declare module '@polkadot/types/types/registry' {
     CreatedBlock: CreatedBlock;
     Data: Data;
     DeferredOffenceOf: DeferredOffenceOf;
+    DefunctVoter: DefunctVoter;
     DelayKind: DelayKind;
     DelayKindBest: DelayKindBest;
     Delegations: Delegations;
@@ -617,6 +621,7 @@ declare module '@polkadot/types/types/registry' {
     LeasePeriodOf: LeasePeriodOf;
     LegacyTransaction: LegacyTransaction;
     LegalOfficerCaseOf: LegalOfficerCaseOf;
+    LegalOfficerCaseSummary: LegalOfficerCaseSummary;
     LegalOfficerData: LegalOfficerData;
     Limits: Limits;
     LimitsTo264: LimitsTo264;
@@ -627,6 +632,7 @@ declare module '@polkadot/types/types/registry' {
     LocLink: LocLink;
     LocType: LocType;
     LocVoidInfo: LocVoidInfo;
+    LogionVote: LogionVote;
     LookupSource: LookupSource;
     LookupTarget: LookupTarget;
     LotteryConfig: LotteryConfig;
@@ -869,6 +875,7 @@ declare module '@polkadot/types/types/registry' {
     RelayHash: RelayHash;
     Releases: Releases;
     Remark: Remark;
+    Renouncing: Renouncing;
     RentProjection: RentProjection;
     ReplacementTimes: ReplacementTimes;
     ReportedRoundStates: ReportedRoundStates;
@@ -933,6 +940,7 @@ declare module '@polkadot/types/types/registry' {
     SessionKeys9: SessionKeys9;
     SessionKeys9B: SessionKeys9B;
     SetId: SetId;
+    SetIndex: SetIndex;
     Si0Field: Si0Field;
     Si0LookupTypeId: Si0LookupTypeId;
     Si0Path: Si0Path;
@@ -1147,9 +1155,16 @@ declare module '@polkadot/types/types/registry' {
     VersionMigrationStage: VersionMigrationStage;
     VestingInfo: VestingInfo;
     VestingSchedule: VestingSchedule;
+    Vote: Vote;
+    VoteApproved: VoteApproved;
+    VoteClosed: VoteClosed;
+    VoteId: VoteId;
+    VoteIndex: VoteIndex;
     Voter: Voter;
+    VoterInfo: VoterInfo;
     Votes: Votes;
     VotesTo230: VotesTo230;
+    VoteThreshold: VoteThreshold;
     VoteWeight: VoteWeight;
     Voting: Voting;
     VotingDelegating: VotingDelegating;
@@ -1198,13 +1213,5 @@ declare module '@polkadot/types/types/registry' {
     XcmV1: XcmV1;
     XcmV2: XcmV2;
     XcmVersion: XcmVersion;
-
-    Vote: Vote;
-    Ballot: Ballot;
-    BallotStatus: BallotStatus;
-    VoteId: VoteId;
-    VoteClosed: VoteClosed;
-    VoteApproved: VoteApproved;
-    LegalOfficerCaseSummary: LegalOfficerCaseSummary;
   } // InterfaceTypes
 } // declare module

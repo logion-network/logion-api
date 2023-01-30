@@ -3,7 +3,7 @@ import { IKeyringPair, ISubmittableResult } from "@polkadot/types/types";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { waitReady } from "@polkadot/wasm-crypto";
 
-import { buildApi, getErrorMessage } from "../src/index.js";
+import { buildApi } from "../src";
 
 export interface State {
     api: ApiPromise,

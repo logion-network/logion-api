@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 import type { AccountId, Balance, BlockNumber, Hash } from '@logion/node-api/dist/interfaces/runtime';
-import type { Bytes, Enum, Option, Struct, Vec, bool, u128, u64, u32, u8 } from '@polkadot/types-codec';
+import type { Bytes, Enum, Option, Struct, Vec, bool, u128, u32, u64, u8 } from '@polkadot/types-codec';
 import type { AccountInfoWithDualRefCount } from '@polkadot/types/interfaces/system';
 import type { DepositBalance } from '@polkadot/types/interfaces/uniques';
 
@@ -30,6 +30,20 @@ export interface AssetMetadata extends Struct {
   readonly name: Bytes;
   readonly symbol: Bytes;
   readonly decimals: u8;
+}
+
+/** @name Ballot */
+export interface Ballot extends Struct {
+  readonly voter: LocId;
+  readonly status: AccountId;
+}
+
+/** @name BallotStatus */
+export interface BallotStatus extends Enum {
+  readonly isNotVoted: boolean;
+  readonly isVotedYes: boolean;
+  readonly isVotedNo: boolean;
+  readonly type: 'NotVoted' | 'VotedYes' | 'VotedNo';
 }
 
 /** @name CollectionItem */
@@ -91,6 +105,12 @@ export interface LegalOfficerCaseOf extends Struct {
   readonly seal: Option<Hash>;
 }
 
+/** @name LegalOfficerCaseSummary */
+export interface LegalOfficerCaseSummary extends Struct {
+  readonly owner: AccountId;
+  readonly requester: Option<AccountId>;
+}
+
 /** @name LegalOfficerData */
 export interface LegalOfficerData extends Enum {
   readonly isHost: boolean;
@@ -128,6 +148,12 @@ export interface LocType extends Enum {
 /** @name LocVoidInfo */
 export interface LocVoidInfo extends Struct {
   readonly replacer: Option<LocId>;
+}
+
+/** @name LogionVote */
+export interface LogionVote extends Struct {
+  readonly locId: LocId;
+  readonly ballots: Vec<Ballot>;
 }
 
 /** @name MetadataItem */
@@ -174,39 +200,13 @@ export interface TermsAndConditionsElement extends Struct {
   readonly details: Bytes;
 }
 
-/** @name Vote */
-export interface Vote extends Struct {
-  readonly locId: LocId;
-  readonly ballots: Vec<Ballot>;
-}
-
-/** @name Ballot */
-export interface Ballot extends Struct {
-  readonly voter: AccountId;
-  readonly status: BallotStatus;
-}
-
-/** @name BallotStatus */
-export interface BallotStatus extends Enum {
-  readonly isNotVoted: boolean;
-  readonly isVotedYes: boolean;
-  readonly isVotedNo: boolean;
-  readonly type: 'NotVoted' | 'VotedYes' | 'VotedNo';
-}
-
-/** @name VoteId */
-export interface VoteId extends u64 {}
+/** @name VoteApproved */
+export interface VoteApproved extends bool {}
 
 /** @name VoteClosed */
 export interface VoteClosed extends bool {}
 
-/** @name VoteApproved */
-export interface VoteApproved extends bool {}
-
-/** @name LegalOfficerCaseSummary */
-export interface LegalOfficerCaseSummary extends Struct {
-  readonly owner: AccountId;
-  readonly requester: Option<AccountId>;
-}
+/** @name VoteId */
+export interface VoteId extends u64 {}
 
 export type PHANTOM_DEFAULT = 'default';
