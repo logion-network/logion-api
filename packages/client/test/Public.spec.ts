@@ -160,7 +160,7 @@ async function buildSharedState(): Promise<SharedState> {
             aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ LOC_REQUEST.id }/public`)).returnsAsync({
                 data: LOC_REQUEST
             } as AxiosResponse);
-            aliceAxiosMock.setup(instance => instance.get(`/api/collection/${ LOC_REQUEST.id }/${ EXISTING_ITEM_ID }`)).returnsAsync({
+            aliceAxiosMock.setup(instance => instance.get(`/api/collection/${ LOC_REQUEST.id }/items/${ EXISTING_ITEM_ID }`)).returnsAsync({
                 data: OFFCHAIN_COLLECTION_ITEM
             } as AxiosResponse);
             axiosFactoryMock.setup(instance => instance.buildAxiosInstance(ALICE.node))

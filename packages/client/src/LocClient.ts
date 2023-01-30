@@ -427,7 +427,7 @@ export abstract class LocClient {
 
     private async getOffchainItem(parameters: { locId: UUID, itemId: string }): Promise<OffchainCollectionItem> {
         const { locId, itemId } = parameters;
-        const response = await this.backend().get(`/api/collection/${ locId.toString() }/${ itemId }`);
+        const response = await this.backend().get(`/api/collection/${ locId.toString() }/items/${ itemId }`);
         return response.data;
     }
 
