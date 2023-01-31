@@ -1,5 +1,4 @@
 import { PrefixedNumber, ATTO } from "@logion/node-api";
-import "@logion/node-api/dist/interfaces/types-lookup.js";
 import { FrameSystemAccountInfo } from "@polkadot/types/lookup";
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { Call } from "@polkadot/types/interfaces";

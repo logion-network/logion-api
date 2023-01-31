@@ -1,5 +1,4 @@
 import type { Option, Vec } from '@polkadot/types-codec';
-import "@logion/node-api/dist/interfaces/types-lookup.js";
 import { PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig } from "@polkadot/types/lookup";
 import type { AccountId } from '@polkadot/types/interfaces/runtime';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';

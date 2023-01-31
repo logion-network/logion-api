@@ -1,13 +1,13 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "outDir": "./dist",
+    "rootDir": "src",
     "baseUrl": ".",
+    "declaration": false,
     "paths": {
-        "@logion/node-api/dist/interfaces/*": ["src/interfaces/*"],
-        "@polkadot/api/augment": ["src/interfaces/augment-api.ts"],
-        "@polkadot/types/augment": ["src/interfaces/augment-types.ts"]
+      "@logion/node-api/dist/interfaces/*": ["src/interfaces/*"],
+      "@polkadot/api/augment": ["src/interfaces/augment-api.ts"],
+      "@polkadot/types/augment": ["src/interfaces/augment-types.ts"]
     }
   },
   "include": [
