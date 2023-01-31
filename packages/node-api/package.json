@@ -2,13 +2,25 @@
   "name": "@logion/node-api",
   "version": "0.10.1-1",
   "description": "logion API",
-  "main": "dist/index.js",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/cjs/index.js",
+      "require": "./dist/esm/index.js"
+    }
+  },
   "packageManager": "yarn@3.2.0",
   "scripts": {
-    "build": "yarn lint && tsc",
+    "build": "yarn lint && rm -rf dist && yarn build:esm && yarn build:cjs && yarn build:types && ./scripts/generate_package_json.sh",
+    "build:esm": "tsc -p tsconfig-esm.json",
+    "build:cjs": "tsc -p tsconfig-cjs.json",
+    "build:types": "tsc -p tsconfig-types.json",
     "lint": "yarn eslint src/**",
     "test": "jest",
-    "integration-test": "docker-compose up -d && jasmine --config=jasmine-integration.json ; docker-compose down",
+    "integration-test": "docker-compose up -d && ts-node --project ./tsconfig-test.json -T ../../node_modules/jasmine/bin/jasmine --config=jasmine-integration.json ; docker-compose down",
     "generate:defs-meta": "yarn generate:defs && yarn generate:meta",
     "generate:defs": "ts-node --skip-project ../../node_modules/.bin/polkadot-types-from-defs --endpoint ws://localhost:9944 --input ./src/interfaces/ --package @logion/node-api/dist/interfaces",
     "generate:meta": "ts-node --skip-project ../../node_modules/.bin/polkadot-types-from-chain --endpoint ws://localhost:9944 --output ./src/interfaces/ --package @logion/node-api/dist/interfaces"
@@ -40,17 +52,18 @@
     "@polkadot/typegen": "^9.10.1",
     "@tsconfig/node18": "^1.0.1",
     "@types/jasmine": "^4.0.3",
-    "@types/jest": "^28.1.6",
+    "@types/jest": "^29.4.0",
     "@types/node": "^18.6.1",
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
     "eslint": "^8.20.0",
     "jasmine": "^4.3.0",
     "jasmine-spec-reporter": "^7.0.0",
-    "jest": "^28.1.3",
+    "jest": "^29.4.1",
     "jest-jasmine2": "^28.1.3",
-    "ts-jest": "^28.0.7",
+    "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.1.2",
     "typescript": "^4.7.4"
   },
   "engines": {

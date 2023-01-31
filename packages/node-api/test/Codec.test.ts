@@ -1,4 +1,4 @@
-import { toHex, fromHex} from '../src/Codec.js';
+import { toHex, fromHex} from '../src/Codec';
 
 test("toHex", () => {
     const data = "test";

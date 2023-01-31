@@ -1,5 +1,3 @@
-import "@logion/node-api/dist/interfaces/types-lookup.js";
-
 import { LogionNodeApi, UUID } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";

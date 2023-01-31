@@ -8,3 +8,5 @@ front_config.js
 front_web*.conf
 jest*.js
 tsconfig*.json
+.eslintrc.json
+jasmine*.json
