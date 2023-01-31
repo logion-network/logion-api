@@ -1,8 +1,9 @@
-import { transferTokens, failedTransfer } from "./Balances.js";
-import { addCollectionItemTest, closeCollectionLocTest, createCollectionLocLimitedInSizeTest } from "./CollectionLoc.js";
-import { queryInfos } from "./Query.js";
-import { addFileToTransactionLocTest, createTransactionLocTest } from "./TransactionLoc.js";
-import { createVote } from "./Vote.js";
+import { transferTokens, failedTransfer } from "./Balances";
+import { addCollectionItemTest, closeCollectionLocTest, createCollectionLocLimitedInSizeTest } from "./CollectionLoc";
+import { addGuardian } from "./LoAuthorityList";
+import { queryInfos } from "./Query";
+import { addFileToTransactionLocTest, createTransactionLocTest } from "./TransactionLoc";
+import { createVote } from "./Vote";
 
 describe("Logion Node API", () => {
 
@@ -21,4 +22,6 @@ describe("Logion Node API", () => {
     it("adds collection item", addCollectionItemTest);
 
     it("creates a vote", createVote);
+
+    it("adds guest guardian", addGuardian);
 });

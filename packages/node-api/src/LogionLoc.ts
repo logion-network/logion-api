@@ -2,7 +2,7 @@ import { ApiPromise } from '@polkadot/api';
 import { stringToHex } from '@polkadot/util';
 import { Option } from "@polkadot/types-codec";
 
-import { UUID } from './UUID.js';
+import { UUID } from './UUID';
 import {
     LegalOfficerCase,
     LocType,
@@ -12,8 +12,8 @@ import {
     ItemFile,
     ItemToken,
     TermsAndConditionsElement
-} from './Types.js';
-import { CollectionSize } from './interfaces/index.js';
+} from './Types';
+import { CollectionSize } from './interfaces/index';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { PalletLogionLocLegalOfficerCase, PalletLogionLocCollectionItem } from '@polkadot/types/lookup';
 

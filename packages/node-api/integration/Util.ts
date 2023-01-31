@@ -3,7 +3,7 @@ import { IKeyringPair, ISubmittableResult } from "@polkadot/types/types";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { waitReady } from "@polkadot/wasm-crypto";
 
-import { buildApi, getErrorMessage } from "../src/index.js";
+import { buildApi } from "../src";
 
 export interface State {
     api: ApiPromise,
@@ -38,6 +38,8 @@ export const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY";
 const REQUESTER_SECRET_SEED = "unique chase zone team upset caution match west enter eyebrow limb wrist";
 
 export const REQUESTER = "5DPLBrBxniGbGdFe1Lmdpkt6K3aNjhoNPJrSJ51rwcmhH2Tn";
+
+export const DAVE = "5DAAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFy";
 
 export function signAndSend(keypair: IKeyringPair, extrinsic: SubmittableExtrinsic): Promise<ISubmittableResult> {
     let unsub: () => void;

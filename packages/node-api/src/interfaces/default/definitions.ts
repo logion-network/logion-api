@@ -3,6 +3,9 @@ export default {
     typesAlias: {
         loAuthorityList: {
             StorageVersion: "LoAuthorityListStorageVersion",
+        },
+        logionLoc: {
+            Vote: "LogionVote"
         }
     },
     types: {
@@ -129,7 +132,7 @@ export default {
             tcLoc: "LocId",
             details: "Vec<u8>",
         },
-        Vote: {
+        LogionVote: {
             locId: "LocId",
             ballots: "Vec<Ballot>"
         },

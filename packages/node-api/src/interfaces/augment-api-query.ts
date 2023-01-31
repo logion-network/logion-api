@@ -204,11 +204,11 @@ declare module '@polkadot/api-base/types/storage' {
       /**
        * The additional adapative connections of each node.
        **/
-      additionalConnections: AugmentedQuery<ApiType, (arg: OpaquePeerId | object | string | Uint8Array) => Observable<BTreeSet<OpaquePeerId>>, [OpaquePeerId]> & QueryableStorageEntry<ApiType, [OpaquePeerId]>;
+      additionalConnections: AugmentedQuery<ApiType, (arg: OpaquePeerId | string | Uint8Array) => Observable<BTreeSet<OpaquePeerId>>, [OpaquePeerId]> & QueryableStorageEntry<ApiType, [OpaquePeerId]>;
       /**
        * A map that maintains the ownership of each node.
        **/
-      owners: AugmentedQuery<ApiType, (arg: OpaquePeerId | object | string | Uint8Array) => Observable<Option<AccountId32>>, [OpaquePeerId]> & QueryableStorageEntry<ApiType, [OpaquePeerId]>;
+      owners: AugmentedQuery<ApiType, (arg: OpaquePeerId | string | Uint8Array) => Observable<Option<AccountId32>>, [OpaquePeerId]> & QueryableStorageEntry<ApiType, [OpaquePeerId]>;
       /**
        * The set of well known nodes. This is stored sorted (just by value).
        **/

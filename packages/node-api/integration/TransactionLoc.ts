@@ -1,5 +1,5 @@
-import { createPolkadotTransactionLoc, UUID, getLegalOfficerCase, addFile } from "../src/index.js";
-import { ALICE, REQUESTER, setup, signAndSend } from "./Util.js";
+import { createPolkadotTransactionLoc, UUID, getLegalOfficerCase, addFile } from "../src";
+import { ALICE, REQUESTER, setup, signAndSend } from "./Util";
 
 export async function createTransactionLocTest() {
     const { alice, api } = await setup();
