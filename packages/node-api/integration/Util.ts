@@ -39,6 +39,8 @@ const REQUESTER_SECRET_SEED = "unique chase zone team upset caution match west e
 
 export const REQUESTER = "5DPLBrBxniGbGdFe1Lmdpkt6K3aNjhoNPJrSJ51rwcmhH2Tn";
 
+export const DAVE = "5DAAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFy";
+
 export function signAndSend(keypair: IKeyringPair, extrinsic: SubmittableExtrinsic): Promise<ISubmittableResult> {
     let unsub: () => void;
     return new Promise((resolve, error) => {

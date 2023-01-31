@@ -1,5 +1,6 @@
 import { transferTokens, failedTransfer } from "./Balances";
 import { addCollectionItemTest, closeCollectionLocTest, createCollectionLocLimitedInSizeTest } from "./CollectionLoc";
+import { addGuardian } from "./LoAuthorityList";
 import { queryInfos } from "./Query";
 import { addFileToTransactionLocTest, createTransactionLocTest } from "./TransactionLoc";
 import { createVote } from "./Vote";
@@ -21,4 +22,6 @@ describe("Logion Node API", () => {
     it("adds collection item", addCollectionItemTest);
 
     it("creates a vote", createVote);
+
+    it("adds guest guardian", addGuardian);
 });
