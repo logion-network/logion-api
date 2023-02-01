@@ -198,7 +198,7 @@ export async function collectionLocWithUpload(state: State) {
             new ItemFileWithContent({
                 name: "test.txt",
                 contentType: MimeType.from("text/plain"),
-                hashOrContent: HashOrContent.fromContent(Buffer.from(firstFileContent)), // Let SDK compute hash and size
+                hashOrContent: HashOrContent.fromContent("integration/test.txt"), // Let SDK compute hash and size
             })
         ],
         itemToken: firstItemToken,

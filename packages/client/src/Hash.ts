@@ -1,5 +1,5 @@
 import { Hash } from 'fast-sha256';
-import { FileLike } from "./ComponentFactory.js";
+import { FileLike, UploadableData } from "./ComponentFactory.js";
 
 export function hashString(data: string): string {
     const digest = new Hash();
@@ -160,6 +160,18 @@ export class HashOrContent {
         }
         this.ensureFinalized();
         return this._size;
+    }
+
+    async data(): Promise<UploadableData> {
+        if(!this._content) {
+            throw new Error("No content available");
+        }
+        this.ensureFinalized();
+        if(typeof this._content === "string") {
+            return await buildStream(this._content as string);
+        } else {
+            return this._content;
+        }
     }
 }
 
