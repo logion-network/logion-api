@@ -12,6 +12,8 @@ export interface FormDataLike {
 
 export type FileLike = File | Blob | Buffer | string; // string is the path to the file
 
+export type UploadableData = File | Blob | Buffer | NodeJS.ReadableStream;
+
 export interface ComponentFactory {
     buildAxiosFactory: () => AxiosFactory;
     buildDirectoryClient: (directoryEndpoint: string, axiosFactory: AxiosFactory, token?: string) => DirectoryClient;

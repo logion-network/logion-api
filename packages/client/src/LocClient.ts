@@ -586,7 +586,7 @@ export class AuthenticatedLocClient extends LocClient {
         await file.finalize();
 
         const formData = this.componentFactory.buildFormData();
-        formData.append('file', file.content, fileName);
+        formData.append('file', await file.data(), fileName);
         formData.append('nature', nature);
         formData.append('hash', file.contentHash);
 
@@ -705,7 +705,7 @@ export class AuthenticatedLocClient extends LocClient {
         await file.hashOrContent.finalize(); // Ensure validity
 
         const formData = this.componentFactory.buildFormData();
-        formData.append('file', file.hashOrContent.content, file.name);
+        formData.append('file', await file.hashOrContent.data(), file.name);
         formData.append('hash', file.hashOrContent.contentHash);
         try {
             await this.backend().post(
