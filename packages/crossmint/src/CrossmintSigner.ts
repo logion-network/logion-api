@@ -1,4 +1,4 @@
-import { CrossmintEVMWalletAdapter } from "@crossmint/embed";
+import { CrossmintEVMWalletAdapter } from "@crossmint/connect";
 import { BaseSigner, SignAndSendFunction, TypedSignature } from "@logion/client";
 
 export class CrossmintSigner extends BaseSigner {

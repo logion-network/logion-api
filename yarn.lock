@@ -2086,16 +2086,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@crossmint/embed@npm:^0.0.2":
-  version: 0.0.2
-  resolution: "@crossmint/embed@npm:0.0.2"
+"@crossmint/connect@npm:^0.0.8":
+  version: 0.0.8
+  resolution: "@crossmint/connect@npm:0.0.8"
   dependencies:
     "@solana/wallet-adapter-base": ^0.9.7
     "@solana/web3.js": ^1.47.3
     ethers: ^5.6.9
     react: ^18.2.0
     store2: ^2.13.2
-  checksum: a265f8aaaf237df4e723d74fb909355f00bcfc583489f7bee0ce69e5925f51cc242ef3e05372b14faa46025b44c3cc380f78798e254a5351dd2170da402f7c3a
+  checksum: 99f30dc6947c0780cfe1abc185ece65b16d09fd583c77f8edd85e47a47549237c74611bb5563fcfb3858022d2703e529af47aaabc3396955818ed2090773fcb8
   languageName: node
   linkType: hard
 
@@ -3868,7 +3868,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@logion/crossmint@workspace:packages/crossmint"
   dependencies:
-    "@crossmint/embed": ^0.0.2
+    "@crossmint/connect": ^0.0.8
     "@logion/client": "workspace:^"
     "@tsconfig/node18": ^1.0.1
     "@types/node": ^18.6.1
