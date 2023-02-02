@@ -16,6 +16,8 @@ export class State {
 
     private _discarded: boolean;
 
+    private _nextState: State | undefined;
+
     /**
      * @description True if this state was discarded
      */
@@ -38,9 +40,10 @@ export class State {
      * if the state transition was successfully executed. It may be safer to
      * use `discardOnSuccess`.
      */
-    protected discard() {
+    protected discard(next: State | undefined) {
         this.ensureCurrent();
         this._discarded = true;
+        this._nextState = next;
     }
 
     /**
@@ -51,10 +54,14 @@ export class State {
      */
     protected async discardOnSuccess<T extends State>(action: () => Promise<T>): Promise<T> {
         this.ensureCurrent();
+        let next: T | undefined;
         try {
-            return await action();
+            next = await action();
+            return next;
         } finally {
-            this.discard();
+            if(next !== undefined) {
+                this.discard(next);
+            }
         }
     }
 
@@ -63,12 +70,32 @@ export class State {
      * @param action The state transition logic producing next state
      * @returns Next state if state transition logic execution did not throw
      */
-     protected syncDiscardOnSuccess<T extends State>(action: () => T): T {
+    protected syncDiscardOnSuccess<T extends State>(action: () => T): T {
         this.ensureCurrent();
+        let next: T | undefined;
         try {
-            return action();
+            next = action();
+            return next;
         } finally {
-            this.discard();
+            if(next !== undefined) {
+                this.discard(next);
+            }
+        }
+    }
+
+    /**
+     * @description If the state has been discarded, provides the replacing current state if any.
+     * @returns This state if not discareded or the current state or undefined when there is no current state.
+     */
+    getCurrentState(): State | undefined {
+        if(this.discarded) {
+            let next: State | undefined = this._nextState;
+            while(next && next.discarded) {
+                next = next._nextState;
+            }
+            return next;
+        } else {
+            return this;
         }
     }
 }

@@ -682,7 +682,7 @@ export class DraftRequest extends EditableRequest {
     async cancel(): Promise<LocsState> {
         this.ensureCurrent();
         await this.locSharedState.client.cancel(this.locId);
-        this.discard();
+        this.discard(undefined);
         return this.locSharedState.locsState.refreshWithout(this.locId);
     }
 
@@ -708,7 +708,7 @@ export class RejectedRequest extends LocRequestState {
     async cancel(): Promise<LocsState> {
         this.ensureCurrent();
         await this.locSharedState.client.cancel(this.locId);
-        this.discard();
+        this.discard(undefined);
         return this.locSharedState.locsState.refreshWithout(this.locId);
     }
 
