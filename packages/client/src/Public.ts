@@ -1,6 +1,6 @@
 import { LegalOfficerCase, UUID } from "@logion/node-api";
 
-import { CollectionItem } from "./CollectionItem.js";
+import { CollectionItem, CheckCertifiedCopyResult, CheckResultType } from "./CollectionItem.js";
 import { CheckHashResult, getCollectionItem, LocData, LocRequestState } from "./Loc.js";
 import { FetchParameters, LocClient, LocMultiClient, PublicLocClient } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
@@ -75,9 +75,9 @@ export class PublicLoc {
         this.client = args.client;
     }
 
-    private _data: LocData;
+    private readonly _data: LocData;
 
-    private client: PublicLocClient;
+    private readonly client: PublicLocClient;
 
     get data(): LocData {
         return this._data;
@@ -115,5 +115,31 @@ export class PublicLoc {
 
     isLogionDataLoc(): boolean {
         return this._data.locType !== 'Identity' && this._data.requesterLocId !== null && this._data.requesterLocId !== undefined;
+    }
+
+    async checkCertifiedCopy(hash: string): Promise<CheckCertifiedCopyResult> {
+        try {
+            const delivery = await this.client.checkDelivery({
+                locId: this._data.id,
+                hash,
+            });
+            return {
+                summary: CheckResultType.POSITIVE,
+                logionOrigin: CheckResultType.POSITIVE,
+                latest: CheckResultType.NEGATIVE,
+                nftOwnership: CheckResultType.NEGATIVE,
+                match: {
+                    ...delivery,
+                    belongsToCurrentOwner: false,
+                }
+            }
+        } catch (e) {
+            return {
+                summary: CheckResultType.NEGATIVE,
+                logionOrigin: CheckResultType.NEGATIVE,
+                latest: CheckResultType.NEGATIVE,
+                nftOwnership: CheckResultType.NEGATIVE,
+            }
+        }
     }
 }
