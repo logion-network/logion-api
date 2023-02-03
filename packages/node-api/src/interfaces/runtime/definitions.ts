@@ -5,6 +5,5 @@ export default {
     types: {
         ...runtime.default.types,
         AssetId: "u64",
-        Weight: "WeightV2",
     }
 };
