@@ -2,7 +2,6 @@ import { ApiPromise } from "@polkadot/api";
 import { createKeyMulti, encodeAddress } from '@polkadot/util-crypto';
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { Call } from "@polkadot/types/interfaces";
-import { Weight } from "./interfaces/runtime";
 
 import { getRecoveryConfig } from "./Recovery";
 import { PrefixedNumber } from "./numbers";
@@ -65,7 +64,7 @@ async function transferCallAndWeight(
     const multisigOrigin = getVaultAddress(requesterAddress, legalOfficers);
     const call = transferCall(api, destination, amount);
     const dispatchInfo = await call.paymentInfo(multisigOrigin);
-    const maxWeight = dispatchInfo.weight as unknown as Weight;
+    const maxWeight = dispatchInfo.weight;
     return {
         call,
         weight: maxWeight.refTime.toString(),
