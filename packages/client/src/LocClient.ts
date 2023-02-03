@@ -234,6 +234,11 @@ export interface GetDeliveriesRequest {
     itemId: string;
 }
 
+export interface CheckCollectionDeliveryRequest {
+    locId: UUID;
+    hash: string;
+}
+
 export interface FetchAllLocsParams {
     legalOfficers?: LegalOfficer[];
     spec?: FetchLocRequestSpecification;
@@ -377,11 +382,18 @@ export interface ItemDeliveries {
     [key: string]: ItemDelivery[];
 }
 
-export interface ItemDelivery {
+export interface Delivery {
     copyHash: string;
     generatedOn: string;
     owner: string;
+}
+
+export interface ItemDelivery extends Delivery {
     belongsToCurrentOwner: boolean;
+}
+
+export interface CollectionDelivery extends Delivery {
+    originalFileHash: string;
 }
 
 export abstract class LocClient {
@@ -493,6 +505,8 @@ export abstract class LocClient {
     abstract getLocRequest(parameters: FetchParameters): Promise<LocRequest>;
 
     abstract getDeliveries(parameters: GetDeliveriesRequest): Promise<ItemDeliveries>;
+
+    abstract checkDelivery(parameters: CheckCollectionDeliveryRequest): Promise<CollectionDelivery>;
 }
 
 export class PublicLocClient extends LocClient {
@@ -506,6 +520,12 @@ export class PublicLocClient extends LocClient {
     override async getDeliveries(parameters: GetDeliveriesRequest): Promise<ItemDeliveries> {
         const { locId, itemId } = parameters;
         const response = await this.backend().get(`/api/collection/${ locId }/${ itemId }/latest-deliveries`);
+        return response.data;
+    }
+
+    override async checkDelivery(parameters: CheckCollectionDeliveryRequest): Promise<CollectionDelivery> {
+        const { locId, hash } = parameters;
+        const response = await this.backend().put(`/api/collection/${ locId }/file-deliveries`, { copyHash: hash });
         return response.data;
     }
 }
@@ -733,6 +753,16 @@ export class AuthenticatedLocClient extends LocClient {
         try {
             const { locId, itemId } = parameters;
             const response = await this.backend().get(`/api/collection/${ locId }/${ itemId }/all-deliveries`);
+            return response.data;
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    override async checkDelivery(parameters: CheckCollectionDeliveryRequest): Promise<CollectionDelivery> {
+        try {
+            const { locId, hash } = parameters;
+            const response = await this.backend().put(`/api/collection/${ locId }/file-deliveries`, { copyHash: hash });
             return response.data;
         } catch(e) {
             throw newBackendError(e);
