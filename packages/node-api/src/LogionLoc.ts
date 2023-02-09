@@ -1,6 +1,6 @@
 import { ApiPromise } from '@polkadot/api';
 import { stringToHex } from '@polkadot/util';
-import { Option } from "@polkadot/types-codec";
+import { Option, Vec } from "@polkadot/types-codec";
 
 import { UUID } from './UUID';
 import {
@@ -15,7 +15,8 @@ import {
 } from './Types';
 import { CollectionSize } from './interfaces/index';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
-import { PalletLogionLocLegalOfficerCase, PalletLogionLocCollectionItem } from '@polkadot/types/lookup';
+import { PalletLogionLocLegalOfficerCase, PalletLogionLocCollectionItem, PalletLogionLocTokensRecordFile, PalletLogionLocTokensRecord } from '@polkadot/types/lookup';
+import { LogionNodeApi } from './Connection';
 
 export interface LogionIdentityLocCreationParameters {
     api: ApiPromise;
@@ -429,4 +430,47 @@ export function addCollectionItem(parameters: AddCollectionItemParameters): Subm
     } else {
         return api.tx.logionLoc.addCollectionItem(collectionId.toHexString(), itemId, stringToHex(itemDescription), files, token, restrictedDelivery);
     }
+}
+
+export interface TokensRecordFile {
+    name: string;
+    contentType: string;
+    size: string;
+    hash: string;
+}
+
+export function newTokensRecordFile(api: LogionNodeApi, file: TokensRecordFile): PalletLogionLocTokensRecordFile {
+    return api.createType("PalletLogionLocTokensRecordFile", {
+        name: api.createType("Bytes", file.name),
+        contentType: api.createType("Bytes", file.contentType),
+        size_: api.createType("u32", file.size),
+        hash_: api.createType("Hash", file.hash),
+    });
+}
+
+export function newTokensRecordFiles(api: LogionNodeApi, files: TokensRecordFile[]): Vec<PalletLogionLocTokensRecordFile> {
+    return api.createType("Vec<PalletLogionLocTokensRecordFile>", files.map(file => newTokensRecordFile(api, file)));
+}
+
+export interface TokensRecord {
+    description: string;
+    files: TokensRecordFile[];
+    submitter: string;
+}
+
+export function toTokensRecord(substrateObject: PalletLogionLocTokensRecord): TokensRecord {
+    return {
+        description: substrateObject.description.toUtf8(),
+        files: substrateObject.files.map(file => ({
+            name: file.name.toUtf8(),
+            contentType: file.contentType.toUtf8(),
+            size: file.size.toString(),
+            hash: file.hash_.toHex(),
+        })),
+        submitter: substrateObject.submitter.toString(),
+    };
+}
+
+export async function toUnwrappedTokensRecord(query: Promise<Option<PalletLogionLocTokensRecord>>): Promise<TokensRecord> {
+    return toTokensRecord((await query).unwrap());
 }

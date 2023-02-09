@@ -153,6 +153,22 @@ export default {
         LegalOfficerCaseSummary: {
             owner: "AccountId",
             requester: "Option<AccountId>",
+        },
+        TokensRecord: {
+            description: "Vec<u8>",
+            files: "Vec<TokensRecordFile>",
+            submitter: "AccountId",
+        },
+        TokensRecordFile: {
+            name: "Vec<u8>",
+            contentType: "Vec<u8>",
+            file_size: "u32",
+            hash: "Hash"
+        },
+        UnboundedTokensRecordFile: "TokensRecordFile",
+        UnboundedTokensRecordFileOf: "TokensRecordFile",
+        VerifiedIssuer: {
+            identityLoc: "LocId",
         }
     }
 };

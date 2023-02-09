@@ -6,7 +6,7 @@
 import '@polkadot/api-base/types/submittable';
 
 import type { ApiTypes, AugmentedSubmittable, SubmittableExtrinsic, SubmittableExtrinsicFunction } from '@polkadot/api-base/types';
-import type { Bytes, Compact, Option, U8aFixed, Vec, bool, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
+import type { Bytes, Compact, Option, Struct, U8aFixed, Vec, bool, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
 import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, Call, H256, MultiAddress } from '@polkadot/types/interfaces/runtime';
@@ -657,6 +657,20 @@ declare module '@polkadot/api-base/types/submittable' {
        **/
       addMetadata: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, item: PalletLogionLocMetadataItem | { name?: any; value?: any; submitter?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, PalletLogionLocMetadataItem]>;
       /**
+       * Add token record
+       **/
+      addTokensRecord: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, recordId: H256 | string | Uint8Array, description: Bytes | string | Uint8Array, files: Vec<{
+    readonly name: Bytes;
+    readonly contentType: Bytes;
+    readonly size_: u32;
+    readonly hash_: H256;
+  } & Struct>) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, Bytes, Vec<{
+    readonly name: Bytes;
+    readonly contentType: Bytes;
+    readonly size_: u32;
+    readonly hash_: H256;
+  } & Struct>]>;
+      /**
        * Close LOC.
        **/
       close: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>]>;
@@ -685,6 +699,10 @@ declare module '@polkadot/api-base/types/submittable' {
        **/
       createPolkadotTransactionLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, requesterAccountId: AccountId32 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32]>;
       /**
+       * Dismiss an issuer
+       **/
+      dismissIssuer: AugmentedSubmittable<(issuer: AccountId32 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [AccountId32]>;
+      /**
        * Make a LOC void.
        **/
       makeVoid: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>]>;
@@ -692,6 +710,14 @@ declare module '@polkadot/api-base/types/submittable' {
        * Make a LOC void and provide a replacer.
        **/
       makeVoidAndReplace: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, replacerLocId: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, Compact<u128>]>;
+      /**
+       * Nominate an issuer
+       **/
+      nominateIssuer: AugmentedSubmittable<(issuer: AccountId32 | string | Uint8Array, identityLocId: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [AccountId32, Compact<u128>]>;
+      /**
+       * Select/unselect an issuer on a given LOC
+       **/
+      setIssuerSelection: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, issuer: AccountId32 | string | Uint8Array, selected: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, bool]>;
       /**
        * Generic tx
        **/

@@ -4,6 +4,7 @@ import { addGuardian } from "./LoAuthorityList";
 import { queryInfos } from "./Query";
 import { addFileToTransactionLocTest, createTransactionLocTest } from "./TransactionLoc";
 import { createVote } from "./Vote";
+import { verifiedIssuers } from "./VerifiedIssuers";
 
 describe("Logion Node API", () => {
 
@@ -24,4 +25,6 @@ describe("Logion Node API", () => {
     it("creates a vote", createVote);
 
     it("adds guest guardian", addGuardian);
+
+    it("supports verified issuers", verifiedIssuers);
 });
