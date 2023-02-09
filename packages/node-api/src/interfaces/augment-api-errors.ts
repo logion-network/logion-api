@@ -218,9 +218,18 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       AlreadyExists: AugmentedError<ApiType>;
       /**
+       * Issuer has already been nominated by the guardian
+       **/
+      AlreadyNominated: AugmentedError<ApiType>;
+      /**
        * Occurs when trying to void a LOC already void
        **/
       AlreadyVoid: AugmentedError<ApiType>;
+      /**
+       * The token record cannot be added because either the collection is in a wrong state
+       * or the submitter is not an issuer or the requester
+       **/
+      CannotAddRecord: AugmentedError<ApiType>;
       /**
        * Occurs when trying to mutate a closed LOC
        **/
@@ -229,6 +238,10 @@ declare module '@polkadot/api-base/types/errors' {
        * Occurs when trying to mutate a void LOC
        **/
       CannotMutateVoid: AugmentedError<ApiType>;
+      /**
+       * The submitter of added item cannot contribute to this LOC
+       **/
+      CannotSubmit: AugmentedError<ApiType>;
       /**
        * Cannot attach files to this item because the Collection LOC does not allow it
        **/
@@ -270,6 +283,10 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       FileInvalid: AugmentedError<ApiType>;
       /**
+       * Given identity LOC does not exist or is invalid
+       **/
+      InvalidIdentityLoc: AugmentedError<ApiType>;
+      /**
        * Submitter must be either LOC owner, either LOC requester (only when requester is a Polkadot account)
        **/
       InvalidSubmitter: AugmentedError<ApiType>;
@@ -302,6 +319,10 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       NotFound: AugmentedError<ApiType>;
       /**
+       * Issuer is not nominated by the guardian
+       **/
+      NotNominated: AugmentedError<ApiType>;
+      /**
        * Occurs when trying to void a LOC by replacing it with a LOC already replacing another LOC
        **/
       ReplacerLocAlreadyReplacing: AugmentedError<ApiType>;
@@ -329,6 +350,14 @@ declare module '@polkadot/api-base/types/errors' {
        * TermsAndConditions LOC is void
        **/
       TermsAndConditionsLocVoid: AugmentedError<ApiType>;
+      /**
+       * A token record with the same identifier already exists
+       **/
+      TokensRecordAlreadyExists: AugmentedError<ApiType>;
+      /**
+       * Token Record cannot be added because some fields contain too many bytes
+       **/
+      TokensRecordTooMuchData: AugmentedError<ApiType>;
       /**
        * Unauthorized LOC operation
        **/

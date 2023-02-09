@@ -10,3 +10,4 @@ export * from "./Recovery";
 export * from "./Types";
 export * from "./UUID";
 export * from "./Vault";
+export * from "./VerifiedIssuers";

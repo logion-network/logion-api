@@ -3,13 +3,14 @@ import { IKeyringPair, ISubmittableResult } from "@polkadot/types/types";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { waitReady } from "@polkadot/wasm-crypto";
 
-import { buildApi } from "../src";
+import { buildApi, LGNT_SMALLEST_UNIT, NONE, PrefixedNumber } from "../src";
 
 export interface State {
-    api: ApiPromise,
-    keyring: Keyring,
-    alice: IKeyringPair,
-    requester: IKeyringPair,
+    api: ApiPromise;
+    keyring: Keyring;
+    alice: IKeyringPair;
+    requester: IKeyringPair;
+    issuer: IKeyringPair;
 }
 
 let state: State;
@@ -20,12 +21,14 @@ export async function setup(): Promise<State> {
         const keyring = new Keyring({ type: 'sr25519' });
         const alice = keyring.addFromUri(ALICE_SEED);
         const requester = keyring.addFromUri(REQUESTER_SECRET_SEED);
+        const issuer = keyring.addFromUri(ISSUER_SECRET_SEED);
         const api = await buildApi("ws://127.0.0.1:9944");
         state = {
             api,
             keyring,
             alice,
             requester,
+            issuer,
         };
     }
     return state;
@@ -40,6 +43,10 @@ const REQUESTER_SECRET_SEED = "unique chase zone team upset caution match west e
 export const REQUESTER = "5DPLBrBxniGbGdFe1Lmdpkt6K3aNjhoNPJrSJ51rwcmhH2Tn";
 
 export const DAVE = "5DAAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFy";
+
+export const ISSUER = "5HTA8nHHQWdN6XnciaWxjjzCHLoV8d5tME6CqT6KNDypovKU";
+
+const ISSUER_SECRET_SEED = "earth rough predict document divide deliver unable vanish spike alarm exotic spider";
 
 export function signAndSend(keypair: IKeyringPair, extrinsic: SubmittableExtrinsic): Promise<ISubmittableResult> {
     let unsub: () => void;
@@ -60,4 +67,15 @@ export function signAndSend(keypair: IKeyringPair, extrinsic: SubmittableExtrins
         .then(_unsub => unsub = _unsub)
         .catch(() => error());
     });
+}
+
+export async function signAndSendBatch(keypair: IKeyringPair, extrinsics: SubmittableExtrinsic[]): Promise<void> {
+    for(const extrinsic of extrinsics) {
+        try {
+            await signAndSend(keypair, extrinsic);
+        } catch(e) {
+            console.log(e);
+            throw e;
+        }
+    }
 }

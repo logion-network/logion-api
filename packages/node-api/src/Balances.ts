@@ -140,3 +140,7 @@ export async function estimateFee(parameters: BuildTransferCallParameters): Prom
     const paymentInfo = await submittable.paymentInfo(parameters.destination);
     return new PrefixedNumber(paymentInfo.partialFee.toString(), LGNT_SMALLEST_UNIT);
 }
+
+export function nLgnt(amount: string): string {
+    return new PrefixedNumber(amount, NONE).convertTo(LGNT_SMALLEST_UNIT).coefficient.unnormalize();
+}

@@ -200,6 +200,32 @@ export interface TermsAndConditionsElement extends Struct {
   readonly details: Bytes;
 }
 
+/** @name TokensRecord */
+export interface TokensRecord extends Struct {
+  readonly description: Bytes;
+  readonly files: Vec<TokensRecordFile>;
+  readonly submitter: AccountId;
+}
+
+/** @name TokensRecordFile */
+export interface TokensRecordFile extends Struct {
+  readonly name: Bytes;
+  readonly contentType: Bytes;
+  readonly file_size: u32;
+  readonly hash: Hash;
+}
+
+/** @name UnboundedTokensRecordFile */
+export interface UnboundedTokensRecordFile extends TokensRecordFile {}
+
+/** @name UnboundedTokensRecordFileOf */
+export interface UnboundedTokensRecordFileOf extends TokensRecordFile {}
+
+/** @name VerifiedIssuer */
+export interface VerifiedIssuer extends Struct {
+  readonly identityLoc: LocId;
+}
+
 /** @name VoteApproved */
 export interface VoteApproved extends bool {}
 

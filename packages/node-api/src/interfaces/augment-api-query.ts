@@ -6,11 +6,11 @@
 import '@polkadot/api-base/types/storage';
 
 import type { ApiTypes, AugmentedQuery, QueryableStorageEntry } from '@polkadot/api-base/types';
-import type { BTreeSet, Bytes, Option, U8aFixed, Vec, bool, u128, u32, u64 } from '@polkadot/types-codec';
+import type { BTreeSet, Bytes, Null, Option, U8aFixed, Vec, bool, u128, u32, u64 } from '@polkadot/types-codec';
 import type { AnyNumber, ITuple } from '@polkadot/types-codec/types';
 import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, H256 } from '@polkadot/types/interfaces/runtime';
-import type { FrameSupportDispatchPerDispatchClassWeight, FrameSystemAccountInfo, FrameSystemEventRecord, FrameSystemLastRuntimeUpgradeInfo, FrameSystemPhase, LogionNodeRuntimeOpaqueSessionKeys, PalletAssetsApproval, PalletAssetsAssetAccount, PalletAssetsAssetDetails, PalletAssetsAssetMetadata, PalletBalancesAccountData, PalletBalancesBalanceLock, PalletBalancesReserveData, PalletGrandpaStoredPendingChange, PalletGrandpaStoredState, PalletLoAuthorityListLegalOfficerData, PalletLoAuthorityListStorageVersion, PalletLogionLocCollectionItem, PalletLogionLocLegalOfficerCase, PalletLogionLocStorageVersion, PalletLogionVoteVote, PalletMultisigMultisig, PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig, PalletTransactionPaymentReleases, SpConsensusAuraSr25519AppSr25519Public, SpCoreCryptoKeyTypeId, SpRuntimeDigest } from '@polkadot/types/lookup';
+import type { FrameSupportDispatchPerDispatchClassWeight, FrameSystemAccountInfo, FrameSystemEventRecord, FrameSystemLastRuntimeUpgradeInfo, FrameSystemPhase, LogionNodeRuntimeOpaqueSessionKeys, PalletAssetsApproval, PalletAssetsAssetAccount, PalletAssetsAssetDetails, PalletAssetsAssetMetadata, PalletBalancesAccountData, PalletBalancesBalanceLock, PalletBalancesReserveData, PalletGrandpaStoredPendingChange, PalletGrandpaStoredState, PalletLoAuthorityListLegalOfficerData, PalletLoAuthorityListStorageVersion, PalletLogionLocCollectionItem, PalletLogionLocLegalOfficerCase, PalletLogionLocStorageVersion, PalletLogionLocTokensRecord, PalletLogionLocVerifiedIssuer, PalletLogionVoteVote, PalletMultisigMultisig, PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig, PalletTransactionPaymentReleases, SpConsensusAuraSr25519AppSr25519Public, SpCoreCryptoKeyTypeId, SpRuntimeDigest } from '@polkadot/types/lookup';
 import type { Observable } from '@polkadot/types/types';
 
 export type __AugmentedQuery<ApiType extends ApiTypes> = AugmentedQuery<ApiType, () => unknown>;
@@ -182,9 +182,25 @@ declare module '@polkadot/api-base/types/storage' {
        **/
       locMap: AugmentedQuery<ApiType, (arg: u128 | AnyNumber | Uint8Array) => Observable<Option<PalletLogionLocLegalOfficerCase>>, [u128]> & QueryableStorageEntry<ApiType, [u128]>;
       /**
+       * LOCs by Verified Issuer
+       **/
+      locsByVerifiedIssuerMap: AugmentedQuery<ApiType, (arg1: AccountId32 | string | Uint8Array, arg2: AccountId32 | string | Uint8Array, arg3: u128 | AnyNumber | Uint8Array) => Observable<Option<Null>>, [AccountId32, AccountId32, u128]> & QueryableStorageEntry<ApiType, [AccountId32, AccountId32, u128]>;
+      /**
        * Storage version
        **/
       palletStorageVersion: AugmentedQuery<ApiType, () => Observable<PalletLogionLocStorageVersion>, []> & QueryableStorageEntry<ApiType, []>;
+      /**
+       * Collection tokens records by LOC ID and record ID.
+       **/
+      tokensRecordsMap: AugmentedQuery<ApiType, (arg1: u128 | AnyNumber | Uint8Array, arg2: H256 | string | Uint8Array) => Observable<Option<PalletLogionLocTokensRecord>>, [u128, H256]> & QueryableStorageEntry<ApiType, [u128, H256]>;
+      /**
+       * Verified Issuers by LOC
+       **/
+      verifiedIssuersByLocMap: AugmentedQuery<ApiType, (arg1: u128 | AnyNumber | Uint8Array, arg2: AccountId32 | string | Uint8Array) => Observable<Option<Null>>, [u128, AccountId32]> & QueryableStorageEntry<ApiType, [u128, AccountId32]>;
+      /**
+       * Verified Issuers by guardian
+       **/
+      verifiedIssuersMap: AugmentedQuery<ApiType, (arg1: AccountId32 | string | Uint8Array, arg2: AccountId32 | string | Uint8Array) => Observable<Option<PalletLogionLocVerifiedIssuer>>, [AccountId32, AccountId32]> & QueryableStorageEntry<ApiType, [AccountId32, AccountId32]>;
       /**
        * Generic query
        **/
