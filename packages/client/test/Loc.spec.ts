@@ -1,4 +1,5 @@
 import { LogionNodeApi, UUID } from "@logion/node-api";
+import { PalletLogionLocVerifiedIssuer } from '@polkadot/types/lookup';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import { DateTime } from "luxon";
@@ -40,7 +41,9 @@ import {
     CHARLIE,
     buildTestAuthenticatedSharedSate,
     LOGION_CLIENT_CONFIG,
+    mockCodecWithToString,
     mockEmptyOption,
+    mockOption,
     REQUESTER,
     SUCCESSFUL_SUBMISSION
 } from "./Utils.js";
@@ -53,7 +56,8 @@ import {
     EXISTING_ITEM_ID,
     ITEM_DESCRIPTION,
     mockVoidInfo,
-    buildLocAndRequest
+    buildLocAndRequest,
+    ISSUER
 } from "./LocUtils.js";
 
 describe("LocsState", () => {
@@ -90,29 +94,29 @@ async function testGetInitialState(isVerifiedThirdParty: boolean) {
     const sharedState = await buildSharedState(isVerifiedThirdParty);
     const locs = await LocsState.getInitialLocsState(sharedState, client.object());
 
-    expect(locs.pendingRequests.Transaction.length).toBe(1);
-    const requestedLoc = locs.pendingRequests.Transaction[0];
-    expect(requestedLoc).toBeInstanceOf(PendingRequest);
-    expect(requestedLoc.locId).toEqual(new UUID(BOB_REQUESTED_TRANSACTION_LOC_REQUEST.id));
-
-    expect(locs.openLocs.Transaction.length).toBe(2);
-    const openLoc = locs.openLocs.Transaction[0];
-    expect(openLoc).toBeInstanceOf(OpenLoc);
-    expect(openLoc.locId).toEqual(new UUID(ALICE_OPEN_TRANSACTION_LOC.request.id));
-
-    expect(locs.closedLocs.Transaction.length).toBe(1);
-    const closedTransactionLoc = locs.closedLocs.Transaction[0];
-    expect(closedTransactionLoc).toBeInstanceOf(ClosedLoc);
-    expect(closedTransactionLoc.locId).toEqual(new UUID(ALICE_CLOSED_TRANSACTION_LOC.request.id));
-
-    expect(locs.closedLocs.Collection.length).toBe(1);
-    const closedCollectionLoc = locs.closedLocs.Collection[0];
-    expect(closedCollectionLoc).toBeInstanceOf(ClosedCollectionLoc);
-    expect(closedCollectionLoc.locId).toEqual(new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id));
-
     if(isVerifiedThirdParty) {
         expect(locs.openVerifiedThirdPartyLocs["Transaction"].length).toBe(1);
         expect(locs.closedVerifiedThirdPartyLocs["Transaction"].length).toBe(1);
+    } else {
+        expect(locs.pendingRequests.Transaction.length).toBe(1);
+        const requestedLoc = locs.pendingRequests.Transaction[0];
+        expect(requestedLoc).toBeInstanceOf(PendingRequest);
+        expect(requestedLoc.locId).toEqual(new UUID(BOB_REQUESTED_TRANSACTION_LOC_REQUEST.id));
+
+        expect(locs.openLocs.Transaction.length).toBe(2);
+        const openLoc = locs.openLocs.Transaction[0];
+        expect(openLoc).toBeInstanceOf(OpenLoc);
+        expect(openLoc.locId).toEqual(new UUID(ALICE_OPEN_TRANSACTION_LOC.request.id));
+
+        expect(locs.closedLocs.Transaction.length).toBe(1);
+        const closedTransactionLoc = locs.closedLocs.Transaction[0];
+        expect(closedTransactionLoc).toBeInstanceOf(ClosedLoc);
+        expect(closedTransactionLoc.locId).toEqual(new UUID(ALICE_CLOSED_TRANSACTION_LOC.request.id));
+
+        expect(locs.closedLocs.Collection.length).toBe(1);
+        const closedCollectionLoc = locs.closedLocs.Collection[0];
+        expect(closedCollectionLoc).toBeInstanceOf(ClosedCollectionLoc);
+        expect(closedCollectionLoc.locId).toEqual(new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id));
     }
 }
 
@@ -420,7 +424,7 @@ const ALICE_CLOSED_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED",
 const ALICE_CLOSED_COLLECTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED", "Collection");
 const ALICE_REQUESTED_SOF_REQUEST = buildLocRequest(ALICE.address, "REQUESTED", "Transaction");
 const ALICE_REJECTED_TRANSACTION_LOC_REQUEST = buildLocRequest(ALICE.address, "REJECTED", "Transaction");
-const ALICE_CLOSED_IDENTITY_LOC_WITH_VTP = buildLocAndRequest(ALICE.address, "CLOSED", "Identity", undefined, true);
+const ALICE_CLOSED_IDENTITY_LOC_WITH_VTP = buildLocAndRequest(ALICE.address, "CLOSED", "Identity", undefined, ISSUER);
 const ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VTP = buildLocAndRequest(ALICE.address, "OPEN", "Transaction");
 const ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VTP = buildLocAndRequest(ALICE.address, "CLOSED", "Transaction");
 
@@ -446,10 +450,10 @@ let charlieAxiosMock: Mock<AxiosInstance>;
 let nodeApiMock: Mock<LogionNodeApi>;
 
 async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<SharedState> {
-    const currentAddress = REQUESTER;
+    const currentAddress = isVerifiedThirdParty ? ISSUER : REQUESTER;
     const token = "some-token";
     const tokens = new AccountTokens({
-        [REQUESTER]: {
+        [currentAddress]: {
             value: token,
             expirationDateTime: DateTime.now().plus({ hours: 1 })
         }
@@ -470,25 +474,25 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                 ALICE_CLOSED_COLLECTION_LOC.request,
                 ALICE_REJECTED_TRANSACTION_LOC_REQUEST,
             ];
-            if(isVerifiedThirdParty) {
-                aliceRequests.push(ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request);
-            }
             aliceAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === REQUESTER)))
                 .returnsAsync({
                     data: {
                         requests: aliceRequests
                     }
                 } as AxiosResponse);
+
             if(isVerifiedThirdParty) {
-                aliceAxiosMock.setup(instance => instance.get("/api/verified-third-party-loc-requests"))
-                .returnsAsync({
-                    data: {
-                        requests: [
-                            ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VTP.request,
-                            ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VTP.request,
-                        ]
-                    }
-                } as AxiosResponse);
+                aliceAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === ISSUER)))
+                    .returnsAsync({
+                        data: {
+                            requests: [ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request]
+                        }
+                    } as AxiosResponse);
+                    aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request.id }/issuers-identity`)).returnsAsync({
+                        data: {
+                            issuers: [],
+                        }
+                    } as AxiosResponse);
             }
 
             // Alice files and metadata
@@ -515,6 +519,11 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
             ].forEach(request => {
                 aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }`)).returnsAsync({
                     data: request
+                } as AxiosResponse);
+                aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }/issuers-identity`)).returnsAsync({
+                    data: {
+                        issuers: [],
+                    }
                 } as AxiosResponse);
             });
             aliceAxiosMock.setup(instance => instance.delete(It.IsAny())).returnsAsync({
@@ -551,6 +560,11 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                 bobAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }`)).returnsAsync({
                     data: request
                 } as AxiosResponse);
+                bobAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }/issuers-identity`)).returnsAsync({
+                    data: {
+                        issuers: [],
+                    }
+                } as AxiosResponse);
             })
             bobAxiosMock.setup(instance => instance.get(`/api/collection/${ BOB_VOID_COLLECTION_LOC.request.id }/items/${ EXISTING_ITEM_ID }`)).returnsAsync({
                 data: OFFCHAIN_COLLECTION_ITEM
@@ -572,6 +586,11 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
             charlieRequests.forEach(request => {
                 charlieAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }`)).returnsAsync({
                     data: request
+                } as AxiosResponse);
+                charlieAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }/issuers-identity`)).returnsAsync({
+                    data: {
+                        issuers: [],
+                    }
                 } as AxiosResponse);
             })
             axiosFactoryMock.setup(instance => instance.buildAxiosInstance(CHARLIE.node, token))
@@ -627,6 +646,52 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                 .returnsAsync(COLLECTION_ITEM);
             nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(new UUID(BOB_VOID_COLLECTION_LOC.request.id).toHexString(), EXISTING_ITEM_ID))
                 .returnsAsync(COLLECTION_ITEM);
+
+            if(!isVerifiedThirdParty) {
+                nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersMap(It.IsAny(), It.IsAny())).returns(Promise.resolve(mockEmptyOption<PalletLogionLocVerifiedIssuer>()));
+                nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersByLocMap.entries(It.IsAny())).returns(Promise.resolve([]));
+                nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(It.IsAny())).returns(Promise.resolve([]));
+            } else {
+                [
+                    ...aliceRequests,
+                    ...bobRequests,
+                    ...charlieRequests,
+                    ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request,
+                ].forEach(request => {
+                    if(request.id !== ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request.id) {
+                        nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersMap(request.ownerAddress, request.requesterAddress)).returns(Promise.resolve(mockEmptyOption<PalletLogionLocVerifiedIssuer>()));
+                    } else {
+                        const verifiedIssuer: PalletLogionLocVerifiedIssuer = mockCodecWithToString(new UUID(ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request.id).toDecimalString());
+                        nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersMap(request.ownerAddress, request.requesterAddress)).returns(Promise.resolve(mockOption(verifiedIssuer)));
+                    }
+                });
+
+                nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersByLocMap.entries(It.IsAny())).returns(Promise.resolve([]));
+
+                nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(ISSUER)).returns(Promise.resolve([
+                    [
+                        {
+                            args: [
+                                mockCodecWithToString(ISSUER),
+                                mockCodecWithToString(ALICE.address),
+                                mockCodecWithToString(new UUID(ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VTP.request.id).toDecimalString()),
+                            ],
+                        } as any,
+                        mockCodecWithToString(""),
+                    ],
+                    [
+                        {
+                            args: [
+                                mockCodecWithToString(ISSUER),
+                                mockCodecWithToString(ALICE.address),
+                                mockCodecWithToString(new UUID(ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VTP.request.id).toDecimalString()),
+                            ],
+                        } as any,
+                        mockCodecWithToString(""),
+                    ]
+                ]));
+                nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(REQUESTER)).returns(Promise.resolve([]));
+            }
         },
         currentAddress,
         legalOfficers,

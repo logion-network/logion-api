@@ -18,8 +18,9 @@ import {
     ItemFileWithContent,
     AuthenticatedLocClient,
     FetchAllLocsParams,
-    VerifiedThirdParty,
     IdenfyVerificationSession,
+    LocVerifiedIssuers,
+    EMPTY_LOC_ISSUERS,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress } from "./Types.js";
@@ -27,7 +28,7 @@ import { CollectionItem as CollectionItemClass } from "./CollectionItem.js";
 import { State } from "./State.js";
 import { LogionClient } from "./LogionClient.js";
 
-export interface LocData {
+export interface LocData extends LocVerifiedIssuers {
     id: UUID
     ownerAddress: string;
     requesterAddress?: string;
@@ -53,8 +54,6 @@ export interface LocData {
     links: MergedLink[];
     seal?: string;
     company?: string;
-    verifiedThirdParty: boolean;
-    selectedParties: VerifiedThirdParty[];
     iDenfy?: IdenfyVerificationSession;
     voteId?: string;
 }
@@ -247,9 +246,9 @@ export class LocsState extends State {
         });
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
         if(draft) {
-            return new DraftRequest(locSharedState, request).veryNew(); // Discards this state
+            return new DraftRequest(locSharedState, request, undefined, EMPTY_LOC_ISSUERS).veryNew(); // Discards this state
         } else {
-            return new PendingRequest(locSharedState, request).veryNew(); // Discards this state
+            return new PendingRequest(locSharedState, request, undefined, EMPTY_LOC_ISSUERS).veryNew(); // Discards this state
         }
     }
 
@@ -296,7 +295,8 @@ export class LocsState extends State {
                 client,
                 locsState,
             };
-            return LocRequestState.createFromRequest(locSharedState, locRequest);
+            const locIssuers = await client.getLocIssuers(locRequest);
+            return LocRequestState.createFromRequest(locSharedState, locRequest, locIssuers);
         } else {
             throw new Error(`Can not find owner ${ locRequest.ownerAddress } of LOC ${ locRequest.id } among LO list`);
         }
@@ -389,58 +389,61 @@ export abstract class LocRequestState extends State {
     protected readonly locSharedState: LocSharedState;
     protected readonly request: LocRequest;
     protected readonly legalOfficerCase?: LegalOfficerCase;
+    protected readonly locIssuers: LocVerifiedIssuers;
 
-    constructor(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase?: LegalOfficerCase) {
+    constructor(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers) {
         super();
         this.locSharedState = locSharedState;
         this.request = request;
         this.legalOfficerCase = legalOfficerCase;
+        this.locIssuers = locIssuers;
     }
 
     get locId(): UUID {
         return new UUID(this.request.id);
     }
 
-    static async createFromRequest(locSharedState: LocSharedState, request: LocRequest): Promise<AnyLocState> {
+    static async createFromRequest(locSharedState: LocSharedState, request: LocRequest, locIssuers: LocVerifiedIssuers): Promise<AnyLocState> {
         switch (request.status) {
             case "DRAFT":
-                return new DraftRequest(locSharedState, request)
+                return new DraftRequest(locSharedState, request, undefined, locIssuers)
             case "REQUESTED":
-                return new PendingRequest(locSharedState, request)
+                return new PendingRequest(locSharedState, request, undefined, locIssuers)
             case "REJECTED":
-                return new RejectedRequest(locSharedState, request)
+                return new RejectedRequest(locSharedState, request, undefined, locIssuers)
             default:
-                return LocRequestState.refreshLoc(locSharedState, request)
+                return LocRequestState.refreshLoc(locSharedState, request, undefined, locIssuers)
         }
     }
 
-    static async createFromLoc(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase): Promise<OnchainLocState> {
-        return await LocRequestState.refreshLoc(locSharedState, request, legalOfficerCase) as OnchainLocState;
+    static async createFromLoc(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase, locIssuers: LocVerifiedIssuers): Promise<OnchainLocState> {
+        return await LocRequestState.refreshLoc(locSharedState, request, legalOfficerCase, locIssuers) as OnchainLocState;
     }
 
-    private static async refreshLoc(locSharedState: LocSharedState, request: LocRequest, loc?: LegalOfficerCase): Promise<OnchainLocState> {
+    private static async refreshLoc(locSharedState: LocSharedState, request: LocRequest, loc: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers): Promise<OnchainLocState> {
         const legalOfficerCase: LegalOfficerCase = loc ? loc : await locSharedState.client.getLoc({ locId: new UUID(request.id) });
         if (legalOfficerCase.voidInfo) {
             if (legalOfficerCase.locType === 'Collection') {
-                return new VoidedCollectionLoc(locSharedState, request, legalOfficerCase);
+                return new VoidedCollectionLoc(locSharedState, request, legalOfficerCase, locIssuers);
             } else {
-                return new VoidedLoc(locSharedState, request, legalOfficerCase);
+                return new VoidedLoc(locSharedState, request, legalOfficerCase, locIssuers);
             }
         } else if (legalOfficerCase.closed) {
             if (legalOfficerCase.locType === 'Collection') {
-                return new ClosedCollectionLoc(locSharedState, request, legalOfficerCase);
+                return new ClosedCollectionLoc(locSharedState, request, legalOfficerCase, locIssuers);
             } else {
-                return new ClosedLoc(locSharedState, request, legalOfficerCase);
+                return new ClosedLoc(locSharedState, request, legalOfficerCase, locIssuers);
             }
         } else {
-            return new OpenLoc(locSharedState, request, legalOfficerCase);
+            return new OpenLoc(locSharedState, request, legalOfficerCase, locIssuers);
         }
     }
 
     async refresh(): Promise<LocRequestState> {
         const client = this.locSharedState.client;
         const request = await client.getLocRequest({ locId: this.locId });
-        const newState = await LocRequestState.createFromRequest(this.locSharedState, request);
+        const locIssuers = await client.getLocIssuers(request);
+        const newState = await LocRequestState.createFromRequest(this.locSharedState, request, locIssuers);
         const newLocsState = this.locSharedState.locsState.refreshWith(newState); // Discards this state
         return newLocsState.findById(this.locId);
     }
@@ -452,14 +455,14 @@ export abstract class LocRequestState extends State {
 
     data(): LocData {
         this.ensureCurrent();
-        return LocRequestState.buildLocData(this.legalOfficerCase, this.request);
+        return LocRequestState.buildLocData(this.legalOfficerCase, this.request, this.locIssuers);
     }
 
-    static buildLocData(legalOfficerCase: LegalOfficerCase | undefined, request: LocRequest): LocData {
+    static buildLocData(legalOfficerCase: LegalOfficerCase | undefined, request: LocRequest, locIssuers: LocVerifiedIssuers): LocData {
         if (legalOfficerCase) {
-            return LocRequestState.dataFromRequestAndLoc(request, legalOfficerCase);
+            return LocRequestState.dataFromRequestAndLoc(request, legalOfficerCase, locIssuers);
         } else {
-            return LocRequestState.dataFromRequest(request);
+            return LocRequestState.dataFromRequest(request, locIssuers);
         }
     }
 
@@ -507,9 +510,10 @@ export abstract class LocRequestState extends State {
         return result;
     }
 
-    private static dataFromRequest(request: LocRequest): LocData {
+    private static dataFromRequest(request: LocRequest, locIssuers: LocVerifiedIssuers): LocData {
         return {
             ...request,
+            ...locIssuers,
             requesterAddress: request.requesterAddress || undefined,
             requesterLocId: request.requesterIdentityLoc ? new UUID(request.requesterIdentityLoc) : undefined,
             id: new UUID(request.id),
@@ -524,9 +528,10 @@ export abstract class LocRequestState extends State {
         };
     }
 
-    private static dataFromRequestAndLoc(request: LocRequest, loc: LegalOfficerCase): LocData {
+    private static dataFromRequestAndLoc(request: LocRequest, loc: LegalOfficerCase, locIssuers: LocVerifiedIssuers): LocData {
         const data: LocData = {
             ...loc,
+            ...locIssuers,
             id: new UUID(request.id),
             ownerAddress: loc.owner,
             closedOn: request.closedOn,
@@ -543,8 +548,6 @@ export abstract class LocRequestState extends State {
             links: request.links.map(item => LocRequestState.mergeLink(item, loc)),
             seal: loc.closed ? loc.seal : request.seal,
             company: request.company,
-            verifiedThirdParty: request.verifiedThirdParty,
-            selectedParties: request.selectedParties,
             iDenfy: request.iDenfy,
             voteId: request.voteId ? request.voteId : undefined,
         };
@@ -610,11 +613,11 @@ export abstract class LocRequestState extends State {
 
     abstract withLocs(locsState: LocsState): LocRequestState;
 
-    protected _withLocs<T extends LocRequestState>(locsState: LocsState, constructor: new (locSharedState: LocSharedState, request: LocRequest, legalOfficerCase?: LegalOfficerCase) => T): T {
+    protected _withLocs<T extends LocRequestState>(locsState: LocsState, constructor: new (locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers) => T): T {
         return this.syncDiscardOnSuccess(() => new constructor({
             ...this.locSharedState,
             locsState
-        }, this.request, this.legalOfficerCase));
+        }, this.request, this.legalOfficerCase, this.locIssuers));
     }
 }
 
@@ -674,7 +677,7 @@ export class DraftRequest extends EditableRequest {
             ...this.request,
             status: "REQUESTED",
         };
-        const tempPending = new PendingRequest(this.locSharedState, request);
+        const tempPending = new PendingRequest(this.locSharedState, request, undefined, EMPTY_LOC_ISSUERS);
         const newLocsState = this.locSharedState.locsState.refreshWith(tempPending); // Discards this state
         return newLocsState.findById(this.locId) as PendingRequest;
     }
@@ -718,7 +721,7 @@ export class RejectedRequest extends LocRequestState {
             ...this.request,
             status: "DRAFT",
         };
-        const tempDraft = new DraftRequest(this.locSharedState, request);
+        const tempDraft = new DraftRequest(this.locSharedState, request, undefined, EMPTY_LOC_ISSUERS);
         const newLocsState = this.locSharedState.locsState.refreshWith(tempDraft); // Discards this state
         return newLocsState.findById(this.locId) as DraftRequest;
     }
@@ -866,7 +869,7 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
 async function requestSof(locSharedState: LocSharedState, locId: UUID, itemId?: string): Promise<PendingRequest> {
     const client = locSharedState.client;
     const locRequest = await client.createSofRequest({ locId, itemId });
-    return new PendingRequest(locSharedState, locRequest).veryNew(); // Discards this state
+    return new PendingRequest(locSharedState, locRequest, undefined, EMPTY_LOC_ISSUERS).veryNew(); // Discards this state
 }
 
 export class VoidedLoc extends LocRequestState {
@@ -911,8 +914,8 @@ export class VoidedCollectionLoc extends ClosedOrVoidCollectionLoc {
 
 export class ReadOnlyLocState extends LocRequestState {
 
-    constructor(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase?: LegalOfficerCase) {
-        super(locSharedState, request, legalOfficerCase);
+    constructor(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers) {
+        super(locSharedState, request, legalOfficerCase, locIssuers);
     }
 
     withLocs(locsState: LocsState): LocRequestState {

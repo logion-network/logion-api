@@ -2,7 +2,7 @@ import { LegalOfficerCase, UUID } from "@logion/node-api";
 
 import { CollectionItem, CheckCertifiedCopyResult, CheckResultType } from "./CollectionItem.js";
 import { CheckHashResult, getCollectionItem, LocData, LocRequestState } from "./Loc.js";
-import { FetchParameters, LocClient, LocMultiClient, PublicLocClient } from "./LocClient.js";
+import { EMPTY_LOC_ISSUERS, FetchParameters, LocClient, LocMultiClient, PublicLocClient } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 
 export class PublicApi {
@@ -23,7 +23,7 @@ export class PublicApi {
         const { loc, client } = locAndClient;
 
         const locRequest = await client.getLocRequest(params);
-        const data = LocRequestState.buildLocData(loc, locRequest);
+        const data = LocRequestState.buildLocData(loc, locRequest, EMPTY_LOC_ISSUERS);
         return new PublicLoc({
             data,
             client,

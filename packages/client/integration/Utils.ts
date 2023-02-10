@@ -198,21 +198,21 @@ export class LegalOfficerWorker {
         }
     }
 
-    async nominateVerifiedThirdParty(locId: UUID) {
-        const axios = await this.buildLegalOfficerAxios();
-        try {
-            await axios.put(`/api/loc-request/${ locId.toString() }/verified-third-party`, { isVerifiedThirdParty: true });
-        } catch(e) {
-            throw newBackendError(e);
-        }
+    async nominateVerifiedThirdParty(issuerAddress: string, identityLocId: UUID) {
+        const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
+        const submittable = api.tx.logionLoc.nominateIssuer(issuerAddress, identityLocId.toDecimalString());
+        await this.state.signer.signAndSend({
+            signerId: this.legalOfficer.address,
+            submittable,
+        });
     }
 
-    async selectVtp(locId: UUID, vtpLocId: UUID) {
-        const axios = await this.buildLegalOfficerAxios();
-        try {
-            await axios.post(`/api/loc-request/${ locId.toString() }/selected-parties`, { identityLocId: vtpLocId.toString() });
-        } catch(e) {
-            throw newBackendError(e);
-        }
+    async selectVtp(locId: UUID, issuerAddress: string) {
+        const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
+        const submittable = api.tx.logionLoc.setIssuerSelection(locId.toDecimalString(), issuerAddress, true);
+        await this.state.signer.signAndSend({
+            signerId: this.legalOfficer.address,
+            submittable,
+        });
     }
 }

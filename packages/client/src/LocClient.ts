@@ -14,8 +14,11 @@ import {
     GetLegalOfficerCaseParameters,
     getCollectionItems,
     CollectionItem,
-    TermsAndConditionsElement as ChainTermsAndConditionsElement
+    TermsAndConditionsElement as ChainTermsAndConditionsElement,
+    getVerifiedIssuers
 } from '@logion/node-api';
+import { Option } from "@polkadot/types-codec";
+import { PalletLogionLocVerifiedIssuer } from "@polkadot/types/lookup";
 import { AxiosInstance } from 'axios';
 
 import { UserIdentity, LegalOfficer, PostalAddress } from "./Types.js";
@@ -77,7 +80,11 @@ export interface VerifiedThirdParty {
     lastName: string;
     identityLocId: string;
     address: string;
-    selected?: boolean; // undefined if used out of the context of a LOC
+}
+
+export interface LocVerifiedIssuers {
+    verifiedThirdParty: boolean;
+    selectedParties: VerifiedThirdParty[];
 }
 
 export interface LocRequest {
@@ -101,8 +108,6 @@ export interface LocRequest {
     voidInfo?: LocRequestVoidInfo;
     seal?: string;
     company?: string;
-    verifiedThirdParty: boolean;
-    selectedParties: VerifiedThirdParty[];
     iDenfy?: IdenfyVerificationSession;
     voteId?: string | null;
 }
@@ -244,6 +249,11 @@ export interface FetchAllLocsParams {
     spec?: FetchLocRequestSpecification;
 }
 
+export interface VerifiedIssuerIdentity {
+    address: string;
+    identity: UserIdentity;
+}
+
 export class LocMultiClient {
 
     static newLocMultiClient(sharedState: SharedState): LocMultiClient {
@@ -322,20 +332,16 @@ export class LocMultiClient {
     }
 
     async fetchAllForVerifiedThirdParty(legalOfficers: LegalOfficer[]): Promise<LocRequest[]> {
-        const initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers);
-
-        const httpClient = new MultiSourceHttpClient<LegalOfficerEndpoint>(
-            initialState,
-            this.axiosFactory,
-            this.token
-        );
-
-        const multiResponse = await httpClient.fetch(async axios => {
-            const response = await axios.get("/api/verified-third-party-loc-requests");
-            return response.data.requests;
-        });
-
-        return aggregateArrays(multiResponse);
+        const entries = await this.nodeApi.query.logionLoc.locsByVerifiedIssuerMap.entries(this.currentAddress);
+        const requests: LocRequest[] = [];
+        for(const entry of entries) {
+            const owner = entry[0].args[1].toString();
+            const locId = UUID.fromDecimalStringOrThrow(entry[0].args[2].toString());
+            const legalOfficer = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === owner));
+            const request = await this.newLocClient(legalOfficer).getLocRequest({ locId });
+            requests.push(request);
+        }
+        return requests;
     }
 
     async getLoc(parameters: FetchParameters): Promise<LegalOfficerCase> {
@@ -792,4 +798,48 @@ export class AuthenticatedLocClient extends LocClient {
             throw newBackendError(e);
         }
     }
+
+    async getLocIssuers(request: LocRequest): Promise<LocVerifiedIssuers> {
+        if((request.status !== "OPEN" && request.status !== "CLOSED")
+                || (this.currentAddress !== request.ownerAddress && this.currentAddress !== request.requesterAddress) ) {
+            return EMPTY_LOC_ISSUERS;
+        } else {
+            const locId = new UUID(request.id);
+            let verifiedThirdParty = false;
+            if(request.locType === "Identity" && request.status === "CLOSED") {
+                const maybeIssuer = await this.nodeApi.query.logionLoc.verifiedIssuersMap(request.ownerAddress, request.requesterAddress) as Option<PalletLogionLocVerifiedIssuer>;
+                verifiedThirdParty = maybeIssuer.isSome;
+            }
+            const nodeIssuers = await getVerifiedIssuers(this.nodeApi, locId);
+            const issuersIdentity = await this.getIssuersIdentity(locId);
+            const selectedParties: VerifiedThirdParty[] = [];
+            for(const nodeIssuer of nodeIssuers) {
+                const identityLocRequest = issuersIdentity.find(identity => identity.address === nodeIssuer.address);
+                selectedParties.push({
+                    identityLocId: nodeIssuer.identityLocId.toString(),
+                    address: nodeIssuer.address,
+                    firstName: identityLocRequest?.identity.firstName || "",
+                    lastName: identityLocRequest?.identity.lastName || "",
+                });
+            }
+            return {
+                verifiedThirdParty,
+                selectedParties,
+            };
+        }
+    }
+
+    private async getIssuersIdentity(locId: UUID): Promise<VerifiedIssuerIdentity[]> {
+        try {
+            const response = await this.backend().get(`/api/loc-request/${ locId }/issuers-identity`);
+            return response.data.issuers;
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+}
+
+export const EMPTY_LOC_ISSUERS: LocVerifiedIssuers = {
+    verifiedThirdParty: false,
+    selectedParties: [],
 }

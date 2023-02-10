@@ -1,6 +1,6 @@
 import { LegalOfficerCase, UUID } from "@logion/node-api";
 import { LocSharedState, LocsState, ReadOnlyLocState } from "./Loc.js";
-import { AuthenticatedLocClient, LocMultiClient, LocRequest } from "./LocClient.js";
+import { AuthenticatedLocClient, EMPTY_LOC_ISSUERS, LocMultiClient, LocRequest } from "./LocClient.js";
 import { LogionClient } from "./LogionClient.js";
 import { SharedState } from "./SharedClient.js";
 
@@ -35,7 +35,7 @@ export class VoterApi {
             client,
             locsState,
         }
-        return new ReadOnlyLocState(locSharedState, locRequest, loc);
+        return new ReadOnlyLocState(locSharedState, locRequest, loc, EMPTY_LOC_ISSUERS);
     }
 
     private async getLocAndClient(locId: UUID): Promise<{ loc: LegalOfficerCase, locRequest: LocRequest, client: AuthenticatedLocClient } | undefined> {
