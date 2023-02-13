@@ -29,7 +29,7 @@ export async function verifiedThirdParty(state: State) {
     await legalOfficer.createValidIdentityLoc(pendingRequest.locId, VTP_ADDRESS);
     const closedIdentityLoc = await pendingRequest.refresh() as ClosedLoc;
 
-    await legalOfficer.nominateVerifiedThirdParty(closedIdentityLoc.locId);
+    await legalOfficer.nominateVerifiedThirdParty(VTP_ADDRESS, closedIdentityLoc.locId);
 
     const userClient = state.client.withCurrentAddress(NEW_ADDRESS);
     let newLoc: LocRequestState = await (await userClient.locsState()).requestTransactionLoc({
@@ -38,11 +38,10 @@ export async function verifiedThirdParty(state: State) {
         draft: false,
     });
     await legalOfficer.openTransactionLoc(newLoc.locId, NEW_ADDRESS);
-    await legalOfficer.selectVtp(newLoc.locId, closedIdentityLoc.locId);
+    await legalOfficer.selectVtp(newLoc.locId, VTP_ADDRESS);
     newLoc = await newLoc.refresh();
     expect(newLoc.data().selectedParties.length).toBe(1);
     expect(newLoc.data().selectedParties[0].identityLocId).toBe(closedIdentityLoc.locId.toString());
-    expect(newLoc.data().selectedParties[0].selected).toBe(true);
 
     vtpLocsState = await vtpClient.locsState();
     expect(vtpLocsState.openVerifiedThirdPartyLocs["Transaction"].length).toBe(1);

@@ -42,14 +42,14 @@ export type LocAndRequest = {
     loc: Option<PalletLogionLocLegalOfficerCase>
 }
 
-export function buildLocAndRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: Option<PalletLogionLocLocVoidInfo>, verifiedThirdParty: boolean = false): LocAndRequest {
+export function buildLocAndRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: Option<PalletLogionLocLocVoidInfo>, requester: string = REQUESTER): LocAndRequest {
     return {
-        request: buildLocRequest(ownerAddress, status, locType, voidInfo !== undefined, verifiedThirdParty),
-        loc: buildLoc(ownerAddress, status, locType, voidInfo)
+        request: buildLocRequest(ownerAddress, status, locType, voidInfo !== undefined, requester),
+        loc: buildLoc(ownerAddress, status, locType, voidInfo, requester)
     }
 }
 
-export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voided?: boolean, verifiedThirdParty: boolean = false): LocRequest {
+export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voided?: boolean, requester: string = REQUESTER): LocRequest {
     return {
         id: new UUID().toString(),
         createdOn: DateTime.now().toISO(),
@@ -57,26 +57,26 @@ export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, 
         files: [ EXISTING_FILE ],
         links: [],
         metadata: [],
-        requesterAddress: REQUESTER,
+        requesterAddress: requester,
         ownerAddress,
         status,
         locType,
         voidInfo: voided ? { reason: "Some voiding reason.", voidedOn: DateTime.now().toISO() } : undefined,
-        verifiedThirdParty,
-        selectedParties: [],
     };
 }
 
-export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: Option<PalletLogionLocLocVoidInfo>): Option<PalletLogionLocLegalOfficerCase> {
+export const ISSUER = "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb";
+
+export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: Option<PalletLogionLocLocVoidInfo>, requester: string = REQUESTER): Option<PalletLogionLocLegalOfficerCase> {
     return mockOption<PalletLogionLocLegalOfficerCase>({
         owner: mockCodecWithToString<AccountId32>(ownerAddress),
-        requester: mockPalletLogionLocRequester(REQUESTER),
+        requester: mockPalletLogionLocRequester(requester),
         metadata: mockVec([]),
         files: mockVec<PalletLogionLocFile>([
             mockLogionLocFile({
                 hash: EXISTING_FILE_HASH,
                 nature: "Some nature",
-                submitter: REQUESTER,
+                submitter: requester,
             })
         ]),
         links: mockVec([]),
