@@ -110,6 +110,7 @@ export interface LocRequest {
     company?: string;
     iDenfy?: IdenfyVerificationSession;
     voteId?: string | null;
+    selectedIssuers: VerifiedIssuerIdentity[];
 }
 
 export interface IdenfyVerificationSession {
@@ -816,7 +817,7 @@ export class AuthenticatedLocClient extends LocClient {
                 || this.currentAddress === request.ownerAddress
                 || nodeIssuers.map(issuer => issuer.address).includes(this.currentAddress)) {
 
-                const issuersIdentity = await this.getIssuersIdentity(locId);
+                const issuersIdentity = request.selectedIssuers;
                 for(const nodeIssuer of nodeIssuers) {
                     const identityLocRequest = issuersIdentity.find(identity => identity.address === nodeIssuer.address);
                     selectedParties.push({
@@ -840,15 +841,6 @@ export class AuthenticatedLocClient extends LocClient {
                 verifiedThirdParty,
                 selectedParties,
             };
-        }
-    }
-
-    private async getIssuersIdentity(locId: UUID): Promise<VerifiedIssuerIdentity[]> {
-        try {
-            const response = await this.backend().get(`/api/loc-request/${ locId }/issuers-identity`);
-            return response.data.issuers;
-        } catch(e) {
-            throw newBackendError(e);
         }
     }
 }

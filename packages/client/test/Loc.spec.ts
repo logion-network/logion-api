@@ -488,11 +488,6 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                             requests: [ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request]
                         }
                     } as AxiosResponse);
-                    aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request.id }/issuers-identity`)).returnsAsync({
-                        data: {
-                            issuers: [],
-                        }
-                    } as AxiosResponse);
             }
 
             // Alice files and metadata
@@ -519,11 +514,6 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
             ].forEach(request => {
                 aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }`)).returnsAsync({
                     data: request
-                } as AxiosResponse);
-                aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }/issuers-identity`)).returnsAsync({
-                    data: {
-                        issuers: [],
-                    }
                 } as AxiosResponse);
             });
             aliceAxiosMock.setup(instance => instance.delete(It.IsAny())).returnsAsync({
@@ -560,11 +550,6 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                 bobAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }`)).returnsAsync({
                     data: request
                 } as AxiosResponse);
-                bobAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }/issuers-identity`)).returnsAsync({
-                    data: {
-                        issuers: [],
-                    }
-                } as AxiosResponse);
             })
             bobAxiosMock.setup(instance => instance.get(`/api/collection/${ BOB_VOID_COLLECTION_LOC.request.id }/items/${ EXISTING_ITEM_ID }`)).returnsAsync({
                 data: OFFCHAIN_COLLECTION_ITEM
@@ -586,11 +571,6 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
             charlieRequests.forEach(request => {
                 charlieAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }`)).returnsAsync({
                     data: request
-                } as AxiosResponse);
-                charlieAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }/issuers-identity`)).returnsAsync({
-                    data: {
-                        issuers: [],
-                    }
                 } as AxiosResponse);
             })
             axiosFactoryMock.setup(instance => instance.buildAxiosInstance(CHARLIE.node, token))
