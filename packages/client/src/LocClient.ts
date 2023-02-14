@@ -806,7 +806,7 @@ export class AuthenticatedLocClient extends LocClient {
         } else {
             const locId = new UUID(request.id);
             let verifiedThirdParty = false;
-            if(request.locType === "Identity" && request.status === "CLOSED" && request.requesterAddress === this.currentAddress) {
+            if(request.locType === "Identity" && request.status === "CLOSED") {
                 const maybeIssuer = await this.nodeApi.query.logionLoc.verifiedIssuersMap(request.ownerAddress, request.requesterAddress) as Option<PalletLogionLocVerifiedIssuer>;
                 verifiedThirdParty = maybeIssuer.isSome;
             }
