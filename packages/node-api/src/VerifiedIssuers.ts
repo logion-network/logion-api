@@ -28,3 +28,17 @@ export async function getVerifiedIssuers(api: LogionNodeApi, locId: UUID): Promi
     }
     return verifiedIssuers;
 }
+
+export async function getLegalOfficerVerifiedIssuers(api: LogionNodeApi, legalOfficerAddress: string): Promise<VerifiedIssuer[]> {
+    const entries = await api.query.logionLoc.verifiedIssuersMap.entries(legalOfficerAddress);
+    const verifiedIssuers: VerifiedIssuer[] = [];
+    for(const entry of entries) {
+        const verifiedIssuerAddress = entry[0].args[1].toString();
+        const verifiedIssuer = (await api.query.logionLoc.verifiedIssuersMap(legalOfficerAddress, verifiedIssuerAddress)).unwrap();
+        verifiedIssuers.push({
+            address: verifiedIssuerAddress,
+            identityLocId: UUID.fromDecimalStringOrThrow(verifiedIssuer.identityLoc.toString()),
+        });
+    }
+    return verifiedIssuers;
+}
