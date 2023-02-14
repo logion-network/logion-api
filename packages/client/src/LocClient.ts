@@ -801,27 +801,40 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async getLocIssuers(request: LocRequest): Promise<LocVerifiedIssuers> {
-        if((request.status !== "OPEN" && request.status !== "CLOSED")
-                || (this.currentAddress !== request.ownerAddress && this.currentAddress !== request.requesterAddress) ) {
+        if(!this.currentAddress || (request.status !== "OPEN" && request.status !== "CLOSED")) {
             return EMPTY_LOC_ISSUERS;
         } else {
             const locId = new UUID(request.id);
             let verifiedThirdParty = false;
-            if(request.locType === "Identity" && request.status === "CLOSED") {
+            if(request.locType === "Identity" && request.status === "CLOSED" && request.requesterAddress === this.currentAddress) {
                 const maybeIssuer = await this.nodeApi.query.logionLoc.verifiedIssuersMap(request.ownerAddress, request.requesterAddress) as Option<PalletLogionLocVerifiedIssuer>;
                 verifiedThirdParty = maybeIssuer.isSome;
             }
             const nodeIssuers = await getVerifiedIssuers(this.nodeApi, locId);
-            const issuersIdentity = await this.getIssuersIdentity(locId);
             const selectedParties: VerifiedThirdParty[] = [];
-            for(const nodeIssuer of nodeIssuers) {
-                const identityLocRequest = issuersIdentity.find(identity => identity.address === nodeIssuer.address);
-                selectedParties.push({
-                    identityLocId: nodeIssuer.identityLocId.toString(),
-                    address: nodeIssuer.address,
-                    firstName: identityLocRequest?.identity.firstName || "",
-                    lastName: identityLocRequest?.identity.lastName || "",
-                });
+            if(this.currentAddress === request.requesterAddress
+                || this.currentAddress === request.ownerAddress
+                || nodeIssuers.map(issuer => issuer.address).includes(this.currentAddress)) {
+
+                const issuersIdentity = await this.getIssuersIdentity(locId);
+                for(const nodeIssuer of nodeIssuers) {
+                    const identityLocRequest = issuersIdentity.find(identity => identity.address === nodeIssuer.address);
+                    selectedParties.push({
+                        identityLocId: nodeIssuer.identityLocId.toString(),
+                        address: nodeIssuer.address,
+                        firstName: identityLocRequest?.identity.firstName || "",
+                        lastName: identityLocRequest?.identity.lastName || "",
+                    });
+                }
+            } else {
+                for(const nodeIssuer of nodeIssuers) {
+                    selectedParties.push({
+                        identityLocId: nodeIssuer.identityLocId.toString(),
+                        address: nodeIssuer.address,
+                        firstName: "",
+                        lastName: "",
+                    });
+                }
             }
             return {
                 verifiedThirdParty,
