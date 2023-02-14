@@ -1,4 +1,4 @@
-import { getVerifiedIssuers, newTokensRecordFiles, nLgnt, toUnwrappedTokensRecord, UUID } from "../src";
+import { getVerifiedIssuers, getLegalOfficerVerifiedIssuers, newTokensRecordFiles, nLgnt, toUnwrappedTokensRecord, UUID } from "../src";
 import { ALICE, ISSUER, REQUESTER, setup, signAndSend, signAndSendBatch } from "./Util";
 
 export async function verifiedIssuers() {
@@ -22,6 +22,11 @@ export async function verifiedIssuers() {
     ]);
 
     expect((await api.query.logionLoc.verifiedIssuersMap(ALICE, ISSUER)).isSome).toBe(true);
+
+    const aliceVerifiedIssuers = await getLegalOfficerVerifiedIssuers(api, ALICE);
+    expect(aliceVerifiedIssuers.length).toBe(1);
+    expect(aliceVerifiedIssuers[0].address).toBe(ISSUER);
+    expect(aliceVerifiedIssuers[0].identityLocId.toString()).toBe(issuerIdentityLocId.toString());
 
     const collectionVerifiedIssuers = await getVerifiedIssuers(api, collectionLocId);
     expect(collectionVerifiedIssuers.length).toBe(1);

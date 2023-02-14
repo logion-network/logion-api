@@ -252,6 +252,7 @@ export interface FetchAllLocsParams {
 export interface VerifiedIssuerIdentity {
     address: string;
     identity: UserIdentity;
+    identityLocId: string;
 }
 
 export class LocMultiClient {
