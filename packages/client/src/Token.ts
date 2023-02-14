@@ -11,6 +11,10 @@ export type TokenType =
     | 'goerli_erc721'
     | 'goerli_erc1155'
     | 'singular_kusama'
+    | 'polygon_erc721'
+    | 'polygon_erc1155'
+    | 'polygon_mumbai_erc721'
+    | 'polygon_mumbai_erc1155'
     | 'owner'
 ;
 
@@ -21,6 +25,10 @@ export function isTokenType(type: string): type is TokenType {
         || type === 'goerli_erc721'
         || type === 'goerli_erc1155'
         || type === 'singular_kusama'
+        || type === 'polygon_erc721'
+        || type === 'polygon_erc1155'
+        || type === 'polygon_mumbai_erc721'
+        || type === 'polygon_mumbai_erc1155'
         || type === 'owner'
     );
 }
@@ -98,7 +106,7 @@ export function validateToken(itemToken: ItemTokenWithRestrictedType): TokenVali
 }
 
 export function isErcToken(type: TokenType): boolean {
-    return type === 'ethereum_erc721' || type === 'ethereum_erc1155' || type === 'goerli_erc721' || type === 'goerli_erc1155';
+    return type.includes("erc721") || type.includes("erc1155");
 }
 
 const ETHEREUM_ADDRESS_LENGTH_IN_BITS = 20 * 8;

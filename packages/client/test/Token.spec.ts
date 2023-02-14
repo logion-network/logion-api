@@ -9,33 +9,16 @@ describe("validateToken", () => {
         }, "unsupported token type 'ethereum_erc20'");
     });
 
-    it("validates valid ethereum_erc721 token", () => testErcValidToken("ethereum_erc721"));
-    it("invalidates ethereum_erc721 token with non-JSON id", () => testErcInvalidIdType("ethereum_erc721"));
-    it("invalidates ethereum_erc721 token with missing id field", () => testErcInvalidIdMisingId("ethereum_erc721"));
-    it("invalidates ethereum_erc721 token with missing contract field", () => testErcInvalidIdMissingContract("ethereum_erc721"));
-    it("invalidates ethereum_erc721 token with wrongly typed contract field", () => testErcInvalidIdContractIsNotString("ethereum_erc721"));
-    it("invalidates ethereum_erc721 token with wrongly typed id field", () => testErcInvalidIdIdIsNotString("ethereum_erc721"));
+    const types: TokenType[] = [ "ethereum_erc721", "ethereum_erc1155", "goerli_erc721", "goerli_erc1155", "polygon_erc721", "polygon_erc1155", "polygon_mumbai_erc721", "polygon_mumbai_erc1155" ];
 
-    it("validates valid ethereum_erc1155 token", () => testErcValidToken("ethereum_erc1155"));
-    it("invalidates ethereum_erc1155 token with non-JSON id", () => testErcInvalidIdType("ethereum_erc1155"));
-    it("invalidates ethereum_erc1155 token with missing id field", () => testErcInvalidIdMisingId("ethereum_erc1155"));
-    it("invalidates ethereum_erc1155 token with missing contract field", () => testErcInvalidIdMissingContract("ethereum_erc1155"));
-    it("invalidates ethereum_erc1155 token with wrongly typed contract field", () => testErcInvalidIdContractIsNotString("ethereum_erc1155"));
-    it("invalidates ethereum_erc1155 token with wrongly typed id field", () => testErcInvalidIdIdIsNotString("ethereum_erc1155"));
-
-    it("validates valid goerli_erc721 token", () => testErcValidToken("goerli_erc721"));
-    it("invalidates goerli_erc721 token with non-JSON id", () => testErcInvalidIdType("goerli_erc721"));
-    it("invalidates goerli_erc721 token with missing id field", () => testErcInvalidIdMisingId("goerli_erc721"));
-    it("invalidates goerli_erc721 token with missing contract field", () => testErcInvalidIdMissingContract("goerli_erc721"));
-    it("invalidates goerli_erc721 token with wrongly typed contract field", () => testErcInvalidIdContractIsNotString("goerli_erc721"));
-    it("invalidates goerli_erc721 token with wrongly typed id field", () => testErcInvalidIdIdIsNotString("goerli_erc721"));
-
-    it("validates valid goerli_erc1155 token", () => testErcValidToken("goerli_erc1155"));
-    it("invalidates goerli_erc1155 token with non-JSON id", () => testErcInvalidIdType("goerli_erc1155"));
-    it("invalidates goerli_erc1155 token with missing id field", () => testErcInvalidIdMisingId("goerli_erc1155"));
-    it("invalidates goerli_erc1155 token with missing contract field", () => testErcInvalidIdMissingContract("goerli_erc1155"));
-    it("invalidates goerli_erc1155 token with wrongly typed contract field", () => testErcInvalidIdContractIsNotString("goerli_erc1155"));
-    it("invalidates goerli_erc1155 token with wrongly typed id field", () => testErcInvalidIdIdIsNotString("goerli_erc1155"));
+    for (const type of types) {
+        it(`validates valid ${ type } token`, () => testErcValidToken(type));
+        it(`invalidates ${ type } token with non-JSON id`, () => testErcInvalidIdType(type));
+        it(`invalidates ${ type } token with missing id field`, () => testErcInvalidIdMisingId(type));
+        it(`invalidates ${ type } token with missing contract field`, () => testErcInvalidIdMissingContract(type));
+        it(`invalidates ${ type } token with wrongly typed contract field`, () => testErcInvalidIdContractIsNotString(type));
+        it(`invalidates ${ type } token with wrongly typed id field`, () => testErcInvalidIdIdIsNotString(type));
+    }
 
     it("validates valid owner token", () => {
         testValid({
