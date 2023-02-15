@@ -12,7 +12,8 @@ import {
     AxiosFactory,
     ISubmittableResult,
     LegalOfficer,
-    LogionClient
+    LogionClient,
+    DefaultSignAndSendStrategy
 } from "../src/index.js";
 import { ALICE, BOB, CHARLIE } from "../test/Utils.js";
 import { requireDefined } from "../src/assertions.js";
@@ -207,12 +208,13 @@ export class LegalOfficerWorker {
         });
     }
 
-    async selectVtp(locId: UUID, issuerAddress: string) {
+    async selectVtp(locId: UUID, issuerAddress: string, selected: boolean) {
         const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        const submittable = api.tx.logionLoc.setIssuerSelection(locId.toDecimalString(), issuerAddress, true);
+        const submittable = api.tx.logionLoc.setIssuerSelection(locId.toDecimalString(), issuerAddress, selected);
         await this.state.signer.signAndSend({
             signerId: this.legalOfficer.address,
             submittable,
+            strategy: new DefaultSignAndSendStrategy(),
         });
     }
 }

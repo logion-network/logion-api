@@ -36,6 +36,7 @@ export interface SignParameters {
     signerId: string;
     submittable: SubmittableExtrinsic;
     callback?: SignCallback;
+    strategy?: SignAndSendStrategy;
 }
 
 export interface SuccessfulSubmission {
@@ -123,7 +124,7 @@ export abstract class BaseSigner implements FullSigner {
                         registry,
                         next,
                         submissionState,
-                        signAndSendStrategy: this.signAndSendStrategy,
+                        signAndSendStrategy: parameters.strategy ? parameters.strategy : this.signAndSendStrategy,
                     });
                 }
             })
