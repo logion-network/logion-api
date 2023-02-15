@@ -32,3 +32,4 @@ export * from './Vault.js';
 export * from './VaultClient.js';
 export * from './Voter.js';
 export * from './license/index.js';
+export * from './Deliveries.js';

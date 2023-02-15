@@ -5,6 +5,7 @@ import { providesVault } from "./Vault.js";
 import { recoverLostAccount, requestRecoveryAndCancel } from "./Recovery.js";
 import { requestTransactionLoc, collectionLoc, collectionLocWithUpload, identityLoc } from "./Loc.js";
 import { verifiedThirdParty } from "./VerifiedThirdParty.js";
+import { tokensRecords } from "./TokensRecord.js";
 
 describe("Logion SDK", () => {
 
@@ -52,6 +53,10 @@ describe("Logion SDK", () => {
 
     it("provides VTP", async () => {
         await verifiedThirdParty(state);
+    });
+
+    it("provides Tokens Records", async () => {
+        await tokensRecords(state);
     });
 
     afterAll(() => {
