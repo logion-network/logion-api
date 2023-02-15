@@ -80,11 +80,12 @@ export interface VerifiedThirdParty {
     lastName: string;
     identityLocId: string;
     address: string;
+    selected?: boolean;
 }
 
 export interface LocVerifiedIssuers {
     verifiedThirdParty: boolean;
-    selectedParties: VerifiedThirdParty[];
+    issuers: VerifiedThirdParty[];
 }
 
 export interface LocRequest {
@@ -110,6 +111,7 @@ export interface LocRequest {
     company?: string;
     iDenfy?: IdenfyVerificationSession;
     voteId?: string | null;
+    selectedIssuers: VerifiedIssuerIdentity[];
 }
 
 export interface IdenfyVerificationSession {
@@ -253,6 +255,7 @@ export interface VerifiedIssuerIdentity {
     address: string;
     identity: UserIdentity;
     identityLocId: string;
+    selected?: boolean;
 }
 
 export class LocMultiClient {
@@ -811,24 +814,40 @@ export class AuthenticatedLocClient extends LocClient {
                 verifiedThirdParty = maybeIssuer.isSome;
             }
             const nodeIssuers = await getVerifiedIssuers(this.nodeApi, locId);
-            const selectedParties: VerifiedThirdParty[] = [];
+            const chainSelectedIssuers = new Set<string>();
+            nodeIssuers.forEach(issuer => chainSelectedIssuers.add(issuer.address));
+
+            const issuers: VerifiedThirdParty[] = [];
             if(this.currentAddress === request.requesterAddress
                 || this.currentAddress === request.ownerAddress
-                || nodeIssuers.map(issuer => issuer.address).includes(this.currentAddress)) {
+                || chainSelectedIssuers.has(this.currentAddress)) {
 
-                const issuersIdentity = await this.getIssuersIdentity(locId);
-                for(const nodeIssuer of nodeIssuers) {
-                    const identityLocRequest = issuersIdentity.find(identity => identity.address === nodeIssuer.address);
-                    selectedParties.push({
-                        identityLocId: nodeIssuer.identityLocId.toString(),
-                        address: nodeIssuer.address,
-                        firstName: identityLocRequest?.identity.firstName || "",
-                        lastName: identityLocRequest?.identity.lastName || "",
+                const backendIssuers = request.selectedIssuers;
+                const addedIssuers = new Set<string>();
+                for(const maybeSelectedIssuer of backendIssuers) {
+                    addedIssuers.add(maybeSelectedIssuer.address);
+                    issuers.push({
+                        identityLocId: maybeSelectedIssuer.identityLocId.toString(),
+                        address: maybeSelectedIssuer.address,
+                        firstName: maybeSelectedIssuer?.identity.firstName || "",
+                        lastName: maybeSelectedIssuer?.identity.lastName || "",
+                        selected: chainSelectedIssuers.has(maybeSelectedIssuer.address), // Backend may be out-of-date
                     });
+                }
+                for(const nodeIssuer of nodeIssuers) {
+                    if(!addedIssuers.has(nodeIssuer.address)) { // Backend may be out-of-date
+                        issuers.push({
+                            identityLocId: nodeIssuer.identityLocId.toString(),
+                            address: nodeIssuer.address,
+                            firstName: "",
+                            lastName: "",
+                            selected: true,
+                        });
+                    }
                 }
             } else {
                 for(const nodeIssuer of nodeIssuers) {
-                    selectedParties.push({
+                    issuers.push({
                         identityLocId: nodeIssuer.identityLocId.toString(),
                         address: nodeIssuer.address,
                         firstName: "",
@@ -838,22 +857,13 @@ export class AuthenticatedLocClient extends LocClient {
             }
             return {
                 verifiedThirdParty,
-                selectedParties,
+                issuers,
             };
-        }
-    }
-
-    private async getIssuersIdentity(locId: UUID): Promise<VerifiedIssuerIdentity[]> {
-        try {
-            const response = await this.backend().get(`/api/loc-request/${ locId }/issuers-identity`);
-            return response.data.issuers;
-        } catch(e) {
-            throw newBackendError(e);
         }
     }
 }
 
 export const EMPTY_LOC_ISSUERS: LocVerifiedIssuers = {
     verifiedThirdParty: false,
-    selectedParties: [],
+    issuers: [],
 }

@@ -37,15 +37,17 @@ export async function verifiedThirdParty(state: State) {
         description: "Some LOC with VTP",
         draft: false,
     });
-    await legalOfficer.openTransactionLoc(newLoc.locId, NEW_ADDRESS);
-    await legalOfficer.selectVtp(newLoc.locId, VTP_ADDRESS);
+    const locId = newLoc.locId;
+    await legalOfficer.openTransactionLoc(locId, NEW_ADDRESS);
+    await legalOfficer.selectVtp(locId, VTP_ADDRESS, true);
     newLoc = await newLoc.refresh();
-    expect(newLoc.data().selectedParties.length).toBe(1);
-    expect(newLoc.data().selectedParties[0].identityLocId).toBe(closedIdentityLoc.locId.toString());
+    expect(newLoc.data().issuers.length).toBe(1);
+    expect(newLoc.data().issuers[0].identityLocId).toBe(closedIdentityLoc.locId.toString());
+    expect(newLoc.data().issuers[0].selected).toBe(true);
 
     vtpLocsState = await vtpClient.locsState();
     expect(vtpLocsState.openVerifiedThirdPartyLocs["Transaction"].length).toBe(1);
-    let vtpLoc = vtpLocsState.findById(newLoc.data().id);
+    let vtpLoc = vtpLocsState.findById(locId);
 
     let openVtpLoc = await vtpLoc.refresh() as EditableRequest;
     openVtpLoc = await openVtpLoc.addMetadata({
@@ -61,4 +63,10 @@ export async function verifiedThirdParty(state: State) {
         file,
     });
     openVtpLoc = await openVtpLoc.deleteFile({ hash: file.contentHash });
+
+    await legalOfficer.selectVtp(newLoc.locId, VTP_ADDRESS, false);
+    const userLoc = (await userClient.locsState()).findById(locId);
+    expect(userLoc.data().issuers.length).toBe(1);
+    expect(userLoc.data().issuers[0].identityLocId).toBe(closedIdentityLoc.locId.toString());
+    expect(userLoc.data().issuers[0].selected).toBe(false);
 }

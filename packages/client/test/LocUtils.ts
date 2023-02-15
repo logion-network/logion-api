@@ -62,6 +62,7 @@ export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, 
         status,
         locType,
         voidInfo: voided ? { reason: "Some voiding reason.", voidedOn: DateTime.now().toISO() } : undefined,
+        selectedIssuers: [],
     };
 }
 
