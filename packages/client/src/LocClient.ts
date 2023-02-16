@@ -589,7 +589,9 @@ export abstract class LocClient {
 
     private async getOffchainTokensRecords(parameters: GetTokensRecordsRequest): Promise<OffchainTokensRecord[]> {
         const { locId, jwtToken } = parameters;
-        const axios = this.axiosFactory.buildAxiosInstance(this.legalOfficer.node, jwtToken?.value);
+        const axios = jwtToken !== undefined ?
+            this.axiosFactory.buildAxiosInstance(this.legalOfficer.node, jwtToken.value) :
+            this.backend();
         const response = await axios.get(`/api/records/${ locId.toString() }`);
         return response.data.records;
     }
