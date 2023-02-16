@@ -411,6 +411,7 @@ export interface TokensRecord {
     description: string;
     addedOn: string;
     files: UploadableItemFile[];
+    issuer: string;
 }
 
 export interface OffchainTokensRecord {
@@ -551,6 +552,7 @@ export abstract class LocClient {
             id: offchainItem.recordId,
             description: onchainItem.description,
             addedOn: offchainItem.addedOn,
+            issuer: onchainItem.submitter,
             files: onchainItem.files.map(file => ({
                 ...file,
                 size: BigInt(file.size),

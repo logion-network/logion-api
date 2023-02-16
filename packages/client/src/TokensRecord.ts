@@ -38,6 +38,10 @@ export class TokensRecord implements ClientTokensRecord {
         return this.record.addedOn;
     }
 
+    get issuer(): string {
+        return this.record.issuer;
+    }
+
     get files(): UploadableItemFile[] {
         return this.record.files;
     }
