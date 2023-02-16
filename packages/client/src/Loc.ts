@@ -797,6 +797,18 @@ export async function getTokensRecord(parameters: { locClient: LocClient, locId:
         }
 }
 
+export async function getTokensRecords(parameters: { locClient: LocClient, locId: UUID }): Promise<TokensRecordClass[]> {
+    const { locId, locClient } = parameters;
+    const clientRecords = await locClient.getTokensRecords({
+        locId,
+    });
+    return clientRecords.map(tokensRecord => new TokensRecordClass({
+        locId,
+        locClient,
+        tokensRecord,
+    }));
+}
+
 abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
 
     async getCollectionItem(parameters: { itemId: string }): Promise<CollectionItemClass | undefined> {
@@ -849,14 +861,10 @@ abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
 
     async getTokensRecords(): Promise<TokensRecordClass[]> {
         this.ensureCurrent();
-        const clientRecords = await this.locSharedState.client.getTokensRecords({
+        return getTokensRecords({
+            locClient: this.locSharedState.client,
             locId: this.locId,
         });
-        return clientRecords.map(tokensRecord => new TokensRecordClass({
-            locId: this.locId,
-            locClient: this.locSharedState.client,
-            tokensRecord,
-        }));
     }
 }
 

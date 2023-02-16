@@ -2,8 +2,15 @@ import { LegalOfficerCase, UUID } from "@logion/node-api";
 
 import { CollectionItem } from "./CollectionItem.js";
 import { CheckCertifiedCopyResult, CheckResultType } from "./Deliveries.js";
-import { CheckHashResult, getCollectionItem, LocData, LocRequestState } from "./Loc.js";
-import { EMPTY_LOC_ISSUERS, FetchParameters, LocClient, LocMultiClient, PublicLocClient } from "./LocClient.js";
+import { CheckHashResult, getCollectionItem, getTokensRecords, LocData, LocRequestState } from "./Loc.js";
+import {
+    EMPTY_LOC_ISSUERS,
+    FetchParameters,
+    LocClient,
+    LocMultiClient,
+    PublicLocClient,
+    TokensRecord
+} from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 
 export class PublicApi {
@@ -64,6 +71,20 @@ export class PublicApi {
             itemId: params.itemId,
         });
     }
+
+    async getTokensRecords(params: { locId: UUID }): Promise<TokensRecord[]> {
+        const locAndClient = await this.getLocAndClient(params);
+        if(!locAndClient) {
+            return [];
+        }
+        const { client } = locAndClient;
+
+        return getTokensRecords({
+            locClient: client,
+            locId: params.locId,
+        })
+    }
+
 }
 
 export class PublicLoc {
