@@ -30,7 +30,7 @@ import { NetworkState } from "./NetworkState.js";
 import { authenticatedCurrentAddress, LegalOfficerEndpoint, SharedState } from "./SharedClient.js";
 import { AxiosFactory } from "./AxiosFactory.js";
 import { requireDefined } from "./assertions.js";
-import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays } from "./Http.js";
+import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays, Token } from "./Http.js";
 import { Signer, SignCallback } from "./Signer.js";
 import { ComponentFactory } from "./ComponentFactory.js";
 import { newBackendError } from "./Error.js";
@@ -130,6 +130,13 @@ export type LocRequestStatus = "DRAFT" | "OPEN" | "REQUESTED" | "REJECTED" | "CL
 
 export interface FetchParameters {
     locId: UUID,
+}
+
+export interface HasJwtToken {
+    jwtToken?: Token
+}
+
+export interface GetTokensRecordsRequest extends FetchParameters, HasJwtToken {
 }
 
 export interface AddMetadataParams {
@@ -402,10 +409,6 @@ export interface OffchainCollectionItem {
     files: string[];
 }
 
-export interface FetchParameters {
-    locId: UUID,
-}
-
 export interface TokensRecord {
     id: string;
     description: string;
@@ -561,7 +564,7 @@ export abstract class LocClient {
         }
     }
 
-    async getTokensRecords(parameters: FetchParameters): Promise<TokensRecord[]> {
+    async getTokensRecords(parameters: GetTokensRecordsRequest): Promise<TokensRecord[]> {
         const { locId } = parameters;
         const onchainRecords = await this.nodeApi.query.logionLoc.tokensRecordsMap.entries(locId.toDecimalString());
 
@@ -571,7 +574,7 @@ export abstract class LocClient {
         }
 
         try {
-            const offchainTokenRecords = await this.getOffchainTokensRecords({ locId });
+            const offchainTokenRecords = await this.getOffchainTokensRecords(parameters);
 
             const offchainRecordsMap: Record<string, OffchainTokensRecord> = {};
             for(const item of offchainTokenRecords) {
@@ -584,9 +587,10 @@ export abstract class LocClient {
         }
     }
 
-    private async getOffchainTokensRecords(parameters: { locId: UUID }): Promise<OffchainTokensRecord[]> {
-        const { locId } = parameters;
-        const response = await this.backend().get(`/api/records/${ locId.toString() }`);
+    private async getOffchainTokensRecords(parameters: GetTokensRecordsRequest): Promise<OffchainTokensRecord[]> {
+        const { locId, jwtToken } = parameters;
+        const axios = this.axiosFactory.buildAxiosInstance(this.legalOfficer.node, jwtToken?.value);
+        const response = await axios.get(`/api/records/${ locId.toString() }`);
         return response.data.records;
     }
 

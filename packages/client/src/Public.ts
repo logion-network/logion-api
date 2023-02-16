@@ -9,7 +9,8 @@ import {
     LocClient,
     LocMultiClient,
     PublicLocClient,
-    TokensRecord
+    TokensRecord,
+    GetTokensRecordsRequest
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 
@@ -72,7 +73,8 @@ export class PublicApi {
         });
     }
 
-    async getTokensRecords(params: { locId: UUID }): Promise<TokensRecord[]> {
+    async getTokensRecords(params: GetTokensRecordsRequest): Promise<TokensRecord[]> {
+        const { locId, jwtToken } = params;
         const locAndClient = await this.getLocAndClient(params);
         if(!locAndClient) {
             return [];
@@ -81,7 +83,8 @@ export class PublicApi {
 
         return getTokensRecords({
             locClient: client,
-            locId: params.locId,
+            locId,
+            jwtToken,
         })
     }
 

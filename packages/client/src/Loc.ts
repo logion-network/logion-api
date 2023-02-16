@@ -22,6 +22,7 @@ import {
     LocVerifiedIssuers,
     EMPTY_LOC_ISSUERS,
     AddTokensRecordParams,
+    GetTokensRecordsRequest,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress } from "./Types.js";
@@ -797,10 +798,11 @@ export async function getTokensRecord(parameters: { locClient: LocClient, locId:
         }
 }
 
-export async function getTokensRecords(parameters: { locClient: LocClient, locId: UUID }): Promise<TokensRecordClass[]> {
-    const { locId, locClient } = parameters;
+export async function getTokensRecords(parameters: { locClient: LocClient } & GetTokensRecordsRequest): Promise<TokensRecordClass[]> {
+    const { locId, locClient, jwtToken } = parameters;
     const clientRecords = await locClient.getTokensRecords({
         locId,
+        jwtToken
     });
     return clientRecords.map(tokensRecord => new TokensRecordClass({
         locId,
