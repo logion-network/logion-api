@@ -352,6 +352,43 @@ describe("ClosedCollectionLoc", () => {
         const data = closedLoc.data();
         expectDataToMatch(data, ALICE_CLOSED_COLLECTION_LOC.request);
     });
+
+    it("adds tokens record", async () => {
+        const closedLoc = await getClosedCollectionLoc();
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+        await closedLoc.addTokensRecord({
+            recordId: RECORD_ID,
+            description: RECORD_DESCRIPTION,
+            files: RECORD_FILES,
+            signer: signer.object(),
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.tx.logionLoc.addTokensRecord(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+    });
+
+    it("uploads tokens record file", async () => {
+        const closedLoc = await getClosedCollectionLoc();
+
+        await closedLoc.uploadTokensRecordFile({
+            recordId: RECORD_ID,
+            file: new ItemFileWithContent({
+                name: "test.txt",
+                contentType: MimeType.from("text/plain"),
+                hashOrContent: HashOrContent.fromContent(Buffer.from("test")),
+            }),
+        });
+
+        aliceAxiosMock.verify(instance => instance.post(
+                `/api/records/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/${ RECORD_ID }/files`,
+                It.IsAny(),
+                It.Is((options: AxiosRequestConfig<FormDataLike>) => options.headers !== undefined && options.headers["Content-Type"] === "multipart/form-data")
+            ),
+            Times.Once(),
+        );
+    });
 });
 
 describe("VoidedLoc", () => {
@@ -443,6 +480,14 @@ const SPECIFIC_LICENSES: SpecificLicense[] = [
 ];
 const LOGION_CLASSIFICATION: LogionClassification = new LogionClassification(new UUID(), { transferredRights: ["COM-MOD", "NOTIME", "WW"]});
 const CREATIVE_COMMONS: CreativeCommons = new CreativeCommons(new UUID(), "BY-SA");
+
+const RECORD_ID = "0x186bf67f32bb45187a1c50286dbd9adf8751874831aeba2a66760a74a9c898cc";
+const RECORD_DESCRIPTION = "Some record description";
+const RECORD_FILES: ItemFileWithContent[] = [new ItemFileWithContent({
+    name: "test.txt",
+    contentType: MimeType.from("text/plain"),
+    hashOrContent: HashOrContent.fromContent(Buffer.from("test")),
+})];
 
 let aliceAxiosMock: Mock<AxiosInstance>;
 let bobAxiosMock: Mock<AxiosInstance>;
@@ -672,6 +717,15 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                 ]));
                 nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(REQUESTER)).returns(Promise.resolve([]));
             }
+
+            nodeApiMock.setup(instance => instance.createType).returns(() => ({} as any));
+            const addTokensRecordExtrinsic = new Mock<SubmittableExtrinsic>();
+            nodeApiMock.setup(instance => instance.tx.logionLoc.addTokensRecord(
+                new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id).toDecimalString(),
+                ITEM_ID,
+                ITEM_DESCRIPTION,
+                It.IsAny(),
+            )).returns(addTokensRecordExtrinsic.object());
         },
         currentAddress,
         legalOfficers,

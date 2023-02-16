@@ -15,7 +15,11 @@ import {
     getCollectionItems,
     CollectionItem,
     TermsAndConditionsElement as ChainTermsAndConditionsElement,
-    getVerifiedIssuers
+    getVerifiedIssuers,
+    newTokensRecordFiles,
+    TokensRecordFile,
+    toTokensRecord,
+    TokensRecord as ChainTokensRecord,
 } from '@logion/node-api';
 import { Option } from "@polkadot/types-codec";
 import { PalletLogionLocVerifiedIssuer } from "@polkadot/types/lookup";
@@ -34,6 +38,7 @@ import { HashOrContent } from "./Hash.js";
 import { MimeType } from "./Mime.js";
 import { validateToken, ItemTokenWithRestrictedType, TokenType } from "./Token.js";
 import { TermsAndConditionsElement, newTermsAndConditions, LogionClassification, SpecificLicense, CreativeCommons } from "./license/index.js";
+import { CollectionDelivery, ItemDeliveries } from './Deliveries.js';
 
 export interface AddedOn {
     addedOn: string;
@@ -258,6 +263,19 @@ export interface VerifiedIssuerIdentity {
     selected?: boolean;
 }
 
+export interface AddTokensRecordParams {
+    recordId: string,
+    description: string,
+    files: ItemFileWithContent[],
+    signer: Signer,
+    callback?: SignCallback,
+}
+
+export interface GetTokensRecordDeliveriesRequest {
+    locId: UUID;
+    recordId: string;
+}
+
 export class LocMultiClient {
 
     static newLocMultiClient(sharedState: SharedState): LocMultiClient {
@@ -388,22 +406,18 @@ export interface FetchParameters {
     locId: UUID,
 }
 
-export interface ItemDeliveries {
-    [key: string]: ItemDelivery[];
+export interface TokensRecord {
+    id: string;
+    description: string;
+    addedOn: string;
+    files: UploadableItemFile[];
 }
 
-export interface Delivery {
-    copyHash: string;
-    generatedOn: string;
-    owner: string;
-}
-
-export interface ItemDelivery extends Delivery {
-    belongsToCurrentOwner: boolean;
-}
-
-export interface CollectionDelivery extends Delivery {
-    originalFileHash: string;
+export interface OffchainTokensRecord {
+    collectionLocId: string;
+    recordId: string;
+    addedOn: string;
+    files: string[];
 }
 
 export abstract class LocClient {
@@ -512,11 +526,75 @@ export abstract class LocClient {
         });
     }
 
+    async getTokensRecord(parameters: { recordId: string } & FetchParameters): Promise<TokensRecord | undefined> {
+        const { locId, recordId } = parameters;
+        const onchainRecord = await this.nodeApi.query.logionLoc.tokensRecordsMap(locId.toDecimalString(), recordId);
+        if(onchainRecord.isNone) {
+            return undefined;
+        }
+        try {
+            const offchainRecord = await this.getOffchainRecord({ locId, recordId });
+            return this.mergeRecords(toTokensRecord(onchainRecord.unwrap()), offchainRecord);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    private async getOffchainRecord(parameters: { locId: UUID, recordId: string }): Promise<OffchainTokensRecord> {
+        const { locId, recordId } = parameters;
+        const response = await this.backend().get(`/api/records/${ locId.toString() }/record/${ recordId }`);
+        return response.data;
+    }
+
+    private mergeRecords(onchainItem: ChainTokensRecord, offchainItem: OffchainTokensRecord): TokensRecord {
+        return {
+            id: offchainItem.recordId,
+            description: onchainItem.description,
+            addedOn: offchainItem.addedOn,
+            files: onchainItem.files.map(file => ({
+                ...file,
+                size: BigInt(file.size),
+                uploaded: offchainItem.files.includes(file.hash),
+            })),
+        }
+    }
+
+    async getTokensRecords(parameters: FetchParameters): Promise<TokensRecord[]> {
+        const { locId } = parameters;
+        const onchainRecords = await this.nodeApi.query.logionLoc.tokensRecordsMap.entries(locId.toDecimalString());
+
+        const onchainRecordsMap: Record<string, ChainTokensRecord> = {};
+        for(const entry of onchainRecords) {
+            onchainRecordsMap[entry[0].args[1].toHex()] = toTokensRecord(entry[1].unwrap());
+        }
+
+        try {
+            const offchainTokenRecords = await this.getOffchainTokensRecords({ locId });
+
+            const offchainRecordsMap: Record<string, OffchainTokensRecord> = {};
+            for(const item of offchainTokenRecords) {
+                offchainRecordsMap[item.recordId] = item;
+            }
+
+            return offchainTokenRecords.map(item => this.mergeRecords(onchainRecordsMap[item.recordId], offchainRecordsMap[item.recordId]));
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    private async getOffchainTokensRecords(parameters: { locId: UUID }): Promise<OffchainTokensRecord[]> {
+        const { locId } = parameters;
+        const response = await this.backend().get(`/api/records/${ locId.toString() }`);
+        return response.data.records;
+    }
+
     abstract getLocRequest(parameters: FetchParameters): Promise<LocRequest>;
 
     abstract getDeliveries(parameters: GetDeliveriesRequest): Promise<ItemDeliveries>;
 
     abstract checkDelivery(parameters: CheckCollectionDeliveryRequest): Promise<CollectionDelivery>;
+
+    abstract getTokensRecordDeliveries(parameters: GetTokensRecordDeliveriesRequest): Promise<ItemDeliveries>;
 }
 
 export class PublicLocClient extends LocClient {
@@ -538,6 +616,16 @@ export class PublicLocClient extends LocClient {
         const response = await this.backend().put(`/api/collection/${ locId }/file-deliveries`, { copyHash: hash });
         return response.data;
     }
+
+    override async getTokensRecordDeliveries(parameters: GetTokensRecordDeliveriesRequest): Promise<ItemDeliveries> {
+        return getTokensRecordDeliveries(this.backend(), parameters);
+    }
+}
+
+async function getTokensRecordDeliveries(axios: AxiosInstance, parameters: GetTokensRecordDeliveriesRequest): Promise<ItemDeliveries> {
+    const { locId, recordId } = parameters;
+    const response = await axios.get(`/api/records/${ locId }/${ recordId }/deliveries`);
+    return response.data;
 }
 
 export class AuthenticatedLocClient extends LocClient {
@@ -860,6 +948,82 @@ export class AuthenticatedLocClient extends LocClient {
                 issuers,
             };
         }
+    }
+
+    async canAddRecord(request: LocRequest): Promise<boolean> {
+        return this.currentAddress === request.requesterAddress
+            || this.currentAddress === request.ownerAddress
+            || await this.isIssuerOf(request);
+    }
+
+    private async isIssuerOf(request: LocRequest): Promise<boolean> {
+        const issuers = await this.getLocIssuers(request);
+        return issuers.issuers.find(issuer => issuer.address === this.currentAddress) !== undefined;
+    }
+
+    async addTokensRecord(parameters: AddTokensRecordParams & FetchParameters): Promise<void> {
+        const {
+            recordId,
+            description,
+            signer,
+            callback,
+            locId,
+            files,
+        } = parameters;
+
+        const chainItemFiles: TokensRecordFile[] = [];
+        for(const itemFile of files) {
+            await itemFile.finalize(); // Ensure hash and size
+        }
+        for(const itemFile of files) {
+            chainItemFiles.push({
+                name: itemFile.name,
+                contentType: itemFile.contentType.mimeType,
+                hash: itemFile.hashOrContent.contentHash,
+                size: itemFile.size.toString(),
+            });
+        }
+
+        const submittable = this.nodeApi.tx.logionLoc.addTokensRecord(
+            locId.toDecimalString(),
+            recordId,
+            description,
+            newTokensRecordFiles(this.nodeApi, chainItemFiles),
+        );
+        await signer.signAndSend({
+            signerId: this.currentAddress,
+            submittable,
+            callback
+        });
+
+        for(const file of files) {
+            if(file.hashOrContent.hasContent) {
+                await this.uploadTokensRecordFile({ locId, recordId, file });
+            }
+        }
+    }
+
+    async uploadTokensRecordFile(parameters: { locId: UUID, recordId: string, file: ItemFileWithContent }) {
+        const { locId, recordId, file } = parameters;
+
+        await file.hashOrContent.finalize(); // Ensure validity
+
+        const formData = this.componentFactory.buildFormData();
+        formData.append('file', await file.hashOrContent.data(), file.name);
+        formData.append('hash', file.hashOrContent.contentHash);
+        try {
+            await this.backend().post(
+                `/api/records/${ locId.toString() }/${ recordId }/files`,
+                formData,
+                { headers: { "Content-Type": "multipart/form-data" } }
+            );
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    override async getTokensRecordDeliveries(parameters: GetTokensRecordDeliveriesRequest): Promise<ItemDeliveries> {
+        return getTokensRecordDeliveries(this.backend(), parameters);
     }
 }
 

@@ -1,9 +1,10 @@
 import { UUID } from "@logion/node-api";
 
-import { ItemDelivery, LocClient, UploadableCollectionItem, UploadableItemFile } from "./LocClient.js";
+import { LocClient, UploadableCollectionItem, UploadableItemFile } from "./LocClient.js";
 import { ItemTokenWithRestrictedType } from "./Token.js";
 import { LogionClassification, SpecificLicense, TermsAndConditionsElement, CreativeCommons } from "./license/index.js";
 import { CheckHashResult } from "./Loc.js";
+import { checkCertifiedCopy, CheckCertifiedCopyResult } from "./Deliveries.js";
 
 export class CollectionItem implements UploadableCollectionItem {
 
@@ -111,45 +112,6 @@ export class CollectionItem implements UploadableCollectionItem {
         }
 
         const deliveries = await this.locClient.getDeliveries({ locId: this._locId, itemId: this.clientItem.id });
-        for(const originalFileHash of Object.keys(deliveries)) {
-            for(let i = 0; i < deliveries[originalFileHash].length; ++i) {
-                const delivery = deliveries[originalFileHash][i];
-                if(delivery.copyHash === hash) {
-                    return {
-                        match: {
-                            ...delivery,
-                            originalFileHash
-                        },
-                        summary: i === 0 && delivery.belongsToCurrentOwner ? CheckResultType.POSITIVE : CheckResultType.NEGATIVE,
-                        logionOrigin: CheckResultType.POSITIVE,
-                        latest: i === 0 ? CheckResultType.POSITIVE : CheckResultType.NEGATIVE,
-                        nftOwnership: delivery.belongsToCurrentOwner ? CheckResultType.POSITIVE : CheckResultType.NEGATIVE,
-                    };
-                }
-            }
-        }
-        return {
-            summary: CheckResultType.NEGATIVE,
-            logionOrigin: CheckResultType.NEGATIVE,
-            latest: CheckResultType.NEGATIVE,
-            nftOwnership: CheckResultType.NEGATIVE,
-        };
+        return checkCertifiedCopy(deliveries, hash);
     }
-}
-
-export interface CheckCertifiedCopyResult {
-    match?: ItemDeliveryMatch;
-    summary: CheckResultType;
-    logionOrigin: CheckResultType;
-    nftOwnership: CheckResultType;
-    latest: CheckResultType;
-}
-
-export interface ItemDeliveryMatch extends ItemDelivery {
-    originalFileHash: string;
-}
-
-export enum CheckResultType {
-    POSITIVE,
-    NEGATIVE,
 }

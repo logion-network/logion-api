@@ -21,12 +21,14 @@ import {
     IdenfyVerificationSession,
     LocVerifiedIssuers,
     EMPTY_LOC_ISSUERS,
+    AddTokensRecordParams,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress } from "./Types.js";
 import { CollectionItem as CollectionItemClass } from "./CollectionItem.js";
 import { State } from "./State.js";
 import { LogionClient } from "./LogionClient.js";
+import { TokensRecord as TokensRecordClass } from "./TokensRecord.js";
 
 export interface LocData extends LocVerifiedIssuers {
     id: UUID
@@ -778,6 +780,23 @@ export async function getCollectionItem(parameters: { locClient: LocClient, locI
         }
 }
 
+export async function getTokensRecord(parameters: { locClient: LocClient, locId: UUID, recordId: string }): Promise<TokensRecordClass | undefined> {
+    const { locId, recordId, locClient } = parameters;
+        const tokensRecord = await locClient.getTokensRecord({
+            locId,
+            recordId
+        });
+        if(tokensRecord) {
+            return new TokensRecordClass({
+                locId,
+                locClient,
+                tokensRecord,
+            });
+        } else {
+            return undefined;
+        }
+}
+
 abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
 
     async getCollectionItem(parameters: { itemId: string }): Promise<CollectionItemClass | undefined> {
@@ -818,11 +837,37 @@ abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
             locId: this.locId
         })
     }
+
+    async getTokensRecord(parameters: { recordId: string }): Promise<TokensRecordClass | undefined> {
+        this.ensureCurrent();
+        return getTokensRecord({
+            locClient: this.locSharedState.client,
+            locId: this.locId,
+            recordId: parameters.recordId,
+        });
+    }
+
+    async getTokensRecords(): Promise<TokensRecordClass[]> {
+        this.ensureCurrent();
+        const clientRecords = await this.locSharedState.client.getTokensRecords({
+            locId: this.locId,
+        });
+        return clientRecords.map(tokensRecord => new TokensRecordClass({
+            locId: this.locId,
+            locClient: this.locSharedState.client,
+            tokensRecord,
+        }));
+    }
 }
 
 export interface UploadCollectionItemFileParams {
     itemId: string,
     itemFile: ItemFileWithContent,
+}
+
+export interface UploadTokensRecordFileParams {
+    recordId: string,
+    file: ItemFileWithContent,
 }
 
 export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
@@ -849,6 +894,33 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
             locId: this.locId,
             itemId: parameters.itemId,
             file: parameters.itemFile,
+        })
+        return this;
+    }
+
+    async addTokensRecord(parameters: AddTokensRecordParams): Promise<ClosedCollectionLoc> {
+        this.ensureCurrent();
+        const client = this.locSharedState.client;
+        if(parameters.files.length === 0) {
+            throw new Error("Cannot add a tokens record without files");
+        }
+        if(!await client.canAddRecord(this.request)) {
+            throw new Error("Current user is not allowed to add a tokens record");
+        }
+        await client.addTokensRecord({
+            locId: this.locId,
+            ...parameters
+        })
+        return this;
+    }
+
+    async uploadTokensRecordFile(parameters: UploadTokensRecordFileParams): Promise<ClosedCollectionLoc> {
+        this.ensureCurrent();
+        const client = this.locSharedState.client;
+        await client.uploadTokensRecordFile({
+            locId: this.locId,
+            recordId: parameters.recordId,
+            file: parameters.file,
         })
         return this;
     }
