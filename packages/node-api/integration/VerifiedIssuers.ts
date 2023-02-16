@@ -37,8 +37,8 @@ export async function verifiedIssuers() {
     const recordDescription = "Some description";
     const recordFileName = "File name";
     const recordFileContentType = "text/plain";
-    const recordFileSize = "4";
-    const recordFileHash = "0xf2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2";
+    const recordFileSize = "5";
+    const recordFileHash = "0x7d6fd7774f0d87624da6dcf16d0d3d104c3191e771fbe2f39c86aed4b2bf1a0f";
     await signAndSend(issuer, api.tx.logionLoc.addTokensRecord(
         collectionLocId.toDecimalString(),
         recordId,

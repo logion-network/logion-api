@@ -464,7 +464,7 @@ export function toTokensRecord(substrateObject: PalletLogionLocTokensRecord): To
         files: substrateObject.files.map(file => ({
             name: file.name.toUtf8(),
             contentType: file.contentType.toUtf8(),
-            size: file.size.toString(),
+            size: file.size_.toString(),
             hash: file.hash_.toHex(),
         })),
         submitter: substrateObject.submitter.toString(),
