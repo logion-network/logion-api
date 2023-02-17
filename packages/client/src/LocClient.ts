@@ -283,6 +283,12 @@ export interface GetTokensRecordDeliveriesRequest {
     recordId: string;
 }
 
+export interface CheckTokensRecordDeliveryRequest {
+    locId: UUID;
+    recordId: string;
+    hash: string;
+}
+
 export class LocMultiClient {
 
     static newLocMultiClient(sharedState: SharedState): LocMultiClient {
@@ -603,6 +609,8 @@ export abstract class LocClient {
     abstract checkDelivery(parameters: CheckCollectionDeliveryRequest): Promise<CollectionDelivery>;
 
     abstract getTokensRecordDeliveries(parameters: GetTokensRecordDeliveriesRequest): Promise<ItemDeliveries>;
+
+    abstract checkTokensRecordDelivery(parameters: CheckTokensRecordDeliveryRequest): Promise<CollectionDelivery>;
 }
 
 export class PublicLocClient extends LocClient {
@@ -628,12 +636,26 @@ export class PublicLocClient extends LocClient {
     override async getTokensRecordDeliveries(parameters: GetTokensRecordDeliveriesRequest): Promise<ItemDeliveries> {
         return getTokensRecordDeliveries(this.backend(), parameters);
     }
+
+    override async checkTokensRecordDelivery(parameters: CheckCollectionDeliveryRequest): Promise<CollectionDelivery> {
+        return checkTokensRecordDelivery(this.backend(), parameters);
+    }
 }
 
 async function getTokensRecordDeliveries(axios: AxiosInstance, parameters: GetTokensRecordDeliveriesRequest): Promise<ItemDeliveries> {
     const { locId, recordId } = parameters;
     const response = await axios.get(`/api/records/${ locId }/${ recordId }/deliveries`);
     return response.data;
+}
+
+async function checkTokensRecordDelivery(axios: AxiosInstance, parameters: CheckCollectionDeliveryRequest): Promise<CollectionDelivery> {
+    try {
+        const { locId, hash } = parameters;
+        const response = await axios.put(`/api/records/${ locId }/deliveries/check`, { copyHash: hash });
+        return response.data;
+    } catch(e) {
+        throw newBackendError(e);
+    }
 }
 
 export class AuthenticatedLocClient extends LocClient {
@@ -1032,6 +1054,10 @@ export class AuthenticatedLocClient extends LocClient {
 
     override async getTokensRecordDeliveries(parameters: GetTokensRecordDeliveriesRequest): Promise<ItemDeliveries> {
         return getTokensRecordDeliveries(this.backend(), parameters);
+    }
+
+    override async checkTokensRecordDelivery(parameters: CheckCollectionDeliveryRequest): Promise<CollectionDelivery> {
+        return checkTokensRecordDelivery(this.backend(), parameters);
     }
 }
 

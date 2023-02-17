@@ -2,7 +2,7 @@ import { UUID } from "@logion/node-api";
 
 import { LocClient, ClientTokensRecord, UploadableItemFile } from "./LocClient.js";
 import { CheckHashResult } from "./Loc.js";
-import { checkCertifiedCopy, CheckCertifiedCopyResult } from "./Deliveries.js";
+import { checkCertifiedCopy, CheckCertifiedCopyResult, CheckResultType } from "./Deliveries.js";
 
 export class TokensRecord implements ClientTokensRecord {
 
@@ -57,7 +57,29 @@ export class TokensRecord implements ClientTokensRecord {
     }
 
     async checkCertifiedCopy(hash: string): Promise<CheckCertifiedCopyResult> {
-        const deliveries = await this.locClient.getTokensRecordDeliveries({ locId: this._locId, recordId: this.record.id });
-        return checkCertifiedCopy(deliveries, hash);
+        try {
+            const delivery = await this.locClient.checkTokensRecordDelivery({
+                locId: this._locId,
+                recordId: this.record.id,
+                hash,
+            });
+            return {
+                summary: CheckResultType.POSITIVE,
+                logionOrigin: CheckResultType.POSITIVE,
+                latest: CheckResultType.NEGATIVE,
+                nftOwnership: CheckResultType.NEGATIVE,
+                match: {
+                    ...delivery,
+                    belongsToCurrentOwner: false,
+                }
+            }
+        } catch (e) {
+            return {
+                summary: CheckResultType.NEGATIVE,
+                logionOrigin: CheckResultType.NEGATIVE,
+                latest: CheckResultType.NEGATIVE,
+                nftOwnership: CheckResultType.NEGATIVE,
+            }
+        }
     }
 }
