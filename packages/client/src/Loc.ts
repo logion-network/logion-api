@@ -379,6 +379,7 @@ export interface CheckHashResult {
     metadataItem?: MergedMetadataItem;
     collectionItem?: CollectionItemClass;
     collectionItemFile?: ItemFile;
+    recordFile?: ItemFile;
 }
 
 export type AnyLocState = OffchainLocState | OnchainLocState;

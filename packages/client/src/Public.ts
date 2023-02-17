@@ -9,10 +9,10 @@ import {
     LocClient,
     LocMultiClient,
     PublicLocClient,
-    TokensRecord,
     GetTokensRecordsRequest
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
+import { TokensRecord } from "./TokensRecord.js";
 
 export class PublicApi {
 

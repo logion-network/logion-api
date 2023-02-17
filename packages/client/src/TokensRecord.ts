@@ -46,13 +46,13 @@ export class TokensRecord implements ClientTokensRecord {
         return this.record.files;
     }
 
-    getItemFile(hash: string): UploadableItemFile | undefined {
+    getRecordFile(hash: string): UploadableItemFile | undefined {
         return this.record.files.find(file => file.hash === hash);
     }
 
     checkHash(hash: string): CheckHashResult {
         return {
-            collectionItemFile: this.getItemFile(hash)
+            recordFile: this.getRecordFile(hash)
         }
     }
 
