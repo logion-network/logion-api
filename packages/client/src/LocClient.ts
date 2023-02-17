@@ -637,7 +637,7 @@ export class PublicLocClient extends LocClient {
         return getTokensRecordDeliveries(this.backend(), parameters);
     }
 
-    override async checkTokensRecordDelivery(parameters: CheckCollectionDeliveryRequest): Promise<CollectionDelivery> {
+    override async checkTokensRecordDelivery(parameters: CheckTokensRecordDeliveryRequest): Promise<CollectionDelivery> {
         return checkTokensRecordDelivery(this.backend(), parameters);
     }
 }
@@ -648,10 +648,10 @@ async function getTokensRecordDeliveries(axios: AxiosInstance, parameters: GetTo
     return response.data;
 }
 
-async function checkTokensRecordDelivery(axios: AxiosInstance, parameters: CheckCollectionDeliveryRequest): Promise<CollectionDelivery> {
+async function checkTokensRecordDelivery(axios: AxiosInstance, parameters: CheckTokensRecordDeliveryRequest): Promise<CollectionDelivery> {
     try {
-        const { locId, hash } = parameters;
-        const response = await axios.put(`/api/records/${ locId }/deliveries/check`, { copyHash: hash });
+        const { locId, recordId, hash } = parameters;
+        const response = await axios.put(`/api/records/${ locId }/${ recordId }/deliveries/check`, { copyHash: hash });
         return response.data;
     } catch(e) {
         throw newBackendError(e);
@@ -1056,7 +1056,7 @@ export class AuthenticatedLocClient extends LocClient {
         return getTokensRecordDeliveries(this.backend(), parameters);
     }
 
-    override async checkTokensRecordDelivery(parameters: CheckCollectionDeliveryRequest): Promise<CollectionDelivery> {
+    override async checkTokensRecordDelivery(parameters: CheckTokensRecordDeliveryRequest): Promise<CollectionDelivery> {
         return checkTokensRecordDelivery(this.backend(), parameters);
     }
 }
