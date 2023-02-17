@@ -1,6 +1,6 @@
 import { UUID } from "@logion/node-api";
 
-import { LocClient, TokensRecord as ClientTokensRecord, UploadableItemFile } from "./LocClient.js";
+import { LocClient, ClientTokensRecord, UploadableItemFile } from "./LocClient.js";
 import { CheckHashResult } from "./Loc.js";
 import { checkCertifiedCopy, CheckCertifiedCopyResult } from "./Deliveries.js";
 

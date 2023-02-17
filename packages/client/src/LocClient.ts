@@ -409,7 +409,7 @@ export interface OffchainCollectionItem {
     files: string[];
 }
 
-export interface TokensRecord {
+export interface ClientTokensRecord {
     id: string;
     description: string;
     addedOn: string;
@@ -530,7 +530,7 @@ export abstract class LocClient {
         });
     }
 
-    async getTokensRecord(parameters: { recordId: string } & FetchParameters): Promise<TokensRecord | undefined> {
+    async getTokensRecord(parameters: { recordId: string } & FetchParameters): Promise<ClientTokensRecord | undefined> {
         const { locId, recordId } = parameters;
         const onchainRecord = await this.nodeApi.query.logionLoc.tokensRecordsMap(locId.toDecimalString(), recordId);
         if(onchainRecord.isNone) {
@@ -550,7 +550,7 @@ export abstract class LocClient {
         return response.data;
     }
 
-    private mergeRecords(onchainItem: ChainTokensRecord, offchainItem: OffchainTokensRecord): TokensRecord {
+    private mergeRecords(onchainItem: ChainTokensRecord, offchainItem: OffchainTokensRecord): ClientTokensRecord {
         return {
             id: offchainItem.recordId,
             description: onchainItem.description,
@@ -564,7 +564,7 @@ export abstract class LocClient {
         }
     }
 
-    async getTokensRecords(parameters: GetTokensRecordsRequest): Promise<TokensRecord[]> {
+    async getTokensRecords(parameters: GetTokensRecordsRequest): Promise<ClientTokensRecord[]> {
         const { locId } = parameters;
         const onchainRecords = await this.nodeApi.query.logionLoc.tokensRecordsMap.entries(locId.toDecimalString());
 
