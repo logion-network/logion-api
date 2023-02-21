@@ -102,7 +102,7 @@ export function isErcNft(type: TokenType): boolean {
 
 const ETHEREUM_ADDRESS_LENGTH_IN_BITS = 20 * 8;
 
-export function validateErcToken(itemToken: ItemTokenWithRestrictedType): { result: TokenValidationResult, idObject?: any } {
+export function validateErcToken(itemToken: ItemTokenWithRestrictedType): { result: TokenValidationResult, idObject?: any } { // eslint-disable-line @typescript-eslint/no-explicit-any
     let idObject;
     try {
         idObject = JSON.parse(itemToken.id);
