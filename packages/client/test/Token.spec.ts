@@ -1,23 +1,57 @@
 import { ItemTokenWithRestrictedType, TokenType, validateToken, isTokenType } from "../src/index.js";
 
+const ercNonFungibleTypes: TokenType[] = [
+    "ethereum_erc721",
+    "ethereum_erc1155",
+    "goerli_erc721",
+    "goerli_erc1155",
+    "polygon_erc721",
+    "polygon_erc1155",
+    "polygon_mumbai_erc721",
+    "polygon_mumbai_erc1155"
+];
+
+const ercFongibleTypes: TokenType[] = [
+    "ethereum_erc20",
+    "goerli_erc20",
+    "polygon_erc20",
+    "polygon_mumbai_erc20"
+];
+
+const otherTypes: TokenType[] = [
+    "owner",
+    "singular_kusama"
+];
+
+const allTypes: TokenType[] = [
+    ...ercNonFungibleTypes,
+    ...ercFongibleTypes,
+    ...otherTypes,
+];
+
 describe("validateToken", () => {
 
     it("invalidates token with unexpected type", () => {
         testInvalid({
-            type: "ethereum_erc20" as TokenType,
+            type: "ethereum_erc42" as TokenType,
             id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","id":4391}'
-        }, "unsupported token type 'ethereum_erc20'");
+        }, "unsupported token type 'ethereum_erc42'");
     });
 
-    const types: TokenType[] = [ "ethereum_erc721", "ethereum_erc1155", "goerli_erc721", "goerli_erc1155", "polygon_erc721", "polygon_erc1155", "polygon_mumbai_erc721", "polygon_mumbai_erc1155" ];
-
-    for (const type of types) {
-        it(`validates valid ${ type } token`, () => testErcValidToken(type));
+    for (const type of ercNonFungibleTypes) {
+        it(`validates valid ${ type } token`, () => testNonFungibleErcValidToken(type));
         it(`invalidates ${ type } token with non-JSON id`, () => testErcInvalidIdType(type));
         it(`invalidates ${ type } token with missing id field`, () => testErcInvalidIdMisingId(type));
         it(`invalidates ${ type } token with missing contract field`, () => testErcInvalidIdMissingContract(type));
         it(`invalidates ${ type } token with wrongly typed contract field`, () => testErcInvalidIdContractIsNotString(type));
         it(`invalidates ${ type } token with wrongly typed id field`, () => testErcInvalidIdIdIsNotString(type));
+    }
+
+    for (const type of ercFongibleTypes) {
+        it(`validates valid ${ type } token`, () => testFungibleErcValidToken(type));
+        it(`invalidates ${ type } token with non-JSON id`, () => testErcInvalidIdType(type));
+        it(`invalidates ${ type } token with missing contract field`, () => testErcInvalidIdMissingContract(type));
+        it(`invalidates ${ type } token with wrongly typed contract field`, () => testErcInvalidIdContractIsNotString(type));
     }
 
     it("validates valid owner token", () => {
@@ -56,7 +90,7 @@ describe("validateToken", () => {
     });
 });
 
-function testErcValidToken(type: TokenType) {
+function testNonFungibleErcValidToken(type: TokenType) {
     testValid({
         type,
         id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","id":"4391"}'
@@ -114,29 +148,18 @@ const VALID_SINGULAR_KUSAMA_TOKEN_ID = "15057162-acba02847598b67746-DSTEST1-LUXE
 
 const INVALID_SINGULAR_KUSAMA_TOKEN_ID = "*15057162-acba02847598b67746-DSTEST1-LUXEMBOURG_HOUSE-00000001";
 
+function testFungibleErcValidToken(type: TokenType) {
+    testValid({
+        type,
+        id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5"}'
+    });
+}
+
 describe("isTokenType", () => {
 
-    it("returns true given 'ethereum_erc721'", () => {
-        expect(isTokenType("ethereum_erc721")).toBe(true);
-    });
-
-    it("returns true given 'ethereum_erc1155'", () => {
-        expect(isTokenType("ethereum_erc1155")).toBe(true);
-    });
-
-    it("returns true given 'goerli_erc721'", () => {
-        expect(isTokenType("goerli_erc721")).toBe(true);
-    });
-
-    it("returns true given 'goerli_erc1155'", () => {
-        expect(isTokenType("goerli_erc1155")).toBe(true);
-    });
-
-    it("returns true given 'owner'", () => {
-        expect(isTokenType("owner")).toBe(true);
-    });
-
-    it("returns true given 'singular_kusama'", () => {
-        expect(isTokenType("singular_kusama")).toBe(true);
-    });
+    for (const type of allTypes) {
+        it(`returns true given '${type}'`, () => {
+            expect(isTokenType(type)).toBe(true);
+        });
+    }
 });
