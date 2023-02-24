@@ -59,6 +59,7 @@ export interface LocData extends LocVerifiedIssuers {
     company?: string;
     iDenfy?: IdenfyVerificationSession;
     voteId?: string;
+    template?: string;
 }
 
 export interface MergedLink extends LocLink, Published {
@@ -235,7 +236,7 @@ export class LocsState extends State {
     }
 
     async requestLoc(params: CreateLocRequestParams & { locType: LocType }): Promise<DraftRequest | PendingRequest> {
-        const { legalOfficer, locType, description, userIdentity, userPostalAddress, company, draft } = params;
+        const { legalOfficer, locType, description, userIdentity, userPostalAddress, company, draft, template } = params;
         const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
         const request = await client.createLocRequest({
             ownerAddress: legalOfficer.address,
@@ -246,6 +247,7 @@ export class LocsState extends State {
             userPostalAddress,
             company,
             draft,
+            template,
         });
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
         if(draft) {
@@ -368,6 +370,7 @@ export interface CreateLocRequestParams {
     userPostalAddress?: PostalAddress;
     company?: string;
     draft: boolean;
+    template?: string;
 }
 
 export interface CreateSofRequestParams {
@@ -554,6 +557,7 @@ export abstract class LocRequestState extends State {
             company: request.company,
             iDenfy: request.iDenfy,
             voteId: request.voteId ? request.voteId : undefined,
+            template: request.template,
         };
 
         if(data.voidInfo && request.voidInfo) {
