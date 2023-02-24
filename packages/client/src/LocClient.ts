@@ -117,6 +117,7 @@ export interface LocRequest {
     iDenfy?: IdenfyVerificationSession;
     voteId?: string | null;
     selectedIssuers: VerifiedIssuerIdentity[];
+    template?: string;
 }
 
 export interface IdenfyVerificationSession {
@@ -242,6 +243,7 @@ export interface CreateLocRequest {
     userPostalAddress?: PostalAddress;
     company?: string;
     draft: boolean;
+    template?: string;
 }
 
 export interface CreateSofRequest {
