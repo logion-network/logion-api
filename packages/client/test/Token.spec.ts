@@ -1,4 +1,10 @@
-import { ItemTokenWithRestrictedType, TokenType, validateToken, isTokenType } from "../src/index.js";
+import {
+    ItemTokenWithRestrictedType,
+    TokenType,
+    validateToken,
+    isTokenType,
+    isTokenCompatibleWith, NetworkType
+} from "../src/index.js";
 
 const ercNonFungibleTypes: TokenType[] = [
     "ethereum_erc721",
@@ -11,7 +17,7 @@ const ercNonFungibleTypes: TokenType[] = [
     "polygon_mumbai_erc1155"
 ];
 
-const ercFongibleTypes: TokenType[] = [
+const ercFungibleTypes: TokenType[] = [
     "ethereum_erc20",
     "goerli_erc20",
     "polygon_erc20",
@@ -25,7 +31,7 @@ const otherTypes: TokenType[] = [
 
 const allTypes: TokenType[] = [
     ...ercNonFungibleTypes,
-    ...ercFongibleTypes,
+    ...ercFungibleTypes,
     ...otherTypes,
 ];
 
@@ -45,14 +51,31 @@ describe("validateToken", () => {
         it(`invalidates ${ type } token with missing contract field`, () => testErcInvalidIdMissingContract(type));
         it(`invalidates ${ type } token with wrongly typed contract field`, () => testErcInvalidIdContractIsNotString(type));
         it(`invalidates ${ type } token with wrongly typed id field`, () => testErcInvalidIdIdIsNotString(type));
+        it(`${ type } is ETHEREUM-compatible`, () => testIsTokenCompatibleWith(type, 'ETHEREUM'))
+        it(`${ type } is NOT POLKADOT-compatible`, () => testIsTokenNotCompatibleWith(type, 'POLKADOT'))
     }
 
-    for (const type of ercFongibleTypes) {
+    for (const type of ercFungibleTypes) {
         it(`validates valid ${ type } token`, () => testFungibleErcValidToken(type));
         it(`invalidates ${ type } token with non-JSON id`, () => testErcInvalidIdType(type));
         it(`invalidates ${ type } token with missing contract field`, () => testErcInvalidIdMissingContract(type));
         it(`invalidates ${ type } token with wrongly typed contract field`, () => testErcInvalidIdContractIsNotString(type));
+        it(`checks that ${ type } is ETHEREUM-compatible`, () => testIsTokenCompatibleWith(type, 'ETHEREUM'))
+        it(`checks that ${ type } is NOT POLKADOT-compatible`, () => testIsTokenNotCompatibleWith(type, 'POLKADOT'))
     }
+
+    it(`checks that owner is both POLKADOT- and ETHEREUM-compatible`, () => {
+        testIsTokenCompatibleWith('owner', 'POLKADOT');
+        testIsTokenCompatibleWith('owner', 'ETHEREUM');
+    });
+
+    it(`checks that singular_kusama is NOT ETHEREUM-compatible`, () =>
+        testIsTokenNotCompatibleWith('singular_kusama', 'ETHEREUM')
+    );
+
+    it(`checks that singular_kusama is POLKADOT-compatible`, () =>
+        testIsTokenCompatibleWith('singular_kusama', 'POLKADOT')
+    );
 
     it("validates valid owner token", () => {
         testValid({
@@ -153,6 +176,16 @@ function testFungibleErcValidToken(type: TokenType) {
         type,
         id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5"}'
     });
+}
+
+function testIsTokenCompatibleWith(type: TokenType, networkType: NetworkType) {
+    const result = isTokenCompatibleWith(type, networkType)
+    expect(result).toBeTrue();
+}
+
+function testIsTokenNotCompatibleWith(type: TokenType, networkType: NetworkType) {
+    const result = isTokenCompatibleWith(type, networkType)
+    expect(result).toBeFalse();
 }
 
 describe("isTokenType", () => {
