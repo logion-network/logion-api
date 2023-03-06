@@ -20,7 +20,9 @@ export type TokenType =
     | 'polygon_erc20'
     | 'polygon_mumbai_erc20'
     | 'owner'
-;
+    ;
+
+export type NetworkType = 'ETHEREUM' | 'POLKADOT';
 
 export function isTokenType(type: string): type is TokenType {
     return (
@@ -39,6 +41,18 @@ export function isTokenType(type: string): type is TokenType {
         || type === 'polygon_mumbai_erc20'
         || type === 'owner'
     );
+}
+
+export function isTokenCompatibleWith(type: TokenType, networkType: NetworkType): boolean {
+    if (networkType === 'ETHEREUM') {
+        return type.startsWith("ethereum")
+            || type.startsWith("goerli")
+            || type.startsWith("polygon")
+            || type === "owner"
+    } else {
+        return type === "singular_kusama"
+            || type === "owner"
+    }
 }
 
 export interface TokenValidationResult {
