@@ -1,6 +1,6 @@
 {
   "name": "@logion/extension",
-  "version": "0.5.9-1",
+  "version": "0.5.9",
   "description": "logion SDK for Polkadot JS extension",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
