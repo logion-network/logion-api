@@ -9,7 +9,8 @@ import {
     DefaultComponentFactory,
     DirectoryClient,
     LogionClientConfig,
-    LegalOfficer
+    LegalOfficer,
+    LegalOfficerClass
 } from "../src/index.js";
 
 export class TestConfigFactory {
@@ -19,6 +20,10 @@ export class TestConfigFactory {
     }
 
     private _componentFactory: Mock<ComponentFactory>;
+
+    get componentFactory() {
+        return this._componentFactory.object();
+    }
 
     setupDefaultAxiosInstanceFactory() {
         this._componentFactory.setup(instance => instance.buildAxiosFactory).returns(DefaultComponentFactory.buildAxiosFactory);
@@ -52,7 +57,8 @@ export class TestConfigFactory {
 
     setupAuthenticationClientMock(config: LogionClientConfig, legalOfficers: LegalOfficer[]): Mock<AuthenticationClient> {
         const authenticationClient = new Mock<AuthenticationClient>();
-        this._componentFactory.setup(instance => instance.buildAuthenticationClient(config.directoryEndpoint, It.Is<LegalOfficer[]>(value => legalOfficers.every(item => value.includes(item))), It.IsAny()))
+        this._componentFactory.setup(instance => instance.buildAuthenticationClient(config.directoryEndpoint,
+                It.Is<LegalOfficerClass[]>(value => legalOfficers.map(lo => lo.address).every(item => value.map(lo => lo.address).includes(item))), It.IsAny()))
             .returns(authenticationClient.object());
         return authenticationClient;
     }
@@ -81,5 +87,12 @@ export class TestConfigFactory {
 
     setupDefaultFormDataFactory() {
         this._componentFactory.setup(instance => instance.buildFormData()).returns(new FormData());
+    }
+
+    buildLegalOfficerClasses(legalOfficers: LegalOfficer[]) {
+        return legalOfficers.map(legalOfficer => new LegalOfficerClass({
+            legalOfficer,
+            axiosFactory: this._componentFactory.object().buildAxiosFactory(),
+        }));
     }
 }

@@ -11,7 +11,7 @@ import { getInitialState, ProtectionState } from "./Recovery.js";
 import { RecoveryClient } from "./RecoveryClient.js";
 import { authenticatedCurrentAddress, LegalOfficerEndpoint, LogionClientConfig, SharedState } from "./SharedClient.js";
 import { RawSigner } from "./Signer.js";
-import { LegalOfficer } from "./Types.js";
+import { LegalOfficer, LegalOfficerClass } from "./Types.js";
 import { LocsState } from "./Loc.js";
 import { PublicApi } from "./Public.js";
 import { FetchAllLocsParams } from "./LocClient.js";
@@ -74,11 +74,11 @@ export class LogionClient {
         return this.sharedState.directoryClient;
     }
 
-    get legalOfficers(): LegalOfficer[] {
+    get legalOfficers(): LegalOfficerClass[] {
         return this.sharedState.legalOfficers;
     }
 
-    get allLegalOfficers(): LegalOfficer[] {
+    get allLegalOfficers(): LegalOfficerClass[] {
         return this.sharedState.allLegalOfficers;
     }
 
@@ -120,10 +120,22 @@ export class LogionClient {
             this.sharedState.axiosFactory
         );
         const tokens = await client.refresh(this.sharedState.tokens);
+        const token = tokens.get(this.currentAddress || "")?.value;
+        const sharedState = this.refreshLegalOfficers(this.sharedState, token);
         return new LogionClient({
-            ...this.sharedState,
+            ...sharedState,
             tokens,
         });
+    }
+
+    private refreshLegalOfficers(sharedState: SharedState, token?: string): SharedState {
+        const allLegalOfficers = sharedState.allLegalOfficers.map(legalOfficer => legalOfficer.withToken(token));
+        const legalOfficers = sharedState.legalOfficers.map(legalOfficer => legalOfficer.withToken(token));
+        return {
+            ...sharedState,
+            allLegalOfficers,
+            legalOfficers,
+        };
     }
 
     withCurrentAddress(currentAddress?: string): LogionClient {
@@ -141,8 +153,10 @@ export class LogionClient {
                 this.sharedState.axiosFactory,
             );
         }
+        const token = this.sharedState.tokens.get(currentAddress || "")?.value;
+        const sharedState = this.refreshLegalOfficers(this.sharedState, token);
         return new LogionClient({
-            ...this.sharedState,
+            ...sharedState,
             currentAddress,
             directoryClient,
         });
@@ -211,18 +225,39 @@ export class LogionClient {
         return this.sharedState.allLegalOfficers.find(legalOfficer => legalOfficer.address === address) !== undefined;
     }
 
+    getLegalOfficer(address: string): LegalOfficerClass {
+        const legalOfficer = this.sharedState.allLegalOfficers.find(legalOfficer => legalOfficer.address === address);
+        if(!legalOfficer) {
+            throw new Error(`No legal officer with address ${address}`);
+        }
+        return legalOfficer;
+    }
+
     async isRegisteredLegalOfficer(address: string): Promise<boolean> {
         this.ensureConnected();
         const option = await this.sharedState.nodeApi.query.loAuthorityList.legalOfficerSet(address);
         return option.isSome;
     }
 
+    /**
+     * Builds an axios instance enabling direct access to a legal officer's node REST API.
+     * 
+     * @param legalOfficer The legal officer
+     * @returns The axios instance
+     * @deprecated use LegalOfficerClass.buildAxiosToNode() instead
+     */
     buildAxios(legalOfficer: LegalOfficer): AxiosInstance {
         this.ensureConnected();
-        if(!legalOfficer.node) {
-            throw new Error("Legal officer has currently no node");
+        if(legalOfficer instanceof LegalOfficerClass) {
+            return legalOfficer.buildAxiosToNode();
+        } else {
+            const legalOfficerClass = new LegalOfficerClass({
+                legalOfficer,
+                axiosFactory: this.sharedState.axiosFactory,
+                token: this.token?.value,
+            })
+            return legalOfficerClass.buildAxiosToNode();
         }
-        return this.sharedState.axiosFactory.buildAxiosInstance(legalOfficer.node, this.token?.value);
     }
 
     buildMultiSourceHttpClient(): MultiSourceHttpClient<LegalOfficerEndpoint> {

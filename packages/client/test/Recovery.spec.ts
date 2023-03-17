@@ -565,7 +565,7 @@ describe("PendingProtection", () => {
         const state = new PendingProtection({
             ...sharedState,
             selectedLegalOfficers: [ ALICE, BOB ],
-            legalOfficers,
+            legalOfficers: sharedState.legalOfficerClasses,
             pendingProtectionRequests: [ aliceRequest, bobRequest ],
             acceptedProtectionRequests: [],
             rejectedProtectionRequests: [],
@@ -615,7 +615,7 @@ describe("PendingProtection", () => {
         const state = new PendingProtection({
             ...sharedState,
             selectedLegalOfficers: [ ALICE, BOB ],
-            legalOfficers,
+            legalOfficers: sharedState.legalOfficerClasses,
             pendingProtectionRequests: [ aliceRequest, bobRequest ],
             acceptedProtectionRequests: [],
             rejectedProtectionRequests: [],
@@ -718,7 +718,7 @@ describe("AcceptedProtection", () => {
         const state = new AcceptedProtection({
             ...sharedState,
             selectedLegalOfficers: [ ALICE, BOB ],
-            legalOfficers,
+            legalOfficers: sharedState.legalOfficerClasses,
             pendingProtectionRequests: [],
             acceptedProtectionRequests: [ aliceRequest, bobRequest ],
             rejectedProtectionRequests: [],
@@ -778,7 +778,7 @@ describe("AcceptedProtection", () => {
         const state = new AcceptedProtection({
             ...sharedState,
             selectedLegalOfficers: [ ALICE, BOB ],
-            legalOfficers,
+            legalOfficers: sharedState.legalOfficerClasses,
             pendingProtectionRequests: [],
             acceptedProtectionRequests: [ aliceRequest, bobRequest ],
             rejectedProtectionRequests: [],
@@ -848,7 +848,7 @@ describe("PendingRecovery", () => {
         const state = new PendingRecovery({
             ...sharedState,
             selectedLegalOfficers: [ ALICE, BOB ],
-            legalOfficers,
+            legalOfficers: sharedState.legalOfficerClasses,
             pendingProtectionRequests: [],
             acceptedProtectionRequests: [ aliceRequest, bobRequest ],
             rejectedProtectionRequests: [],

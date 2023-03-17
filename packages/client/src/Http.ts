@@ -1,10 +1,11 @@
-import { AxiosInstance } from 'axios';
+import { AxiosInstance, AxiosResponse } from 'axios';
 import { DateTime } from 'luxon';
 
 import { AxiosFactory } from "./AxiosFactory.js";
 import { LegalOfficerEndpoint } from "./SharedClient.js";
 import { LegalOfficer } from "./Types.js";
 import { NetworkState } from "./NetworkState.js";
+import { MimeType } from './Mime.js';
 
 export interface Token {
     readonly value: string;
@@ -143,4 +144,25 @@ export function aggregateArrays<E>(response: MultiResponse<E[]>): E[] {
         array = array.concat(response[key]);
     }
     return array;
+}
+
+export interface TypedFile {
+    data: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    mimeType: MimeType,
+}
+
+export async function downloadFile(
+    axios: AxiosInstance,
+    url: string,
+): Promise<TypedFile> {
+    const response = await axios.get(url, { responseType: 'blob' });
+    return typedFile(response);
+}
+
+function typedFile(response: AxiosResponse): TypedFile {
+    const contentType: string = response.headers['content-type'];
+    return {
+        data: response.data,
+        mimeType: MimeType.from(contentType),
+    };
 }

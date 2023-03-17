@@ -5,6 +5,7 @@ import { ItemTokenWithRestrictedType } from "./Token.js";
 import { LogionClassification, SpecificLicense, TermsAndConditionsElement, CreativeCommons } from "./license/index.js";
 import { CheckHashResult } from "./Loc.js";
 import { checkCertifiedCopy, CheckCertifiedCopyResult } from "./Deliveries.js";
+import { downloadFile, TypedFile } from "./Http.js";
 
 export class CollectionItem implements UploadableCollectionItem {
 
@@ -113,5 +114,18 @@ export class CollectionItem implements UploadableCollectionItem {
 
         const deliveries = await this.locClient.getDeliveries({ locId: this._locId, itemId: this.clientItem.id });
         return checkCertifiedCopy(deliveries, hash);
+    }
+
+    async isAuthenticatedTokenOwner(): Promise<boolean> {
+        try {
+            await this.locClient.backend().get(`/api/collection/${ this._locId.toString() }/items/${ this.clientItem.id }/check`);
+            return true;
+        } catch(e) {
+            return false;
+        }
+    }
+
+    async getFile(hash: string): Promise<TypedFile> {
+        return downloadFile(this.locClient.backend(), `/api/collection/${ this._locId.toString() }/${ this.clientItem.id }/files/${ hash }/source`);
     }
 }

@@ -1,3 +1,4 @@
+import { isValidAccountId, LogionNodeApi } from "@logion/node-api";
 import { isHex } from "@polkadot/util";
 
 export interface ItemTokenWithRestrictedType {
@@ -60,7 +61,7 @@ export interface TokenValidationResult {
     error?: string;
 }
 
-export function validateToken(itemToken: ItemTokenWithRestrictedType): TokenValidationResult {
+export function validateToken(api: LogionNodeApi, itemToken: ItemTokenWithRestrictedType): TokenValidationResult {
     if(isErcNft(itemToken.type)) {
         const { result, idObject } = validateErcToken(itemToken);
         if(result.valid) {
@@ -85,12 +86,12 @@ export function validateToken(itemToken: ItemTokenWithRestrictedType): TokenVali
     } else if(itemToken.type.includes("erc20")) {
         return validateErcToken(itemToken).result;
     } else if(itemToken.type === "owner") {
-        if(isHex(itemToken.id, ETHEREUM_ADDRESS_LENGTH_IN_BITS)) {
+        if(isHex(itemToken.id, ETHEREUM_ADDRESS_LENGTH_IN_BITS) || isValidAccountId(api, itemToken.id)) {
             return { valid: true };
         } else {
             return {
                 valid: false,
-                error: "token ID must be a valid Ethereum address",
+                error: "token ID must be a valid Ethereum or Polkadot address",
             }
         }
     } else if(itemToken.type === "singular_kusama") {

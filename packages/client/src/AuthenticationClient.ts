@@ -5,7 +5,7 @@ import { fromIsoString, toIsoString } from "./DateTimeUtil.js";
 
 import { Token } from "./Http";
 import { RawSigner, SignatureType } from "./Signer";
-import { LegalOfficer } from "./Types";
+import { LegalOfficerClass } from "./Types";
 
 interface AuthenticationSignature {
     signature: string;
@@ -17,7 +17,7 @@ type AuthenticationResponse = Record<string, { value: string, expiredOn: string 
 
 export class AuthenticationClient {
 
-    constructor(directoryEndpoint: string, legalOfficers: LegalOfficer[], axiosFactory: AxiosFactory) {
+    constructor(directoryEndpoint: string, legalOfficers: LegalOfficerClass[], axiosFactory: AxiosFactory) {
         this.directoryEndpoint = directoryEndpoint;
         this.legalOfficers = legalOfficers;
         this.axiosFactory = axiosFactory;
@@ -25,7 +25,7 @@ export class AuthenticationClient {
 
     private directoryEndpoint: string;
 
-    private legalOfficers: LegalOfficer[];
+    private legalOfficers: LegalOfficerClass[];
 
     private axiosFactory: AxiosFactory;
 
@@ -45,7 +45,7 @@ export class AuthenticationClient {
         for(let i = 0; i < this.legalOfficers.length; ++i) {
             const legalOfficer = this.legalOfficers[i];
             try {
-                const axios = this.axiosFactory.buildAxiosInstance(legalOfficer.node);
+                const axios = legalOfficer.buildAxiosToNode();
                 return axiosConsumer(axios);
             } catch(error) {
                 console.log(error);

@@ -14,7 +14,7 @@ import {
     buildTestAuthenticatedSharedSate,
     SUCCESSFUL_SUBMISSION
 } from "./Utils.js";
-import { AccountTokens, LogionClient, Transaction, AxiosFactory, BalanceState, Signer } from "../src/index.js";
+import { AccountTokens, LogionClient, Transaction, AxiosFactory, BalanceState, Signer, LegalOfficerClass } from "../src/index.js";
 
 const REQUESTER_ADDRESS = "5ERRWWYABvYjyUG2oLCNifkmcCQT44ijPpQNxtwZZFj86Jjd";
 
@@ -83,7 +83,10 @@ describe("Balance", () => {
 
             setupFetchTransactions(axiosFactory, transactions, REQUESTER_ADDRESS)
 
-            directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([ ALICE ]));
+            directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([ new LegalOfficerClass({
+                legalOfficer: ALICE,
+                axiosFactory: axiosFactory.object(),
+            }) ]));
 
             const accountInfo = mockAccountInfo(100n);
             nodeApi.setup(instance => instance.query.system.account(REQUESTER_ADDRESS))
