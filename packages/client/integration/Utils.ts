@@ -13,7 +13,7 @@ import {
     ISubmittableResult,
     LegalOfficer,
     LogionClient,
-    DefaultSignAndSendStrategy
+    DefaultSignAndSendStrategy,
 } from "../src/index.js";
 import { ALICE, BOB, CHARLIE } from "../test/Utils.js";
 import { requireDefined } from "../src/assertions.js";

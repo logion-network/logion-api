@@ -25,11 +25,12 @@ import {
     GetTokensRecordsRequest,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
-import { LegalOfficer, UserIdentity, PostalAddress } from "./Types.js";
+import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
 import { CollectionItem as CollectionItemClass } from "./CollectionItem.js";
 import { State } from "./State.js";
 import { LogionClient } from "./LogionClient.js";
 import { TokensRecord as TokensRecordClass } from "./TokensRecord.js";
+import { downloadFile, TypedFile } from "./Http.js";
 
 export interface LocData extends LocVerifiedIssuers {
     id: UUID
@@ -269,7 +270,7 @@ export class LocsState extends State {
         locsState._locs = await this.toStates(locMultiClient, locsState, locRequests);
 
         if(locsState.isVerifiedThirdParty) {
-            const legalOfficers: LegalOfficer[] = this.getVerifiedThirdPartyLegalOfficers(locsState);
+            const legalOfficers = this.getVerifiedThirdPartyLegalOfficers(locsState);
             const verifiedThirdPartyRequests = await locMultiClient.fetchAllForVerifiedThirdParty(legalOfficers);
             locsState._verifiedThirdPartyLocs = await this.toStates(locMultiClient, locsState, verifiedThirdPartyRequests);
         }
@@ -307,7 +308,7 @@ export class LocsState extends State {
         }
     }
 
-    private getVerifiedThirdPartyLegalOfficers(locsState: LocsState): LegalOfficer[] {
+    private getVerifiedThirdPartyLegalOfficers(locsState: LocsState): LegalOfficerClass[] {
         return locsState.closedLocs["Identity"]
             .filter(loc => loc.data().verifiedThirdParty)
             .map(loc => loc.data().ownerAddress)
@@ -315,7 +316,7 @@ export class LocsState extends State {
             .filter(this.isDefinedLegalOfficer);
     }
 
-    private isDefinedLegalOfficer(legalOfficer: LegalOfficer | undefined): legalOfficer is LegalOfficer {
+    private isDefinedLegalOfficer(legalOfficer: LegalOfficerClass | undefined): legalOfficer is LegalOfficerClass {
         return legalOfficer !== undefined;
     }
 
@@ -364,7 +365,7 @@ export interface LocSharedState extends SharedState {
 }
 
 export interface CreateLocRequestParams {
-    legalOfficer: LegalOfficer;
+    legalOfficer: LegalOfficerClass;
     description: string;
     userIdentity?: UserIdentity;
     userPostalAddress?: PostalAddress;
@@ -397,6 +398,7 @@ export abstract class LocRequestState extends State {
     protected readonly request: LocRequest;
     protected readonly legalOfficerCase?: LegalOfficerCase;
     protected readonly locIssuers: LocVerifiedIssuers;
+    protected readonly owner: LegalOfficerClass;
 
     constructor(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers) {
         super();
@@ -404,6 +406,12 @@ export abstract class LocRequestState extends State {
         this.request = request;
         this.legalOfficerCase = legalOfficerCase;
         this.locIssuers = locIssuers;
+
+        const owner = locSharedState.allLegalOfficers.find(officer => officer.address === request.ownerAddress);
+        if(!owner) {
+            throw new Error("LOC owner is not a registered legal officer");
+        }
+        this.owner = owner;
     }
 
     get locId(): UUID {
@@ -626,6 +634,10 @@ export abstract class LocRequestState extends State {
             ...this.locSharedState,
             locsState
         }, this.request, this.legalOfficerCase, this.locIssuers));
+    }
+
+    async getFile(hash: string): Promise<TypedFile> {
+        return downloadFile(this.owner.buildAxiosToNode(), `/api/loc-request/${ this.request.id }/files/${ hash }`);
     }
 }
 

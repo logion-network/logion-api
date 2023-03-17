@@ -33,7 +33,8 @@ import {
     EditableRequest,
     LogionClient,
     SharedState,
-    FormDataLike
+    FormDataLike,
+    LegalOfficerClass
 } from "../src/index.js";
 import {
     ALICE,
@@ -74,7 +75,8 @@ describe("LocsState", () => {
         expect(locs.hasValidIdentityLoc(CHARLIE)).toBeFalse();
 
         expect(locs.legalOfficersWithValidIdentityLoc.length).toEqual(1);
-        expect(locs.legalOfficersWithValidIdentityLoc[0]).toEqual(BOB);
+        expect(locs.legalOfficersWithValidIdentityLoc[0]).toBeInstanceOf(LegalOfficerClass);
+        expect(locs.legalOfficersWithValidIdentityLoc[0].address).toEqual(BOB.address);
     })
 
     it("detects that user is not a verified third party", async() => {

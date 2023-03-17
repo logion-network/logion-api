@@ -163,7 +163,7 @@ async function buildSharedState(): Promise<SharedState> {
             aliceAxiosMock.setup(instance => instance.get(`/api/collection/${ LOC_REQUEST.id }/items/${ EXISTING_ITEM_ID }`)).returnsAsync({
                 data: OFFCHAIN_COLLECTION_ITEM
             } as AxiosResponse);
-            axiosFactoryMock.setup(instance => instance.buildAxiosInstance(ALICE.node))
+            axiosFactoryMock.setup(instance => instance.buildAxiosInstance(ALICE.node, undefined))
                 .returns(aliceAxiosMock.object());
 
             nodeApiMock = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);

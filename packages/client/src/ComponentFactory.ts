@@ -4,7 +4,7 @@ import { AxiosFactory } from "./AxiosFactory.js";
 import { DirectoryClient } from "./DirectoryClient.js";
 import { NetworkState } from "./NetworkState.js";
 import { LegalOfficerEndpoint } from "./SharedClient.js";
-import { LegalOfficer } from "./Types.js";
+import { LegalOfficerClass } from "./Types.js";
 
 export interface FormDataLike {
     append(name: string, value: any, fileName?: string): void; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -17,7 +17,7 @@ export type UploadableData = File | Blob | Buffer | NodeJS.ReadableStream;
 export interface ComponentFactory {
     buildAxiosFactory: () => AxiosFactory;
     buildDirectoryClient: (directoryEndpoint: string, axiosFactory: AxiosFactory, token?: string) => DirectoryClient;
-    buildAuthenticationClient: (directoryEndpoint: string, legalOfficers: LegalOfficer[], axiosFactory: AxiosFactory) => AuthenticationClient;
+    buildAuthenticationClient: (directoryEndpoint: string, legalOfficers: LegalOfficerClass[], axiosFactory: AxiosFactory) => AuthenticationClient;
     buildNetworkState(nodesUp: LegalOfficerEndpoint[], nodesDown: LegalOfficerEndpoint[]): NetworkState<LegalOfficerEndpoint>;
     buildNodeApi(rpcEndpoints: string[]): Promise<LogionNodeApi>;
     buildFormData: () => FormDataLike;
@@ -26,7 +26,7 @@ export interface ComponentFactory {
 export const DefaultComponentFactory: ComponentFactory = {
     buildAxiosFactory: () => new AxiosFactory(),
     buildDirectoryClient: (directoryEndpoint: string, axiosFactory: AxiosFactory, token?: string) => new DirectoryClient(directoryEndpoint, axiosFactory, token),
-    buildAuthenticationClient: (directoryEndpoint: string, legalOfficers: LegalOfficer[], axiosFactory: AxiosFactory) => new AuthenticationClient(directoryEndpoint, legalOfficers, axiosFactory),
+    buildAuthenticationClient: (directoryEndpoint: string, legalOfficers: LegalOfficerClass[], axiosFactory: AxiosFactory) => new AuthenticationClient(directoryEndpoint, legalOfficers, axiosFactory),
     buildNetworkState: (nodesUp: LegalOfficerEndpoint[], nodesDown: LegalOfficerEndpoint[]) => new NetworkState(nodesUp, nodesDown),
     buildNodeApi: (rpcEndpoints: string[]) => buildApi(rpcEndpoints),
     buildFormData: () => new FormData(),

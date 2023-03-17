@@ -1,4 +1,5 @@
 import { LegalOfficerCase, UUID } from "@logion/node-api";
+import { DateTime } from "luxon";
 import { LocSharedState, LocsState, ReadOnlyLocState } from "./Loc.js";
 import { AuthenticatedLocClient, EMPTY_LOC_ISSUERS, LocMultiClient, LocRequest } from "./LocClient.js";
 import { LogionClient } from "./LogionClient.js";
@@ -50,17 +51,15 @@ export class VoterApi {
         if (!this.sharedState.currentAddress) {
             throw new Error("Current address must be set");
         }
-        const token = this.sharedState.tokens.get(this.sharedState.currentAddress);
-        if (!token) {
+        if (!this.logionClient.isTokenValid(DateTime.now())) {
             throw new Error("Client must be authenticated");
         }
         const client = new AuthenticatedLocClient({
             ...this.sharedState,
             axiosFactory: this.sharedState.axiosFactory,
             nodeApi: this.sharedState.nodeApi,
-            legalOfficer,
             currentAddress: this.sharedState.currentAddress,
-            token: token.value,
+            legalOfficer,
         });
         const locRequest = await client.getLocRequest({ locId });
         return {

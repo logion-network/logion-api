@@ -2,11 +2,10 @@ import { AxiosInstance, AxiosResponse } from "axios";
 import { DateTime } from "luxon";
 import { It, Mock } from 'moq.ts';
 
-import { AccountTokens, AuthenticationClient } from "../src/index.js";
+import { AccountTokens, AuthenticationClient, LegalOfficer, LegalOfficerClass } from "../src/index.js";
 import { AxiosFactory } from "../src/index.js";
 import { Token } from "../src/index.js";
 import { RawSigner, SignRawParameters } from "../src/index.js";
-import { LegalOfficer } from "../src/index.js";
 import { ALICE, buildAliceTokens, DIRECTORY_ENDPOINT } from "./Utils.js";
 
 describe("AuthenticationClient", () => {
@@ -16,17 +15,18 @@ describe("AuthenticationClient", () => {
     });
 
     it("authenticates with first legal officer if given", async () => {
-        const legalOfficers: LegalOfficer[] = [ ALICE ];
+        const legalOfficers = [ ALICE ];
         await testAuthentication(legalOfficers, ALICE.node);
     });
 
     it("refreshes tokens", async () => {
-        const legalOfficers: LegalOfficer[] = [ ALICE ];
         const axiosFactory = new Mock<AxiosFactory>();
-        const axiosInstance = new Mock<AxiosInstance>();
         const tokens = buildAliceTokens(DateTime.now().plus({hours: 1}));
         const token = tokens.get(ALICE.address)!.value;
-        axiosFactory.setup(instance => instance.buildAxiosInstance(ALICE.node)).returns(axiosInstance.object());
+        const legalOfficers = [ new LegalOfficerClass({ legalOfficer: ALICE, axiosFactory: axiosFactory.object(), token }) ];
+
+        const axiosInstance = new Mock<AxiosInstance>();
+        axiosFactory.setup(instance => instance.buildAxiosInstance(ALICE.node, token)).returns(axiosInstance.object());
 
         const refreshResponse = new Mock<AxiosResponse<any, any>>();
         const newToken = "new-token";
@@ -55,13 +55,22 @@ describe("AuthenticationClient", () => {
 async function testAuthentication(legalOfficers: LegalOfficer[], expectedEndpoint: string) {
     const axiosFactory = new Mock<AxiosFactory>();
     const axiosInstance = new Mock<AxiosInstance>();
-    axiosFactory.setup(instance => instance.buildAxiosInstance(expectedEndpoint)).returns(axiosInstance.object());
+    if(legalOfficers.length > 0) {
+        axiosFactory.setup(instance => instance.buildAxiosInstance(expectedEndpoint, undefined)) // with node
+            .returns(axiosInstance.object());
+    } else {
+        axiosFactory.setup(instance => instance.buildAxiosInstance(expectedEndpoint)) // with directory
+            .returns(axiosInstance.object());
+    }
 
     const addresses = [ "some-address" ];
     const sessionId = "session-id";
     setupSignIn(axiosInstance, addresses, sessionId);
 
-    const client = new AuthenticationClient(DIRECTORY_ENDPOINT, legalOfficers, axiosFactory.object());
+    const client = new AuthenticationClient(DIRECTORY_ENDPOINT, legalOfficers.map(legalOfficer => new LegalOfficerClass({
+        legalOfficer,
+        axiosFactory: axiosFactory.object(),
+    })), axiosFactory.object());
     const signer = new Mock<RawSigner>();
     const signature = "signature";
     const signatures = [ signature ];

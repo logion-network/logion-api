@@ -7,7 +7,7 @@ import { ComponentFactory, FormDataLike } from "./ComponentFactory.js";
 import { DirectoryClient } from "./DirectoryClient.js";
 import { Endpoint, Token } from "./Http.js";
 import { NetworkState } from "./NetworkState.js";
-import { LegalOfficer } from "./Types.js";
+import { LegalOfficer, LegalOfficerClass } from "./Types.js";
 
 export interface LogionClientConfig {
     rpcEndpoints: string[];
@@ -26,8 +26,8 @@ export interface SharedState {
     directoryClient: DirectoryClient;
     networkState: NetworkState<LegalOfficerEndpoint>;
     nodeApi: LogionNodeApi;
-    legalOfficers: LegalOfficer[];
-    allLegalOfficers: LegalOfficer[];
+    legalOfficers: LegalOfficerClass[];
+    allLegalOfficers: LegalOfficerClass[];
     tokens: AccountTokens;
     currentAddress?: string;
 }

@@ -9,7 +9,7 @@ export async function verifiedThirdParty(state: State) {
 
     let vtpLocsState = await vtpClient.locsState();
     const pendingRequest = await vtpLocsState.requestIdentityLoc({
-        legalOfficer: alice,
+        legalOfficer: vtpClient.getLegalOfficer(alice.address),
         description: "This is a VTP Identity LOC",
         userIdentity: {
             email: "john.doe.trusted@invalid.domain",
@@ -33,7 +33,7 @@ export async function verifiedThirdParty(state: State) {
 
     const userClient = state.client.withCurrentAddress(NEW_ADDRESS);
     let newLoc: LocRequestState = await (await userClient.locsState()).requestTransactionLoc({
-        legalOfficer: alice,
+        legalOfficer: userClient.getLegalOfficer(alice.address),
         description: "Some LOC with VTP",
         draft: false,
     });

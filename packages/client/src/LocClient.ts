@@ -25,7 +25,7 @@ import { Option } from "@polkadot/types-codec";
 import { PalletLogionLocVerifiedIssuer } from "@polkadot/types/lookup";
 import { AxiosInstance } from 'axios';
 
-import { UserIdentity, LegalOfficer, PostalAddress } from "./Types.js";
+import { UserIdentity, LegalOfficer, PostalAddress, LegalOfficerClass } from "./Types.js";
 import { NetworkState } from "./NetworkState.js";
 import { authenticatedCurrentAddress, LegalOfficerEndpoint, SharedState } from "./SharedClient.js";
 import { AxiosFactory } from "./AxiosFactory.js";
@@ -333,15 +333,14 @@ export class LocMultiClient {
 
     private readonly componentFactory: ComponentFactory;
 
-    newLocClient(legalOfficer: LegalOfficer) {
+    newLocClient(legalOfficer: LegalOfficerClass) {
         return new AuthenticatedLocClient({
             axiosFactory: this.axiosFactory,
             currentAddress: this.currentAddress,
-            token: this.token,
             nodeApi: this.nodeApi,
             legalOfficer,
             componentFactory: this.componentFactory,
-        })
+        });
     }
 
     async fetchAll(params?: FetchAllLocsParams): Promise<LocRequest[]> {
@@ -368,7 +367,7 @@ export class LocMultiClient {
         return aggregateArrays(multiResponse);
     }
 
-    async fetchAllForVerifiedThirdParty(legalOfficers: LegalOfficer[]): Promise<LocRequest[]> {
+    async fetchAllForVerifiedThirdParty(legalOfficers: LegalOfficerClass[]): Promise<LocRequest[]> {
         const entries = await this.nodeApi.query.logionLoc.locsByVerifiedIssuerMap.entries(this.currentAddress);
         const requests: LocRequest[] = [];
         for(const entry of entries) {
@@ -437,7 +436,7 @@ export abstract class LocClient {
     constructor(params: {
         axiosFactory: AxiosFactory,
         nodeApi: LogionNodeApi,
-        legalOfficer: LegalOfficer,
+        legalOfficer: LegalOfficerClass,
     }) {
         this.axiosFactory = params.axiosFactory;
         this.nodeApi = params.nodeApi;
@@ -446,14 +445,14 @@ export abstract class LocClient {
 
     protected readonly axiosFactory: AxiosFactory;
     protected readonly nodeApi: LogionNodeApi;
-    protected readonly legalOfficer: LegalOfficer;
+    protected readonly legalOfficer: LegalOfficerClass;
 
     async getLoc(parameters: FetchParameters): Promise<LegalOfficerCase> {
         return LocMultiClient.getLoc({ ...parameters, api: this.nodeApi });
     }
 
-    protected backend(): AxiosInstance {
-        return this.axiosFactory.buildAxiosInstance(this.legalOfficer.node);
+    backend(): AxiosInstance {
+        return this.legalOfficer.buildAxiosToNode();
     }
 
     async getCollectionItem(parameters: { itemId: string } & FetchParameters): Promise<UploadableCollectionItem | undefined> {
@@ -665,9 +664,8 @@ export class AuthenticatedLocClient extends LocClient {
     constructor(params: {
         axiosFactory: AxiosFactory,
         currentAddress: string,
-        token: string,
         nodeApi: LogionNodeApi,
-        legalOfficer: LegalOfficer,
+        legalOfficer: LegalOfficerClass,
         componentFactory: ComponentFactory,
     }) {
         super({
@@ -676,12 +674,10 @@ export class AuthenticatedLocClient extends LocClient {
             nodeApi: params.nodeApi,
         });
         this.currentAddress = params.currentAddress;
-        this.token = params.token;
         this.componentFactory = params.componentFactory;
     }
 
     private readonly currentAddress: string;
-    private readonly token: string;
     private readonly componentFactory: ComponentFactory;
 
     async createLocRequest(request: CreateLocRequest): Promise<LocRequest> {
@@ -758,10 +754,6 @@ export class AuthenticatedLocClient extends LocClient {
         } catch(e) {
             throw newBackendError(e);
         }
-    }
-
-    override backend(): AxiosInstance {
-        return this.axiosFactory.buildAxiosInstance(this.legalOfficer.node, this.token);
     }
 
     async addCollectionItem(parameters: AddCollectionItemParams & FetchParameters): Promise<void> {
@@ -869,7 +861,7 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private validTokenOrThrow(itemToken: ItemTokenWithRestrictedType) {
-        const result = validateToken(itemToken);
+        const result = validateToken(this.nodeApi, itemToken);
         if(!result.valid) {
             if(result.error) {
                 throw new Error("Given token definition is invalid");

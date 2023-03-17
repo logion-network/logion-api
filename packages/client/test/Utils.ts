@@ -10,7 +10,8 @@ import {
     LegalOfficer,
     UserIdentity,
     LegalOfficerPostalAddress,
-    SuccessfulSubmission
+    SuccessfulSubmission,
+    LegalOfficerClass
 } from "../src/index.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
 import { It } from "moq.ts";
@@ -85,18 +86,27 @@ export function buildTestConfig(setupComponentFactory: (factory: TestConfigFacto
     return testConfigFactory.buildTestConfig(LOGION_CLIENT_CONFIG);
 }
 
+export interface SharedStateWithLegalOfficerClasses extends SharedState {
+    legalOfficerClasses: LegalOfficerClass[];
+}
+
 export async function buildAuthenticatedSharedStateUsingTestConfig(
     config: LogionClientConfig,
     currentAddress: string | undefined,
     legalOfficers: LegalOfficer[],
     tokens: AccountTokens,
-): Promise<SharedState> {
+): Promise<SharedStateWithLegalOfficerClasses> {
     const componentFactory = (config as any).__componentFactory;
     const axiosFactory = componentFactory.buildAxiosFactory();
     const directoryClient = componentFactory.buildDirectoryClient(config.directoryEndpoint, axiosFactory);
     const nodesUp: LegalOfficerEndpoint[] = legalOfficers.map(legalOfficer => ({ url: legalOfficer.node, legalOfficer: legalOfficer.address }));
     const networkState = componentFactory.buildNetworkState(nodesUp, []);
     const nodeApi = await componentFactory.buildNodeApi(config.rpcEndpoints);
+    const legalOfficerClasses = legalOfficers.map(legalOfficer => new LegalOfficerClass({
+        legalOfficer,
+        axiosFactory,
+        token: tokens.get(currentAddress || "")?.value,
+    }));
     return {
         config,
         componentFactory,
@@ -105,9 +115,10 @@ export async function buildAuthenticatedSharedStateUsingTestConfig(
         networkState,
         nodeApi,
         currentAddress,
-        legalOfficers,
-        allLegalOfficers: legalOfficers,
+        legalOfficers: legalOfficerClasses,
+        allLegalOfficers: legalOfficerClasses,
         tokens,
+        legalOfficerClasses,
     };
 }
 
@@ -116,7 +127,7 @@ export async function buildTestAuthenticatedSharedSate(
     currentAddress: string | undefined,
     legalOfficers: LegalOfficer[],
     tokens: AccountTokens,
-): Promise<SharedState> {
+): Promise<SharedStateWithLegalOfficerClasses> {
     const config = buildTestConfig(setupComponentFactory);
     return buildAuthenticatedSharedStateUsingTestConfig(config, currentAddress, legalOfficers, tokens);
 }

@@ -32,13 +32,15 @@ describe("LogionClient", () => {
             testConfigFactory.setupDefaultNetworkState();
             testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
             const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
-            directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve(clientLegalOfficers));
+            directoryClient.setup(instance => instance.getLegalOfficers())
+                .returns(Promise.resolve(testConfigFactory.buildLegalOfficerClasses(clientLegalOfficers)));
         });
         const client = await LogionClient.create(config);
 
         const legalOfficers = client.legalOfficers;
 
-        expect(legalOfficers).toEqual(clientLegalOfficers);
+        expect(legalOfficers.length).toBe(1);
+        expect(legalOfficers[0].address).toBe(ALICE.address);
     });
 
     it("uses tokens", async () => {
@@ -49,7 +51,8 @@ describe("LogionClient", () => {
             testConfigFactory.setupDefaultNetworkState();
             testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
             const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
-            directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve(clientLegalOfficers));
+            directoryClient.setup(instance => instance.getLegalOfficers())
+                .returns(Promise.resolve(testConfigFactory.buildLegalOfficerClasses(clientLegalOfficers)));
             testConfigFactory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
         });
         const client = await LogionClient.create(config);
@@ -73,7 +76,9 @@ describe("LogionClient", () => {
             testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
 
             const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
-            directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve(clientLegalOfficers));
+            const legalOfficerClasses = testConfigFactory.buildLegalOfficerClasses(clientLegalOfficers);
+            directoryClient.setup(instance => instance.getLegalOfficers())
+                .returns(Promise.resolve(legalOfficerClasses));
 
             const authenticationClient = testConfigFactory.setupAuthenticationClientMock(LOGION_CLIENT_CONFIG, clientLegalOfficers);
             authenticationClient.setup(instance => instance.authenticate(addresses, signer.object()))

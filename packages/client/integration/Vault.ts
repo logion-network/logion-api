@@ -64,7 +64,7 @@ export async function aliceAcceptsTransfer(state: State, request: VaultTransferR
         submittable,
     });
 
-    const aliceClient = client.withCurrentAddress(alice.address);
-    const axios = aliceClient.buildAxios(alice);
+    const authenticated = client.withCurrentAddress(alice.address);
+    const axios = authenticated.getLegalOfficer(alice.address).buildAxiosToNode();
     await axios.post(`/api/vault-transfer-request/${request.id}/accept`);
 }

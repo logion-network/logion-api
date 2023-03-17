@@ -28,7 +28,7 @@ export async function requestTransactionLoc(state: State) {
     const legalOfficer = new LegalOfficerWorker(alice, state);
 
     let draftRequest = await locsState.requestTransactionLoc({
-        legalOfficer: alice,
+        legalOfficer: client.getLegalOfficer(alice.address),
         description: "This is a Transaction LOC",
         draft: true,
     }) as DraftRequest;
@@ -105,7 +105,7 @@ export async function collectionLoc(state: State) {
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, USER_ADDRESS);
 
     const pendingRequest = await locsState.requestCollectionLoc({
-        legalOfficer: alice,
+        legalOfficer: client.getLegalOfficer(alice.address),
         description: "This is a Collection LOC",
         draft: false,
     });
@@ -156,14 +156,14 @@ export async function collectionLocWithUpload(state: State) {
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, USER_ADDRESS);
 
     const logionClassificationLocRequest = await locsState.requestTransactionLoc({
-        legalOfficer: alice,
+        legalOfficer: client.getLegalOfficer(alice.address),
         description: "This is the Logion Classification LOC",
         draft: false,
     });
     locsState = logionClassificationLocRequest.locsState();
     await legalOfficer.createValidTermsAndConditionsLoc(logionClassificationLocRequest.locId, USER_ADDRESS);
     const creativeCommonsLocRequest = await locsState.requestTransactionLoc({
-        legalOfficer: alice,
+        legalOfficer: client.getLegalOfficer(alice.address),
         description: "This is the LOC acting usage of CreativeCommons on logion",
         draft: false,
     });
@@ -171,7 +171,7 @@ export async function collectionLocWithUpload(state: State) {
     await legalOfficer.createValidTermsAndConditionsLoc(creativeCommonsLocRequest.locId, USER_ADDRESS);
 
     const pendingRequest = await locsState.requestCollectionLoc({
-        legalOfficer: alice,
+        legalOfficer: client.getLegalOfficer(alice.address),
         description: "This is a Collection LOC with upload",
         draft: false,
     });
@@ -187,8 +187,8 @@ export async function collectionLocWithUpload(state: State) {
     const firstFileContent = "test";
     const firstFileHash = hashString(firstFileContent);
     const firstItemToken: ItemTokenWithRestrictedType = {
-        type: "ethereum_erc721",
-        id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","id":"4391"}'
+        type: "owner",
+        id: USER_ADDRESS,
     };
     closedLoc = await closedLoc.addCollectionItem({
         itemId: firstItemId,
@@ -224,6 +224,8 @@ export async function collectionLocWithUpload(state: State) {
     ]));
     expect(firstItem!.token).toEqual(firstItemToken);
     expect(firstItem!.restrictedDelivery).toBe(true);
+    expect(await firstItem!.isAuthenticatedTokenOwner()).toBe(true);
+
     const logionClassification = firstItem!.logionClassification!;
     expect(logionClassification.transferredRights()[0].shortDescription).toEqual("PERSONAL, PRIVATE USE ONLY")
     expect(logionClassification.expiration).toEqual("2025-01-01")
@@ -284,7 +286,7 @@ export async function identityLoc(state: State) {
     let locsState = await client.locsState();
 
     const pendingRequest = await locsState.requestIdentityLoc({
-        legalOfficer: alice,
+        legalOfficer: client.getLegalOfficer(alice.address),
         description: "This is an Identity LOC",
         userIdentity: {
             email: "john.doe@invalid.domain",
