@@ -18,7 +18,7 @@ import {
 
 import { authenticatedCurrentAddress, getDefinedCurrentAddress, getLegalOfficer, SharedState } from "./SharedClient.js";
 import { SignCallback, Signer } from "./Signer.js";
-import { LegalOfficer, PostalAddress, UserIdentity } from "./Types.js";
+import { LegalOfficerClass, LegalOfficer, PostalAddress, UserIdentity } from "./Types.js";
 import { BalanceState, getBalanceState } from "./Balance.js";
 import { VaultState } from "./Vault.js";
 import { PollingParameters, waitFor } from "./Polling.js";
@@ -44,7 +44,7 @@ export interface RecoverySharedState extends SharedState {
     allRequests: ProtectionRequest[];
     recoveryConfig?: RecoveryConfig;
     recoveredAddress?: string;
-    selectedLegalOfficers: LegalOfficer[];
+    selectedLegalOfficers: LegalOfficerClass[];
 }
 
 function toActionableProtectionRequest(protectionRequest: ProtectionRequest, sharedState: SharedState): ProtectionRequest {
@@ -91,7 +91,7 @@ export function getInitialState(data: FetchAllResult, pSharedState: SharedState)
     };
 
     if (isUnavailable) {
-        let selectedLegalOfficers: LegalOfficer[] = [];
+        let selectedLegalOfficers: LegalOfficerClass[] = [];
         if (recoveryConfig !== undefined) {
             selectedLegalOfficers = sharedState.legalOfficers.filter(legalOfficer => recoveryConfig.legalOfficers.includes(legalOfficer.address));
         } else if (allRequests.length > 0) {
@@ -184,8 +184,8 @@ export class NoProtection extends State {
     }
 
     async requestProtection(params: {
-        legalOfficer1: LegalOfficer,
-        legalOfficer2: LegalOfficer,
+        legalOfficer1: LegalOfficerClass,
+        legalOfficer2: LegalOfficerClass,
         userIdentity: UserIdentity,
         postalAddress: PostalAddress,
     }): Promise<PendingProtection> {
@@ -193,8 +193,8 @@ export class NoProtection extends State {
     }
 
     private async requestProtectionOrRecoveryAndDiscard(params: {
-        legalOfficer1: LegalOfficer,
-        legalOfficer2: LegalOfficer,
+        legalOfficer1: LegalOfficerClass,
+        legalOfficer2: LegalOfficerClass,
         userIdentity: UserIdentity,
         postalAddress: PostalAddress,
         recoveredAddress?: string,
@@ -203,8 +203,8 @@ export class NoProtection extends State {
     }
 
     private async requestProtectionOrRecovery(params: {
-        legalOfficer1: LegalOfficer,
-        legalOfficer2: LegalOfficer,
+        legalOfficer1: LegalOfficerClass,
+        legalOfficer2: LegalOfficerClass,
         userIdentity: UserIdentity,
         postalAddress: PostalAddress,
         recoveredAddress?: string,
@@ -248,8 +248,8 @@ export class NoProtection extends State {
     }
 
     async requestRecovery(params: {
-        legalOfficer1: LegalOfficer,
-        legalOfficer2: LegalOfficer,
+        legalOfficer1: LegalOfficerClass,
+        legalOfficer2: LegalOfficerClass,
         userIdentity: UserIdentity,
         postalAddress: PostalAddress,
         recoveredAddress: string,
@@ -315,7 +315,7 @@ export interface LegalOfficerProtectionState {
 
     readonly id: string;
 
-    readonly legalOfficer: LegalOfficer;
+    readonly legalOfficer: LegalOfficerClass;
 
     readonly status: ProtectionRequestStatus;
 
@@ -362,7 +362,7 @@ function buildProtectionParameters(sharedState: RecoverySharedState): Protection
     };
 }
 
-function buildProtectionState(legalOfficer: LegalOfficer, request: ProtectionRequest): LegalOfficerProtectionState {
+function buildProtectionState(legalOfficer: LegalOfficerClass, request: ProtectionRequest): LegalOfficerProtectionState {
     return {
         id: request.id,
         legalOfficer,

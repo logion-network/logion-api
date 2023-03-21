@@ -7,7 +7,7 @@ import { ComponentFactory, FormDataLike } from "./ComponentFactory.js";
 import { DirectoryClient } from "./DirectoryClient.js";
 import { Endpoint, Token } from "./Http.js";
 import { NetworkState } from "./NetworkState.js";
-import { LegalOfficer, LegalOfficerClass } from "./Types.js";
+import { LegalOfficerClass } from "./Types.js";
 
 export interface LogionClientConfig {
     rpcEndpoints: string[];
@@ -32,7 +32,7 @@ export interface SharedState {
     currentAddress?: string;
 }
 
-export function getLegalOfficer(sharedState: SharedState, address: string): LegalOfficer {
+export function getLegalOfficer(sharedState: SharedState, address: string): LegalOfficerClass {
     return findOrThrow(sharedState.legalOfficers, lo => lo.address === address, `No legal officer with address ${address}`);
 }
 

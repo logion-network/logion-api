@@ -21,7 +21,8 @@ import {
     PostalAddress,
     UserIdentity,
     Signer,
-    AccountTokens
+    AccountTokens,
+    LegalOfficerClass
 } from '../src/index.js';
 import {
     ALICE,
@@ -404,7 +405,7 @@ describe("NoProtection", () => {
         );
         const state = new NoProtection(sharedState);
 
-        const nextState = await state.requestProtection({legalOfficer1: ALICE, legalOfficer2: BOB, userIdentity: {} as UserIdentity, postalAddress: {} as PostalAddress});
+        const nextState = await state.requestProtection({legalOfficer1: sharedState.legalOfficerClasses[0], legalOfficer2: sharedState.legalOfficerClasses[1], userIdentity: {} as UserIdentity, postalAddress: {} as PostalAddress});
 
         expect(nextState).toBeInstanceOf(PendingProtection);
         expect(nextState.protectionParameters.isActive).toBe(false);
@@ -478,8 +479,8 @@ describe("NoProtection", () => {
             .returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 
         const nextState = await state.requestRecovery({
-            legalOfficer1: ALICE,
-            legalOfficer2: BOB,
+            legalOfficer1: sharedState.legalOfficerClasses[0],
+            legalOfficer2: sharedState.legalOfficerClasses[1],
             userIdentity: {} as UserIdentity,
             postalAddress: {} as PostalAddress,
             signer: signer.object(),
@@ -564,7 +565,7 @@ describe("PendingProtection", () => {
 
         const state = new PendingProtection({
             ...sharedState,
-            selectedLegalOfficers: [ ALICE, BOB ],
+            selectedLegalOfficers: sharedState.legalOfficerClasses,
             legalOfficers: sharedState.legalOfficerClasses,
             pendingProtectionRequests: [ aliceRequest, bobRequest ],
             acceptedProtectionRequests: [],
@@ -614,7 +615,7 @@ describe("PendingProtection", () => {
 
         const state = new PendingProtection({
             ...sharedState,
-            selectedLegalOfficers: [ ALICE, BOB ],
+            selectedLegalOfficers: sharedState.legalOfficerClasses,
             legalOfficers: sharedState.legalOfficerClasses,
             pendingProtectionRequests: [ aliceRequest, bobRequest ],
             acceptedProtectionRequests: [],
@@ -717,7 +718,7 @@ describe("AcceptedProtection", () => {
         );
         const state = new AcceptedProtection({
             ...sharedState,
-            selectedLegalOfficers: [ ALICE, BOB ],
+            selectedLegalOfficers: sharedState.legalOfficerClasses,
             legalOfficers: sharedState.legalOfficerClasses,
             pendingProtectionRequests: [],
             acceptedProtectionRequests: [ aliceRequest, bobRequest ],
@@ -777,7 +778,7 @@ describe("AcceptedProtection", () => {
         );
         const state = new AcceptedProtection({
             ...sharedState,
-            selectedLegalOfficers: [ ALICE, BOB ],
+            selectedLegalOfficers: sharedState.legalOfficerClasses,
             legalOfficers: sharedState.legalOfficerClasses,
             pendingProtectionRequests: [],
             acceptedProtectionRequests: [ aliceRequest, bobRequest ],
@@ -847,7 +848,7 @@ describe("PendingRecovery", () => {
         );
         const state = new PendingRecovery({
             ...sharedState,
-            selectedLegalOfficers: [ ALICE, BOB ],
+            selectedLegalOfficers: sharedState.legalOfficerClasses,
             legalOfficers: sharedState.legalOfficerClasses,
             pendingProtectionRequests: [],
             acceptedProtectionRequests: [ aliceRequest, bobRequest ],

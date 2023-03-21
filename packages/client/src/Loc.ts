@@ -129,7 +129,7 @@ export class LocsState extends State {
         ).length > 0;
     }
 
-    get legalOfficersWithValidIdentityLoc(): LegalOfficer[] {
+    get legalOfficersWithValidIdentityLoc(): LegalOfficerClass[] {
         this.ensureCurrent();
         return this.sharedState.legalOfficers.filter(lo => this.hasValidIdentityLoc(lo));
     }
@@ -398,7 +398,7 @@ export abstract class LocRequestState extends State {
     protected readonly request: LocRequest;
     protected readonly legalOfficerCase?: LegalOfficerCase;
     protected readonly locIssuers: LocVerifiedIssuers;
-    protected readonly owner: LegalOfficerClass;
+    readonly owner: LegalOfficerClass;
 
     constructor(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers) {
         super();
