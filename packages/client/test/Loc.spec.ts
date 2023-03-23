@@ -475,6 +475,20 @@ const BOB_CLOSED_IDENTITY_LOC = buildLocAndRequest(BOB.address, "CLOSED", "Ident
 
 const CHARLIE_VOID_IDENTITY_LOC = buildLocAndRequest(CHARLIE.address, "CLOSED", "Identity", mockVoidInfo());
 
+const ALL_LOCS = [
+    ALICE_OPEN_TRANSACTION_LOC,
+    ALICE_CLOSED_TRANSACTION_LOC,
+    ALICE_CLOSED_COLLECTION_LOC,
+    ALICE_CLOSED_IDENTITY_LOC_WITH_VTP,
+    ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VTP,
+    ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VTP,
+    BOB_OPEN_TRANSACTION_LOC,
+    BOB_VOID_TRANSACTION_LOC,
+    BOB_VOID_COLLECTION_LOC,
+    BOB_CLOSED_IDENTITY_LOC,
+    CHARLIE_VOID_IDENTITY_LOC
+];
+
 const COLLECTION_ITEM = buildCollectionItem();
 const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem(ALICE_CLOSED_COLLECTION_LOC.request.id);
 const SPECIFIC_LICENSES: SpecificLicense[] = [
@@ -626,22 +640,23 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
 
             nodeApiMock = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
 
-            [
-                ALICE_OPEN_TRANSACTION_LOC,
-                ALICE_CLOSED_TRANSACTION_LOC,
-                ALICE_CLOSED_COLLECTION_LOC,
-                ALICE_CLOSED_IDENTITY_LOC_WITH_VTP,
-                ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VTP,
-                ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VTP,
-                BOB_OPEN_TRANSACTION_LOC,
-                BOB_VOID_TRANSACTION_LOC,
-                BOB_VOID_COLLECTION_LOC,
-                BOB_CLOSED_IDENTITY_LOC,
-                CHARLIE_VOID_IDENTITY_LOC
-            ].forEach(locData => {
-                nodeApiMock.setup(instance => instance.query.logionLoc.locMap(new UUID(locData.request.id).toHexString()))
-                    .returnsAsync(locData.loc);
-            });
+            const locMapImpl: any = (id: any) => {
+                const locData = ALL_LOCS.find(locData => new UUID(locData.request.id).toHexString() === id);
+                if(locData) {
+                    return Promise.resolve(locData.loc);
+                } else {
+                    return Promise.resolve(mockEmptyOption());
+                }
+            };
+            nodeApiMock.setup(instance => instance.query.logionLoc.locMap).returns(locMapImpl);
+
+            const multiImpl: any = (locIds: string[]) => {
+                const locs = locIds
+                    .map(id => ALL_LOCS.find(locData => new UUID(locData.request.id).toHexString() === id))
+                    .map(locData => locData ? locData.loc : mockEmptyOption());
+                return Promise.resolve(locs);
+            };
+            locMapImpl.multi = multiImpl;
 
             const addCollectionItemExtrinsic = new Mock<SubmittableExtrinsic>();
             nodeApiMock.setup(instance => instance.tx.logionLoc.addCollectionItem(

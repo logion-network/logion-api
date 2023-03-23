@@ -20,6 +20,7 @@ import {
     TokensRecordFile,
     toTokensRecord,
     TokensRecord as ChainTokensRecord,
+    getLegalOfficerCasesMap,
 } from '@logion/node-api';
 import { Option } from "@polkadot/types-codec";
 import { PalletLogionLocVerifiedIssuer } from "@polkadot/types/lookup";
@@ -392,6 +393,15 @@ export class LocMultiClient {
             await getLegalOfficerCase(params),
             () => new Error(`LOC not found on chain: ${ params.locId.toDecimalString() }`)
         );
+    }
+
+    static async getLocs(params: { api: LogionNodeApi, locIds: UUID[] }): Promise<Record<string, LegalOfficerCase>> {
+        const { api, locIds } = params;
+        return getLegalOfficerCasesMap({ api, locIds });
+    }
+
+    async getLocs(params: { locIds: UUID[] }): Promise<Record<string, LegalOfficerCase>> {
+        return LocMultiClient.getLocs({ ...params, api: this.nodeApi });
     }
 }
 

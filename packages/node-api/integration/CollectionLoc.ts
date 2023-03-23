@@ -1,4 +1,4 @@
-import { createCollectionLoc, UUID, getLegalOfficerCase, addCollectionItem, closeLoc, getCollectionItem, getCollectionItems } from "../src/index.js";
+import { createCollectionLoc, UUID, getLegalOfficerCase, addCollectionItem, closeLoc, getCollectionItem, getCollectionItems, getLegalOfficerCasesMap } from "../src/index.js";
 import { REQUESTER, setup, signAndSend } from "./Util.js";
 
 export async function createCollectionLocLimitedInSizeTest() {
@@ -17,6 +17,9 @@ export async function createCollectionLocLimitedInSizeTest() {
     });
     expect(loc?.locType).toBe("Collection");
     expect(loc?.collectionMaxSize).toBe(100);
+
+    const map = await getLegalOfficerCasesMap({ api, locIds: [COLLECTION_LOC_ID]});
+    expect(map[COLLECTION_LOC_ID.toDecimalString()]).toBeDefined();
 }
 
 export async function closeCollectionLocTest() {
