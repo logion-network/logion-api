@@ -188,7 +188,7 @@ export async function getLegalOfficerCases(
         locIds,
     } = parameters;
 
-    const result = await Promise.all(locIds.map(id => api.query.logionLoc.locMap(id.toHexString())));
+    const result = await api.query.logionLoc.locMap.multi(locIds.map(id => id.toHexString()));
     const locs: (LegalOfficerCase | undefined)[] = [];
     for(let i = 0; i < result.length; ++i) {
         const option = result[i];

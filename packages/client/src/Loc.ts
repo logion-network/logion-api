@@ -267,22 +267,38 @@ export class LocsState extends State {
         const locMultiClient = LocMultiClient.newLocMultiClient(this.sharedState);
 
         const locRequests = await locMultiClient.fetchAll(params);
-        locsState._locs = await this.toStates(locMultiClient, locsState, locRequests);
+        const legalOfficerCases = await locMultiClient.getLocs({
+            locIds: locRequests
+                .filter(request => request.status === "OPEN" || request.status === "CLOSED")
+                .map(request => new UUID(request.id)),
+        });
+        locsState._locs = await this.toStates(locMultiClient, locsState, locRequests, legalOfficerCases);
 
         if(locsState.isVerifiedThirdParty) {
             const legalOfficers = this.getVerifiedThirdPartyLegalOfficers(locsState);
             const verifiedThirdPartyRequests = await locMultiClient.fetchAllForVerifiedThirdParty(legalOfficers);
-            locsState._verifiedThirdPartyLocs = await this.toStates(locMultiClient, locsState, verifiedThirdPartyRequests);
+            const verifiedThirdPartyLegalOfficerCases = await locMultiClient.getLocs({
+                locIds: verifiedThirdPartyRequests
+                    .filter(request => request.status === "OPEN" || request.status === "CLOSED")
+                    .map(request => new UUID(request.id)),
+            });
+            locsState._verifiedThirdPartyLocs = await this.toStates(locMultiClient, locsState, verifiedThirdPartyRequests, verifiedThirdPartyLegalOfficerCases);
         }
 
         return locsState;
     }
 
-    private async toStates(locMultiClient: LocMultiClient, locsState: LocsState, locRequests: LocRequest[]): Promise<Record<string, LocRequestState>> {
+    private async toStates(
+        locMultiClient: LocMultiClient,
+        locsState: LocsState,
+        locRequests: LocRequest[],
+        legalOfficerCases: Record<string, LegalOfficerCase>
+    ): Promise<Record<string, LocRequestState>> {
         const refreshedLocs: Record<string, LocRequestState> = {};
         for (const locRequest of locRequests) {
             try {
-                const state = await this.toState(locMultiClient, locsState, locRequest);
+                const id = new UUID(locRequest.id);
+                const state = await this.toState(locMultiClient, locsState, locRequest, legalOfficerCases[id.toDecimalString()]);
                 refreshedLocs[state.locId.toString()] = state;
             } catch(e) {
                 console.warn(e);
@@ -291,7 +307,7 @@ export class LocsState extends State {
         return refreshedLocs;
     }
 
-    private async toState(locMultiClient: LocMultiClient, locsState: LocsState, locRequest: LocRequest): Promise<AnyLocState> {
+    private async toState(locMultiClient: LocMultiClient, locsState: LocsState, locRequest: LocRequest, legalOfficerCase?: LegalOfficerCase): Promise<AnyLocState> {
         const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === locRequest.ownerAddress);
         if (legalOfficer) {
             const client = locMultiClient.newLocClient(legalOfficer);
@@ -302,7 +318,10 @@ export class LocsState extends State {
                 locsState,
             };
             const locIssuers = await client.getLocIssuers(locRequest);
-            return LocRequestState.createFromRequest(locSharedState, locRequest, locIssuers);
+            if((locRequest.status === "OPEN" || locRequest.status === "CLOSED") && !legalOfficerCase) {
+                throw new Error("LOC expected");
+            }
+            return LocRequestState.createFromRequest(locSharedState, locRequest, locIssuers, legalOfficerCase);
         } else {
             throw new Error(`Can not find owner ${ locRequest.ownerAddress } of LOC ${ locRequest.id } among LO list`);
         }
@@ -418,7 +437,7 @@ export abstract class LocRequestState extends State {
         return new UUID(this.request.id);
     }
 
-    static async createFromRequest(locSharedState: LocSharedState, request: LocRequest, locIssuers: LocVerifiedIssuers): Promise<AnyLocState> {
+    static async createFromRequest(locSharedState: LocSharedState, request: LocRequest, locIssuers: LocVerifiedIssuers, legalOfficerCase?: LegalOfficerCase): Promise<AnyLocState> {
         switch (request.status) {
             case "DRAFT":
                 return new DraftRequest(locSharedState, request, undefined, locIssuers)
@@ -427,7 +446,7 @@ export abstract class LocRequestState extends State {
             case "REJECTED":
                 return new RejectedRequest(locSharedState, request, undefined, locIssuers)
             default:
-                return LocRequestState.refreshLoc(locSharedState, request, undefined, locIssuers)
+                return LocRequestState.refreshLoc(locSharedState, request, legalOfficerCase, locIssuers)
         }
     }
 
