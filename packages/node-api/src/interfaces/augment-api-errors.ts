@@ -283,6 +283,10 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       FileInvalid: AugmentedError<ApiType>;
       /**
+       * The requester has not enough funds to import file
+       **/
+      InsufficientFunds: AugmentedError<ApiType>;
+      /**
        * Given identity LOC does not exist or is invalid
        **/
       InvalidIdentityLoc: AugmentedError<ApiType>;
@@ -610,6 +614,33 @@ declare module '@polkadot/api-base/types/errors' {
        * and the new runtime.
        **/
       SpecVersionNeedsToIncrease: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       **/
+      [key: string]: AugmentedError<ApiType>;
+    };
+    treasury: {
+      /**
+       * The spend origin is valid but the amount it is allowed to spend is lower than the
+       * amount to be spent.
+       **/
+      InsufficientPermission: AugmentedError<ApiType>;
+      /**
+       * Proposer's balance is too low.
+       **/
+      InsufficientProposersBalance: AugmentedError<ApiType>;
+      /**
+       * No proposal or bounty at that index.
+       **/
+      InvalidIndex: AugmentedError<ApiType>;
+      /**
+       * Proposal has not been approved.
+       **/
+      ProposalNotApproved: AugmentedError<ApiType>;
+      /**
+       * Too many approvals in the queue.
+       **/
+      TooManyApprovals: AugmentedError<ApiType>;
       /**
        * Generic error
        **/

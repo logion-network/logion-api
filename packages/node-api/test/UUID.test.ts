@@ -1,5 +1,5 @@
 import { v4, parse } from 'uuid';
-import { UUID } from "../src/UUID";
+import { UUID } from "../src/UUID.js";
 
 describe("UUID", () => {
     const uuidString = v4();

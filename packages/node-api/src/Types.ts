@@ -1,4 +1,4 @@
-import { UUID } from "./UUID";
+import { UUID } from "./UUID.js";
 
 export interface MetadataItem {
     name: string;

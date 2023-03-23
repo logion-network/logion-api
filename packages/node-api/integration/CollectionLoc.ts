@@ -1,5 +1,5 @@
-import { createCollectionLoc, UUID, getLegalOfficerCase, addCollectionItem, closeLoc, getCollectionItem, getCollectionItems } from "../src";
-import { REQUESTER, setup, signAndSend } from "./Util";
+import { createCollectionLoc, UUID, getLegalOfficerCase, addCollectionItem, closeLoc, getCollectionItem, getCollectionItems } from "../src/index.js";
+import { REQUESTER, setup, signAndSend } from "./Util.js";
 
 export async function createCollectionLocLimitedInSizeTest() {
     const { api, alice } = await setup();

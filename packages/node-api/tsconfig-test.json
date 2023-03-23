@@ -1,13 +1,10 @@
 {
-  "extends": "./tsconfig-cjs.json",
+  "extends": "./tsconfig-esm.json",
   "compilerOptions": {
     "baseUrl": ".."
   },
   "include": [
     "./src/**/*",
     "./integration/**/*"
-  ],
-  "ts-node": {
-    "require": ["tsconfig-paths/register"]
-  }
+  ]
 }

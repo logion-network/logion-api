@@ -1,18 +1,22 @@
-jest.mock('@polkadot/api');
+import { mockPolkadotApi, DEFAULT_ITEM, DEFAULT_LOC } from "./__mocks__/PolkadotApiMock.js";
+mockPolkadotApi();
+const { ApiPromise } = await import('@polkadot/api');
 
 import { stringToHex } from '@polkadot/util';
-import { ApiPromise } from '@polkadot/api';
-import {
+const {
     createPolkadotTransactionLoc,
     addMetadata,
     getLegalOfficerCase,
     addFile,
     addCollectionItem,
     getCollectionItem,
-} from '../src';
-import { UUID } from '../src';
-import { DEFAULT_ITEM, DEFAULT_LOC } from './__mocks__/PolkadotApiMock';
-import { ItemFile, ItemToken, TermsAndConditionsElement } from '../src';
+    UUID,
+} = await import('../src/index.js');
+import type {
+    ItemFile,
+    ItemToken,
+    TermsAndConditionsElement
+} from "../src/index.js";
 
 describe("LogionLoc", () => {
 

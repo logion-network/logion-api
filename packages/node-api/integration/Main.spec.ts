@@ -1,10 +1,10 @@
-import { transferTokens, failedTransfer } from "./Balances";
-import { addCollectionItemTest, closeCollectionLocTest, createCollectionLocLimitedInSizeTest } from "./CollectionLoc";
-import { addGuardian } from "./LoAuthorityList";
-import { queryInfos } from "./Query";
-import { addFileToTransactionLocTest, createTransactionLocTest } from "./TransactionLoc";
-import { createVote } from "./Vote";
-import { verifiedIssuers } from "./VerifiedIssuers";
+import { transferTokens, failedTransfer } from "./Balances.js";
+import { addCollectionItemTest, closeCollectionLocTest, createCollectionLocLimitedInSizeTest } from "./CollectionLoc.js";
+import { addGuardian } from "./LoAuthorityList.js";
+import { queryInfos } from "./Query.js";
+import { addFileToTransactionLocTest, createTransactionLocTest } from "./TransactionLoc.js";
+import { createVote } from "./Vote.js";
+import { verifiedIssuers } from "./VerifiedIssuers.js";
 
 describe("Logion Node API", () => {
 

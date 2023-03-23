@@ -6,7 +6,7 @@
 docker-compose.yml
 front_config.js
 front_web*.conf
-jest*.js
+jest.config.ts
 tsconfig*.json
 .eslintrc.json
 jasmine*.json

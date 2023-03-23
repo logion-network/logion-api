@@ -1,5 +1,5 @@
-import { getVaultAddress } from "../src";
-import { DEFAULT_LEGAL_OFFICER, ANOTHER_LEGAL_OFFICER } from "./TestData";
+import { getVaultAddress } from "../src/index.js";
+import { DEFAULT_LEGAL_OFFICER, ANOTHER_LEGAL_OFFICER } from "./TestData.js";
 
 describe("Vault", () => {
 

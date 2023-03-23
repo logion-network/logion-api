@@ -1,9 +1,12 @@
-import { DEFAULT_LEGAL_OFFICER } from "./TestData";
-import { ApiPromise } from '@polkadot/api';
-import { setQueryRecoveryRecoverable, setQueryRecoveryActiveRecoveries } from './__mocks__/PolkadotApiMock';
-import { createRecovery, getRecoveryConfig, initiateRecovery, getActiveRecovery } from '../src';
+import { jest } from '@jest/globals';
+import { mockPolkadotApi } from "./__mocks__/PolkadotApiMock.js";
+mockPolkadotApi();
+const { ApiPromise } = await import('@polkadot/api');
 
-jest.mock('@polkadot/api');
+import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
+import { setQueryRecoveryRecoverable, setQueryRecoveryActiveRecoveries } from './__mocks__/PolkadotApiMock.js';
+const { createRecovery, getRecoveryConfig, initiateRecovery, getActiveRecovery } = await import('../src/index.js');
+
 
 test("recovery creation", () => {
     const api = new ApiPromise();

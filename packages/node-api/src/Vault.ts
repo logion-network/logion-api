@@ -3,9 +3,10 @@ import { createKeyMulti, encodeAddress } from '@polkadot/util-crypto';
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { Call } from "@polkadot/types/interfaces";
 
-import { getRecoveryConfig } from "./Recovery";
-import { PrefixedNumber } from "./numbers";
-import { LGNT_SMALLEST_UNIT } from './Balances';
+import { getRecoveryConfig } from "./Recovery.js";
+import { PrefixedNumber } from "./numbers.js";
+import { LGNT_SMALLEST_UNIT } from './Balances.js';
+import { Weight } from "./interfaces/index.js";
 
 const THRESHOLD = 2;
 
@@ -47,7 +48,7 @@ async function buildRequestCallSubmittable(parameters: BuildRequestVaultTransfer
     }
 
     const sortedLegalOfficers = [ ...legalOfficers ].sort();
-    return api.tx.vault.requestCall(sortedLegalOfficers, call.method.hash, { refTime: weight })
+    return api.tx.vault.requestCall(sortedLegalOfficers, call.method.hash, weight);
 }
 
 export async function buildVaultTransferCall(parameters: BuildRequestVaultTransferParameters & { requesterAddress: string }): Promise<Call> {
@@ -60,14 +61,14 @@ async function transferCallAndWeight(
     legalOfficers: string[],
     amount: bigint,
     destination: string,
-): Promise<{ call: SubmittableExtrinsic, weight: string, multisigOrigin: string }> {
+): Promise<{ call: SubmittableExtrinsic, weight: Weight, multisigOrigin: string }> {
     const multisigOrigin = getVaultAddress(requesterAddress, legalOfficers);
     const call = transferCall(api, destination, amount);
     const dispatchInfo = await call.paymentInfo(multisigOrigin);
-    const maxWeight = dispatchInfo.weight;
+    const weight = dispatchInfo.weight;
     return {
         call,
-        weight: maxWeight.refTime.toString(),
+        weight,
         multisigOrigin
     }
 }
@@ -118,7 +119,7 @@ export async function approveVaultTransfer(parameters: VaultTransferApprovalPara
     const { call, weight } = await transferCallAndWeight(api, requester, recoveryConfig.legalOfficers, BigInt(actualAmount), destination);
 
     const otherSignatories = [ requester, otherLegalOfficer ].sort();
-    return api.tx.vault.approveCall(otherSignatories, call.method, {height: block, index}, { refTime: weight });
+    return api.tx.vault.approveCall(otherSignatories, call.method, {height: block, index}, weight);
 }
 
 export interface CancelVaultTransferParameters {
