@@ -1,5 +1,8 @@
-import { getVaultAddress } from "../src/index.js";
+import { mockPolkadotApi } from "./__mocks__/PolkadotApiMock.js";
 import { DEFAULT_LEGAL_OFFICER, ANOTHER_LEGAL_OFFICER } from "./TestData.js";
+
+mockPolkadotApi();
+const { getVaultAddress } = await import("../src/index.js");
 
 describe("Vault", () => {
 
