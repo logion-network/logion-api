@@ -23,6 +23,7 @@ import {
     EMPTY_LOC_ISSUERS,
     AddTokensRecordParams,
     GetTokensRecordsRequest,
+    FileInfo,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -66,7 +67,8 @@ export interface LocData extends LocVerifiedIssuers {
 export interface MergedLink extends LocLink, Published {
 }
 
-export interface MergedFile extends LocFile, Published {
+export interface MergedFile extends FileInfo, Published {
+    size: bigint;
 }
 
 export interface MergedMetadataItem extends LocMetadataItem, Published {
@@ -622,6 +624,7 @@ export abstract class LocRequestState extends State {
         } else {
             return {
                 ...backendFile,
+                size: BigInt(backendFile.size),
                 published: false,
             }
         }

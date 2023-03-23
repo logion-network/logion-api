@@ -8,12 +8,22 @@ import {
     PalletLogionLocLocVoidInfo,
 } from "@polkadot/types/lookup";
 import { AccountId32, H256 } from "@polkadot/types/interfaces/runtime";
-import { Option, Bytes } from "@polkadot/types-codec";
+import { Option, Bytes, u32 } from "@polkadot/types-codec";
 import { DateTime } from "luxon";
 import { Mock } from "moq.ts";
 
 import { LocFile, LocRequest, LocRequestStatus, OffchainCollectionItem, UploadableItemFile } from "../src/index.js";
-import { mockBool, mockCodecWithToHex, mockCodecWithToString, mockCodecWithToUtf8, mockEmptyOption, mockOption, mockVec, REQUESTER } from "./Utils.js";
+import {
+    mockBool,
+    mockCodecWithToHex,
+    mockCodecWithToString,
+    mockCodecWithToUtf8,
+    mockEmptyOption,
+    mockOption,
+    mockVec,
+    REQUESTER,
+    mockCodecWithToBigInt
+} from "./Utils.js";
 
 export const EXISTING_FILE_HASH = "0xa4d9f9f1a02baae960d1a7c4cedb25940a414ae4c545bf2f14ab24691fec09a5";
 
@@ -78,6 +88,7 @@ export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType
                 hash: EXISTING_FILE_HASH,
                 nature: "Some nature",
                 submitter: requester,
+                size: 128n,
             })
         ]),
         links: mockVec([]),
@@ -104,11 +115,13 @@ function mockLogionLocFile(file: {
     hash: string,
     nature: string,
     submitter: string,
+    size: bigint,
 }): PalletLogionLocFile {
     const mock = new Mock<PalletLogionLocFile>();
     mock.setup(instance => instance.hash_).returns(mockCodecWithToHex<H256>(file.hash));
     mock.setup(instance => instance.nature).returns(mockCodecWithToUtf8<Bytes>(file.nature));
     mock.setup(instance => instance.submitter).returns(mockCodecWithToString<AccountId32>(file.submitter));
+    mock.setup(instance => instance.size_).returns(mockCodecWithToBigInt<u32>(file.size));
     return mock.object();
 }
 

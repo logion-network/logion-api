@@ -26,12 +26,14 @@ export async function addFileToTransactionLocTest() {
 
     const hash = "0x46d9bb04725470dc8483395f635805e9da5e105c7b2b90935b895a0f4f364d80";
     const nature = "Some nature";
+    const size = BigInt(456);
     const addFileExtrinsic = addFile({
         api,
         locId: TRANSACTION_LOC_ID,
         hash,
         nature,
         submitter: ALICE,
+        size,
     });
     await signAndSend(alice, addFileExtrinsic);
 
@@ -43,6 +45,7 @@ export async function addFileToTransactionLocTest() {
     expect(loc?.files[0].hash).toBe(hash);
     expect(loc?.files[0].nature).toBe(nature);
     expect(loc?.files[0].submitter).toBe(ALICE);
+    expect(loc?.files[0].size).toBe(size);
 }
 
 const TRANSACTION_LOC_ID = new UUID("c1dc4b62-714b-4001-ae55-1b54ad61dd93");

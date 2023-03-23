@@ -83,19 +83,21 @@ describe("LogionLoc", () => {
         const nature = "file-nature";
         const submitter = "submitter";
         const locId = new UUID();
-
+        const size = BigInt(128000);
         addFile({
             api,
             locId,
             hash,
             nature,
             submitter,
+            size,
         });
 
         expect(api.tx.logionLoc.addFile).toHaveBeenCalledWith(locId.toHexString(), {
             hash_: hash,
             nature: "0x66696c652d6e6174757265",
             submitter,
+            size_: size,
         });
     });
 

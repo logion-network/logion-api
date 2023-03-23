@@ -1,7 +1,6 @@
 import {
     LogionNodeApi,
     UUID,
-    File as BlockchainFile,
     MetadataItem,
     Link,
     LocType,
@@ -49,13 +48,19 @@ export interface Published {
     published: boolean;
 }
 
-/**
- * Blockchain File, extended with private attributes and timestamp.
- */
-export interface LocFile extends BlockchainFile, Partial<AddedOn> {
+export interface FileInfo extends Partial<AddedOn> {
+    hash: string;
+    nature: string;
+    submitter: string;
     name: string;
     restrictedDelivery: boolean;
     contentType: string;
+}
+
+/**
+ * LOC File.
+ */
+export interface LocFile extends FileInfo {
     size: string;
 }
 

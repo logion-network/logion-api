@@ -194,3 +194,9 @@ export function mockCodecWithToHex<T extends Codec & { toHex: () => string }>(va
         toHex: () => value,
     }) as T;
 }
+
+export function mockCodecWithToBigInt<T extends Codec & { toBigInt: () => bigint }>(value: bigint): T {
+    return ({
+        toBigInt: () => value,
+    }) as T;
+}

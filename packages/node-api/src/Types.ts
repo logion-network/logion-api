@@ -10,6 +10,7 @@ export interface File {
     hash: string;
     nature: string;
     submitter: string;
+    size: bigint;
 }
 
 export interface Link {
