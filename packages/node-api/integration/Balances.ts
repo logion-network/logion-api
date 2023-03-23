@@ -1,6 +1,6 @@
 import { DispatchError } from '@polkadot/types/interfaces/system/types';
-import { getExtrinsicEvents, getBalances, NONE, EXA, PrefixedNumber, transferSubmittable, getErrorMetadata, JsonObject } from "../src";
-import { REQUESTER, setup, signAndSend } from "./Util";
+import { getExtrinsicEvents, getBalances, NONE, EXA, PrefixedNumber, transferSubmittable, getErrorMetadata, JsonObject } from "../src/index.js";
+import { REQUESTER, setup, signAndSend } from "./Util.js";
 
 export async function transferTokens() {
     const { alice, api } = await setup();

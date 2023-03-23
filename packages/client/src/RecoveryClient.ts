@@ -2,7 +2,7 @@ import { LogionNodeApi, getProxy, getRecoveryConfig, RecoveryConfig } from "@log
 import { AxiosInstance } from "axios";
 
 import { AxiosFactory } from "./AxiosFactory.js";
-import { aggregateArrays, MultiResponse, MultiSourceHttpClient, initMultiSourceHttpClientState } from "./Http.js";
+import { aggregateArrays, MultiSourceHttpClient, initMultiSourceHttpClientState } from "./Http.js";
 import { NetworkState } from "./NetworkState.js";
 import { LegalOfficerEndpoint } from "./SharedClient.js";
 import { LegalOfficer, PostalAddress, UserIdentity } from "./Types.js";
@@ -98,42 +98,23 @@ export class RecoveryClient {
     private readonly nodeApi: LogionNodeApi;
 
     async fetchAll(legalOfficers?: LegalOfficer[]): Promise<FetchAllResult> {
-        const initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers)
+        const initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers);
 
         const multiClient = new MultiSourceHttpClient<LegalOfficerEndpoint>(
             initialState,
             this.axiosFactory,
             this.token
         );
-        let result: MultiResponse<ProtectionRequest[]>;
-
-        result = await multiClient.fetch(axios => this.fetchProtectionRequests(axios, {
+        const allRequests = aggregateArrays(await multiClient.fetch(axios => this.fetchProtectionRequests(axios, {
             requesterAddress: this.currentAddress,
-            statuses: [ "PENDING" ],
+            statuses: [ "PENDING", "ACCEPTED", "ACTIVATED", "REJECTED", "CANCELLED", "REJECTED_CANCELLED", "ACCEPTED_CANCELLED" ],
             kind: "ANY",
-        }));
-        const pendingProtectionRequests = aggregateArrays(result);
+        })));
 
-        result = await multiClient.fetch(axios => this.fetchProtectionRequests(axios, {
-            requesterAddress: this.currentAddress,
-            statuses: [ "ACCEPTED", "ACTIVATED" ],
-            kind: "ANY",
-        }));
-        const acceptedProtectionRequests = aggregateArrays(result);
-
-        result = await multiClient.fetch(axios => this.fetchProtectionRequests(axios, {
-            requesterAddress: this.currentAddress,
-            statuses: [ "REJECTED" ],
-            kind: "ANY",
-        }));
-        const rejectedProtectionRequests = aggregateArrays(result);
-
-        result = await multiClient.fetch(axios => this.fetchProtectionRequests(axios, {
-            requesterAddress: this.currentAddress,
-            statuses: [ "CANCELLED", "REJECTED_CANCELLED", "ACCEPTED_CANCELLED" ],
-            kind: "ANY",
-        }));
-        const cancelledProtectionRequests = aggregateArrays(result);
+        const pendingProtectionRequests = this.filterByStatuses(allRequests, [ "PENDING" ]);
+        const acceptedProtectionRequests = this.filterByStatuses(allRequests, [ "ACCEPTED", "ACTIVATED" ]);
+        const rejectedProtectionRequests = this.filterByStatuses(allRequests, [ "REJECTED" ]);
+        const cancelledProtectionRequests = this.filterByStatuses(allRequests, [ "CANCELLED", "REJECTED_CANCELLED", "ACCEPTED_CANCELLED" ]);
 
         if (legalOfficers === undefined) {
             const newState = multiClient.getState();
@@ -170,6 +151,10 @@ export class RecoveryClient {
     ): Promise<ProtectionRequest[]> {
         const response = await axios.put("/api/protection-request", specification);
         return response.data.requests;
+    }
+
+    private filterByStatuses(requests: ProtectionRequest[], statuses: ProtectionRequestStatus[]): ProtectionRequest[] {
+        return requests.filter(request => statuses.includes(request.status));
     }
 
     async fetchAccepted(legalOfficers: LegalOfficer[]): Promise<ProtectionRequest[]> {

@@ -583,8 +583,8 @@ describe("PendingProtection", () => {
     });
 
     it("refreshes and becomes accepted", async () => {
-        const aliceRequest: ProtectionRequest = buildPendingAliceRequest();
-        const bobRequest: ProtectionRequest = buildPendingBobRequest();
+        const aliceRequest: ProtectionRequest = buildAcceptedAliceRequest();
+        const bobRequest: ProtectionRequest = buildAcceptedBobRequest();
         const currentAddress = REQUESTER;
         const token = "some-token";
         const tokens = new AccountTokens({
@@ -654,27 +654,13 @@ function setupFetchProtectionRequests(
     accepted: ProtectionRequest[],
     rejected: ProtectionRequest[],
 ) {
-    axios.setup(instance => instance.put).returns(<T = any, R = AxiosResponse<T, any>, D = any>(url: string, body: D): Promise<R> => {
-        const anyBody: any = body;
+    axios.setup(instance => instance.put).returns(<T = any, R = AxiosResponse<T, any>>(): Promise<R> => {
         const response = new Mock<AxiosResponse<T, any>>();
-        if(anyBody.statuses!.includes("PENDING")) {
-            const data: unknown = {
-                requests: pending
-            };
-            response.setup(instance => instance.data).returns(data as T);
-        } else if(anyBody.statuses!.every((status: any) => ["ACCEPTED", "ACTIVATED"].includes(status))) {
-            const data: unknown = {
-                requests: accepted
-            };
-            response.setup(instance => instance.data).returns(data as T);
-        } else if(anyBody.statuses!.includes("REJECTED")) {
-            const data: unknown = {
-                requests: rejected
-            };
-            response.setup(instance => instance.data).returns(data as T);
-        }
-        const unknownResponse: unknown = response.object();
-        return Promise.resolve(unknownResponse as R);
+        const data: unknown = {
+            requests: pending.concat(accepted).concat(rejected)
+        };
+        response.setup(instance => instance.data).returns(data as T);
+        return Promise.resolve(response.object() as unknown as R);
     });
 }
 

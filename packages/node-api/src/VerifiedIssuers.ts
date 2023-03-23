@@ -1,6 +1,6 @@
-import { LogionNodeApi } from "./Connection";
-import { getLegalOfficerCase } from "./LogionLoc";
-import { UUID } from "./UUID";
+import { LogionNodeApi } from "./Connection.js";
+import { getLegalOfficerCase } from "./LogionLoc.js";
+import { UUID } from "./UUID.js";
 
 export interface VerifiedIssuer {
     address: string;

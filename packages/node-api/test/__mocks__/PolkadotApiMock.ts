@@ -1,6 +1,7 @@
+import { jest } from '@jest/globals';
 import { BN } from "bn.js";
-import { CollectionItem, LegalOfficerCase } from "../../src";
-import { UUID } from "../../src/UUID";
+import type { CollectionItem, LegalOfficerCase } from "../../src/index.js";
+import { UUID } from "../../src/UUID.js";
 
 export class WsProvider {
     constructor(socket: string) {
@@ -267,21 +268,21 @@ export class ApiPromise {
             mint: () => {},
         },
         recovery: {
-            initiateRecovery: jest.fn().mockResolvedValue(() => {}),
+            initiateRecovery: jest.fn(() => Promise.resolve()),
         },
         logionLoc: {
-            createPolkadotTransactionLoc: jest.fn().mockResolvedValue(() => {}),
-            createPolkadotIdentityLoc: jest.fn().mockResolvedValue(() => {}),
-            createLogionTransactionLoc: jest.fn().mockResolvedValue(() => {}),
-            createLogionIdentityLoc: jest.fn().mockResolvedValue(() => {}),
-            addMetadata: jest.fn().mockResolvedValue(() => {}),
-            addFile: jest.fn().mockResolvedValue(() => {}),
-            addLink: jest.fn().mockResolvedValue(() => {}),
-            addCollectionItem: jest.fn().mockResolvedValue(() => {}),
-            addCollectionItemWithTermsAndConditions: jest.fn().mockResolvedValue(() => {}),
+            createPolkadotTransactionLoc: jest.fn(() => Promise.resolve()),
+            createPolkadotIdentityLoc: jest.fn(() => Promise.resolve()),
+            createLogionTransactionLoc: jest.fn(() => Promise.resolve()),
+            createLogionIdentityLoc: jest.fn(() => Promise.resolve()),
+            addMetadata: jest.fn(() => Promise.resolve()),
+            addFile: jest.fn(() => Promise.resolve()),
+            addLink: jest.fn(() => Promise.resolve()),
+            addCollectionItem: jest.fn(() => Promise.resolve()),
+            addCollectionItemWithTermsAndConditions: jest.fn(() => Promise.resolve()),
         },
         verifiedRecovery: {
-            createRecovery: jest.fn().mockResolvedValue(() => {}),
+            createRecovery: jest.fn(() => Promise.resolve()),
         },
     }
 }
@@ -399,4 +400,11 @@ export function mockSigner(signRaw: (parameters: object) => Promise<string>) {
     return {
         signRaw
     };
+}
+
+export function mockPolkadotApi() {
+    jest.unstable_mockModule("@polkadot/api", () => ({
+        WsProvider,
+        ApiPromise,
+    }));
 }

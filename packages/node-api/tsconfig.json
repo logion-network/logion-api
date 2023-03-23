@@ -12,5 +12,10 @@
   },
   "include": [
     "./src/**/*"
-  ]
+  ],
+  "ts-node": {
+    "compilerOptions": {
+      "resolveJsonModule": true
+    }
+  }
 }

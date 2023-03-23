@@ -51,8 +51,8 @@ async function requestProtection(requester: string, state: State): Promise<Pendi
     console.log("Requesting protection")
     const noProtection = await authenticatedClient.protectionState() as NoProtection;
     return await noProtection.requestProtection({
-        legalOfficer1: alice,
-        legalOfficer2: bob,
+        legalOfficer1: authenticatedClient.getLegalOfficer(alice.address),
+        legalOfficer2: authenticatedClient.getLegalOfficer(bob.address),
         userIdentity: {
             email: "john.doe@invalid.domain",
             firstName: "John",

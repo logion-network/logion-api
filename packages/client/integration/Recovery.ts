@@ -91,8 +91,8 @@ async function requestRecovery(state: State): Promise<PendingProtection> {
     return await noProtection.requestRecovery({
         recoveredAddress: REQUESTER_ADDRESS,
         signer,
-        legalOfficer1: alice,
-        legalOfficer2: charlie,
+        legalOfficer1: authenticatedClient.getLegalOfficer(alice.address),
+        legalOfficer2: authenticatedClient.getLegalOfficer(charlie.address),
         userIdentity: {
             email: "john.doe@invalid.domain",
             firstName: "John",

@@ -97,29 +97,16 @@ export class VaultClient {
                 statuses: []
             }
         }
-        const vaultTransferRequestsResult = await vaultTransferRequestsMultiClient.fetch((axios, endpoint) => this.getVaultTransferRequests(axios, endpoint.legalOfficer, {
-            ...vaultSpecificationFragment,
-            statuses: [ "PENDING" ]
-        }));
-        let pendingVaultTransferRequests = aggregateArrays(vaultTransferRequestsResult).sort(requestSort);
 
-        const cancelledVaultTransferRequestsResult = await vaultTransferRequestsMultiClient.fetch((axios, endpoint) => this.getVaultTransferRequests(axios, endpoint.legalOfficer, {
+        const allRequests = aggregateArrays(await vaultTransferRequestsMultiClient.fetch((axios, endpoint) => this.getVaultTransferRequests(axios, endpoint.legalOfficer, {
             ...vaultSpecificationFragment,
-            statuses: [ "CANCELLED", "REJECTED_CANCELLED" ]
-        }));
-        let cancelledVaultTransferRequests = aggregateArrays(cancelledVaultTransferRequestsResult).sort(requestSort);
+            statuses: [ "PENDING", "CANCELLED", "REJECTED_CANCELLED", "REJECTED", "ACCEPTED" ]
+        }))).sort(requestSort);
 
-        const rejectedVaultTransferRequestsResult = await vaultTransferRequestsMultiClient.fetch((axios, endpoint) => this.getVaultTransferRequests(axios, endpoint.legalOfficer, {
-            ...vaultSpecificationFragment,
-            statuses: [ "REJECTED" ]
-        }));
-        let rejectedVaultTransferRequests = aggregateArrays(rejectedVaultTransferRequestsResult).sort(requestSort);
-
-        const acceptedVaultTransferRequestsResult = await vaultTransferRequestsMultiClient.fetch((axios, endpoint) => this.getVaultTransferRequests(axios, endpoint.legalOfficer, {
-            ...vaultSpecificationFragment,
-            statuses: [ "ACCEPTED" ]
-        }));
-        let acceptedVaultTransferRequests = aggregateArrays(acceptedVaultTransferRequestsResult).sort(requestSort);
+        let pendingVaultTransferRequests = this.filterByStatuses(allRequests, [ "PENDING" ]);
+        let cancelledVaultTransferRequests = this.filterByStatuses(allRequests, [ "CANCELLED", "REJECTED_CANCELLED" ]);
+        let rejectedVaultTransferRequests = this.filterByStatuses(allRequests, [ "REJECTED" ]);
+        let acceptedVaultTransferRequests = this.filterByStatuses(allRequests, [ "ACCEPTED" ]);
 
         if(legalOfficers === undefined) {
             const newState = vaultTransferRequestsMultiClient.getState();
@@ -156,6 +143,10 @@ export class VaultClient {
             ...request,
             legalOfficerAddress,
         }));
+    }
+
+    private filterByStatuses(requests: VaultTransferRequest[], statuses: VaultTransferRequestStatus[]): VaultTransferRequest[] {
+        return requests.filter(request => statuses.includes(request.status));
     }
 
     async createVaultTransferRequest(

@@ -2,7 +2,7 @@ import { ApiPromise } from '@polkadot/api';
 import { Call } from "@polkadot/types/interfaces";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
-import { PrefixedNumber, ScientificNumber, convertToPrefixed, NONE, ATTO } from "./numbers";
+import { PrefixedNumber, ScientificNumber, convertToPrefixed, NONE, ATTO } from "./numbers.js";
 
 const LGNT_DECIMALS = 18;
 export const LGNT_SMALLEST_UNIT = ATTO;

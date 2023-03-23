@@ -1,5 +1,5 @@
-import { getVerifiedIssuers, getLegalOfficerVerifiedIssuers, newTokensRecordFiles, nLgnt, toUnwrappedTokensRecord, UUID } from "../src";
-import { ALICE, ISSUER, REQUESTER, setup, signAndSend, signAndSendBatch } from "./Util";
+import { getVerifiedIssuers, getLegalOfficerVerifiedIssuers, newTokensRecordFiles, nLgnt, toUnwrappedTokensRecord, UUID } from "../src/index.js";
+import { ALICE, ISSUER, REQUESTER, setup, signAndSend, signAndSendBatch } from "./Util.js";
 
 export async function verifiedIssuers() {
     const { api, alice, issuer } = await setup();

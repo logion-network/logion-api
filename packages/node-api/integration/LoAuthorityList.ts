@@ -1,4 +1,4 @@
-import { ALICE, DAVE, setup, signAndSend } from "./Util";
+import { ALICE, DAVE, setup, signAndSend } from "./Util.js";
 
 export async function addGuardian() {
     const { alice, api } = await setup();

@@ -1,7 +1,7 @@
-import { AnyJson } from "@polkadot/types-codec/types/helpers";
-import { IKeyringPair } from "@polkadot/types/types/interfaces";
-import { getExtrinsicEvents, LogionNodeApi, UUID } from "../src";
-import { REQUESTER, setup, signAndSend } from "./Util";
+import { AnyJson } from "@polkadot/types-codec/types/helpers.js";
+import { IKeyringPair } from "@polkadot/types/types/interfaces.js";
+import { getExtrinsicEvents, LogionNodeApi, UUID } from "../src/index.js";
+import { REQUESTER, setup, signAndSend } from "./Util.js";
 
 export async function createVote() {
     const { alice, api } = await setup();
