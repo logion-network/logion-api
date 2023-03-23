@@ -1,5 +1,6 @@
 import { LogionNodeApi } from "./Connection.js";
 import { getLegalOfficerCase } from "./LogionLoc.js";
+import { LegalOfficerCase } from "./Types.js";
 import { UUID } from "./UUID.js";
 
 export interface VerifiedIssuer {
@@ -7,8 +8,13 @@ export interface VerifiedIssuer {
     identityLocId: UUID;
 }
 
-export async function getVerifiedIssuers(api: LogionNodeApi, locId: UUID): Promise<VerifiedIssuer[]> {
-    const loc = await getLegalOfficerCase({
+export async function getVerifiedIssuers(
+    api: LogionNodeApi,
+    locId: UUID,
+    locs?: Record<string, LegalOfficerCase>,
+    availableVerifiedIssuers?: Record<string, VerifiedIssuer[]>,
+): Promise<VerifiedIssuer[]> {
+    const loc = locs ? locs[locId.toDecimalString()] : await getLegalOfficerCase({
         api,
         locId,
     });
@@ -20,25 +26,49 @@ export async function getVerifiedIssuers(api: LogionNodeApi, locId: UUID): Promi
     const verifiedIssuers: VerifiedIssuer[] = [];
     for(const entry of entries) {
         const verifiedIssuerAddress = entry[0].args[1].toString();
-        const verifiedIssuer = (await api.query.logionLoc.verifiedIssuersMap(owner, verifiedIssuerAddress)).unwrap();
-        verifiedIssuers.push({
-            address: verifiedIssuerAddress,
-            identityLocId: UUID.fromDecimalStringOrThrow(verifiedIssuer.identityLoc.toString()),
-        });
+
+        let verifiedIssuer: VerifiedIssuer | undefined;
+        if(availableVerifiedIssuers && owner in availableVerifiedIssuers) {
+            verifiedIssuer = availableVerifiedIssuers[owner].find(issuer => issuer.address === verifiedIssuerAddress);
+        } else {
+            const issuerOption = await api.query.logionLoc.verifiedIssuersMap(owner, verifiedIssuerAddress);
+            const identityLocId = UUID.fromDecimalStringOrThrow(issuerOption.unwrap().identityLoc.toString());
+            verifiedIssuer = {
+                address: verifiedIssuerAddress,
+                identityLocId,
+            };
+        }
+        if(verifiedIssuer) {
+            verifiedIssuers.push(verifiedIssuer);
+        }
     }
     return verifiedIssuers;
 }
 
 export async function getLegalOfficerVerifiedIssuers(api: LogionNodeApi, legalOfficerAddress: string): Promise<VerifiedIssuer[]> {
-    const entries = await api.query.logionLoc.verifiedIssuersMap.entries(legalOfficerAddress);
-    const verifiedIssuers: VerifiedIssuer[] = [];
-    for(const entry of entries) {
-        const verifiedIssuerAddress = entry[0].args[1].toString();
-        const verifiedIssuer = (await api.query.logionLoc.verifiedIssuersMap(legalOfficerAddress, verifiedIssuerAddress)).unwrap();
-        verifiedIssuers.push({
-            address: verifiedIssuerAddress,
-            identityLocId: UUID.fromDecimalStringOrThrow(verifiedIssuer.identityLoc.toString()),
-        });
+    const issuers = await getLegalOfficersVerifiedIssuers(api, [legalOfficerAddress]);
+    return issuers[legalOfficerAddress];
+}
+
+export async function getLegalOfficersVerifiedIssuers(api: LogionNodeApi, legalOfficerAddresses: string[]): Promise<Record<string, VerifiedIssuer[]>> {
+    const map: Record<string, VerifiedIssuer[]> = {};
+    for(const legalOfficerAddress of legalOfficerAddresses) {
+        if(!(legalOfficerAddress in map)) {
+            const mapEntry: VerifiedIssuer[] = [];
+            map[legalOfficerAddress] = mapEntry;
+
+            const entries = await api.query.logionLoc.verifiedIssuersMap.entries(legalOfficerAddress);
+            for(const entry of entries) {
+                const address = entry[0].args[1].toString();
+                const issuerOption = entry[1];
+                const identityLocId = UUID.fromDecimalStringOrThrow(issuerOption.unwrap().identityLoc.toString());
+
+                mapEntry.push({
+                    address,
+                    identityLocId,
+                });
+            }
+        }
     }
-    return verifiedIssuers;
+    return map;
 }

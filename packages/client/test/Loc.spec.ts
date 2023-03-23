@@ -689,27 +689,41 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
             nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(new UUID(BOB_VOID_COLLECTION_LOC.request.id).toHexString(), EXISTING_ITEM_ID))
                 .returnsAsync(COLLECTION_ITEM);
 
-            if(!isVerifiedThirdParty) {
-                nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersMap(It.IsAny(), It.IsAny())).returns(Promise.resolve(mockEmptyOption<PalletLogionLocVerifiedIssuer>()));
-                nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersByLocMap.entries(It.IsAny())).returns(Promise.resolve([]));
-                nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(It.IsAny())).returns(Promise.resolve([]));
-            } else {
-                [
-                    ...aliceRequests,
-                    ...bobRequests,
-                    ...charlieRequests,
-                    ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request,
-                ].forEach(request => {
-                    if(request.id !== ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request.id) {
-                        nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersMap(request.ownerAddress, request.requesterAddress)).returns(Promise.resolve(mockEmptyOption<PalletLogionLocVerifiedIssuer>()));
+            const verifiedIssuersMapImpl: any = (legalOfficer: string, issuer: string) => {
+                if(!isVerifiedThirdParty) {
+                    return Promise.resolve(mockEmptyOption<PalletLogionLocVerifiedIssuer>());
+                } else {
+                    if(legalOfficer === ALICE.address && issuer === ISSUER) {
+                        return Promise.resolve(mockEmptyOption<PalletLogionLocVerifiedIssuer>());
                     } else {
                         const verifiedIssuer: PalletLogionLocVerifiedIssuer = mockCodecWithToString(new UUID(ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request.id).toDecimalString());
-                        nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersMap(request.ownerAddress, request.requesterAddress)).returns(Promise.resolve(mockOption(verifiedIssuer)));
+                        return Promise.resolve(mockOption(verifiedIssuer));
                     }
-                });
-
-                nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersByLocMap.entries(It.IsAny())).returns(Promise.resolve([]));
-
+                }
+            };
+            verifiedIssuersMapImpl.entries = (legalOfficer: string) => {
+                if(!isVerifiedThirdParty || legalOfficer !== ALICE.address) {
+                    return Promise.resolve([]);
+                } else {
+                    const verifiedIssuer = {
+                        identityLoc: mockCodecWithToString(new UUID(ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request.id).toDecimalString()),
+                    };
+                    return Promise.resolve([
+                        [
+                            {
+                                args: [
+                                    mockCodecWithToString(ALICE.address),
+                                    mockCodecWithToString(ISSUER),
+                                ],
+                            } as any,
+                            mockOption(verifiedIssuer as PalletLogionLocVerifiedIssuer),
+                        ]
+                    ]);
+                }
+            };
+            nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersMap).returns(verifiedIssuersMapImpl);
+            nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersByLocMap.entries(It.IsAny())).returns(Promise.resolve([]));
+            if(isVerifiedThirdParty) {
                 nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(ISSUER)).returns(Promise.resolve([
                     [
                         {
@@ -733,6 +747,8 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                     ]
                 ]));
                 nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(REQUESTER)).returns(Promise.resolve([]));
+            } else {
+                nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(It.IsAny())).returns(Promise.resolve([]));
             }
 
             nodeApiMock.setup(instance => instance.createType).returns(() => ({} as any));

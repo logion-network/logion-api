@@ -1,5 +1,5 @@
-import { getVerifiedIssuers, getLegalOfficerVerifiedIssuers, newTokensRecordFiles, nLgnt, toUnwrappedTokensRecord, UUID } from "../src/index.js";
-import { ALICE, ISSUER, REQUESTER, setup, signAndSend, signAndSendBatch } from "./Util.js";
+import { getVerifiedIssuers, getLegalOfficerVerifiedIssuers, newTokensRecordFiles, nLgnt, toUnwrappedTokensRecord, UUID, getLegalOfficersVerifiedIssuers } from "../src/index.js";
+import { ALICE, DAVE, ISSUER, REQUESTER, setup, signAndSend, signAndSendBatch } from "./Util.js";
 
 export async function verifiedIssuers() {
     const { api, alice, issuer } = await setup();
@@ -27,6 +27,12 @@ export async function verifiedIssuers() {
     expect(aliceVerifiedIssuers.length).toBe(1);
     expect(aliceVerifiedIssuers[0].address).toBe(ISSUER);
     expect(aliceVerifiedIssuers[0].identityLocId.toString()).toBe(issuerIdentityLocId.toString());
+
+    const aliceAndDaveVerifiedIssuers = await getLegalOfficersVerifiedIssuers(api, [ ALICE, DAVE ]);
+    expect(ALICE in aliceAndDaveVerifiedIssuers).toBe(true);
+    expect(DAVE in aliceAndDaveVerifiedIssuers).toBe(true);
+    expect(aliceAndDaveVerifiedIssuers[ALICE].length).toBe(1);
+    expect(aliceAndDaveVerifiedIssuers[DAVE].length).toBe(0);
 
     const collectionVerifiedIssuers = await getVerifiedIssuers(api, collectionLocId);
     expect(collectionVerifiedIssuers.length).toBe(1);
