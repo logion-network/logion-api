@@ -21,7 +21,8 @@ import {
     TokensRecord as ChainTokensRecord,
     getLegalOfficerCasesMap,
     VerifiedIssuer,
-    getLegalOfficersVerifiedIssuers,
+    getLegalOfficerVerifiedIssuersBatch,
+    getVerifiedIssuersBatch,
 } from '@logion/node-api';
 import { Option } from "@polkadot/types-codec";
 import { PalletLogionLocVerifiedIssuer } from "@polkadot/types/lookup";
@@ -412,7 +413,12 @@ export class LocMultiClient {
     }
 
     async getLegalOfficersVerifiedIssuers(legalOfficerAddresses: string[]): Promise<Record<string, VerifiedIssuer[]>> {
-        return getLegalOfficersVerifiedIssuers(this.nodeApi, legalOfficerAddresses);
+        return getLegalOfficerVerifiedIssuersBatch(this.nodeApi, legalOfficerAddresses);
+    }
+
+    async getSelectedVerifiedIssuers(params: { locIds: UUID[], locs: Record<string, LegalOfficerCase>, availableVerifiedIssuers: Record<string, VerifiedIssuer[]> }): Promise<Record<string, VerifiedIssuer[]>> {
+        const { locIds, locs, availableVerifiedIssuers } = params;
+        return getVerifiedIssuersBatch(this.nodeApi, locIds, locs, availableVerifiedIssuers);
     }
 }
 
@@ -940,6 +946,7 @@ export class AuthenticatedLocClient extends LocClient {
         request: LocRequest,
         locs?: Record<string, LegalOfficerCase>,
         availableVerifiedIssuers?: Record<string, VerifiedIssuer[]>,
+        selectedIssuers?: Record<string, VerifiedIssuer[]>,
     ): Promise<LocVerifiedIssuers> {
         if(!this.currentAddress || (request.status !== "OPEN" && request.status !== "CLOSED")) {
             return EMPTY_LOC_ISSUERS;
@@ -954,7 +961,7 @@ export class AuthenticatedLocClient extends LocClient {
                     verifiedThirdParty = maybeIssuer.isSome;
                 }
             }
-            const nodeIssuers = await getVerifiedIssuers(this.nodeApi, locId, locs, availableVerifiedIssuers);
+            const nodeIssuers = selectedIssuers ? selectedIssuers[locId.toDecimalString()] : await getVerifiedIssuers(this.nodeApi, locId, locs, availableVerifiedIssuers);
             const chainSelectedIssuers = new Set<string>();
             nodeIssuers.forEach(issuer => chainSelectedIssuers.add(issuer.address));
 

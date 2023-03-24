@@ -1,4 +1,4 @@
-import { getVerifiedIssuers, getLegalOfficerVerifiedIssuers, newTokensRecordFiles, nLgnt, toUnwrappedTokensRecord, UUID, getLegalOfficersVerifiedIssuers } from "../src/index.js";
+import { getVerifiedIssuers, getLegalOfficerVerifiedIssuers, newTokensRecordFiles, nLgnt, toUnwrappedTokensRecord, UUID, getLegalOfficerVerifiedIssuersBatch, getVerifiedIssuersBatch, getLegalOfficerCasesMap } from "../src/index.js";
 import { ALICE, DAVE, ISSUER, REQUESTER, setup, signAndSend, signAndSendBatch } from "./Util.js";
 
 export async function verifiedIssuers() {
@@ -28,7 +28,7 @@ export async function verifiedIssuers() {
     expect(aliceVerifiedIssuers[0].address).toBe(ISSUER);
     expect(aliceVerifiedIssuers[0].identityLocId.toString()).toBe(issuerIdentityLocId.toString());
 
-    const aliceAndDaveVerifiedIssuers = await getLegalOfficersVerifiedIssuers(api, [ ALICE, DAVE ]);
+    const aliceAndDaveVerifiedIssuers = await getLegalOfficerVerifiedIssuersBatch(api, [ ALICE, DAVE ]);
     expect(ALICE in aliceAndDaveVerifiedIssuers).toBe(true);
     expect(DAVE in aliceAndDaveVerifiedIssuers).toBe(true);
     expect(aliceAndDaveVerifiedIssuers[ALICE].length).toBe(1);
@@ -38,6 +38,11 @@ export async function verifiedIssuers() {
     expect(collectionVerifiedIssuers.length).toBe(1);
     expect(collectionVerifiedIssuers[0].address).toBe(ISSUER);
     expect(collectionVerifiedIssuers[0].identityLocId.toString()).toBe(issuerIdentityLocId.toString());
+
+    const locs = await getLegalOfficerCasesMap({ api, locIds: [ collectionLocId ] });
+    const collectionVerifiedIssuersBatch = await getVerifiedIssuersBatch(api, [ collectionLocId ], locs, aliceAndDaveVerifiedIssuers);
+    expect(collectionLocId.toDecimalString() in collectionVerifiedIssuersBatch).toBe(true);
+    expect(collectionVerifiedIssuersBatch[collectionLocId.toDecimalString()].length).toBe(1);
 
     const recordId = "0x5b2ef8140cfcf72237f2182b9f5eb05eb643a26f9a823e5e804d5543976a4fb9";
     const recordDescription = "Some description";

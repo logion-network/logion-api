@@ -45,12 +45,52 @@ export async function getVerifiedIssuers(
     return verifiedIssuers;
 }
 
+export async function getVerifiedIssuersBatch(
+    api: LogionNodeApi,
+    locIds: UUID[],
+    locs: Record<string, LegalOfficerCase>,
+    availableVerifiedIssuers: Record<string, VerifiedIssuer[]>,
+): Promise<Record<string, VerifiedIssuer[]>> {
+    const potentialIssuers = Object.values(availableVerifiedIssuers).flatMap(issuer => issuer).map(issuer => issuer.address);
+    if(potentialIssuers.length === 0) {
+        const map: Record<string, VerifiedIssuer[]> = {};
+        locIds.forEach(id => {
+            map[id.toDecimalString()] = [];
+        });
+        return map;
+    }
+
+    const keys: [string, string][] = [];
+    locIds.forEach(id => {
+        potentialIssuers.forEach(issuer => {
+            keys.push([ id.toDecimalString(), issuer ]);
+        });
+    });
+
+    const entries = await api.query.logionLoc.verifiedIssuersByLocMap.multi(keys);
+    const map: Record<string, VerifiedIssuer[]> = {};
+    for(let i = 0; i < keys.length; ++i) {
+        const locId = keys[i][0];
+        const verifiedIssuers: VerifiedIssuer[] = map[locId] ||= [];
+        if(entries[i].isSome) {
+            const verifiedIssuerAddress = keys[i][1];
+            const owner = locs[locId].owner;
+            const verifiedIssuer = availableVerifiedIssuers[owner].find(issuer => issuer.address === verifiedIssuerAddress);
+            if(!verifiedIssuer) {
+                throw new Error("Verified issuer not found");
+            }
+            verifiedIssuers.push(verifiedIssuer);
+        }
+    }
+    return map;
+}
+
 export async function getLegalOfficerVerifiedIssuers(api: LogionNodeApi, legalOfficerAddress: string): Promise<VerifiedIssuer[]> {
-    const issuers = await getLegalOfficersVerifiedIssuers(api, [legalOfficerAddress]);
+    const issuers = await getLegalOfficerVerifiedIssuersBatch(api, [legalOfficerAddress]);
     return issuers[legalOfficerAddress];
 }
 
-export async function getLegalOfficersVerifiedIssuers(api: LogionNodeApi, legalOfficerAddresses: string[]): Promise<Record<string, VerifiedIssuer[]>> {
+export async function getLegalOfficerVerifiedIssuersBatch(api: LogionNodeApi, legalOfficerAddresses: string[]): Promise<Record<string, VerifiedIssuer[]>> {
     const map: Record<string, VerifiedIssuer[]> = {};
     for(const legalOfficerAddress of legalOfficerAddresses) {
         if(!(legalOfficerAddress in map)) {

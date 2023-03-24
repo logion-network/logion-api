@@ -1,6 +1,7 @@
 import { LogionNodeApi, UUID } from "@logion/node-api";
 import { PalletLogionLocVerifiedIssuer } from '@polkadot/types/lookup';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
+import { Null } from "@polkadot/types-codec";
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import { DateTime } from "luxon";
 import { It, Mock, Times } from "moq.ts";
@@ -723,6 +724,10 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
             };
             nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersMap).returns(verifiedIssuersMapImpl);
             nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersByLocMap.entries(It.IsAny())).returns(Promise.resolve([]));
+
+            const verifiedIssuersByLocMapMultiImpl: any = (keys: any[]) => Promise.resolve(keys.map(() => mockEmptyOption<Null>()));
+            nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersByLocMap.multi).returns(verifiedIssuersByLocMapMultiImpl);
+
             if(isVerifiedThirdParty) {
                 nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(ISSUER)).returns(Promise.resolve([
                     [
