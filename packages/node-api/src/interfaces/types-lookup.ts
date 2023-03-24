@@ -1483,6 +1483,7 @@ declare module '@polkadot/types/lookup' {
     readonly hash_: H256;
     readonly nature: Bytes;
     readonly submitter: AccountId32;
+    readonly size_: u32;
   }
 
   /** @name PalletLogionLocLocLink (151) */
@@ -1844,7 +1845,8 @@ declare module '@polkadot/types/lookup' {
     readonly isV7ItemToken: boolean;
     readonly isV8AddSeal: boolean;
     readonly isV9TermsAndConditions: boolean;
-    readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions';
+    readonly isV10AddLocFileSize: boolean;
+    readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize';
   }
 
   /** @name PalletLogionLocError (212) */

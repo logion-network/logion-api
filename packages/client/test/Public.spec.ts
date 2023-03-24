@@ -59,7 +59,7 @@ describe("PublicLoc", () => {
 
     it("finds file on check", async () => {
         const data = new Mock<LocData>();
-        data.setup(instance => instance.files).returns([ { ...EXISTING_FILE, published: true } ]);
+        data.setup(instance => instance.files).returns([ { ...EXISTING_FILE, published: true, size: BigInt(EXISTING_FILE.size) } ]);
         data.setup(instance => instance.metadata).returns([]);
 
         const client = new Mock<PublicLocClient>();

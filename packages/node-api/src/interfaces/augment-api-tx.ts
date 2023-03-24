@@ -642,7 +642,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * Add file to LOC
        **/
-      addFile: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, file: PalletLogionLocFile | { hash_?: any; nature?: any; submitter?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, PalletLogionLocFile]>;
+      addFile: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, file: PalletLogionLocFile | { hash_?: any; nature?: any; submitter?: any; size_?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, PalletLogionLocFile]>;
       /**
        * Add a link to LOC
        **/

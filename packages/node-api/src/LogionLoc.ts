@@ -157,6 +157,7 @@ function toModel(rawLoc: PalletLogionLocLegalOfficerCase): LegalOfficerCase {
             hash: rawFile.hash_.toHex(),
             nature: rawFile.nature.toUtf8(),
             submitter: rawFile.submitter.toString(),
+            size: rawFile.size_.toBigInt(),
         })),
         links: rawLoc.links.toArray().map(rawLink => ({
             id: UUID.fromDecimalStringOrThrow(rawLink.id.toString()),
@@ -222,6 +223,7 @@ export interface AddFileParameters {
     hash: string;
     nature: string;
     submitter: string;
+    size: bigint;
 }
 
 export function addFile(parameters: AddFileParameters): SubmittableExtrinsic {
@@ -231,12 +233,14 @@ export function addFile(parameters: AddFileParameters): SubmittableExtrinsic {
         hash,
         nature,
         submitter,
+        size,
     } = parameters;
 
     return api.tx.logionLoc.addFile(locId.toHexString(), {
         hash_: hash,
         nature: stringToHex(nature),
-        submitter
+        submitter,
+        size_: size,
     });
 }
 

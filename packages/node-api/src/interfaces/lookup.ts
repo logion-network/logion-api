@@ -1358,11 +1358,13 @@ export default {
    **/
   PalletLogionLocFile: {
     _alias: {
-      hash_: 'hash'
+      hash_: 'hash',
+      size_: 'size'
     },
     hash_: 'H256',
     nature: 'Bytes',
-    submitter: 'AccountId32'
+    submitter: 'AccountId32',
+    size_: 'u32'
   },
   /**
    * Lookup151: pallet_logion_loc::LocLink<LocId>
@@ -1674,7 +1676,7 @@ export default {
    * Lookup211: pallet_logion_loc::pallet::StorageVersion
    **/
   PalletLogionLocStorageVersion: {
-    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions']
+    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize']
   },
   /**
    * Lookup212: pallet_logion_loc::pallet::Error<T>

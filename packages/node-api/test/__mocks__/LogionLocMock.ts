@@ -30,7 +30,8 @@ export const CLOSED_IDENTITY_LOC: LegalOfficerCase = {
         {
             hash: "0x" + UNPREFIXED_FILE_HASH,
             nature: "some-nature",
-            submitter: TEST_WALLET_USER
+            submitter: TEST_WALLET_USER,
+            size: BigInt(128000),
         }
     ],
     metadata: [],

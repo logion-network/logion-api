@@ -49,6 +49,7 @@ export const DEFAULT_LOC: LegalOfficerCase = {
             hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
             nature: "file-nature",
             submitter: "owner",
+            size: BigInt(128000),
         }
     ],
     links: [
@@ -169,7 +170,10 @@ export class ApiPromise {
                             },
                             submitter: {
                                 toString: () => file.submitter
-                            }
+                            },
+                            size_: {
+                                toBigInt: () => file.size
+                            },
                         }))
                     },
                     links: {
