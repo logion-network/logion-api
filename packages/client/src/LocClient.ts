@@ -20,6 +20,9 @@ import {
     toTokensRecord,
     TokensRecord as ChainTokensRecord,
     getLegalOfficerCasesMap,
+    VerifiedIssuer,
+    getLegalOfficerVerifiedIssuersBatch,
+    getVerifiedIssuersBatch,
 } from '@logion/node-api';
 import { Option } from "@polkadot/types-codec";
 import { PalletLogionLocVerifiedIssuer } from "@polkadot/types/lookup";
@@ -407,6 +410,15 @@ export class LocMultiClient {
 
     async getLocs(params: { locIds: UUID[] }): Promise<Record<string, LegalOfficerCase>> {
         return LocMultiClient.getLocs({ ...params, api: this.nodeApi });
+    }
+
+    async getLegalOfficersVerifiedIssuers(legalOfficerAddresses: string[]): Promise<Record<string, VerifiedIssuer[]>> {
+        return getLegalOfficerVerifiedIssuersBatch(this.nodeApi, legalOfficerAddresses);
+    }
+
+    async getSelectedVerifiedIssuers(params: { locIds: UUID[], locs: Record<string, LegalOfficerCase>, availableVerifiedIssuers: Record<string, VerifiedIssuer[]> }): Promise<Record<string, VerifiedIssuer[]>> {
+        const { locIds, locs, availableVerifiedIssuers } = params;
+        return getVerifiedIssuersBatch(this.nodeApi, locIds, locs, availableVerifiedIssuers);
     }
 }
 
@@ -930,17 +942,26 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async getLocIssuers(request: LocRequest): Promise<LocVerifiedIssuers> {
+    async getLocIssuers(
+        request: LocRequest,
+        locs?: Record<string, LegalOfficerCase>,
+        availableVerifiedIssuers?: Record<string, VerifiedIssuer[]>,
+        selectedIssuers?: Record<string, VerifiedIssuer[]>,
+    ): Promise<LocVerifiedIssuers> {
         if(!this.currentAddress || (request.status !== "OPEN" && request.status !== "CLOSED")) {
             return EMPTY_LOC_ISSUERS;
         } else {
             const locId = new UUID(request.id);
             let verifiedThirdParty = false;
             if(request.locType === "Identity" && request.status === "CLOSED") {
-                const maybeIssuer = await this.nodeApi.query.logionLoc.verifiedIssuersMap(request.ownerAddress, request.requesterAddress) as Option<PalletLogionLocVerifiedIssuer>;
-                verifiedThirdParty = maybeIssuer.isSome;
+                if(availableVerifiedIssuers) {
+                    verifiedThirdParty = availableVerifiedIssuers[request.ownerAddress].find(issuer => issuer.address === request.requesterAddress) !== undefined;
+                } else {
+                    const maybeIssuer = await this.nodeApi.query.logionLoc.verifiedIssuersMap(request.ownerAddress, request.requesterAddress) as Option<PalletLogionLocVerifiedIssuer>;
+                    verifiedThirdParty = maybeIssuer.isSome;
+                }
             }
-            const nodeIssuers = await getVerifiedIssuers(this.nodeApi, locId);
+            const nodeIssuers = selectedIssuers ? selectedIssuers[locId.toDecimalString()] : await getVerifiedIssuers(this.nodeApi, locId, locs, availableVerifiedIssuers);
             const chainSelectedIssuers = new Set<string>();
             nodeIssuers.forEach(issuer => chainSelectedIssuers.add(issuer.address));
 

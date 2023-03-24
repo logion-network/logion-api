@@ -1,4 +1,4 @@
-import { UUID, LegalOfficerCase, LocType, VoidInfo, ItemFile } from "@logion/node-api";
+import { UUID, LegalOfficerCase, LocType, VoidInfo, ItemFile, VerifiedIssuer } from "@logion/node-api";
 
 import {
     LocRequest,
@@ -269,22 +269,34 @@ export class LocsState extends State {
         const locMultiClient = LocMultiClient.newLocMultiClient(this.sharedState);
 
         const locRequests = await locMultiClient.fetchAll(params);
-        const legalOfficerCases = await locMultiClient.getLocs({
-            locIds: locRequests
-                .filter(request => request.status === "OPEN" || request.status === "CLOSED")
-                .map(request => new UUID(request.id)),
+        const locIds = locRequests
+            .filter(request => request.status === "OPEN" || request.status === "CLOSED")
+            .map(request => new UUID(request.id));
+        const legalOfficerCases = await locMultiClient.getLocs({ locIds });
+        const availableVerifiedIssuers = await locMultiClient.getLegalOfficersVerifiedIssuers(locRequests.map(request => request.ownerAddress));
+        const selectedIssuers = await locMultiClient.getSelectedVerifiedIssuers({
+            locIds,
+            locs: legalOfficerCases,
+            availableVerifiedIssuers,
         });
-        locsState._locs = await this.toStates(locMultiClient, locsState, locRequests, legalOfficerCases);
+        locsState._locs = await this.toStates(locMultiClient, locsState, locRequests, legalOfficerCases, availableVerifiedIssuers, selectedIssuers);
 
         if(locsState.isVerifiedThirdParty) {
             const legalOfficers = this.getVerifiedThirdPartyLegalOfficers(locsState);
             const verifiedThirdPartyRequests = await locMultiClient.fetchAllForVerifiedThirdParty(legalOfficers);
+            const verifiedThirdPartyLocIds = verifiedThirdPartyRequests
+                .filter(request => request.status === "OPEN" || request.status === "CLOSED")
+                .map(request => new UUID(request.id));
             const verifiedThirdPartyLegalOfficerCases = await locMultiClient.getLocs({
-                locIds: verifiedThirdPartyRequests
-                    .filter(request => request.status === "OPEN" || request.status === "CLOSED")
-                    .map(request => new UUID(request.id)),
+                locIds: verifiedThirdPartyLocIds,
             });
-            locsState._verifiedThirdPartyLocs = await this.toStates(locMultiClient, locsState, verifiedThirdPartyRequests, verifiedThirdPartyLegalOfficerCases);
+            const verifiedThirdPartyAvailableVerifiedIssuers = await locMultiClient.getLegalOfficersVerifiedIssuers(verifiedThirdPartyRequests.map(request => request.ownerAddress));
+            const verifiedThirdPartySelectedIssuers = await locMultiClient.getSelectedVerifiedIssuers({
+                locIds: verifiedThirdPartyLocIds,
+                locs: verifiedThirdPartyLegalOfficerCases,
+                availableVerifiedIssuers: verifiedThirdPartyAvailableVerifiedIssuers,
+            });
+            locsState._verifiedThirdPartyLocs = await this.toStates(locMultiClient, locsState, verifiedThirdPartyRequests, verifiedThirdPartyLegalOfficerCases, verifiedThirdPartyAvailableVerifiedIssuers, verifiedThirdPartySelectedIssuers);
         }
 
         return locsState;
@@ -294,13 +306,14 @@ export class LocsState extends State {
         locMultiClient: LocMultiClient,
         locsState: LocsState,
         locRequests: LocRequest[],
-        legalOfficerCases: Record<string, LegalOfficerCase>
+        legalOfficerCases: Record<string, LegalOfficerCase>,
+        availableVerifiedIssuers: Record<string, VerifiedIssuer[]>,
+        selectedIssuers: Record<string, VerifiedIssuer[]>,
     ): Promise<Record<string, LocRequestState>> {
         const refreshedLocs: Record<string, LocRequestState> = {};
         for (const locRequest of locRequests) {
             try {
-                const id = new UUID(locRequest.id);
-                const state = await this.toState(locMultiClient, locsState, locRequest, legalOfficerCases[id.toDecimalString()]);
+                const state = await this.toState(locMultiClient, locsState, locRequest, legalOfficerCases, availableVerifiedIssuers, selectedIssuers);
                 refreshedLocs[state.locId.toString()] = state;
             } catch(e) {
                 console.warn(e);
@@ -309,7 +322,14 @@ export class LocsState extends State {
         return refreshedLocs;
     }
 
-    private async toState(locMultiClient: LocMultiClient, locsState: LocsState, locRequest: LocRequest, legalOfficerCase?: LegalOfficerCase): Promise<AnyLocState> {
+    private async toState(
+        locMultiClient: LocMultiClient,
+        locsState: LocsState,
+        locRequest: LocRequest,
+        legalOfficerCases: Record<string, LegalOfficerCase>,
+        availableVerifiedIssuers: Record<string, VerifiedIssuer[]>,
+        selectedIssuers: Record<string, VerifiedIssuer[]>,
+    ): Promise<AnyLocState> {
         const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === locRequest.ownerAddress);
         if (legalOfficer) {
             const client = locMultiClient.newLocClient(legalOfficer);
@@ -319,7 +339,9 @@ export class LocsState extends State {
                 client,
                 locsState,
             };
-            const locIssuers = await client.getLocIssuers(locRequest);
+            const id = new UUID(locRequest.id);
+            const legalOfficerCase = legalOfficerCases[id.toDecimalString()];
+            const locIssuers = await client.getLocIssuers(locRequest, legalOfficerCases, availableVerifiedIssuers, selectedIssuers);
             if((locRequest.status === "OPEN" || locRequest.status === "CLOSED") && !legalOfficerCase) {
                 throw new Error("LOC expected");
             }
