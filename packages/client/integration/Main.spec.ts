@@ -6,6 +6,7 @@ import { recoverLostAccount, requestRecoveryAndCancel } from "./Recovery.js";
 import { requestTransactionLoc, collectionLoc, collectionLocWithUpload, identityLoc } from "./Loc.js";
 import { verifiedThirdParty } from "./VerifiedThirdParty.js";
 import { tokensRecords } from "./TokensRecord.js";
+import { fees } from "./Fees.js";
 
 describe("Logion SDK", () => {
 
@@ -15,6 +16,10 @@ describe("Logion SDK", () => {
 
     beforeAll(async () => {
         state = await setupInitialState();
+    });
+
+    it("estimates fees", async () => {
+        await fees(state);
     });
 
     it("transfers", async () => {

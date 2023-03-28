@@ -2,6 +2,7 @@ import { LegalOfficerCase, UUID } from "@logion/node-api";
 
 import { CollectionItem } from "./CollectionItem.js";
 import { CheckCertifiedCopyResult, CheckResultType } from "./Deliveries.js";
+import { FeesEstimator } from "./FeesEstimator.js";
 import { CheckHashResult, getCollectionItem, getTokensRecords, LocData, LocRequestState } from "./Loc.js";
 import {
     EMPTY_LOC_ISSUERS,
@@ -20,9 +21,12 @@ export class PublicApi {
         sharedState: SharedState
     }) {
         this.sharedState = args.sharedState;
+        this.fees = new FeesEstimator(args.sharedState.nodeApi);
     }
 
     private sharedState: SharedState;
+
+    readonly fees: FeesEstimator;
 
     async findLocById(params: FetchParameters): Promise<PublicLoc | undefined> {
         const locAndClient = await this.getLocAndClient(params);
@@ -87,7 +91,6 @@ export class PublicApi {
             jwtToken,
         })
     }
-
 }
 
 export class PublicLoc {
