@@ -1,5 +1,7 @@
-import { LogionNodeApi, UUID, addFile } from "@logion/node-api";
-import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
+import { LogionNodeApi } from "./Connection.js";
+import { UUID } from "./UUID.js";
+import { addFile } from "./LogionLoc.js";
+import { SubmittableExtrinsic } from "@polkadot/api/promise/types.js";
 
 export class Fees {
 
@@ -22,7 +24,7 @@ export class FeesEstimator {
         this.api = api;
     }
 
-    private api: LogionNodeApi;
+    private readonly api: LogionNodeApi;
 
     async estimateAddFile(args: {
         locId: UUID,
@@ -41,7 +43,10 @@ export class FeesEstimator {
             submitter: args.submitter,
         });
         const inclusionFee = await this.estimateInclusionFee(args.origin, submittable);
-        const storageFee = BigInt(0);
+        const storageFee = await this.estimateStorageFee({
+            numOfEntries: 1n,
+            totSize: args.size,
+        });
         return new Fees(inclusionFee, storageFee);
     }
 
@@ -49,6 +54,12 @@ export class FeesEstimator {
         const dispatchInfo = await submittable.paymentInfo(origin);
         const partialFee = dispatchInfo.partialFee;
         return BigInt(partialFee.toString());
+    }
+
+    async estimateStorageFee(params: { numOfEntries: bigint, totSize: bigint }): Promise<bigint> {
+        const { numOfEntries, totSize } = params;
+        const fee = await this.api.call.feesApi.queryFileStorageFee(numOfEntries, totSize);
+        return fee.toBigInt();
     }
 
     async estimateWithoutStorage(args: {

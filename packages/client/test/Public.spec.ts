@@ -1,4 +1,4 @@
-import { LogionNodeApi, UUID } from "@logion/node-api";
+import { LogionNodeApi, UUID, FeesEstimator } from "@logion/node-api";
 import { AxiosInstance, AxiosResponse } from "axios";
 import { It, Mock } from "moq.ts";
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
@@ -14,7 +14,6 @@ import {
     PublicApi,
     PublicLoc,
     hashString,
-    FeesEstimator,
 } from "../src/index.js";
 import {
     ALICE,
@@ -36,6 +35,7 @@ import {
     EXISTING_ITEM_FILE,
     EXISTING_ITEM_FILE_HASH
 } from "./LocUtils.js";
+import { Balance } from "@logion/node-api/dist/types/interfaces/runtime/types.js";
 
 describe("PublicApi", () => {
 
@@ -205,12 +205,15 @@ describe("FeesEstimator", () => {
         const hexId = new UUID(LOC_REQUEST.id).toHexString();
         const dispatchInfo = new Mock<RuntimeDispatchInfo>();
         const expectedInclusionFee = 42n;
+        const expectedStorageFee = 100n;
         dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToString(expectedInclusionFee.toString()));
         const submittable = new Mock<SubmittableExtrinsic>();
         submittable.setup(instance => instance.paymentInfo(ALICE.address)).returns(Promise.resolve(dispatchInfo.object()));
 
         nodeApiMock.setup(instance => instance.tx.logionLoc.addFile(hexId, It.IsAny()))
             .returns(submittable.object());
+        nodeApiMock.setup(instance => instance.call.feesApi.queryFileStorageFee(It.IsAny<bigint>(), It.IsAny<bigint>()))
+            .returns(Promise.resolve({ toBigInt: () => expectedStorageFee } as Balance ));
         const estimator = new FeesEstimator(nodeApiMock.object());
 
         const fees = await estimator.estimateAddFile({
@@ -223,8 +226,8 @@ describe("FeesEstimator", () => {
         });
 
         expect(fees.inclusionFee).toBe(expectedInclusionFee);
-        expect(fees.storageFee).toBe(0n);
-        expect(fees.totalFee).toBe(expectedInclusionFee);
+        expect(fees.storageFee).toBe(expectedStorageFee);
+        expect(fees.totalFee).toBe(expectedInclusionFee + expectedStorageFee);
     });
 
     it("estimates fees without storage", async () => {
