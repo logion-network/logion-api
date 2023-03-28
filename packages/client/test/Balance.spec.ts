@@ -52,7 +52,10 @@ describe("Balance", () => {
             method: "transfer",
             type: "balances.transfer",
             transferValue: amount.toString(),
-            fee: "100",
+            fees: {
+                inclusion: "100",
+                total: "100"
+            },
             tip: "0",
             reserved: "0",
             total: (amount + 100).toString(),
