@@ -1,9 +1,11 @@
 /* eslint-disable */
-import * as runtime from "@polkadot/types/interfaces/runtime/definitions";
+import * as runtimeDefinitions from "@polkadot/types/interfaces/runtime/definitions";
+import { runtime } from './runtime.js';
 
 export default {
     types: {
-        ...runtime.default.types,
+        ...runtimeDefinitions.default.types,
         AssetId: "u64",
-    }
+    },
+    runtime,
 };

@@ -95,6 +95,17 @@ declare module '@polkadot/api-base/types/calls' {
        **/
       [key: string]: DecoratedCallBase<ApiType>;
     };
+    /** 0x7ff059ebefccd53c/1 */
+    feesApi: {
+      /**
+       * Query expected fees for submitting given files
+       **/
+      queryFileStorageFee: AugmentedCall<ApiType, (numOfEntries: u32 | AnyNumber | Uint8Array, totSize: u32 | AnyNumber | Uint8Array) => Observable<Balance>>;
+      /**
+       * Generic call
+       **/
+      [key: string]: DecoratedCallBase<ApiType>;
+    };
     /** 0xed99c5acb25eedf5/3 */
     grandpaApi: {
       /**
