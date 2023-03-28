@@ -34,6 +34,18 @@ export function setQueryRecoveryActiveRecoveries(mockFn: any) {
     queryRecoveryActiveRecoveries = mockFn;
 }
 
+export let queryFileStorageFee = jest.fn(() => Promise.resolve())
+
+export function setQueryFileStorageFee(mockFn: any) {
+    queryFileStorageFee = mockFn;
+}
+
+export let addFile = jest.fn(() => Promise.resolve())
+
+export function setAddFile(mockFn: any) {
+    addFile = mockFn;
+}
+
 export const DEFAULT_LOC: LegalOfficerCase = {
     owner: "owner",
     requesterAddress: "requester",
@@ -280,7 +292,7 @@ export class ApiPromise {
             createLogionTransactionLoc: jest.fn(() => Promise.resolve()),
             createLogionIdentityLoc: jest.fn(() => Promise.resolve()),
             addMetadata: jest.fn(() => Promise.resolve()),
-            addFile: jest.fn(() => Promise.resolve()),
+            addFile,
             addLink: jest.fn(() => Promise.resolve()),
             addCollectionItem: jest.fn(() => Promise.resolve()),
             addCollectionItemWithTermsAndConditions: jest.fn(() => Promise.resolve()),
@@ -288,6 +300,11 @@ export class ApiPromise {
         verifiedRecovery: {
             createRecovery: jest.fn(() => Promise.resolve()),
         },
+    }
+    call = {
+        feesApi: {
+            queryFileStorageFee,
+        }
     }
 }
 

@@ -1,8 +1,7 @@
-import { LegalOfficerCase, UUID } from "@logion/node-api";
+import { LegalOfficerCase, UUID, FeesEstimator } from "@logion/node-api";
 
 import { CollectionItem } from "./CollectionItem.js";
 import { CheckCertifiedCopyResult, CheckResultType } from "./Deliveries.js";
-import { FeesEstimator } from "./FeesEstimator.js";
 import { CheckHashResult, getCollectionItem, getTokensRecords, LocData, LocRequestState } from "./Loc.js";
 import {
     EMPTY_LOC_ISSUERS,

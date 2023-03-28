@@ -4,6 +4,7 @@ export * from "./ChainTime.js";
 export * from "./Codec.js";
 export * from "./Connection.js";
 export * from "./Extrinsics.js";
+export * from "./FeesEstimator.js";
 export * from "./LogionLoc.js";
 export * from "./numbers.js";
 export * from "./Recovery.js";

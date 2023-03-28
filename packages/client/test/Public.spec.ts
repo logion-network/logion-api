@@ -1,8 +1,6 @@
-import { LogionNodeApi, UUID } from "@logion/node-api";
+import { LogionNodeApi, UUID, FeesEstimator } from "@logion/node-api";
 import { AxiosInstance, AxiosResponse } from "axios";
 import { It, Mock } from "moq.ts";
-import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
-import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces';
 
 import {
     AccountTokens,
@@ -13,15 +11,12 @@ import {
     SharedState,
     PublicApi,
     PublicLoc,
-    hashString,
-    FeesEstimator,
 } from "../src/index.js";
 import {
     ALICE,
     buildTestAuthenticatedSharedSate,
     LEGAL_OFFICERS,
     LOGION_CLIENT_CONFIG,
-    mockCodecWithToString,
     mockEmptyOption
 } from "./Utils.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
@@ -197,52 +192,3 @@ async function buildSharedState(): Promise<SharedState> {
         new AccountTokens({}),
     );
 }
-
-describe("FeesEstimator", () => {
-
-    it("estimates fees on file add", async () => {
-        nodeApiMock = new Mock<LogionNodeApi>();
-        const hexId = new UUID(LOC_REQUEST.id).toHexString();
-        const dispatchInfo = new Mock<RuntimeDispatchInfo>();
-        const expectedInclusionFee = 42n;
-        dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToString(expectedInclusionFee.toString()));
-        const submittable = new Mock<SubmittableExtrinsic>();
-        submittable.setup(instance => instance.paymentInfo(ALICE.address)).returns(Promise.resolve(dispatchInfo.object()));
-
-        nodeApiMock.setup(instance => instance.tx.logionLoc.addFile(hexId, It.IsAny()))
-            .returns(submittable.object());
-        const estimator = new FeesEstimator(nodeApiMock.object());
-
-        const fees = await estimator.estimateAddFile({
-            locId: new UUID(LOC_REQUEST.id),
-            hash: hashString("test"),
-            nature: "Some nature",
-            submitter: ALICE.address,
-            size: 42n,
-            origin: ALICE.address,
-        });
-
-        expect(fees.inclusionFee).toBe(expectedInclusionFee);
-        expect(fees.storageFee).toBe(0n);
-        expect(fees.totalFee).toBe(expectedInclusionFee);
-    });
-
-    it("estimates fees without storage", async () => {
-        nodeApiMock = new Mock<LogionNodeApi>();
-        const dispatchInfo = new Mock<RuntimeDispatchInfo>();
-        const expectedInclusionFee = 42n;
-        dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToString(expectedInclusionFee.toString()));
-        const submittable = new Mock<SubmittableExtrinsic>();
-        submittable.setup(instance => instance.paymentInfo(ALICE.address)).returns(Promise.resolve(dispatchInfo.object()));
-        const estimator = new FeesEstimator(nodeApiMock.object());
-
-        const fees = await estimator.estimateWithoutStorage({
-            origin: ALICE.address,
-            submittable: submittable.object(),
-        });
-
-        expect(fees.inclusionFee).toBe(expectedInclusionFee);
-        expect(fees.storageFee).toBeUndefined();
-        expect(fees.totalFee).toBe(expectedInclusionFee);
-    });
-});

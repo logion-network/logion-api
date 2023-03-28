@@ -15,6 +15,7 @@ export async function buildApi(endpoint: string | string[]): Promise<LogionNodeA
         provider,
         types,
         rpc: jsonrpc,
+        runtime: definitions.runtime.runtime,
     });
 }
 

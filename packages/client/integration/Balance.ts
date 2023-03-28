@@ -1,8 +1,9 @@
-import { PrefixedNumber, KILO, CoinBalance } from "@logion/node-api";
+import { PrefixedNumber, KILO, CoinBalance, LGNT_SMALLEST_UNIT } from "@logion/node-api";
 
 import { State, REQUESTER_ADDRESS } from "./Utils.js";
 import { ALICE } from "../test/Utils.js";
 import { BalanceState } from "../src/Balance.js";
+import { waitFor } from "../src/Polling.js";
 
 export async function transfers(state: State) {
     const { client, signer } = state;
@@ -12,12 +13,20 @@ export async function transfers(state: State) {
     let aliceState = await aliceClient.balanceState();
 
     checkBalance(aliceState, "100.00k");
+    expect(aliceState.transactions.length).toBe(0);
     aliceState = await aliceState.transfer({
         signer,
         amount: new PrefixedNumber("5", KILO),
         destination: REQUESTER_ADDRESS
     });
     checkBalance(aliceState, "94.99k");
+    aliceState = await waitFor({
+        producer: async state => state ? await state.refresh() : aliceState,
+        predicate: state => state.transactions.length === 1,
+    });
+    expect(aliceState.transactions[0].fees.inclusion).toBeGreaterThan(0);
+    expect(aliceState.transactions[0].fees.storage).toBeUndefined();
+    expect(aliceState.transactions[0].transferValue).toBe(new PrefixedNumber("5", KILO).convertTo(LGNT_SMALLEST_UNIT).coefficient.unnormalize().toString());
 
     // User transfers to Alice.
     const userClient = client.withCurrentAddress(REQUESTER_ADDRESS)
