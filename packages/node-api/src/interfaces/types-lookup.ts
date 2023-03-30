@@ -566,7 +566,9 @@ declare module '@polkadot/types/lookup' {
     readonly asLocVoid: u128;
     readonly isItemAdded: boolean;
     readonly asItemAdded: ITuple<[u128, H256]>;
-    readonly type: 'LocCreated' | 'LocClosed' | 'LocVoid' | 'ItemAdded';
+    readonly isStorageFeeWithdrawn: boolean;
+    readonly asStorageFeeWithdrawn: ITuple<[AccountId32, u128]>;
+    readonly type: 'LocCreated' | 'LocClosed' | 'LocVoid' | 'ItemAdded' | 'StorageFeeWithdrawn';
   }
 
   /** @name PalletVerifiedRecoveryEvent (55) */

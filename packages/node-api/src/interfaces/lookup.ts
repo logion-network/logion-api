@@ -515,7 +515,8 @@ export default {
       LocCreated: 'u128',
       LocClosed: 'u128',
       LocVoid: 'u128',
-      ItemAdded: '(u128,H256)'
+      ItemAdded: '(u128,H256)',
+      StorageFeeWithdrawn: '(AccountId32,u128)'
     }
   },
   /**
