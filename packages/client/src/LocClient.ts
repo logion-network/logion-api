@@ -42,6 +42,7 @@ import { MimeType } from "./Mime.js";
 import { validateToken, ItemTokenWithRestrictedType, TokenType } from "./Token.js";
 import { TermsAndConditionsElement, newTermsAndConditions, LogionClassification, SpecificLicense, CreativeCommons } from "./license/index.js";
 import { CollectionDelivery, ItemDeliveries } from './Deliveries.js';
+import { Fees } from './Fees.js';
 
 export interface AddedOn {
     addedOn: string;
@@ -58,6 +59,8 @@ export interface FileInfo extends Partial<AddedOn> {
     name: string;
     restrictedDelivery: boolean;
     contentType: string;
+    fees?: Fees;
+    storageFeePaidBy?: string;
 }
 
 /**
@@ -71,6 +74,7 @@ export interface LocFile extends FileInfo {
  * Blockchain MetadataItem, extended with timestamp.
  */
 export interface LocMetadataItem extends MetadataItem, Partial<AddedOn> {
+    fees?: Fees;
 }
 
 /**
@@ -78,6 +82,7 @@ export interface LocMetadataItem extends MetadataItem, Partial<AddedOn> {
  */
 export interface LocLink extends Link, AddedOn {
     target: string; // is redundant with inherited "id: UUID"
+    fees?: Fees;
 }
 
 export interface LocCollectionItem extends AddedOn {
