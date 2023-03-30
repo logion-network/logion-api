@@ -4,21 +4,13 @@ import { NetworkState } from "./NetworkState.js";
 import { LegalOfficerEndpoint } from "./SharedClient.js";
 import { AxiosFactory } from "./AxiosFactory.js";
 import { AnySourceHttpClient, Endpoint } from "./Http.js";
+import { Fees } from "./Fees.js";
 
 interface FetchTransactionsSpecification {
     address: string,
 }
 
 export type TransferDirection = "Sent" | "Received" | "None"
-
-export interface Fees {
-    /** @description Inclusion fee */
-    inclusion: string;
-    /** @description File storage fee (if applicable) */
-    storage?: string;
-    /** @description Total fee (inclusion + storage) */
-    total: string;
-}
 
 export interface Transaction {
     id: string,
