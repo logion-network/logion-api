@@ -119,3 +119,7 @@ export interface TypesTokensRecord {
     files: TypesTokensRecordFile[];
     submitter: string;
 }
+
+export interface TypesRecoveryConfig {
+    legalOfficers: string[];
+}

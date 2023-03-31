@@ -9,6 +9,7 @@ import { Adapters } from './Adapters.js';
 import { FeesEstimator } from './FeesEstimator.js';
 import { Queries } from './Queries.js';
 import { ChainTime } from './ChainTime.js';
+import { Vault } from './VaultClass.js';
 
 export type LogionNodeApi = ApiPromise;
 
@@ -49,6 +50,10 @@ export class LogionNodeApiClass {
     readonly queries: Queries;
     readonly time = {
         now: () => ChainTime.now(this.polkadot),
+    }
+
+    vault(requester: string, legalOfficers: string[]) {
+        return new Vault(this.polkadot, requester, legalOfficers);
     }
 }
 

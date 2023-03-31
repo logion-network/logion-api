@@ -2,7 +2,7 @@ import { ApiPromise } from "@polkadot/api";
 import { Adapters } from "./Adapters.js";
 import * as Currency from "./Currency.js";
 import * as Numbers from "./numbers.js";
-import { CollectionItem, LegalOfficerCase, TypesAccountData } from "./Types.js";
+import { CollectionItem, LegalOfficerCase, TypesAccountData, TypesRecoveryConfig } from "./Types.js";
 import { UUID } from "./UUID.js";
 
 export interface Coin {
@@ -158,5 +158,33 @@ export class Queries {
         } else {
             return undefined;
         }
+    }
+
+    async getRecoveryConfig(accountId: string): Promise<TypesRecoveryConfig | undefined> {
+        const recoveryConfig = await this.api.query.recovery.recoverable(accountId);
+        if (recoveryConfig.isEmpty) {
+            return undefined
+        }
+        return {
+            legalOfficers: recoveryConfig.unwrap().friends.toArray().map(accountId => accountId.toString())
+        };
+    }
+
+    async getActiveRecovery(sourceAccount: string, destinationAccount: string): Promise<TypesRecoveryConfig | undefined> {
+        const activeRecovery = await this.api.query.recovery.activeRecoveries(sourceAccount, destinationAccount);
+        if (activeRecovery.isEmpty) {
+            return undefined
+        }
+        return {
+            legalOfficers: activeRecovery.unwrap().friends.toArray().map(accountId => accountId.toString())
+        };
+    }
+
+    async getProxy(address: string): Promise<string | undefined> {
+        const proxy = await this.api.query.recovery.proxy(address);
+        if (proxy.isEmpty) {
+            return undefined
+        }
+        return proxy.unwrap().toString();
     }
 }
