@@ -8,7 +8,7 @@ import {
     KILO,
     ScientificNumber,
     MEGA,
-    ATTO, PICO, convertToPrefixed,
+    ATTO, PICO, convertToPrefixed, LGNT_SMALLEST_UNIT,
 } from '../src/index.js';
 
 test("amount given balance", () => {
@@ -108,6 +108,15 @@ test("convertPrefix negative milli kilo", () => {
     expect(result.coefficient.toString()).toBe('-42.');
     expect(result.prefix).toBe(KILO);
 });
+
+test("convertPrefix positive atto none resulting < 1", () => {
+    const prefixed = new PrefixedNumber("2368112210000000", ATTO);
+    expect(prefixed.coefficient.toString()).toBe("2368112210000000.");
+    const converted = prefixed.convertTo(NONE);
+    expect(converted.prefix.symbol).toBe("");
+    expect(converted.prefix.tenExponent).toBe(0);
+    expect(converted.coefficient.toString()).toBe(".00236811221");
+})
 
 test("optimizeScale large", () => {
     const prefixed = new ScientificNumber("42000000", 0);

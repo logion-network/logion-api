@@ -181,7 +181,7 @@ export class ScientificNumber {
             } else { // positions < 0
                 let leftWithDot;
                 if(integerPart.length <= -positions) {
-                    leftWithDot = integerPart.padStart(integerPart.length - positions - 1, "0");
+                    leftWithDot = integerPart.padStart(integerPart.length + (-positions - integerPart.length), "0");
                     leftWithDot = "." + leftWithDot;
                 } else  { // leftPart.length > -positions
                     const pivot = integerPart.length + positions;
