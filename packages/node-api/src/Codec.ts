@@ -1,3 +1,6 @@
+/**
+ * @deprecated use @polkadot/util's stringToHex
+ */
 export function toHex(source: string) {
     // utf8 to latin1
     const sanitized = unescape(encodeURIComponent(source));

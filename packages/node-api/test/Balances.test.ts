@@ -1,12 +1,12 @@
 import { mockPolkadotApi } from "./__mocks__/PolkadotApiMock.js";
-mockPolkadotApi();
+import { PrefixedNumber, ATTO, NONE } from '../src/numbers.js';
 
+mockPolkadotApi();
 const { ApiPromise } = await import('@polkadot/api');
-import {
+const {
     getAccountData,
     getBalances,
-} from '../src/Balances.js';
-import { PrefixedNumber, ATTO, NONE } from '../src/numbers.js';
+} = await import('../src/Balances.js');
 
 test("Getting account data", async () => {
     const api = new ApiPromise();
