@@ -10,7 +10,7 @@ import type { Bytes, Null, Option, Result, U8aFixed, Vec, bool, u128, u32, u64, 
 import type { ITuple } from '@polkadot/types-codec/types';
 import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, H256 } from '@polkadot/types/interfaces/runtime';
-import type { FrameSupportDispatchDispatchInfo, FrameSupportTokensMiscBalanceStatus, PalletLogionVoteBallot, PalletMultisigTimepoint, SpFinalityGrandpaAppPublic, SpRuntimeDispatchError } from '@polkadot/types/lookup';
+import type { FrameSupportDispatchDispatchInfo, FrameSupportTokensMiscBalanceStatus, PalletLogionVoteBallot, PalletMultisigTimepoint, SpConsensusGrandpaAppPublic, SpRuntimeDispatchError } from '@polkadot/types/lookup';
 
 export type __AugmentedEvent<ApiType extends ApiTypes> = AugmentedEvent<ApiType>;
 
@@ -37,6 +37,10 @@ declare module '@polkadot/api-base/types/events' {
        * Some asset `asset_id` was frozen.
        **/
       AssetFrozen: AugmentedEvent<ApiType, [assetId: u64], { assetId: u64 }>;
+      /**
+       * The min_balance of an asset has been updated by the asset owner.
+       **/
+      AssetMinBalanceChanged: AugmentedEvent<ApiType, [assetId: u64, newMinBalance: u128], { assetId: u64, newMinBalance: u128 }>;
       /**
        * An asset has had its attributes changed by the `Force` origin.
        **/
@@ -159,7 +163,7 @@ declare module '@polkadot/api-base/types/events' {
       /**
        * New authority set has been applied.
        **/
-      NewAuthorities: AugmentedEvent<ApiType, [authoritySet: Vec<ITuple<[SpFinalityGrandpaAppPublic, u64]>>], { authoritySet: Vec<ITuple<[SpFinalityGrandpaAppPublic, u64]>> }>;
+      NewAuthorities: AugmentedEvent<ApiType, [authoritySet: Vec<ITuple<[SpConsensusGrandpaAppPublic, u64]>>], { authoritySet: Vec<ITuple<[SpConsensusGrandpaAppPublic, u64]>> }>;
       /**
        * Current authority set has been paused.
        **/

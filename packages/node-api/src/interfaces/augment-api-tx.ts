@@ -10,7 +10,7 @@ import type { Bytes, Compact, Option, Struct, U8aFixed, Vec, bool, u128, u16, u3
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
 import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, Call, H256, MultiAddress } from '@polkadot/types/interfaces/runtime';
-import type { LogionNodeRuntimeOpaqueSessionKeys, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFile, PalletLogionLocLocLink, PalletLogionLocMetadataItem, PalletLogionLocTermsAndConditionsElement, PalletMultisigTimepoint, SpCoreVoid, SpFinalityGrandpaEquivocationProof, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
+import type { LogionNodeRuntimeOpaqueSessionKeys, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFile, PalletLogionLocLocLink, PalletLogionLocMetadataItem, PalletLogionLocTermsAndConditionsElement, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
 
 export type __AugmentedSubmittable = AugmentedSubmittable<() => unknown>;
 export type __SubmittableExtrinsic<ApiType extends ApiTypes> = SubmittableExtrinsic<ApiType>;
@@ -342,6 +342,21 @@ declare module '@polkadot/api-base/types/submittable' {
        **/
       setMetadata: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, name: Bytes | string | Uint8Array, symbol: Bytes | string | Uint8Array, decimals: u8 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, Bytes, Bytes, u8]>;
       /**
+       * Sets the minimum balance of an asset.
+       * 
+       * Only works if there aren't any accounts that are holding the asset or if
+       * the new value of `min_balance` is less than the old one.
+       * 
+       * Origin must be Signed and the sender has to be the Owner of the
+       * asset `id`.
+       * 
+       * - `id`: The identifier of the asset.
+       * - `min_balance`: The new value of `min_balance`.
+       * 
+       * Emits `AssetMinBalanceChanged` event when successful.
+       **/
+      setMinBalance: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, minBalance: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, u128]>;
+      /**
        * Change the Issuer, Admin and Freezer of an asset.
        * 
        * Origin must be Signed and the sender should be the Owner of the asset `id`.
@@ -594,7 +609,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * against the extracted offender. If both are valid, the offence
        * will be reported.
        **/
-      reportEquivocation: AugmentedSubmittable<(equivocationProof: SpFinalityGrandpaEquivocationProof | { setId?: any; equivocation?: any } | string | Uint8Array, keyOwnerProof: SpCoreVoid | null) => SubmittableExtrinsic<ApiType>, [SpFinalityGrandpaEquivocationProof, SpCoreVoid]>;
+      reportEquivocation: AugmentedSubmittable<(equivocationProof: SpConsensusGrandpaEquivocationProof | { setId?: any; equivocation?: any } | string | Uint8Array, keyOwnerProof: SpCoreVoid | null) => SubmittableExtrinsic<ApiType>, [SpConsensusGrandpaEquivocationProof, SpCoreVoid]>;
       /**
        * Report voter equivocation/misbehavior. This method will verify the
        * equivocation proof and validate the given key ownership proof
@@ -606,7 +621,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * if the block author is defined it will be defined as the equivocation
        * reporter.
        **/
-      reportEquivocationUnsigned: AugmentedSubmittable<(equivocationProof: SpFinalityGrandpaEquivocationProof | { setId?: any; equivocation?: any } | string | Uint8Array, keyOwnerProof: SpCoreVoid | null) => SubmittableExtrinsic<ApiType>, [SpFinalityGrandpaEquivocationProof, SpCoreVoid]>;
+      reportEquivocationUnsigned: AugmentedSubmittable<(equivocationProof: SpConsensusGrandpaEquivocationProof | { setId?: any; equivocation?: any } | string | Uint8Array, keyOwnerProof: SpCoreVoid | null) => SubmittableExtrinsic<ApiType>, [SpConsensusGrandpaEquivocationProof, SpCoreVoid]>;
       /**
        * Generic tx
        **/
