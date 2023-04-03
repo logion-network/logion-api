@@ -1,0 +1,331 @@
+import { ApiPromise } from "@polkadot/api";
+import { Call, FunctionMetadataLatest } from "@polkadot/types/interfaces";
+import { FrameSystemAccountInfo, PalletLogionLocFile, PalletLogionLocLegalOfficerCase, PalletLogionLocCollectionItem, PalletLogionLocTokensRecordFile, PalletLogionLocTokensRecord } from '@polkadot/types/lookup';
+import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
+import { ISubmittableResult } from "@polkadot/types/types";
+import { Vec } from "@polkadot/types-codec";
+import { CallBase, AnyTuple, AnyJson } from "@polkadot/types-codec/types";
+import { DispatchError } from '@polkadot/types/interfaces/system/types';
+import { TypesAccountData, File, LegalOfficerCase, LocType, TypesJsonObject, TypesJsonCall, TypesErrorMetadata, TypesEvent, CollectionItem, ItemFile, ItemToken, TermsAndConditionsElement, TypesTokensRecordFile, TypesTokensRecord } from "./Types.js";
+import { UUID } from "./UUID.js";
+
+
+export class Adapters {
+
+    constructor(api: ApiPromise) {
+        this.api = api;
+    }
+
+    private  api: ApiPromise;
+
+    toPalletLogionLocFile(file: File): PalletLogionLocFile {
+        return this.api.createType("PalletLogionLocFile", {
+            hash_: file.hash,
+            nature: file.nature,
+            submitter: file.submitter,
+        });
+    }
+
+    toCall(submittable: SubmittableExtrinsic): Call {
+        return this.api.createType('Call', submittable);
+    }
+
+    fromFrameSystemAccountInfo(accountData: FrameSystemAccountInfo): TypesAccountData {
+        return {
+            available: accountData.data.free.toString(),
+            reserved: accountData.data.reserved.toString(),
+            total: accountData.data.free.add(accountData.data.reserved).toString(),
+        };
+    }
+
+    static fromPalletLogionLocLegalOfficerCase(rawLoc: PalletLogionLocLegalOfficerCase): LegalOfficerCase {
+        return {
+            owner: rawLoc.owner.toString(),
+            requesterAddress: rawLoc.requester.isAccount ? rawLoc.requester.asAccount.toString() : undefined,
+            requesterLocId: rawLoc.requester.isLoc ? UUID.fromDecimalString(rawLoc.requester.asLoc.toString()) : undefined,
+            metadata: rawLoc.metadata.toArray().map(rawItem => ({
+                name: rawItem.name.toUtf8(),
+                value: rawItem.value.toUtf8(),
+                submitter: rawItem.submitter.toString(),
+            })),
+            files: rawLoc.files.toArray().map(rawFile => ({
+                hash: rawFile.hash_.toHex(),
+                nature: rawFile.nature.toUtf8(),
+                submitter: rawFile.submitter.toString(),
+                size: rawFile.size_.toBigInt(),
+            })),
+            links: rawLoc.links.toArray().map(rawLink => ({
+                id: UUID.fromDecimalStringOrThrow(rawLink.id.toString()),
+                nature: rawLink.nature.toUtf8()
+            })),
+            closed: rawLoc.closed.isTrue,
+            locType: rawLoc.locType.toString() as LocType,
+            voidInfo: rawLoc.voidInfo.isSome ? {
+                replacer: rawLoc.voidInfo.unwrap().replacer.isSome ? UUID.fromDecimalString(rawLoc.voidInfo.unwrap().replacer.toString()) : undefined
+            } : undefined,
+            replacerOf: rawLoc.replacerOf.isSome ? UUID.fromDecimalString(rawLoc.replacerOf.toString()) : undefined,
+            collectionLastBlockSubmission: rawLoc.collectionLastBlockSubmission.isSome ? rawLoc.collectionLastBlockSubmission.unwrap().toBigInt() : undefined,
+            collectionMaxSize: rawLoc.collectionMaxSize.isSome ? rawLoc.collectionMaxSize.unwrap().toNumber() : undefined,
+            collectionCanUpload: rawLoc.collectionCanUpload.isTrue,
+            seal: rawLoc.seal.isSome ? rawLoc.seal.unwrap().toHex() : undefined,
+        };
+    }
+
+    static toJsonCall(genericCall: CallBase<AnyTuple, FunctionMetadataLatest>): TypesJsonCall {
+        const args: {[index: string]: AnyJson} = {};
+    
+        for (let i = 0; i < genericCall.args.length; ++i) {
+            const arg = genericCall.args[i];
+            const meta = genericCall.meta.fields[i];
+            args[meta.name.unwrap().toString()] = arg.toHuman(true);
+        }
+    
+        return {
+            section: genericCall.section,
+            method: genericCall.method,
+            args,
+        };
+    }
+    
+    static isJsonObject(anyJson: AnyJson): anyJson is TypesJsonObject {
+        return typeof anyJson === "object";
+    }
+    
+    static asJsonObject(anyJson: AnyJson): TypesJsonObject {
+        if(Adapters.isJsonObject(anyJson)) {
+            return anyJson;
+        } else {
+            throw new Error("Not an object");
+        }
+    }
+    
+    static isString(anyJson: AnyJson): anyJson is string {
+        return typeof anyJson === "string";
+    }
+    
+    static asString(anyJson: AnyJson): string {
+        if(Adapters.isString(anyJson)) {
+            return anyJson;
+        } else {
+            throw new Error("Not a string");
+        }
+    }
+    
+    static isArray(anyJson: AnyJson): anyJson is AnyJson[] {
+        return anyJson instanceof Array;
+    }
+    
+    static asArray(anyJson: AnyJson): AnyJson[] {
+        if(Adapters.isArray(anyJson)) {
+            return anyJson;
+        } else {
+            throw new Error("Not an array");
+        }
+    }
+    
+    static isHexString(anyJson: AnyJson): anyJson is string {
+        return typeof anyJson === "string" && anyJson.startsWith("0x");
+    }
+    
+    static asHexString(anyJson: AnyJson): string {
+        if(Adapters.isHexString(anyJson)) {
+            return anyJson;
+        } else {
+            throw new Error("Not a string");
+        }
+    }
+    
+    static isNumberString(anyJson: AnyJson): anyJson is string {
+        return typeof anyJson === "string";
+    }
+    
+    static asBigInt(anyJson: AnyJson): bigint {
+        if(Adapters.isString(anyJson)) {
+            return BigInt(anyJson.replaceAll(",", ""));
+        } else {
+            throw new Error("Not a string");
+        }
+    }
+    
+    static isJsonCall(anyJson: AnyJson): anyJson is TypesJsonCall {
+        return Adapters.isJsonObject(anyJson)
+            && "section" in anyJson && Adapters.isString(anyJson.section)
+            && "method" in anyJson && Adapters.isString(anyJson.method)
+            && "args" in anyJson && Adapters.isJsonObject(anyJson.args);
+    }
+    
+    static asJsonCall(anyJson: AnyJson): TypesJsonCall {
+        if(Adapters.isJsonCall(anyJson)) {
+            return anyJson;
+        } else {
+            throw new Error("Not a JsonCall");
+        }
+    }
+
+    static getExtrinsicEvents(result: ISubmittableResult): TypesEvent[] {
+        return result.events
+            .filter(record => record.phase.isApplyExtrinsic)
+            .map(record => record.event.toHuman())
+            .map(json => ({
+                name: json.method as string,
+                section: json.section as string,
+                data: Adapters.getEventData(json.data),
+            }));
+    }
+
+    private static getEventData(json: AnyJson): TypesJsonObject | AnyJson[] {
+        if(Adapters.isArray(json)) {
+            return Adapters.asArray(json);
+        } else {
+            return Adapters.asJsonObject(json);
+        }
+    }
+
+    static getErrorMetadata(dispatchError: DispatchError): TypesErrorMetadata {
+        if (dispatchError && typeof dispatchError === 'object' && 'isModule' in dispatchError && dispatchError.isModule) {
+            const module = dispatchError.asModule;
+            try {
+                const metaError = dispatchError.registry.findMetaError({
+                    index: module.index,
+                    error: module.error
+                });
+                if (metaError) {
+                    return {
+                        pallet: metaError.section,
+                        error: metaError.name,
+                        details: metaError.docs.join(', ').trim()
+                    }
+                } else {
+                    return {
+                        pallet: "unknown",
+                        error: "Unknown",
+                        details: `index:${ module.index } error:${ module.error }`
+                    }
+                }
+            } catch (e) {
+                return {
+                    pallet: "unknown",
+                    error: "Unknown",
+                    details: `Failed to find meta error: ${e}`
+                }
+            }
+        }
+        return {
+            pallet: "unknown",
+            error: "Unknown",
+            details: "An unknown error occurred"
+        }
+    }
+
+    static getErrorMessage(dispatchError: DispatchError): string {
+        const metadata = Adapters.getErrorMetadata(dispatchError);
+        return `Got error ${metadata.error} from pallet ${metadata.pallet}: ${metadata.details}`;
+    }
+
+    static toLocId(id: UUID): string {
+        return id.toHexString();
+    }
+
+    static toLocFile(file: {
+        hash: string;
+        nature: string;
+        submitter: string;
+        size: bigint
+    }): { hash_?: string; nature?: string; submitter?: string; size_?: bigint } {
+        return {
+            hash_: file.hash,
+            nature: file.nature,
+            submitter: file.submitter,
+            size_: file.size,
+        };
+    }
+
+    static toLocLink(link: {
+        target: UUID;
+        nature: string;
+    }): { id?: string; nature?: string } {
+        return {
+            id: Adapters.toLocId(link.target),
+            nature: link.nature,
+        };
+    }
+
+    static fromPalletCollectionItem(itemId: string, unwrappedResult: PalletLogionLocCollectionItem): CollectionItem {
+        const description = unwrappedResult.description.toUtf8();
+        const token = unwrappedResult.token;
+        return {
+            id: itemId,
+            description,
+            files: unwrappedResult.files.map(resultFile => ({
+                name: resultFile.name.toUtf8(),
+                contentType: resultFile.contentType.toUtf8(),
+                hash: resultFile.hash_.toHex(),
+                size: resultFile.size_.toBigInt(),
+            })),
+            token: (token && token.isSome) ? {
+                type: token.unwrap().tokenType.toUtf8(),
+                id: token.unwrap().tokenId.toUtf8(),
+            } : undefined,
+            restrictedDelivery: unwrappedResult.restrictedDelivery.isTrue,
+            termsAndConditions: unwrappedResult.termsAndConditions.map(tc => ({
+                tcType: tc.tcType.toUtf8(),
+                tcLocId: UUID.fromDecimalStringOrThrow(tc.tcLoc.toString()),
+                details: tc.details.toUtf8(),
+            })),
+        };
+    }
+
+    static toCollectionItemFile(itemFile: ItemFile): { name: string; contentType: string; size_: bigint; hash_: string } {
+        return {
+            name: itemFile.name,
+            contentType: itemFile.contentType,
+            size_: itemFile.size,
+            hash_: itemFile.hash,
+        };
+    }
+
+    static toCollectionItemToken(itemToken?: ItemToken): { tokenType?: string; tokenId?: string } | null {
+        if(itemToken) {
+            return {
+                tokenType: itemToken.type,
+                tokenId: itemToken.id,
+            };
+        } else {
+            return null;
+        }
+    }
+
+    static toTermsAndConditionsElement(tc: TermsAndConditionsElement): { tcType?: string; tcLoc?: string; details?: string } {
+        return {
+            tcType: tc.tcType,
+            tcLoc: Adapters.toLocId(tc.tcLocId),
+            details: tc.details,
+        };
+    }
+
+    toPalletLogionLocTokensRecordFile(file: TypesTokensRecordFile): PalletLogionLocTokensRecordFile {
+        return this.api.createType("PalletLogionLocTokensRecordFile", {
+            name: this.api.createType("Bytes", file.name),
+            contentType: this.api.createType("Bytes", file.contentType),
+            size_: this.api.createType("u32", file.size),
+            hash_: this.api.createType("Hash", file.hash),
+        });
+    }
+
+    newTokensRecordFileVec(files: TypesTokensRecordFile[]): Vec<PalletLogionLocTokensRecordFile> {
+        return this.api.createType("Vec<PalletLogionLocTokensRecordFile>", files.map(file => this.toPalletLogionLocTokensRecordFile(file)));
+    }
+
+    static toTokensRecord(substrateObject: PalletLogionLocTokensRecord): TypesTokensRecord {
+        return {
+            description: substrateObject.description.toUtf8(),
+            files: substrateObject.files.map(file => ({
+                name: file.name.toUtf8(),
+                contentType: file.contentType.toUtf8(),
+                size: file.size_.toString(),
+                hash: file.hash_.toHex(),
+            })),
+            submitter: substrateObject.submitter.toString(),
+        };
+    }
+}

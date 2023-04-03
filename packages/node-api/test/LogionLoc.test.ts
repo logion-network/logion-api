@@ -2,7 +2,6 @@ import { mockPolkadotApi, DEFAULT_ITEM, DEFAULT_LOC } from "./__mocks__/Polkadot
 mockPolkadotApi();
 const { ApiPromise } = await import('@polkadot/api');
 
-import { stringToHex } from '@polkadot/util';
 const {
     createPolkadotTransactionLoc,
     addMetadata,
@@ -50,8 +49,8 @@ describe("LogionLoc", () => {
         });
 
         expect(api.tx.logionLoc.addMetadata).toHaveBeenCalledWith(locId.toHexString(), jasmine.objectContaining({
-            name: stringToHex(item.name),
-            value: stringToHex(item.value)
+            name: item.name,
+            value: item.value
         }));
     });
 
@@ -95,7 +94,7 @@ describe("LogionLoc", () => {
 
         expect(api.tx.logionLoc.addFile).toHaveBeenCalledWith(locId.toHexString(), {
             hash_: hash,
-            nature: "0x66696c652d6e6174757265",
+            nature: "file-nature",
             submitter,
             size_: size,
         });
@@ -147,11 +146,11 @@ describe("LogionLoc", () => {
         expect(api.tx.logionLoc.addCollectionItem).toHaveBeenCalledWith(
             collectionId.toHexString(),
             itemId,
-            stringToHex(itemDescription),
+            itemDescription,
             jasmine.arrayContaining([
                 jasmine.objectContaining({
-                    name: stringToHex(itemFiles[0].name),
-                    contentType: stringToHex(itemFiles[0].contentType),
+                    name: itemFiles[0].name,
+                    contentType: itemFiles[0].contentType,
                     size_: itemFiles[0].size,
                     hash_: itemFiles[0].hash,
                 })
@@ -194,11 +193,11 @@ describe("LogionLoc", () => {
         expect(api.tx.logionLoc.addCollectionItemWithTermsAndConditions).toHaveBeenCalledWith(
             collectionId.toHexString(),
             itemId,
-            stringToHex(itemDescription),
+            itemDescription,
             jasmine.arrayContaining([
                 jasmine.objectContaining({
-                    name: stringToHex(itemFiles[0].name),
-                    contentType: stringToHex(itemFiles[0].contentType),
+                    name: itemFiles[0].name,
+                    contentType: itemFiles[0].contentType,
                     size_: itemFiles[0].size,
                     hash_: itemFiles[0].hash,
                 })
@@ -206,9 +205,9 @@ describe("LogionLoc", () => {
             null,
             false,
             jasmine.objectContaining([{
-                tcType: stringToHex(termsAndConditions[0].tcType),
+                tcType: termsAndConditions[0].tcType,
                 tcLoc: termsAndConditions[0].tcLocId.toHexString(),
-                details: stringToHex(termsAndConditions[0].details)
+                details: termsAndConditions[0].details
             }])
         );
     });
@@ -244,18 +243,18 @@ describe("LogionLoc", () => {
         expect(api.tx.logionLoc.addCollectionItem).toHaveBeenCalledWith(
             collectionId.toHexString(),
             itemId,
-            stringToHex(itemDescription),
+            itemDescription,
             jasmine.arrayContaining([
                 jasmine.objectContaining({
-                    name: stringToHex(itemFiles[0].name),
-                    contentType: stringToHex(itemFiles[0].contentType),
+                    name: itemFiles[0].name,
+                    contentType: itemFiles[0].contentType,
                     size_: itemFiles[0].size,
                     hash_: itemFiles[0].hash,
                 })
             ]),
             jasmine.objectContaining({
-                tokenType: stringToHex(itemToken.type),
-                tokenId: stringToHex(itemToken.id),
+                tokenType: itemToken.type,
+                tokenId: itemToken.id,
             }),
             true,
         );

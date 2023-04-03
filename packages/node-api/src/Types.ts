@@ -1,4 +1,11 @@
+import { AnyJson } from "@polkadot/types-codec/types";
 import { UUID } from "./UUID.js";
+
+export interface TypesAccountData {
+    available: string,
+    reserved: string,
+    total: string,
+}
 
 export interface MetadataItem {
     name: string;
@@ -76,4 +83,43 @@ export function isLogionIdentityLoc(loc: LegalOfficerCase): boolean {
 
 export function isLogionDataLoc(loc: LegalOfficerCase): boolean {
     return loc.locType !== 'Identity' && (loc.requesterLocId !== undefined && loc.requesterLocId !== null);
+}
+
+export interface TypesJsonObject {
+    [index: string]: AnyJson
+}
+
+export interface TypesJsonCall extends TypesJsonObject {
+    method: string;
+    section: string;
+    args: TypesJsonObject;
+}
+
+export interface TypesEvent {
+    name: string;
+    section: string;
+    data: TypesJsonObject | AnyJson[];
+}
+
+export interface TypesErrorMetadata {
+    readonly pallet: string;
+    readonly error: string;
+    readonly details: string;
+}
+
+export interface TypesTokensRecordFile {
+    name: string;
+    contentType: string;
+    size: string;
+    hash: string;
+}
+
+export interface TypesTokensRecord {
+    description: string;
+    files: TypesTokensRecordFile[];
+    submitter: string;
+}
+
+export interface TypesRecoveryConfig {
+    legalOfficers: string[];
 }

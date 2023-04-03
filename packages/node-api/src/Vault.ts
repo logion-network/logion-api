@@ -1,20 +1,21 @@
 import { ApiPromise } from "@polkadot/api";
-import { createKeyMulti, encodeAddress } from '@polkadot/util-crypto';
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { Call } from "@polkadot/types/interfaces";
 
-import { getRecoveryConfig } from "./Recovery.js";
 import { PrefixedNumber } from "./numbers.js";
-import { LGNT_SMALLEST_UNIT } from './Balances.js';
-import { Weight } from "./interfaces/index.js";
+import { LogionNodeApiClass } from "./Connection.js";
+import { Vault } from "./VaultClass.js";
 
-const THRESHOLD = 2;
-
+/**
+ * @deprecated use Queries.getVaultAddress(requester, legalOfficers)
+ */
 export function getVaultAddress(requesterAddress: string, legalOfficers: string[]): string {
-    const signatories: string[] = [ requesterAddress, ...legalOfficers ].sort()
-    return encodeAddress(createKeyMulti(signatories, THRESHOLD));
+    return Vault.getVaultAddress(requesterAddress, legalOfficers);
 }
 
+/**
+ * @deprecated
+ */
 export interface BuildRequestVaultTransferParameters {
     api: ApiPromise;
     legalOfficers: string[];
@@ -22,65 +23,37 @@ export interface BuildRequestVaultTransferParameters {
     destination: string;
 }
 
+/**
+ * @deprecated
+ */
 export interface RequestVaultTransferParameters extends BuildRequestVaultTransferParameters {
     signerId: string;
 }
 
+/**
+ * @deprecated use vault.tx.transferFromVault(parameters)
+ */
 export async function requestVaultTransfer(parameters: RequestVaultTransferParameters): Promise<SubmittableExtrinsic> {
     return await buildRequestCallSubmittable({ ...parameters, requesterAddress: parameters.signerId });
 }
 
 async function buildRequestCallSubmittable(parameters: BuildRequestVaultTransferParameters & { requesterAddress: string }): Promise<SubmittableExtrinsic> {
-    const {
-        api,
-        requesterAddress,
-        legalOfficers,
-        destination,
-        amount,
-    } = parameters;
-
-    const actualAmount = amount.convertTo(LGNT_SMALLEST_UNIT).coefficient.unnormalize();
-    const { call, weight, multisigOrigin } = await transferCallAndWeight(api, requesterAddress, legalOfficers, BigInt(actualAmount), destination);
-
-    const existingMultisig = await api.query.multisig.multisigs(multisigOrigin, call.method.hash);
-    if(existingMultisig.isSome) {
-        throw new Error("A similar transfer has already been requested and is pending");
-    }
-
-    const sortedLegalOfficers = [ ...legalOfficers ].sort();
-    return api.tx.vault.requestCall(sortedLegalOfficers, call.method.hash, weight);
+    const logionApi = new LogionNodeApiClass(parameters.api);
+    const vault = logionApi.vault(parameters.requesterAddress, parameters.legalOfficers);
+    return vault.tx.transferFromVault(parameters);
 }
 
+/**
+ * @deprecated use vault.tx.transferFromVault(parameters) and logionApi.adapters.toCall(submittable)
+ */
 export async function buildVaultTransferCall(parameters: BuildRequestVaultTransferParameters & { requesterAddress: string }): Promise<Call> {
-    return parameters.api.createType('Call', await buildRequestCallSubmittable(parameters))
+    const logionApi = new LogionNodeApiClass(parameters.api);
+    return logionApi.adapters.toCall(await buildRequestCallSubmittable(parameters));
 }
 
-async function transferCallAndWeight(
-    api: ApiPromise,
-    requesterAddress: string,
-    legalOfficers: string[],
-    amount: bigint,
-    destination: string,
-): Promise<{ call: SubmittableExtrinsic, weight: Weight, multisigOrigin: string }> {
-    const multisigOrigin = getVaultAddress(requesterAddress, legalOfficers);
-    const call = transferCall(api, destination, amount);
-    const dispatchInfo = await call.paymentInfo(multisigOrigin);
-    const weight = dispatchInfo.weight;
-    return {
-        call,
-        weight,
-        multisigOrigin
-    }
-}
-
-function transferCall(
-    api: ApiPromise,
-    destination: string,
-    amount: bigint,
-): SubmittableExtrinsic {
-    return api.tx.balances.transfer(destination, amount);
-}
-
+/**
+ * @deprecated
+ */
 export interface VaultTransferApprovalParameters {
     api: ApiPromise,
     requester: string,
@@ -91,37 +64,22 @@ export interface VaultTransferApprovalParameters {
     signerId: string,
 }
 
+/**
+ * @deprecated use vault.tx.approveVaultTransfer(parameters), the set of legal officers comes from recovery configuration.
+ */
 export async function approveVaultTransfer(parameters: VaultTransferApprovalParameters): Promise<SubmittableExtrinsic> {
-    const {
-        api,
-        signerId,
-        requester,
-        amount,
-        destination,
-        block,
-        index,
-    } = parameters;
-
-    const recoveryConfig = await getRecoveryConfig({
-        api,
-        accountId: requester
-    });
-    if(!recoveryConfig) {
-        throw new Error("Cannot approve vault transfer of requester without recovery defined");
+    const logionApi = new LogionNodeApiClass(parameters.api);
+    const legalOfficers = await logionApi.queries.getRecoveryConfig(parameters.requester);
+    if(!legalOfficers) {
+        throw new Error("Cannot approve vault transfer for requester without recovery configured");
     }
-
-    const otherLegalOfficer = recoveryConfig.legalOfficers.find(accountId => accountId !== signerId);
-    if(!otherLegalOfficer) {
-        throw new Error("No other legal officer found");
-    }
-
-    const actualAmount = amount.convertTo(LGNT_SMALLEST_UNIT).coefficient.unnormalize();
-    const { call, weight } = await transferCallAndWeight(api, requester, recoveryConfig.legalOfficers, BigInt(actualAmount), destination);
-
-    const otherSignatories = [ requester, otherLegalOfficer ].sort();
-    return api.tx.vault.approveCall(otherSignatories, call.method, {height: block, index}, weight);
+    const vault = logionApi.vault(parameters.requester, legalOfficers.legalOfficers);
+    return await vault.tx.approveVaultTransfer(parameters);
 }
 
+/**
+ * @deprecated
+ */
 export interface CancelVaultTransferParameters {
     api: ApiPromise;
     legalOfficers: string[];
@@ -131,14 +89,18 @@ export interface CancelVaultTransferParameters {
     index: number
 }
 
+/**
+ * @deprecated use vault.tx.cancelVaultTransfer(parameters) and logionApi.adapters.toCall(submittable)
+ */
 export function buildCancelVaultTransferCall(parameters: CancelVaultTransferParameters): Call {
     return parameters.api.createType('Call', cancelVaultTransfer(parameters))
 }
 
+/**
+ * @deprecated use vault.tx.cancelVaultTransfer(parameters)
+ */
 export function cancelVaultTransfer(parameters: CancelVaultTransferParameters): SubmittableExtrinsic {
-    const { api, amount, destination, legalOfficers, block, index } = parameters
-    const actualAmount = amount.convertTo(LGNT_SMALLEST_UNIT).coefficient.unnormalize();
-    const call = transferCall(api, destination, BigInt(actualAmount));
-    const sortedLegalOfficers = [ ...legalOfficers ].sort();
-    return api.tx.multisig.cancelAsMulti(2, sortedLegalOfficers, {height: block, index}, call.method.hash)
+    const logionApi = new LogionNodeApiClass(parameters.api);
+    const vault = logionApi.vault("", parameters.legalOfficers); // requester is not necessary when cancelling
+    return vault.tx.cancelVaultTransfer(parameters);
 }
