@@ -243,16 +243,16 @@ export default {
   PalletGrandpaEvent: {
     _enum: {
       NewAuthorities: {
-        authoritySet: 'Vec<(SpFinalityGrandpaAppPublic,u64)>',
+        authoritySet: 'Vec<(SpConsensusGrandpaAppPublic,u64)>',
       },
       Paused: 'Null',
       Resumed: 'Null'
     }
   },
   /**
-   * Lookup36: sp_finality_grandpa::app::Public
+   * Lookup36: sp_consensus_grandpa::app::Public
    **/
-  SpFinalityGrandpaAppPublic: 'SpCoreEd25519Public',
+  SpConsensusGrandpaAppPublic: 'SpCoreEd25519Public',
   /**
    * Lookup37: sp_core::ed25519::Public
    **/
@@ -493,7 +493,11 @@ export default {
         amount: 'u128',
       },
       AssetStatusChanged: {
-        assetId: 'u64'
+        assetId: 'u64',
+      },
+      AssetMinBalanceChanged: {
+        assetId: 'u64',
+        newMinBalance: 'u128'
       }
     }
   },
@@ -803,7 +807,7 @@ export default {
    **/
   LogionNodeRuntimeOpaqueSessionKeys: {
     aura: 'SpConsensusAuraSr25519AppSr25519Public',
-    grandpa: 'SpFinalityGrandpaAppPublic'
+    grandpa: 'SpConsensusGrandpaAppPublic'
   },
   /**
    * Lookup106: sp_consensus_aura::sr25519::app_sr25519::Public
@@ -861,7 +865,7 @@ export default {
   PalletGrandpaStoredPendingChange: {
     scheduledAt: 'u32',
     delay: 'u32',
-    nextAuthorities: 'Vec<(SpFinalityGrandpaAppPublic,u64)>',
+    nextAuthorities: 'Vec<(SpConsensusGrandpaAppPublic,u64)>',
     forced: 'Option<u32>'
   },
   /**
@@ -870,11 +874,11 @@ export default {
   PalletGrandpaCall: {
     _enum: {
       report_equivocation: {
-        equivocationProof: 'SpFinalityGrandpaEquivocationProof',
+        equivocationProof: 'SpConsensusGrandpaEquivocationProof',
         keyOwnerProof: 'SpCoreVoid',
       },
       report_equivocation_unsigned: {
-        equivocationProof: 'SpFinalityGrandpaEquivocationProof',
+        equivocationProof: 'SpConsensusGrandpaEquivocationProof',
         keyOwnerProof: 'SpCoreVoid',
       },
       note_stalled: {
@@ -884,29 +888,29 @@ export default {
     }
   },
   /**
-   * Lookup121: sp_finality_grandpa::EquivocationProof<primitive_types::H256, N>
+   * Lookup121: sp_consensus_grandpa::EquivocationProof<primitive_types::H256, N>
    **/
-  SpFinalityGrandpaEquivocationProof: {
+  SpConsensusGrandpaEquivocationProof: {
     setId: 'u64',
-    equivocation: 'SpFinalityGrandpaEquivocation'
+    equivocation: 'SpConsensusGrandpaEquivocation'
   },
   /**
-   * Lookup122: sp_finality_grandpa::Equivocation<primitive_types::H256, N>
+   * Lookup122: sp_consensus_grandpa::Equivocation<primitive_types::H256, N>
    **/
-  SpFinalityGrandpaEquivocation: {
+  SpConsensusGrandpaEquivocation: {
     _enum: {
       Prevote: 'FinalityGrandpaEquivocationPrevote',
       Precommit: 'FinalityGrandpaEquivocationPrecommit'
     }
   },
   /**
-   * Lookup123: finality_grandpa::Equivocation<sp_finality_grandpa::app::Public, finality_grandpa::Prevote<primitive_types::H256, N>, sp_finality_grandpa::app::Signature>
+   * Lookup123: finality_grandpa::Equivocation<sp_consensus_grandpa::app::Public, finality_grandpa::Prevote<primitive_types::H256, N>, sp_consensus_grandpa::app::Signature>
    **/
   FinalityGrandpaEquivocationPrevote: {
     roundNumber: 'u64',
-    identity: 'SpFinalityGrandpaAppPublic',
-    first: '(FinalityGrandpaPrevote,SpFinalityGrandpaAppSignature)',
-    second: '(FinalityGrandpaPrevote,SpFinalityGrandpaAppSignature)'
+    identity: 'SpConsensusGrandpaAppPublic',
+    first: '(FinalityGrandpaPrevote,SpConsensusGrandpaAppSignature)',
+    second: '(FinalityGrandpaPrevote,SpConsensusGrandpaAppSignature)'
   },
   /**
    * Lookup124: finality_grandpa::Prevote<primitive_types::H256, N>
@@ -916,21 +920,21 @@ export default {
     targetNumber: 'u32'
   },
   /**
-   * Lookup125: sp_finality_grandpa::app::Signature
+   * Lookup125: sp_consensus_grandpa::app::Signature
    **/
-  SpFinalityGrandpaAppSignature: 'SpCoreEd25519Signature',
+  SpConsensusGrandpaAppSignature: 'SpCoreEd25519Signature',
   /**
    * Lookup126: sp_core::ed25519::Signature
    **/
   SpCoreEd25519Signature: '[u8;64]',
   /**
-   * Lookup129: finality_grandpa::Equivocation<sp_finality_grandpa::app::Public, finality_grandpa::Precommit<primitive_types::H256, N>, sp_finality_grandpa::app::Signature>
+   * Lookup129: finality_grandpa::Equivocation<sp_consensus_grandpa::app::Public, finality_grandpa::Precommit<primitive_types::H256, N>, sp_consensus_grandpa::app::Signature>
    **/
   FinalityGrandpaEquivocationPrecommit: {
     roundNumber: 'u64',
-    identity: 'SpFinalityGrandpaAppPublic',
-    first: '(FinalityGrandpaPrecommit,SpFinalityGrandpaAppSignature)',
-    second: '(FinalityGrandpaPrecommit,SpFinalityGrandpaAppSignature)'
+    identity: 'SpConsensusGrandpaAppPublic',
+    first: '(FinalityGrandpaPrecommit,SpConsensusGrandpaAppSignature)',
+    second: '(FinalityGrandpaPrecommit,SpConsensusGrandpaAppSignature)'
   },
   /**
    * Lookup130: finality_grandpa::Precommit<primitive_types::H256, N>
@@ -1218,7 +1222,11 @@ export default {
       },
       refund: {
         id: 'u64',
-        allowBurn: 'bool'
+        allowBurn: 'bool',
+      },
+      set_min_balance: {
+        id: 'u64',
+        minBalance: 'u128'
       }
     }
   },
@@ -1582,7 +1590,7 @@ export default {
    * Lookup185: pallet_assets::pallet::Error<T, I>
    **/
   PalletAssetsError: {
-    _enum: ['BalanceLow', 'NoAccount', 'NoPermission', 'Unknown', 'Frozen', 'InUse', 'BadWitness', 'MinBalanceZero', 'NoProvider', 'BadMetadata', 'Unapproved', 'WouldDie', 'AlreadyExists', 'NoDeposit', 'WouldBurn', 'LiveAsset', 'AssetNotLive', 'IncorrectStatus', 'NotFrozen']
+    _enum: ['BalanceLow', 'NoAccount', 'NoPermission', 'Unknown', 'Frozen', 'InUse', 'BadWitness', 'MinBalanceZero', 'NoProvider', 'BadMetadata', 'Unapproved', 'WouldDie', 'AlreadyExists', 'NoDeposit', 'WouldBurn', 'LiveAsset', 'AssetNotLive', 'IncorrectStatus', 'NotFrozen', 'CallbackFailed']
   },
   /**
    * Lookup186: pallet_lo_authority_list::pallet::StorageVersion

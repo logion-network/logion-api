@@ -33,6 +33,10 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       BalanceLow: AugmentedError<ApiType>;
       /**
+       * Callback action resulted in error
+       **/
+      CallbackFailed: AugmentedError<ApiType>;
+      /**
        * The origin account is frozen.
        **/
       Frozen: AugmentedError<ApiType>;

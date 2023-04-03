@@ -261,15 +261,15 @@ declare module '@polkadot/types/lookup' {
   interface PalletGrandpaEvent extends Enum {
     readonly isNewAuthorities: boolean;
     readonly asNewAuthorities: {
-      readonly authoritySet: Vec<ITuple<[SpFinalityGrandpaAppPublic, u64]>>;
+      readonly authoritySet: Vec<ITuple<[SpConsensusGrandpaAppPublic, u64]>>;
     } & Struct;
     readonly isPaused: boolean;
     readonly isResumed: boolean;
     readonly type: 'NewAuthorities' | 'Paused' | 'Resumed';
   }
 
-  /** @name SpFinalityGrandpaAppPublic (36) */
-  interface SpFinalityGrandpaAppPublic extends SpCoreEd25519Public {}
+  /** @name SpConsensusGrandpaAppPublic (36) */
+  interface SpConsensusGrandpaAppPublic extends SpCoreEd25519Public {}
 
   /** @name SpCoreEd25519Public (37) */
   interface SpCoreEd25519Public extends U8aFixed {}
@@ -542,7 +542,12 @@ declare module '@polkadot/types/lookup' {
     readonly asAssetStatusChanged: {
       readonly assetId: u64;
     } & Struct;
-    readonly type: 'Created' | 'Issued' | 'Transferred' | 'Burned' | 'TeamChanged' | 'OwnerChanged' | 'Frozen' | 'Thawed' | 'AssetFrozen' | 'AssetThawed' | 'AccountsDestroyed' | 'ApprovalsDestroyed' | 'DestructionStarted' | 'Destroyed' | 'ForceCreated' | 'MetadataSet' | 'MetadataCleared' | 'ApprovedTransfer' | 'ApprovalCancelled' | 'TransferredApproved' | 'AssetStatusChanged';
+    readonly isAssetMinBalanceChanged: boolean;
+    readonly asAssetMinBalanceChanged: {
+      readonly assetId: u64;
+      readonly newMinBalance: u128;
+    } & Struct;
+    readonly type: 'Created' | 'Issued' | 'Transferred' | 'Burned' | 'TeamChanged' | 'OwnerChanged' | 'Frozen' | 'Thawed' | 'AssetFrozen' | 'AssetThawed' | 'AccountsDestroyed' | 'ApprovalsDestroyed' | 'DestructionStarted' | 'Destroyed' | 'ForceCreated' | 'MetadataSet' | 'MetadataCleared' | 'ApprovedTransfer' | 'ApprovalCancelled' | 'TransferredApproved' | 'AssetStatusChanged' | 'AssetMinBalanceChanged';
   }
 
   /** @name PalletLoAuthorityListEvent (53) */
@@ -872,7 +877,7 @@ declare module '@polkadot/types/lookup' {
   /** @name LogionNodeRuntimeOpaqueSessionKeys (105) */
   interface LogionNodeRuntimeOpaqueSessionKeys extends Struct {
     readonly aura: SpConsensusAuraSr25519AppSr25519Public;
-    readonly grandpa: SpFinalityGrandpaAppPublic;
+    readonly grandpa: SpConsensusGrandpaAppPublic;
   }
 
   /** @name SpConsensusAuraSr25519AppSr25519Public (106) */
@@ -926,7 +931,7 @@ declare module '@polkadot/types/lookup' {
   interface PalletGrandpaStoredPendingChange extends Struct {
     readonly scheduledAt: u32;
     readonly delay: u32;
-    readonly nextAuthorities: Vec<ITuple<[SpFinalityGrandpaAppPublic, u64]>>;
+    readonly nextAuthorities: Vec<ITuple<[SpConsensusGrandpaAppPublic, u64]>>;
     readonly forced: Option<u32>;
   }
 
@@ -934,12 +939,12 @@ declare module '@polkadot/types/lookup' {
   interface PalletGrandpaCall extends Enum {
     readonly isReportEquivocation: boolean;
     readonly asReportEquivocation: {
-      readonly equivocationProof: SpFinalityGrandpaEquivocationProof;
+      readonly equivocationProof: SpConsensusGrandpaEquivocationProof;
       readonly keyOwnerProof: SpCoreVoid;
     } & Struct;
     readonly isReportEquivocationUnsigned: boolean;
     readonly asReportEquivocationUnsigned: {
-      readonly equivocationProof: SpFinalityGrandpaEquivocationProof;
+      readonly equivocationProof: SpConsensusGrandpaEquivocationProof;
       readonly keyOwnerProof: SpCoreVoid;
     } & Struct;
     readonly isNoteStalled: boolean;
@@ -950,14 +955,14 @@ declare module '@polkadot/types/lookup' {
     readonly type: 'ReportEquivocation' | 'ReportEquivocationUnsigned' | 'NoteStalled';
   }
 
-  /** @name SpFinalityGrandpaEquivocationProof (121) */
-  interface SpFinalityGrandpaEquivocationProof extends Struct {
+  /** @name SpConsensusGrandpaEquivocationProof (121) */
+  interface SpConsensusGrandpaEquivocationProof extends Struct {
     readonly setId: u64;
-    readonly equivocation: SpFinalityGrandpaEquivocation;
+    readonly equivocation: SpConsensusGrandpaEquivocation;
   }
 
-  /** @name SpFinalityGrandpaEquivocation (122) */
-  interface SpFinalityGrandpaEquivocation extends Enum {
+  /** @name SpConsensusGrandpaEquivocation (122) */
+  interface SpConsensusGrandpaEquivocation extends Enum {
     readonly isPrevote: boolean;
     readonly asPrevote: FinalityGrandpaEquivocationPrevote;
     readonly isPrecommit: boolean;
@@ -968,9 +973,9 @@ declare module '@polkadot/types/lookup' {
   /** @name FinalityGrandpaEquivocationPrevote (123) */
   interface FinalityGrandpaEquivocationPrevote extends Struct {
     readonly roundNumber: u64;
-    readonly identity: SpFinalityGrandpaAppPublic;
-    readonly first: ITuple<[FinalityGrandpaPrevote, SpFinalityGrandpaAppSignature]>;
-    readonly second: ITuple<[FinalityGrandpaPrevote, SpFinalityGrandpaAppSignature]>;
+    readonly identity: SpConsensusGrandpaAppPublic;
+    readonly first: ITuple<[FinalityGrandpaPrevote, SpConsensusGrandpaAppSignature]>;
+    readonly second: ITuple<[FinalityGrandpaPrevote, SpConsensusGrandpaAppSignature]>;
   }
 
   /** @name FinalityGrandpaPrevote (124) */
@@ -979,8 +984,8 @@ declare module '@polkadot/types/lookup' {
     readonly targetNumber: u32;
   }
 
-  /** @name SpFinalityGrandpaAppSignature (125) */
-  interface SpFinalityGrandpaAppSignature extends SpCoreEd25519Signature {}
+  /** @name SpConsensusGrandpaAppSignature (125) */
+  interface SpConsensusGrandpaAppSignature extends SpCoreEd25519Signature {}
 
   /** @name SpCoreEd25519Signature (126) */
   interface SpCoreEd25519Signature extends U8aFixed {}
@@ -988,9 +993,9 @@ declare module '@polkadot/types/lookup' {
   /** @name FinalityGrandpaEquivocationPrecommit (129) */
   interface FinalityGrandpaEquivocationPrecommit extends Struct {
     readonly roundNumber: u64;
-    readonly identity: SpFinalityGrandpaAppPublic;
-    readonly first: ITuple<[FinalityGrandpaPrecommit, SpFinalityGrandpaAppSignature]>;
-    readonly second: ITuple<[FinalityGrandpaPrecommit, SpFinalityGrandpaAppSignature]>;
+    readonly identity: SpConsensusGrandpaAppPublic;
+    readonly first: ITuple<[FinalityGrandpaPrecommit, SpConsensusGrandpaAppSignature]>;
+    readonly second: ITuple<[FinalityGrandpaPrecommit, SpConsensusGrandpaAppSignature]>;
   }
 
   /** @name FinalityGrandpaPrecommit (130) */
@@ -1325,7 +1330,12 @@ declare module '@polkadot/types/lookup' {
       readonly id: u64;
       readonly allowBurn: bool;
     } & Struct;
-    readonly type: 'Create' | 'ForceCreate' | 'StartDestroy' | 'DestroyAccounts' | 'DestroyApprovals' | 'FinishDestroy' | 'Mint' | 'Burn' | 'Transfer' | 'TransferKeepAlive' | 'ForceTransfer' | 'Freeze' | 'Thaw' | 'FreezeAsset' | 'ThawAsset' | 'TransferOwnership' | 'SetTeam' | 'SetMetadata' | 'ClearMetadata' | 'ForceSetMetadata' | 'ForceClearMetadata' | 'ForceAssetStatus' | 'ApproveTransfer' | 'CancelApproval' | 'ForceCancelApproval' | 'TransferApproved' | 'Touch' | 'Refund';
+    readonly isSetMinBalance: boolean;
+    readonly asSetMinBalance: {
+      readonly id: u64;
+      readonly minBalance: u128;
+    } & Struct;
+    readonly type: 'Create' | 'ForceCreate' | 'StartDestroy' | 'DestroyAccounts' | 'DestroyApprovals' | 'FinishDestroy' | 'Mint' | 'Burn' | 'Transfer' | 'TransferKeepAlive' | 'ForceTransfer' | 'Freeze' | 'Thaw' | 'FreezeAsset' | 'ThawAsset' | 'TransferOwnership' | 'SetTeam' | 'SetMetadata' | 'ClearMetadata' | 'ForceSetMetadata' | 'ForceClearMetadata' | 'ForceAssetStatus' | 'ApproveTransfer' | 'CancelApproval' | 'ForceCancelApproval' | 'TransferApproved' | 'Touch' | 'Refund' | 'SetMinBalance';
   }
 
   /** @name PalletLoAuthorityListCall (143) */
@@ -1743,7 +1753,8 @@ declare module '@polkadot/types/lookup' {
     readonly isAssetNotLive: boolean;
     readonly isIncorrectStatus: boolean;
     readonly isNotFrozen: boolean;
-    readonly type: 'BalanceLow' | 'NoAccount' | 'NoPermission' | 'Unknown' | 'Frozen' | 'InUse' | 'BadWitness' | 'MinBalanceZero' | 'NoProvider' | 'BadMetadata' | 'Unapproved' | 'WouldDie' | 'AlreadyExists' | 'NoDeposit' | 'WouldBurn' | 'LiveAsset' | 'AssetNotLive' | 'IncorrectStatus' | 'NotFrozen';
+    readonly isCallbackFailed: boolean;
+    readonly type: 'BalanceLow' | 'NoAccount' | 'NoPermission' | 'Unknown' | 'Frozen' | 'InUse' | 'BadWitness' | 'MinBalanceZero' | 'NoProvider' | 'BadMetadata' | 'Unapproved' | 'WouldDie' | 'AlreadyExists' | 'NoDeposit' | 'WouldBurn' | 'LiveAsset' | 'AssetNotLive' | 'IncorrectStatus' | 'NotFrozen' | 'CallbackFailed';
   }
 
   /** @name PalletLoAuthorityListStorageVersion (186) */
