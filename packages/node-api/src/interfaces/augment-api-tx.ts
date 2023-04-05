@@ -10,7 +10,7 @@ import type { Bytes, Compact, Option, Struct, U8aFixed, Vec, bool, u128, u16, u3
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
 import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, Call, H256, MultiAddress } from '@polkadot/types/interfaces/runtime';
-import type { LogionNodeRuntimeOpaqueSessionKeys, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFile, PalletLogionLocLocLink, PalletLogionLocMetadataItem, PalletLogionLocTermsAndConditionsElement, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
+import type { LogionNodeRuntimeOpaqueSessionKeys, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFile, PalletLogionLocLocLink, PalletLogionLocMetadataItem, PalletLogionLocOtherAccountId, PalletLogionLocTermsAndConditionsElement, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
 
 export type __AugmentedSubmittable = AugmentedSubmittable<() => unknown>;
 export type __SubmittableExtrinsic<ApiType extends ApiTypes> = SubmittableExtrinsic<ApiType>;
@@ -700,6 +700,10 @@ declare module '@polkadot/api-base/types/submittable' {
        * Creates a new logion Transaction LOC i.e. a LOC requested with a logion Identity LOC
        **/
       createLogionTransactionLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, requesterLocId: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, u128]>;
+      /**
+       * Creates a new Identity LOC whose requester is an Ethereum address.
+       **/
+      createOtherIdentityLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, requesterAccountId: PalletLogionLocOtherAccountId | { Ethereum: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, PalletLogionLocOtherAccountId]>;
       /**
        * Creates a new Polkadot Identity LOC i.e. a LOC linking a real identity to an AccountId.
        **/
