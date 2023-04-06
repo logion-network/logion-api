@@ -50,7 +50,7 @@ export const DEFAULT_LOC: LegalOfficerCase = {
     owner: "owner",
     requesterAddress: {
         address: "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb",
-        type: "polkadot",
+        type: "Polkadot",
         toOtherAccountId: () => { throw new Error() },
     },
     metadata: [

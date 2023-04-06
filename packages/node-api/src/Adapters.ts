@@ -41,10 +41,10 @@ export class Adapters {
     fromPalletLogionLocLegalOfficerCase(rawLoc: PalletLogionLocLegalOfficerCase): LegalOfficerCase {
         let requesterAddress: ValidAccountId | undefined;
         if(rawLoc.requester.isAccount) {
-            requesterAddress = new AnyAccountId(this.api, rawLoc.requester.asAccount.toString(), "polkadot").toValidAccountId();
+            requesterAddress = new AnyAccountId(this.api, rawLoc.requester.asAccount.toString(), "Polkadot").toValidAccountId();
         } else if(rawLoc.requester.isOtherAccount) {
             if(rawLoc.requester.asOtherAccount.isEthereum) {
-                requesterAddress = new AnyAccountId(this.api, rawLoc.requester.asAccount.toString(), "ethereum").toValidAccountId();
+                requesterAddress = new AnyAccountId(this.api, rawLoc.requester.asAccount.toString(), "Ethereum").toValidAccountId();
             } else {
                 throw new Error("Unsupported other account value");
             }

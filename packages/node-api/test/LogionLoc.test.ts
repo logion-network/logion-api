@@ -269,7 +269,7 @@ describe("LogionLoc", () => {
         const requester = "0x900edc98db53508e6742723988b872dd08cd09c2";
         const locId = new UUID();
 
-        const requesterAccount = new AnyAccountId(api, requester, "ethereum").toValidAccountId().toOtherAccountId();
+        const requesterAccount = new AnyAccountId(api, requester, "Ethereum").toValidAccountId().toOtherAccountId();
         logionApi.polkadot.tx.logionLoc.createOtherIdentityLoc(Adapters.toLocId(locId), logionApi.adapters.toPalletLogionLocOtherAccountId(requesterAccount));
 
         expect(api.tx.logionLoc.createOtherIdentityLoc).toHaveBeenCalledWith(locId.toHexString(), jasmine.objectContaining({}));

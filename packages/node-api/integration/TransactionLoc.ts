@@ -17,7 +17,7 @@ export async function createTransactionLocTest() {
     });
     expect(loc?.owner).toBe(ALICE);
     expect(loc?.requesterAddress?.address).toBe(REQUESTER);
-    expect(loc?.requesterAddress?.type).toBe("polkadot");
+    expect(loc?.requesterAddress?.type).toBe("Polkadot");
     expect(loc?.closed).toBe(false);
     expect(loc?.locType).toBe("Transaction");
 }

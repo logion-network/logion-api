@@ -39,7 +39,7 @@ export class Queries {
         if(accountId === null || accountId === undefined || accountId === '') {
             return false;
         }
-        const anyAccountId = new AnyAccountId(this.api, accountId, "polkadot");
+        const anyAccountId = new AnyAccountId(this.api, accountId, "Polkadot");
         return anyAccountId.isValid();
     }
 

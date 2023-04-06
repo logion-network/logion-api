@@ -126,7 +126,7 @@ export interface TypesRecoveryConfig {
     legalOfficers: string[];
 }
 
-export type AccountType = "polkadot" | "ethereum";
+export type AccountType = "Polkadot" | "Ethereum";
 
 export const ETHEREUM_ADDRESS_LENGTH_IN_BITS = 20 * 8;
 
@@ -146,12 +146,12 @@ export class AnyAccountId {
     }
 
     validate(): string | undefined {
-        if(!["polkadot", "ethereum"].includes(this.type)) {
+        if(!["Polkadot", "Ethereum"].includes(this.type)) {
             return `Unsupported address type ${this.type}`;
         }
-        if(this.type === "ethereum" && !isHex(this.address, ETHEREUM_ADDRESS_LENGTH_IN_BITS)) {
+        if(this.type === "Ethereum" && !isHex(this.address, ETHEREUM_ADDRESS_LENGTH_IN_BITS)) {
             return `Wrong Ethereum address ${this.address}`;
-        } else if(this.type === "polkadot" && !this.isValidPolkadotAccountId()) {
+        } else if(this.type === "Polkadot" && !this.isValidPolkadotAccountId()) {
             return `Wrong Polkadot address ${this.address}`;
         } else {
             return undefined;
@@ -195,7 +195,7 @@ export class ValidAccountId {
 export class OtherAccountId {
 
     constructor(accountId: ValidAccountId) {
-        if(accountId.type === "polkadot") {
+        if(accountId.type === "Polkadot") {
             throw new Error("Type cannot be Polkadot")
         }
 
