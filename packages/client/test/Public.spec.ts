@@ -186,6 +186,7 @@ async function buildSharedState(): Promise<SharedState> {
                 .returnsAsync(mockEmptyOption());
             nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(new UUID(LOC_REQUEST.id).toHexString(), EXISTING_ITEM_ID))
                 .returnsAsync(COLLECTION_ITEM);
+            nodeApiMock.setup(instance => instance.createType(It.IsAny())).returns(undefined);
         },
         undefined,
         LEGAL_OFFICERS,

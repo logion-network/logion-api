@@ -1,7 +1,7 @@
 import { LogionNodeApi, UUID } from "@logion/node-api";
 import { AxiosInstance, AxiosResponse } from "axios";
 import { DateTime } from "luxon";
-import { Mock } from "moq.ts";
+import { It, Mock } from "moq.ts";
 import {
     AccountTokens,
     SharedState,
@@ -69,6 +69,7 @@ async function buildSharedState(): Promise<SharedState> {
             nodeApiMock = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
             nodeApiMock.setup(instance => instance.query.logionLoc.locMap(new UUID(LOC_REQUEST.id).toHexString()))
                 .returnsAsync(LOC);
+            nodeApiMock.setup(instance => instance.createType(It.IsAny())).returns(undefined);
         },
         currentAddress,
         LEGAL_OFFICERS,

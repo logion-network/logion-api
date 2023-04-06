@@ -1,12 +1,12 @@
 import { ApiPromise } from "@polkadot/api";
 import { Call, FunctionMetadataLatest } from "@polkadot/types/interfaces";
-import { FrameSystemAccountInfo, PalletLogionLocFile, PalletLogionLocLegalOfficerCase, PalletLogionLocCollectionItem, PalletLogionLocTokensRecordFile, PalletLogionLocTokensRecord } from '@polkadot/types/lookup';
+import { FrameSystemAccountInfo, PalletLogionLocFile, PalletLogionLocLegalOfficerCase, PalletLogionLocCollectionItem, PalletLogionLocTokensRecordFile, PalletLogionLocTokensRecord, PalletLogionLocOtherAccountId } from '@polkadot/types/lookup';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { ISubmittableResult } from "@polkadot/types/types";
 import { Vec } from "@polkadot/types-codec";
 import { CallBase, AnyTuple, AnyJson } from "@polkadot/types-codec/types";
 import { DispatchError } from '@polkadot/types/interfaces/system/types';
-import { TypesAccountData, File, LegalOfficerCase, LocType, TypesJsonObject, TypesJsonCall, TypesErrorMetadata, TypesEvent, CollectionItem, ItemFile, ItemToken, TermsAndConditionsElement, TypesTokensRecordFile, TypesTokensRecord } from "./Types.js";
+import { TypesAccountData, File, LegalOfficerCase, LocType, TypesJsonObject, TypesJsonCall, TypesErrorMetadata, TypesEvent, CollectionItem, ItemFile, ItemToken, TermsAndConditionsElement, TypesTokensRecordFile, TypesTokensRecord, ValidAccountId, AnyAccountId, OtherAccountId } from "./Types.js";
 import { UUID } from "./UUID.js";
 
 
@@ -38,10 +38,20 @@ export class Adapters {
         };
     }
 
-    static fromPalletLogionLocLegalOfficerCase(rawLoc: PalletLogionLocLegalOfficerCase): LegalOfficerCase {
+    fromPalletLogionLocLegalOfficerCase(rawLoc: PalletLogionLocLegalOfficerCase): LegalOfficerCase {
+        let requesterAddress: ValidAccountId | undefined;
+        if(rawLoc.requester.isAccount) {
+            requesterAddress = new AnyAccountId(this.api, rawLoc.requester.asAccount.toString(), "polkadot").toValidAccountId();
+        } else if(rawLoc.requester.isOtherAccount) {
+            if(rawLoc.requester.asOtherAccount.isEthereum) {
+                requesterAddress = new AnyAccountId(this.api, rawLoc.requester.asAccount.toString(), "ethereum").toValidAccountId();
+            } else {
+                throw new Error("Unsupported other account value");
+            }
+        }
         return {
             owner: rawLoc.owner.toString(),
-            requesterAddress: rawLoc.requester.isAccount ? rawLoc.requester.asAccount.toString() : undefined,
+            requesterAddress,
             requesterLocId: rawLoc.requester.isLoc ? UUID.fromDecimalString(rawLoc.requester.asLoc.toString()) : undefined,
             metadata: rawLoc.metadata.toArray().map(rawItem => ({
                 name: rawItem.name.toUtf8(),
@@ -327,5 +337,9 @@ export class Adapters {
             })),
             submitter: substrateObject.submitter.toString(),
         };
+    }
+
+    toPalletLogionLocOtherAccountId(accountId: OtherAccountId): PalletLogionLocOtherAccountId {
+        return this.api.createType("PalletLogionLocOtherAccountId", { Ethereum: accountId.address });
     }
 }

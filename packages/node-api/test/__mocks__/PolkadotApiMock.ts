@@ -48,7 +48,11 @@ export function setAddFile(mockFn: any) {
 
 export const DEFAULT_LOC: LegalOfficerCase = {
     owner: "owner",
-    requesterAddress: "requester",
+    requesterAddress: {
+        address: "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb",
+        type: "polkadot",
+        toOtherAccountId: () => { throw new Error() },
+    },
     metadata: [
         {
             name: "meta_name",
@@ -152,8 +156,9 @@ export class ApiPromise {
                     requester: {
                         isAccount: true,
                         isLoc: false,
+                        isOtherAccount: false,
                         asAccount: {
-                            toString: () => DEFAULT_LOC.requesterAddress
+                            toString: () => DEFAULT_LOC.requesterAddress?.address,
                         },
                         asLoc: {
                             toString: () => undefined
@@ -291,6 +296,7 @@ export class ApiPromise {
             createPolkadotIdentityLoc: jest.fn(() => Promise.resolve()),
             createLogionTransactionLoc: jest.fn(() => Promise.resolve()),
             createLogionIdentityLoc: jest.fn(() => Promise.resolve()),
+            createOtherIdentityLoc: jest.fn(() => Promise.resolve()),
             addMetadata: jest.fn(() => Promise.resolve()),
             addFile,
             addLink: jest.fn(() => Promise.resolve()),
@@ -306,6 +312,8 @@ export class ApiPromise {
             queryFileStorageFee,
         }
     }
+
+    createType = () => ({});
 }
 
 export function triggerEvent(eventName: string) {
