@@ -590,6 +590,7 @@ export abstract class LocRequestState extends State {
         const data: LocData = {
             ...loc,
             ...locIssuers,
+            requesterAddress: loc.requesterAddress?.address,
             id: new UUID(request.id),
             ownerAddress: loc.owner,
             closedOn: request.closedOn,

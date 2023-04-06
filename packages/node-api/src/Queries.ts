@@ -2,7 +2,7 @@ import { ApiPromise } from "@polkadot/api";
 import { Adapters } from "./Adapters.js";
 import * as Currency from "./Currency.js";
 import * as Numbers from "./numbers.js";
-import { CollectionItem, LegalOfficerCase, TypesAccountData, TypesRecoveryConfig } from "./Types.js";
+import { AccountType, AnyAccountId, CollectionItem, LegalOfficerCase, TypesAccountData, TypesRecoveryConfig, ValidAccountId } from "./Types.js";
 import { UUID } from "./UUID.js";
 
 export interface Coin {
@@ -39,13 +39,13 @@ export class Queries {
         if(accountId === null || accountId === undefined || accountId === '') {
             return false;
         }
-    
-        try {
-            this.api.createType('AccountId', accountId);
-            return true;
-        } catch(e) {
-            return false;
-        }
+        const anyAccountId = new AnyAccountId(this.api, accountId, "Polkadot");
+        return anyAccountId.isValid();
+    }
+
+    getValidAccountId(accountId: string, type: AccountType): ValidAccountId {
+        const anyAccountId = new AnyAccountId(this.api, accountId, type);
+        return anyAccountId.toValidAccountId();
     }
 
     async getAccountData(accountId: string): Promise<TypesAccountData> {
@@ -104,7 +104,7 @@ export class Queries {
     async getLegalOfficerCase(locId: UUID): Promise<LegalOfficerCase | undefined> {
         const result = await this.api.query.logionLoc.locMap(locId.toHexString());
         if(result.isSome) {
-            return Adapters.fromPalletLogionLocLegalOfficerCase(result.unwrap());
+            return this.adapters.fromPalletLogionLocLegalOfficerCase(result.unwrap());
         } else {
             return undefined;
         }
@@ -116,7 +116,7 @@ export class Queries {
         for(let i = 0; i < result.length; ++i) {
             const option = result[i];
             if(option.isSome) {
-                locs.push(Adapters.fromPalletLogionLocLegalOfficerCase(option.unwrap()));
+                locs.push(this.adapters.fromPalletLogionLocLegalOfficerCase(option.unwrap()));
             } else {
                 locs.push(undefined);
             }

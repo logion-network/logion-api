@@ -11,9 +11,12 @@ const {
     getCollectionItem,
     UUID,
 } = await import('../src/index.js');
-import type {
+import {
+    Adapters,
+    AnyAccountId,
     ItemFile,
     ItemToken,
+    LogionNodeApiClass,
     TermsAndConditionsElement
 } from "../src/index.js";
 
@@ -64,7 +67,7 @@ describe("LogionLoc", () => {
         });
 
         expect(loc!.owner).toEqual(DEFAULT_LOC.owner);
-        expect(loc!.requesterAddress).toEqual(DEFAULT_LOC.requesterAddress);
+        expect(loc!.requesterAddress?.address).toEqual(DEFAULT_LOC.requesterAddress?.address);
         expect(loc!.metadata).toEqual(DEFAULT_LOC.metadata);
         expect(loc!.files).toEqual(DEFAULT_LOC.files);
         loc!.links.forEach((link, index) => {
@@ -258,5 +261,17 @@ describe("LogionLoc", () => {
             }),
             true,
         );
+    });
+
+    it("submits createPolkadotTransactionLoc extrinsic", async () => {
+        const api = new ApiPromise();
+        const logionApi = new LogionNodeApiClass(api);
+        const requester = "0x900edc98db53508e6742723988b872dd08cd09c2";
+        const locId = new UUID();
+
+        const requesterAccount = new AnyAccountId(api, requester, "Ethereum").toValidAccountId().toOtherAccountId();
+        logionApi.polkadot.tx.logionLoc.createOtherIdentityLoc(Adapters.toLocId(locId), logionApi.adapters.toPalletLogionLocOtherAccountId(requesterAccount));
+
+        expect(api.tx.logionLoc.createOtherIdentityLoc).toHaveBeenCalledWith(locId.toHexString(), jasmine.objectContaining({}));
     });
 });

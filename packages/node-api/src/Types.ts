@@ -1,5 +1,7 @@
 import { AnyJson } from "@polkadot/types-codec/types";
+import { isHex } from "@polkadot/util";
 import { UUID } from "./UUID.js";
+import { ApiPromise } from "@polkadot/api";
 
 export interface TypesAccountData {
     available: string,
@@ -27,7 +29,7 @@ export interface Link {
 
 export interface LegalOfficerCase {
     owner: string;
-    requesterAddress?: string;
+    requesterAddress?: ValidAccountId;
     requesterLocId?: UUID;
     metadata: MetadataItem[];
     files: File[];
@@ -122,4 +124,85 @@ export interface TypesTokensRecord {
 
 export interface TypesRecoveryConfig {
     legalOfficers: string[];
+}
+
+export type AccountType = "Polkadot" | "Ethereum";
+
+export const ETHEREUM_ADDRESS_LENGTH_IN_BITS = 20 * 8;
+
+export class AnyAccountId {
+    constructor(api: ApiPromise, address: string, type: AccountType) {
+        this.api = api;
+        this.address = address;
+        this.type = type;
+    }
+
+    readonly api: ApiPromise;
+    readonly address: string;
+    readonly type: AccountType;
+
+    isValid(): boolean {
+        return this.validate() === undefined;
+    }
+
+    validate(): string | undefined {
+        if(!["Polkadot", "Ethereum"].includes(this.type)) {
+            return `Unsupported address type ${this.type}`;
+        }
+        if(this.type === "Ethereum" && !isHex(this.address, ETHEREUM_ADDRESS_LENGTH_IN_BITS)) {
+            return `Wrong Ethereum address ${this.address}`;
+        } else if(this.type === "Polkadot" && !this.isValidPolkadotAccountId()) {
+            return `Wrong Polkadot address ${this.address}`;
+        } else {
+            return undefined;
+        }
+    }
+
+    private isValidPolkadotAccountId(): boolean {
+        try {
+            this.api.createType('AccountId', this.address);
+            return true;
+        } catch(e) {
+            return false;
+        }
+    }
+
+    toValidAccountId(): ValidAccountId {
+        return new ValidAccountId(this);
+    }
+}
+
+export class ValidAccountId {
+
+    constructor(accountId: AnyAccountId) {
+        const error = accountId.validate();
+        if(error) {
+            throw new Error(error);
+        }
+
+        this.address = accountId.address;
+        this.type = accountId.type;
+    }
+
+    readonly address: string;
+    readonly type: AccountType;
+
+    toOtherAccountId(): OtherAccountId {
+        return new OtherAccountId(this);
+    }
+}
+
+export class OtherAccountId {
+
+    constructor(accountId: ValidAccountId) {
+        if(accountId.type === "Polkadot") {
+            throw new Error("Type cannot be Polkadot")
+        }
+
+        this.address = accountId.address;
+        this.type = accountId.type;
+    }
+
+    readonly address: string;
+    readonly type: AccountType;
 }
