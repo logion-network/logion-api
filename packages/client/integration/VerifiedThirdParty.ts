@@ -2,10 +2,10 @@ import { ClosedLoc, EditableRequest, HashOrContent, LocRequestState } from "../s
 import { LegalOfficerWorker, NEW_ADDRESS, State, VTP_ADDRESS } from "./Utils.js";
 
 export async function verifiedThirdParty(state: State) {
-    const { alice } = state;
+    const { alice, vtpAccount, newAccount } = state;
     const legalOfficer = new LegalOfficerWorker(alice, state);
 
-    const vtpClient = state.client.withCurrentAddress(VTP_ADDRESS);
+    const vtpClient = state.client.withCurrentAddress(vtpAccount);
 
     let vtpLocsState = await vtpClient.locsState();
     const pendingRequest = await vtpLocsState.requestIdentityLoc({
@@ -31,7 +31,7 @@ export async function verifiedThirdParty(state: State) {
 
     await legalOfficer.nominateVerifiedThirdParty(VTP_ADDRESS, closedIdentityLoc.locId);
 
-    const userClient = state.client.withCurrentAddress(NEW_ADDRESS);
+    const userClient = state.client.withCurrentAddress(newAccount);
     let newLoc: LocRequestState = await (await userClient.locsState()).requestTransactionLoc({
         legalOfficer: userClient.getLegalOfficer(alice.address),
         description: "Some LOC with VTP",

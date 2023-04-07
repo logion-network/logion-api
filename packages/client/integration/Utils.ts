@@ -1,4 +1,4 @@
-import { buildApi, UUID, Currency, Numbers } from "@logion/node-api";
+import { buildApi, UUID, Currency, Numbers, AnyAccountId, validPolkadotAccountId, ValidAccountId } from "@logion/node-api";
 import { Keyring } from "@polkadot/api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import FormData from "form-data";
@@ -58,6 +58,12 @@ export interface State {
     alice: LegalOfficer;
     bob: LegalOfficer;
     charlie: LegalOfficer;
+    requesterAccount: ValidAccountId,
+    newAccount: ValidAccountId,
+    aliceAccount: ValidAccountId,
+    bobAccount: ValidAccountId,
+    charlieAccount: ValidAccountId,
+    vtpAccount: ValidAccountId,
 }
 
 export async function setupInitialState(): Promise<State> {
@@ -70,13 +76,19 @@ export async function setupInitialState(): Promise<State> {
         CHARLIE_SECRET_SEED,
         VTP_SECRET_SEED,
     ]);
+    const requesterAccount = validPolkadotAccountId(anonymousClient.nodeApi, REQUESTER_ADDRESS);
+    const newAccount = validPolkadotAccountId(anonymousClient.nodeApi, NEW_ADDRESS);
+    const aliceAccount = validPolkadotAccountId(anonymousClient.nodeApi, ALICE.address);
+    const bobAccount = validPolkadotAccountId(anonymousClient.nodeApi, BOB.address);
+    const charlieAccount = validPolkadotAccountId(anonymousClient.nodeApi, CHARLIE.address);
+    const vtpAccount = validPolkadotAccountId(anonymousClient.nodeApi, VTP_ADDRESS);
     const client = await anonymousClient.authenticate([
-        REQUESTER_ADDRESS,
-        NEW_ADDRESS,
-        ALICE.address,
-        BOB.address,
-        CHARLIE.address,
-        VTP_ADDRESS,
+        requesterAccount,
+        newAccount,
+        aliceAccount,
+        bobAccount,
+        charlieAccount,
+        vtpAccount,
     ], signer);
     const legalOfficers = client.legalOfficers;
     const alice = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === ALICE.address));
@@ -87,7 +99,13 @@ export async function setupInitialState(): Promise<State> {
         signer,
         alice,
         bob,
-        charlie
+        charlie,
+        requesterAccount,
+        newAccount,
+        aliceAccount,
+        bobAccount,
+        charlieAccount,
+        vtpAccount,
     };
 }
 
@@ -154,8 +172,9 @@ export class LegalOfficerWorker {
 
     async buildLegalOfficerAxios() {
         const { client, signer } = this.state;
-        const authenticatedClient = await client.authenticate([ this.legalOfficer.address ], signer);
-        const token = authenticatedClient.tokens.get(this.legalOfficer.address)!;
+        const legalOfficerAccount = validPolkadotAccountId(client.nodeApi, this.legalOfficer.address);
+        const authenticatedClient = await client.authenticate([ legalOfficerAccount ], signer);
+        const token = authenticatedClient.tokens.get(legalOfficerAccount)!;
         const axiosFactory = new AxiosFactory();
         return axiosFactory.buildAxiosInstance(this.legalOfficer.node, token.value);
     }

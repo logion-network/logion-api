@@ -12,11 +12,13 @@ import {
     ALICE,
     BOB,
     buildTestAuthenticatedSharedSate,
-    SUCCESSFUL_SUBMISSION
+    SUCCESSFUL_SUBMISSION,
+    buildValidPolkadotAccountId,
+    buildSimpleNodeApi
 } from "./Utils.js";
 import { AccountTokens, LogionClient, Transaction, AxiosFactory, BalanceState, Signer, LegalOfficerClass } from "../src/index.js";
 
-const REQUESTER_ADDRESS = "5ERRWWYABvYjyUG2oLCNifkmcCQT44ijPpQNxtwZZFj86Jjd";
+const REQUESTER_ADDRESS = buildValidPolkadotAccountId("5ERRWWYABvYjyUG2oLCNifkmcCQT44ijPpQNxtwZZFj86Jjd")!;
 
 describe("Balance", () => {
 
@@ -31,7 +33,7 @@ describe("Balance", () => {
             directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
             const accountInfo = mockAccountInfo(100n);
-            nodeApi.setup(instance => instance.query.system.account(REQUESTER_ADDRESS))
+            nodeApi.setup(instance => instance.query.system.account(REQUESTER_ADDRESS.address))
                 .returns(Promise.resolve(accountInfo))
         })
         const client = (await LogionClient.create(config)).withCurrentAddress(REQUESTER_ADDRESS)
@@ -64,7 +66,7 @@ describe("Balance", () => {
         }}
         const t1: Transaction = {
             ...transactionBase(200000),
-            from: REQUESTER_ADDRESS,
+            from: REQUESTER_ADDRESS.address,
             id: "t1",
             to: ALICE.address,
             transferDirection: "Sent",
@@ -73,7 +75,7 @@ describe("Balance", () => {
             ...transactionBase(300000),
             id: "t2",
             from: BOB.address,
-            to: REQUESTER_ADDRESS,
+            to: REQUESTER_ADDRESS.address,
             transferDirection: "Received",
         }
         const transactions: Transaction[] = [ t1, t2 ]
@@ -84,7 +86,7 @@ describe("Balance", () => {
             const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
             const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
 
-            setupFetchTransactions(axiosFactory, transactions, REQUESTER_ADDRESS)
+            setupFetchTransactions(axiosFactory, transactions, REQUESTER_ADDRESS.address)
 
             directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([ new LegalOfficerClass({
                 legalOfficer: ALICE,
@@ -92,7 +94,7 @@ describe("Balance", () => {
             }) ]));
 
             const accountInfo = mockAccountInfo(100n);
-            nodeApi.setup(instance => instance.query.system.account(REQUESTER_ADDRESS))
+            nodeApi.setup(instance => instance.query.system.account(REQUESTER_ADDRESS.address))
                 .returns(Promise.resolve(accountInfo))
         })
         const client = (await LogionClient.create(config)).withCurrentAddress(REQUESTER_ADDRESS)
@@ -103,12 +105,15 @@ describe("Balance", () => {
 
     it("transfers from account", async () => {
         const token = "some-token";
-        const tokens = new AccountTokens({
-            [REQUESTER_ADDRESS]: {
-                value: token,
-                expirationDateTime: DateTime.now().plus({hours: 1})
+        const tokens = new AccountTokens(
+            buildSimpleNodeApi(),
+            {
+                [REQUESTER_ADDRESS.toKey()]: {
+                    value: token,
+                    expirationDateTime: DateTime.now().plus({hours: 1})
+                }
             }
-        });
+        );
         const amount = new PrefixedNumber("200", ATTO);
         const transfer = new Mock<SubmittableExtrinsic>();
         const sharedState = await buildTestAuthenticatedSharedSate(
@@ -121,13 +126,13 @@ describe("Balance", () => {
                 directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
                 const accountInfo = mockAccountInfo(1000000n);
-                nodeApi.setup(instance => instance.query.system.account(REQUESTER_ADDRESS))
+                nodeApi.setup(instance => instance.query.system.account(REQUESTER_ADDRESS.address))
                     .returns(Promise.resolve(accountInfo));
 
-                nodeApi.setup(instance => instance.tx.balances.transfer(REQUESTER_ADDRESS, "200"))
+                nodeApi.setup(instance => instance.tx.balances.transfer(REQUESTER_ADDRESS.address, "200"))
                     .returns(transfer.object());
 
-                setupFetchTransactions(axiosFactory, [], REQUESTER_ADDRESS);
+                setupFetchTransactions(axiosFactory, [], REQUESTER_ADDRESS.address);
             },
             REQUESTER_ADDRESS,
             [ ALICE, BOB ],
@@ -143,14 +148,14 @@ describe("Balance", () => {
 
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
-            params.signerId === REQUESTER_ADDRESS
+            params.signerId === REQUESTER_ADDRESS.address
             && params.submittable === transfer.object()))
         ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 
         await balanceState.transfer({
             signer: signer.object(),
             amount,
-            destination: REQUESTER_ADDRESS,
+            destination: REQUESTER_ADDRESS.address,
         });
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
@@ -158,12 +163,15 @@ describe("Balance", () => {
 
     it("transfers from recovered account", async () => {
         const token = "some-token";
-        const tokens = new AccountTokens({
-            [REQUESTER_ADDRESS]: {
-                value: token,
-                expirationDateTime: DateTime.now().plus({hours: 1})
+        const tokens = new AccountTokens(
+            buildSimpleNodeApi(),
+            {
+                [REQUESTER_ADDRESS.toKey()]: {
+                    value: token,
+                    expirationDateTime: DateTime.now().plus({hours: 1})
+                }
             }
-        });
+        );
         const recoveredAddress = "5EBxoSssqNo23FvsDeUxjyQScnfEiGxJaNwuwqBH2Twe35BX";
         const asRecovered = new Mock<SubmittableExtrinsic>();
         const amount = new PrefixedNumber("200", ATTO);
@@ -182,7 +190,7 @@ describe("Balance", () => {
                 nodeApi.setup(instance => instance.query.system.account(recoveredAddress))
                     .returns(Promise.resolve(accountInfo));
 
-                nodeApi.setup(instance => instance.tx.balances.transfer(REQUESTER_ADDRESS, "200"))
+                nodeApi.setup(instance => instance.tx.balances.transfer(REQUESTER_ADDRESS.address, "200"))
                     .returns(transfer.object());
 
                 nodeApi.setup(instance => instance.createType("Call", transfer.object()))
@@ -208,14 +216,14 @@ describe("Balance", () => {
 
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
-            params.signerId === REQUESTER_ADDRESS
+            params.signerId === REQUESTER_ADDRESS.address
             && params.submittable === asRecovered.object()))
         ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 
         await balanceState.transfer({
             signer: signer.object(),
             amount,
-            destination: REQUESTER_ADDRESS,
+            destination: REQUESTER_ADDRESS.address,
         });
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());

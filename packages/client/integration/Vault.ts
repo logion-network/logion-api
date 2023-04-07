@@ -5,9 +5,9 @@ import { REQUESTER_ADDRESS, State } from "./Utils.js";
 import { checkCoinBalance } from "./Balance.js";
 
 export async function providesVault(state: State) {
-    const { client, signer, alice } = state;
+    const { client, signer, alice, requesterAccount } = state;
 
-    const userClient = client.withCurrentAddress(REQUESTER_ADDRESS);
+    const userClient = client.withCurrentAddress(requesterAccount);
     let activeProtection = (await userClient.protectionState()) as ActiveProtection;
     activeProtection = await activeProtection.waitForFullyReady();
 
@@ -44,11 +44,11 @@ export async function providesVault(state: State) {
 }
 
 export async function aliceAcceptsTransfer(state: State, request: VaultTransferRequest) {
-    const { client, signer, alice } = state;
+    const { client, signer, aliceAccount } = state;
 
     const api = await buildApi(client.config.rpcEndpoints);
 
-    const signerId = alice.address;
+    const signerId = aliceAccount.address;
     const amount = new PrefixedNumber(request!.amount, LGNT_SMALLEST_UNIT);
     const submittable = await approveVaultTransfer({
         signerId,
@@ -64,7 +64,7 @@ export async function aliceAcceptsTransfer(state: State, request: VaultTransferR
         submittable,
     });
 
-    const authenticated = client.withCurrentAddress(alice.address);
-    const axios = authenticated.getLegalOfficer(alice.address).buildAxiosToNode();
+    const authenticated = client.withCurrentAddress(aliceAccount);
+    const axios = authenticated.getLegalOfficer(aliceAccount.address).buildAxiosToNode();
     await axios.post(`/api/vault-transfer-request/${request.id}/accept`);
 }

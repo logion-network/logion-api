@@ -1,4 +1,4 @@
-import { PrefixedNumber, ATTO } from '@logion/node-api';
+import { PrefixedNumber, ATTO, ValidAccountId } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces/payment';
 import type { Header, BlockNumber } from '@polkadot/types/interfaces/runtime';
@@ -28,7 +28,8 @@ import {
     LOGION_CLIENT_CONFIG,
     mockEmptyOption,
     REQUESTER,
-    RECOVERED_ADDRESS as RECOVERING_ADDRESS
+    RECOVERED_ADDRESS as RECOVERING_ADDRESS,
+    buildSimpleNodeApi
 } from "./Utils.js";
 
 describe("Vault", () => {
@@ -47,7 +48,7 @@ describe("Vault", () => {
         destination,
         index: 1,
         legalOfficerAddress: ALICE.address,
-        origin: REQUESTER,
+        origin: REQUESTER.address,
         requesterIdentity: {} as UserIdentity,
         requesterPostalAddress: {} as PostalAddress,
         status: "PENDING"
@@ -64,7 +65,7 @@ describe("Vault", () => {
         const multisigBlockHash = "0x1234567890abcdef";
         signer.setup(instance => instance.signAndSend(
             It.Is<SignParameters>(param =>
-                param.signerId === REQUESTER
+                param.signerId === REQUESTER.address
                 && param.submittable === multisig.object()
             )
         )).returns(Promise.resolve({
@@ -139,7 +140,7 @@ describe("Vault", () => {
         const asRecoveredBlockHash = "0x1234567890abcdef";
         signer.setup(instance => instance.signAndSend(
             It.Is<SignParameters>(param =>
-                param.signerId === RECOVERING_ADDRESS
+                param.signerId === RECOVERING_ADDRESS.address
                 && param.submittable === asRecovered.object()
             )
         )).returns(Promise.resolve({
@@ -168,7 +169,7 @@ describe("Vault", () => {
                 nodeApi.setup(instance => instance.createType("Call", multisig.object()))
                     .returns(multisigCall.object());
 
-                nodeApi.setup(instance => instance.tx.recovery.asRecovered(REQUESTER, multisigCall.object())).returns(asRecovered.object());
+                nodeApi.setup(instance => instance.tx.recovery.asRecovered(REQUESTER.address, multisigCall.object())).returns(asRecovered.object());
 
                 const blockHeader = new Mock<Header>();
                 const blockNumber = new Mock<Compact<BlockNumber>>();
@@ -193,7 +194,7 @@ describe("Vault", () => {
             acceptedVaultTransferRequests,
             selectedLegalOfficers: [ ALICE, BOB ],
             isRecovery: true,
-            recoveredAddress: REQUESTER,
+            recoveredAddress: REQUESTER.address,
             balances: [],
             transactions: [],
         });
@@ -220,7 +221,7 @@ describe("Vault", () => {
         const multisigBlockHash = "0x1234567890abcdef";
         signer.setup(instance => instance.signAndSend(
             It.Is<SignParameters>(param =>
-                param.signerId === REQUESTER
+                param.signerId === REQUESTER.address
                 && param.submittable === cancel.object()
             )
         )).returns(Promise.resolve({
@@ -285,7 +286,7 @@ describe("Vault", () => {
         const multisigBlockHash = "0x1234567890abcdef";
         signer.setup(instance => instance.signAndSend(
             It.Is<SignParameters>(param =>
-                param.signerId === RECOVERING_ADDRESS
+                param.signerId === RECOVERING_ADDRESS.address
                 && param.submittable === asRecovered.object()
             )
         )).returns(Promise.resolve({
@@ -317,7 +318,7 @@ describe("Vault", () => {
                 nodeApi.setup(instance => instance.createType("Call", cancel.object()))
                     .returns(cancelCall.object());
 
-                nodeApi.setup(instance => instance.tx.recovery.asRecovered(REQUESTER, cancelCall.object())).returns(asRecovered.object());
+                nodeApi.setup(instance => instance.tx.recovery.asRecovered(REQUESTER.address, cancelCall.object())).returns(asRecovered.object());
             },
             currentAddress,
             LEGAL_OFFICERS,
@@ -336,7 +337,7 @@ describe("Vault", () => {
             acceptedVaultTransferRequests,
             selectedLegalOfficers: [ ALICE, BOB ],
             isRecovery: true,
-            recoveredAddress: REQUESTER,
+            recoveredAddress: REQUESTER.address,
             balances: [],
             transactions: [],
         });
@@ -349,14 +350,17 @@ describe("Vault", () => {
     });
 });
 
-function buildTokens(currentAddress: string): AccountTokens {
+function buildTokens(currentAddress: ValidAccountId): AccountTokens {
     const token = "some-token";
-    return new AccountTokens({
-        [currentAddress]: {
-            value: token,
-            expirationDateTime: DateTime.now().plus({hours: 1})
+    return new AccountTokens(
+        buildSimpleNodeApi(),
+        {
+            [`Polkadot:${currentAddress.address}`]: {
+                value: token,
+                expirationDateTime: DateTime.now().plus({hours: 1})
+            }
         }
-    });
+    );
 }
 
 function buildTransferSubmittable(vaultAddress: string, weight: string): SubmittableExtrinsic {

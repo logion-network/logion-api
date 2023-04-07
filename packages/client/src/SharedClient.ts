@@ -1,4 +1,4 @@
-import { LogionNodeApi } from "@logion/node-api";
+import { LogionNodeApi, ValidAccountId } from "@logion/node-api";
 
 import { AccountTokens } from "./AuthenticationClient.js";
 import { AxiosFactory } from "./AxiosFactory.js";
@@ -29,14 +29,14 @@ export interface SharedState {
     legalOfficers: LegalOfficerClass[];
     allLegalOfficers: LegalOfficerClass[];
     tokens: AccountTokens;
-    currentAddress?: string;
+    currentAddress?: ValidAccountId;
 }
 
 export function getLegalOfficer(sharedState: SharedState, address: string): LegalOfficerClass {
     return findOrThrow(sharedState.legalOfficers, lo => lo.address === address, `No legal officer with address ${address}`);
 }
 
-export function authenticatedCurrentAddress(sharedState: SharedState): { currentAddress: string, token: Token } {
+export function authenticatedCurrentAddress(sharedState: SharedState): { currentAddress: ValidAccountId, token: Token } {
     const currentAddress = getDefinedCurrentAddress(sharedState);
     const token = sharedState.tokens.get(currentAddress);
     if(!token) {
@@ -48,7 +48,7 @@ export function authenticatedCurrentAddress(sharedState: SharedState): { current
     };
 }
 
-export function getDefinedCurrentAddress(sharedState: SharedState): string {
+export function getDefinedCurrentAddress(sharedState: SharedState): ValidAccountId {
     const { currentAddress } = sharedState;
     if(!currentAddress) {
         throw new Error("No current address");

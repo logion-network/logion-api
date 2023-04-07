@@ -47,7 +47,8 @@ import {
     mockEmptyOption,
     mockOption,
     REQUESTER,
-    SUCCESSFUL_SUBMISSION
+    SUCCESSFUL_SUBMISSION,
+    buildSimpleNodeApi
 } from "./Utils.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
 import {
@@ -244,7 +245,7 @@ describe("ClosedCollectionLoc", () => {
         const closedLoc = await getClosedCollectionLoc();
 
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
         await closedLoc.addCollectionItem({
             itemId: ITEM_ID,
             itemDescription: ITEM_DESCRIPTION,
@@ -258,7 +259,7 @@ describe("ClosedCollectionLoc", () => {
         const closedLoc = await getClosedCollectionLoc();
 
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
         await closedLoc.addCollectionItem({
             itemId: ITEM_ID,
             itemDescription: ITEM_DESCRIPTION,
@@ -274,7 +275,7 @@ describe("ClosedCollectionLoc", () => {
         const closedLoc = await getClosedCollectionLoc();
 
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
         await closedLoc.addCollectionItem({
             itemId: ITEM_ID,
             itemDescription: ITEM_DESCRIPTION,
@@ -290,7 +291,7 @@ describe("ClosedCollectionLoc", () => {
         const closedLoc = await getClosedCollectionLoc();
 
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
         // expectAsync(closedCollectionLoc).toBeRejected("Logion Classification and Creative Commons are mutually exclusive.");
         await expectAsync(closedLoc.addCollectionItem({
                 itemId: ITEM_ID,
@@ -359,7 +360,7 @@ describe("ClosedCollectionLoc", () => {
     it("adds tokens record", async () => {
         const closedLoc = await getClosedCollectionLoc();
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await closedLoc.addTokensRecord({
             recordId: RECORD_ID,
@@ -514,12 +515,15 @@ let nodeApiMock: Mock<LogionNodeApi>;
 async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<SharedState> {
     const currentAddress = isVerifiedThirdParty ? ISSUER : REQUESTER;
     const token = "some-token";
-    const tokens = new AccountTokens({
-        [currentAddress]: {
-            value: token,
-            expirationDateTime: DateTime.now().plus({ hours: 1 })
+    const tokens = new AccountTokens(
+        buildSimpleNodeApi(),
+        {
+            [currentAddress.toKey()]: {
+                value: token,
+                expirationDateTime: DateTime.now().plus({ hours: 1 })
+            }
         }
-    });
+    );
     return await buildTestAuthenticatedSharedSate(
         (factory: TestConfigFactory) => {
             factory.setupDefaultNetworkState();
@@ -536,7 +540,7 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                 ALICE_CLOSED_COLLECTION_LOC.request,
                 ALICE_REJECTED_TRANSACTION_LOC_REQUEST,
             ];
-            aliceAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === REQUESTER)))
+            aliceAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === REQUESTER.address)))
                 .returnsAsync({
                     data: {
                         requests: aliceRequests
@@ -544,7 +548,7 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                 } as AxiosResponse);
 
             if(isVerifiedThirdParty) {
-                aliceAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === ISSUER)))
+                aliceAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === ISSUER.address)))
                     .returnsAsync({
                         data: {
                             requests: [ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request]
@@ -602,7 +606,7 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                 BOB_VOID_COLLECTION_LOC.request,
                 BOB_CLOSED_IDENTITY_LOC.request,
             ];
-            bobAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === REQUESTER)))
+            bobAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === REQUESTER.address)))
                 .returnsAsync({
                     data: {
                         requests: bobRequests
@@ -624,7 +628,7 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
             const charlieRequests: LocRequest[] = [
                 CHARLIE_VOID_IDENTITY_LOC.request,
             ];
-            charlieAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === REQUESTER)))
+            charlieAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === REQUESTER.address)))
                 .returnsAsync({
                     data: {
                         requests: charlieRequests
@@ -694,7 +698,7 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                 if(!isVerifiedThirdParty) {
                     return Promise.resolve(mockEmptyOption<PalletLogionLocVerifiedIssuer>());
                 } else {
-                    if(legalOfficer === ALICE.address && issuer === ISSUER) {
+                    if(legalOfficer === ALICE.address && issuer === ISSUER.address) {
                         return Promise.resolve(mockEmptyOption<PalletLogionLocVerifiedIssuer>());
                     } else {
                         const verifiedIssuer: PalletLogionLocVerifiedIssuer = mockCodecWithToString(new UUID(ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request.id).toDecimalString());
@@ -714,7 +718,7 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                             {
                                 args: [
                                     mockCodecWithToString(ALICE.address),
-                                    mockCodecWithToString(ISSUER),
+                                    mockCodecWithToString(ISSUER.address),
                                 ],
                             } as any,
                             mockOption(verifiedIssuer as PalletLogionLocVerifiedIssuer),
@@ -729,11 +733,11 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
             nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersByLocMap.multi).returns(verifiedIssuersByLocMapMultiImpl);
 
             if(isVerifiedThirdParty) {
-                nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(ISSUER)).returns(Promise.resolve([
+                nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(ISSUER.address)).returns(Promise.resolve([
                     [
                         {
                             args: [
-                                mockCodecWithToString(ISSUER),
+                                mockCodecWithToString(ISSUER.address),
                                 mockCodecWithToString(ALICE.address),
                                 mockCodecWithToString(new UUID(ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VTP.request.id).toDecimalString()),
                             ],
@@ -743,7 +747,7 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                     [
                         {
                             args: [
-                                mockCodecWithToString(ISSUER),
+                                mockCodecWithToString(ISSUER.address),
                                 mockCodecWithToString(ALICE.address),
                                 mockCodecWithToString(new UUID(ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VTP.request.id).toDecimalString()),
                             ],
@@ -751,7 +755,7 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                         mockCodecWithToString(""),
                     ]
                 ]));
-                nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(REQUESTER)).returns(Promise.resolve([]));
+                nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(REQUESTER.address)).returns(Promise.resolve([]));
             } else {
                 nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(It.IsAny())).returns(Promise.resolve([]));
             }

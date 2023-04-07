@@ -14,6 +14,7 @@ import {
 } from "../src/index.js";
 import {
     ALICE,
+    buildSimpleNodeApi,
     buildTestAuthenticatedSharedSate,
     LEGAL_OFFICERS,
     LOGION_CLIENT_CONFIG,
@@ -190,6 +191,6 @@ async function buildSharedState(): Promise<SharedState> {
         },
         undefined,
         LEGAL_OFFICERS,
-        new AccountTokens({}),
+        new AccountTokens(buildSimpleNodeApi(), {}),
     );
 }

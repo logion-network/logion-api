@@ -1,4 +1,4 @@
-import { buildApi, UUID } from '@logion/node-api';
+import { buildApi, UUID, ValidAccountId } from '@logion/node-api';
 
 import {
     LogionClient,
@@ -27,13 +27,13 @@ export async function requestsProtectionAndCancel(state: State) {
 }
 
 async function requestProtectionAndCancel(requester: string, state: State): Promise<NoProtection> {
-    const { client, signer, alice, bob } = state;
+    const { client, signer, alice, aliceAccount, bob, bobAccount } = state;
 
     const pending = await requestProtection(requester, state);
 
     console.log("LO's - Alice and Bob Rejecting")
-    await rejectRequest(client, signer, bob, requester, "Your protection request is not complete");
-    await rejectRequest(client, signer, alice, requester, "Some info is missing");
+    await rejectRequest(client, signer, bob, bobAccount, requester, "Your protection request is not complete");
+    await rejectRequest(client, signer, alice, aliceAccount, requester, "Some info is missing");
 
     const maybeRejected = await pending.refresh();
     if(maybeRejected instanceof RejectedProtection) {
@@ -44,12 +44,12 @@ async function requestProtectionAndCancel(requester: string, state: State): Prom
 }
 
 async function requestProtection(requester: string, state: State): Promise<PendingProtection> {
-    const { client, signer, alice, bob } = state;
+    const { client, signer, alice, bob, requesterAccount } = state;
 
     console.log("Setting balance of %s", requester)
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, signer, requester);
 
-    const authenticatedClient = client.withCurrentAddress(requester);
+    const authenticatedClient = client.withCurrentAddress(requesterAccount);
 
     console.log("Requesting protection")
     const current = await authenticatedClient.protectionState();
@@ -78,27 +78,27 @@ async function requestProtection(requester: string, state: State): Promise<Pendi
 }
 
 async function enableProtection(requester: string, state: State): Promise<ActiveProtection | PendingRecovery | undefined> {
-    const { client, signer, alice, bob, charlie } = state;
+    const { client, signer, alice, aliceAccount, bob, bobAccount, charlie, charlieAccount } = state;
 
     const pending = await requestProtection(requester, state);
 
     console.log("LO's - Bob Rejecting")
-    await rejectRequest(client, signer, bob, requester, "I dont speak your language");
+    await rejectRequest(client, signer, bob, bobAccount, requester, "I dont speak your language");
 
     console.log("User changing LO: Charlie instead of Bob");
     const rejected = (await pending.refresh()) as RejectedProtection;
     const pendingAgain = await rejected.changeLegalOfficer(bob, charlie);
 
     console.log("LO's - Alice Rejecting")
-    await rejectRequest(client, signer, alice, requester, "Some info is missing");
+    await rejectRequest(client, signer, alice, aliceAccount, requester, "Some info is missing");
 
     console.log("User resubmitting to Alice");
     const rejectedAgain = (await pendingAgain.refresh()) as RejectedProtection;
     const stillPending = await rejectedAgain.resubmit(alice);
 
     console.log("LO's - Accepting")
-    await acceptRequest(TEST_LOGION_CLIENT_CONFIG, client, signer, alice, requester);
-    await acceptRequest(TEST_LOGION_CLIENT_CONFIG, client, signer, charlie, requester);
+    await acceptRequest(TEST_LOGION_CLIENT_CONFIG, client, signer, alice, aliceAccount, requester);
+    await acceptRequest(TEST_LOGION_CLIENT_CONFIG, client, signer, charlie, charlieAccount, requester);
 
     const accepted = (await stillPending.refresh()) as AcceptedProtection;
     console.log("Activating")
@@ -109,10 +109,11 @@ export async function rejectRequest(
     client: LogionClient,
     signer: FullSigner,
     legalOfficer: LegalOfficer,
+    legalOfficerAccount: ValidAccountId,
     requesterAddress: string,
     reason: string,
 ) {
-    const axios = await buildLegalOfficerAxios(client, signer, legalOfficer);
+    const axios = await buildLegalOfficerAxios(client, signer, legalOfficer, legalOfficerAccount);
 
     const response = await axios.put("/api/protection-request",{
         legalOfficerAddress: legalOfficer.address,
@@ -131,10 +132,11 @@ export async function acceptRequest(
     client: LogionClient,
     signer: FullSigner,
     legalOfficer: LegalOfficer,
+    legalOfficerAccount: ValidAccountId,
     requesterAddress: string,
 ) {
     const legalOfficerAddress = legalOfficer.address;
-    const axios = await buildLegalOfficerAxios(client, signer, legalOfficer);
+    const axios = await buildLegalOfficerAxios(client, signer, legalOfficer, legalOfficerAccount);
 
     const response = await axios.put("/api/protection-request", {
         legalOfficerAddress: legalOfficer.address,
@@ -159,9 +161,10 @@ async function buildLegalOfficerAxios(
     client: LogionClient,
     signer: FullSigner,
     legalOfficer: LegalOfficer,
+    legalOfficerAccount: ValidAccountId,
 ) {
-    const authenticatedClient = await client.authenticate([ legalOfficer.address ], signer);
-    const token = authenticatedClient.tokens.get(legalOfficer.address)!;
+    const authenticatedClient = await client.authenticate([ legalOfficerAccount ], signer);
+    const token = authenticatedClient.tokens.get(legalOfficerAccount)!;
     const axiosFactory = new AxiosFactory();
     return axiosFactory.buildAxiosInstance(legalOfficer.node, token.value);
 }

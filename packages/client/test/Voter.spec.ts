@@ -11,7 +11,9 @@ import {
 } from "../src/index.js";
 import {
     ALICE,
+    buildSimpleNodeApi,
     buildTestAuthenticatedSharedSate,
+    buildValidPolkadotAccountId,
     LEGAL_OFFICERS,
     LOGION_CLIENT_CONFIG,
 } from "./Utils.js";
@@ -25,7 +27,8 @@ describe("VoterApi", () => {
 
     it("finds LOC", async () => {
         const sharedState = await buildSharedState();
-        const logionClient = new LogionClient(sharedState).useTokens(tokens).withCurrentAddress(ALICE.address);
+        const alice = buildValidPolkadotAccountId(ALICE.address);
+        const logionClient = new LogionClient(sharedState).useTokens(tokens).withCurrentAddress(alice);
         const voterApi = new VoterApi({ sharedState, logionClient });
 
         const readOnlyState = await voterApi.findLocById(new UUID(LOC_REQUEST.id));
@@ -41,14 +44,17 @@ const LOC = buildLoc(ALICE.address, "CLOSED", "Identity");
 let aliceAxiosMock: Mock<AxiosInstance>;
 let nodeApiMock: Mock<LogionNodeApi>;
 
-const currentAddress = ALICE.address;
+const currentAddress = buildValidPolkadotAccountId(ALICE.address);
 const token = "some-token";
-const tokens = new AccountTokens({
-    [ALICE.address]: {
-        value: token,
-        expirationDateTime: DateTime.now().plus({ hours: 1 })
+const tokens = new AccountTokens(
+    buildSimpleNodeApi(),
+    {
+        [`${currentAddress?.toKey()}`]: {
+            value: token,
+            expirationDateTime: DateTime.now().plus({ hours: 1 })
+        }
     }
-});
+);
 
 async function buildSharedState(): Promise<SharedState> {
     return await buildTestAuthenticatedSharedSate(

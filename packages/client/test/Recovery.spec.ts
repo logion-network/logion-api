@@ -34,6 +34,8 @@ import {
     SUCCESSFUL_SUBMISSION,
     REQUESTER,
     RECOVERED_ADDRESS,
+    buildSimpleNodeApi,
+    buildValidPolkadotAccountId,
 } from './Utils.js';
 import { TestConfigFactory } from './TestConfigFactory.js';
 import { AxiosFactory } from '../src/AxiosFactory.js';
@@ -81,7 +83,7 @@ describe("Recovery's getInitialState", () => {
             recoveryConfig: {
                 legalOfficers: legalOfficers.map(legalOfficer => legalOfficer.address)
             },
-            recoveredAddress: RECOVERED_ADDRESS,
+            recoveredAddress: RECOVERED_ADDRESS.address,
         };
         await testGetInitialState(data, ClaimedRecovery);
     });
@@ -159,7 +161,7 @@ describe("Recovery's getInitialState", () => {
             recoveryConfig: {
                 legalOfficers: legalOfficers.map(legalOfficer => legalOfficer.address)
             },
-            recoveredAddress: RECOVERED_ADDRESS,
+            recoveredAddress: RECOVERED_ADDRESS.address,
         };
         await testGetInitialState(data, ClaimedRecovery);
     });
@@ -191,14 +193,17 @@ async function testGetInitialState(data: FetchAllResult, expectedStateClass: any
 const legalOfficers: LegalOfficer[] = [ ALICE, BOB ];
 
 async function buildSharedState(): Promise<SharedState> {
-    const currentAddress = ALICE.address;
+    const currentAddress = buildValidPolkadotAccountId(ALICE.address)!;
     const token = "some-token";
-    const tokens = new AccountTokens({
-        [ALICE.address]: {
-            value: token,
-            expirationDateTime: DateTime.now().plus({hours: 1})
+    const tokens = new AccountTokens(
+        buildSimpleNodeApi(),
+        {
+            [`Polkadot:${ALICE.address}`]: {
+                value: token,
+                expirationDateTime: DateTime.now().plus({hours: 1})
+            }
         }
-    });
+    );
     return await buildTestAuthenticatedSharedSate(
         (factory: TestConfigFactory) => {
             factory.setupDefaultAxiosInstanceFactory();
@@ -228,7 +233,7 @@ function buildPartialAliceRequest(): PartialProtectionRequest {
         createdOn: DateTime.now().minus({hours: 1}).toISO(),
         legalOfficerAddress: ALICE.address,
         otherLegalOfficerAddress: BOB.address,
-        requesterAddress: REQUESTER,
+        requesterAddress: REQUESTER.address,
         userIdentity: {} as UserIdentity,
         userPostalAddress: {} as PostalAddress,
     };
@@ -240,7 +245,7 @@ function buildPartialBobRequest(): PartialProtectionRequest {
         createdOn: DateTime.now().minus({hours: 1}).toISO(),
         legalOfficerAddress: BOB.address,
         otherLegalOfficerAddress: ALICE.address,
-        requesterAddress: REQUESTER,
+        requesterAddress: REQUESTER.address,
         userIdentity: {} as UserIdentity,
         userPostalAddress: {} as PostalAddress,
     };
@@ -290,7 +295,7 @@ function buildAcceptedAliceRecoveryRequest(): ProtectionRequest {
         ...buildPartialAliceRequest(),
         status: 'ACCEPTED',
         isRecovery: true,
-        addressToRecover: RECOVERED_ADDRESS,
+        addressToRecover: RECOVERED_ADDRESS.address,
         decision: {
             decisionOn: DateTime.now().minus({minutes: 1}).toISO(),
             rejectReason: null,
@@ -303,7 +308,7 @@ function buildAcceptedBobRecoveryRequest(): ProtectionRequest {
         ...buildPartialBobRequest(),
         status: 'ACCEPTED',
         isRecovery: true,
-        addressToRecover: RECOVERED_ADDRESS,
+        addressToRecover: RECOVERED_ADDRESS.address,
         decision: {
             decisionOn: DateTime.now().minus({minutes: 1}).toISO(),
             rejectReason: null,
@@ -342,7 +347,7 @@ function buildPendingAliceRecoveryRequest(): ProtectionRequest {
         ...buildPartialAliceRequest(),
         status: 'PENDING',
         isRecovery: true,
-        addressToRecover: RECOVERED_ADDRESS,
+        addressToRecover: RECOVERED_ADDRESS.address,
         decision: {
             decisionOn: DateTime.now().minus({minutes: 1}).toISO(),
             rejectReason: null,
@@ -355,7 +360,7 @@ function buildPendingBobRecoveryRequest(): ProtectionRequest {
         ...buildPartialBobRequest(),
         status: 'PENDING',
         isRecovery: true,
-        addressToRecover: RECOVERED_ADDRESS,
+        addressToRecover: RECOVERED_ADDRESS.address,
         decision: {
             decisionOn: DateTime.now().minus({minutes: 1}).toISO(),
             rejectReason: null,
@@ -368,12 +373,15 @@ describe("NoProtection", () => {
     it("requests protection", async () => {
         const currentAddress = REQUESTER;
         const token = "some-token";
-        const tokens = new AccountTokens({
-            [REQUESTER]: {
-                value: token,
-                expirationDateTime: DateTime.now().plus({hours: 1})
+        const tokens = new AccountTokens(
+            buildSimpleNodeApi(),
+            {
+                [REQUESTER.toKey()]: {
+                    value: token,
+                    expirationDateTime: DateTime.now().plus({hours: 1})
+                }
             }
-        });
+        );
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
                 factory.setupDefaultNetworkState();
@@ -383,7 +391,7 @@ describe("NoProtection", () => {
                 setupCreateProtectionRequest(
                     axiosFactory,
                     buildPartialAliceRequest(),
-                    currentAddress,
+                    currentAddress.address,
                     ALICE,
                     BOB,
                     token,
@@ -392,7 +400,7 @@ describe("NoProtection", () => {
                 setupCreateProtectionRequest(
                     axiosFactory,
                     buildPartialBobRequest(),
-                    currentAddress,
+                    currentAddress.address,
                     BOB,
                     ALICE,
                     token,
@@ -416,19 +424,22 @@ describe("NoProtection", () => {
     it("requests recovery", async () => {
         const currentAddress = REQUESTER;
         const token = "some-token";
-        const tokens = new AccountTokens({
-            [REQUESTER]: {
-                value: token,
-                expirationDateTime: DateTime.now().plus({hours: 1})
+        const tokens = new AccountTokens(
+            buildSimpleNodeApi(),
+            {
+                [REQUESTER.toKey()]: {
+                    value: token,
+                    expirationDateTime: DateTime.now().plus({hours: 1})
+                }
             }
-        });
+        );
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
                 factory.setupDefaultNetworkState();
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                nodeApi.setup(instance => instance.query.recovery.activeRecoveries(RECOVERED_ADDRESS, currentAddress))
+                nodeApi.setup(instance => instance.query.recovery.activeRecoveries(RECOVERED_ADDRESS.address, currentAddress.address))
                     .returns(Promise.resolve(mockEmptyOption<PalletRecoveryActiveRecovery>()));
 
                 const aliceAccountId = new Mock<AccountId>();
@@ -440,33 +451,33 @@ describe("NoProtection", () => {
                     aliceAccountId.object(),
                     bobAccountId.object()
                 ]);
-                nodeApi.setup(instance => instance.query.recovery.recoverable(RECOVERED_ADDRESS))
+                nodeApi.setup(instance => instance.query.recovery.recoverable(RECOVERED_ADDRESS.address))
                     .returns(Promise.resolve(mockOption<PalletRecoveryRecoveryConfig>({
                         friends: friends.object()
                     })));
 
                 const submittable = new Mock<SubmittableExtrinsic>();
-                nodeApi.setup(instance => instance.tx.recovery.initiateRecovery(RECOVERED_ADDRESS))
+                nodeApi.setup(instance => instance.tx.recovery.initiateRecovery(RECOVERED_ADDRESS.address))
                     .returns(submittable.object());
 
                 const axiosFactory = factory.setupAxiosFactoryMock();
                 setupCreateProtectionRequest(
                     axiosFactory,
                     buildPartialAliceRequest(),
-                    currentAddress,
+                    currentAddress.address,
                     ALICE,
                     BOB,
                     token,
-                    RECOVERED_ADDRESS,
+                    RECOVERED_ADDRESS.address,
                 );
                 setupCreateProtectionRequest(
                     axiosFactory,
                     buildPartialBobRequest(),
-                    currentAddress,
+                    currentAddress.address,
                     BOB,
                     ALICE,
                     token,
-                    RECOVERED_ADDRESS,
+                    RECOVERED_ADDRESS.address,
                 );
             },
             currentAddress,
@@ -475,7 +486,7 @@ describe("NoProtection", () => {
         );
         const state = new NoProtection(sharedState);
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string }>(params => params.signerId === currentAddress)))
+        signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string }>(params => params.signerId === currentAddress.address)))
             .returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 
         const nextState = await state.requestRecovery({
@@ -484,7 +495,7 @@ describe("NoProtection", () => {
             userIdentity: {} as UserIdentity,
             postalAddress: {} as PostalAddress,
             signer: signer.object(),
-            recoveredAddress: RECOVERED_ADDRESS
+            recoveredAddress: RECOVERED_ADDRESS.address
         });
 
         expect(nextState).toBeInstanceOf(PendingProtection);
@@ -532,12 +543,15 @@ describe("PendingProtection", () => {
         const bobRequest: ProtectionRequest = buildPendingBobRequest();
         const currentAddress = REQUESTER;
         const token = "some-token";
-        const tokens = new AccountTokens({
-            [REQUESTER]: {
-                value: token,
-                expirationDateTime: DateTime.now().plus({hours: 1})
+        const tokens = new AccountTokens(
+            buildSimpleNodeApi(),
+            {
+                [REQUESTER.toKey()]: {
+                    value: token,
+                    expirationDateTime: DateTime.now().plus({hours: 1})
+                }
             }
-        });
+        );
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
                 const axiosFactory = factory.setupAxiosFactoryMock();
@@ -553,9 +567,9 @@ describe("PendingProtection", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
+                nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress.address))
                     .returns(Promise.resolve(mockEmptyOption<PalletRecoveryRecoveryConfig>()));
-                nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
+                nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress.address))
                     .returns(Promise.resolve(mockEmptyOption<AccountId>()));
             },
             currentAddress,
@@ -587,12 +601,15 @@ describe("PendingProtection", () => {
         const bobRequest: ProtectionRequest = buildAcceptedBobRequest();
         const currentAddress = REQUESTER;
         const token = "some-token";
-        const tokens = new AccountTokens({
-            [REQUESTER]: {
-                value: token,
-                expirationDateTime: DateTime.now().plus({hours: 1})
+        const tokens = new AccountTokens(
+            buildSimpleNodeApi(),
+            {
+                [REQUESTER.toKey()]: {
+                    value: token,
+                    expirationDateTime: DateTime.now().plus({hours: 1})
+                }
             }
-        });
+        );
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
                 const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token);
@@ -603,9 +620,9 @@ describe("PendingProtection", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
+                nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress.address))
                     .returns(Promise.resolve(mockEmptyOption<PalletRecoveryRecoveryConfig>()));
-                nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
+                nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress.address))
                     .returns(Promise.resolve(mockEmptyOption<AccountId>()));
             },
             currentAddress,
@@ -671,12 +688,15 @@ describe("AcceptedProtection", () => {
         const bobRequest: ProtectionRequest = buildAcceptedBobRequest();
         const currentAddress = REQUESTER;
         const token = "some-token";
-        const tokens = new AccountTokens({
-            [REQUESTER]: {
-                value: token,
-                expirationDateTime: DateTime.now().plus({hours: 1})
+        const tokens = new AccountTokens(
+            buildSimpleNodeApi(),
+            {
+                [`Polkadot:${REQUESTER.address}`]: {
+                    value: token,
+                    expirationDateTime: DateTime.now().plus({hours: 1})
+                }
             }
-        });
+        );
         const submittable = new Mock<SubmittableExtrinsic>();
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
@@ -714,7 +734,7 @@ describe("AcceptedProtection", () => {
         });
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
-            params.signerId === currentAddress
+            params.signerId === currentAddress.address
             && params.submittable === submittable.object()))
         ).returns(Promise.resolve({ block: "hash", index: 1, events: [] }));
 
@@ -731,12 +751,15 @@ describe("AcceptedProtection", () => {
         const bobRequest: ProtectionRequest = buildAcceptedBobRecoveryRequest();
         const currentAddress = REQUESTER;
         const token = "some-token";
-        const tokens = new AccountTokens({
-            [REQUESTER]: {
-                value: token,
-                expirationDateTime: DateTime.now().plus({hours: 1})
+        const tokens = new AccountTokens(
+            buildSimpleNodeApi(),
+            {
+                [`Polkadot:${REQUESTER.address}`]: {
+                    value: token,
+                    expirationDateTime: DateTime.now().plus({hours: 1})
+                }
             }
-        });
+        );
         const submittable = new Mock<SubmittableExtrinsic>();
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
@@ -774,7 +797,7 @@ describe("AcceptedProtection", () => {
         });
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
-            params.signerId === currentAddress
+            params.signerId === currentAddress.address
             && params.submittable === submittable.object()))
         ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 
@@ -796,12 +819,15 @@ describe("PendingRecovery", () => {
         bobRequest.status = "ACTIVATED";
         const currentAddress = REQUESTER;
         const token = "some-token";
-        const tokens = new AccountTokens({
-            [REQUESTER]: {
-                value: token,
-                expirationDateTime: DateTime.now().plus({hours: 1})
+        const tokens = new AccountTokens(
+            buildSimpleNodeApi(),
+            {
+                [`Polkadot:${REQUESTER.address}`]: {
+                    value: token,
+                    expirationDateTime: DateTime.now().plus({hours: 1})
+                }
             }
-        });
+        );
         const submittable = new Mock<SubmittableExtrinsic>();
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
@@ -819,13 +845,13 @@ describe("PendingRecovery", () => {
                         BOB.address
                     ]
                 } as unknown as PalletRecoveryRecoveryConfig)
-                nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
+                nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress.address))
                     .returns(Promise.resolve(recoveryConfig as Option<PalletRecoveryRecoveryConfig>));
                 const proxy = mockOption<AccountId>(RECOVERED_ADDRESS as unknown as AccountId)
-                nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
+                nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress.address))
                     .returns(Promise.resolve(proxy as Option<AccountId>));
 
-                nodeApi.setup(instance => instance.tx.recovery.claimRecovery(RECOVERED_ADDRESS))
+                nodeApi.setup(instance => instance.tx.recovery.claimRecovery(RECOVERED_ADDRESS.address))
                     .returns(submittable.object());
             },
             currentAddress,
@@ -847,7 +873,7 @@ describe("PendingRecovery", () => {
         });
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
-            params.signerId === currentAddress
+            params.signerId === currentAddress.address
             && params.submittable === submittable.object()))
         ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 

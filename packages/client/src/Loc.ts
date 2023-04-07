@@ -243,7 +243,7 @@ export class LocsState extends State {
         const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
         const request = await client.createLocRequest({
             ownerAddress: legalOfficer.address,
-            requesterAddress: this.sharedState.currentAddress || "",
+            requesterAddress: this.sharedState.currentAddress?.address || "",
             description,
             locType,
             userIdentity,
@@ -381,7 +381,9 @@ export class LocsState extends State {
     private _isVerifiedThirdParty: boolean | undefined;
 
     private computeIsVerifiedThirdParty(): boolean {
-        return this.closedLocs["Identity"].find(loc => loc.data().verifiedThirdParty && loc.data().requesterAddress?.address === this.sharedState.currentAddress) !== undefined;
+        return this.closedLocs["Identity"].find(loc => loc.data().verifiedThirdParty
+            && loc.data().requesterAddress?.address === this.sharedState.currentAddress?.address
+            && loc.data().requesterAddress?.type === this.sharedState.currentAddress?.type) !== undefined;
     }
 
     get openVerifiedThirdPartyLocs(): Record<LocType, OpenLoc[]> {

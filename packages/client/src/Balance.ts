@@ -32,7 +32,7 @@ export async function getBalanceState(sharedState: SharedState & { isRecovery: b
     if(sharedState.isRecovery) {
         targetAddress = sharedState.recoveredAddress || "";
     } else {
-        targetAddress = sharedState.currentAddress || "";
+        targetAddress = sharedState.currentAddress?.address || "";
     }
     const client = newTransactionClient(targetAddress, sharedState);
     const transactions = await client.fetchTransactions();
@@ -98,7 +98,7 @@ export class BalanceState extends State {
         }
 
         await signer.signAndSend({
-            signerId: this.sharedState.currentAddress || "",
+            signerId: this.sharedState.currentAddress?.address || "",
             submittable,
             callback,
         })

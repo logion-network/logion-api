@@ -311,7 +311,7 @@ export class LocMultiClient {
         const { currentAddress, token } = authenticatedCurrentAddress(sharedState);
         return new LocMultiClient({
             axiosFactory: sharedState.axiosFactory,
-            currentAddress,
+            currentAddress: currentAddress.address,
             networkState: sharedState.networkState,
             token: token.value,
             nodeApi: sharedState.nodeApi,
