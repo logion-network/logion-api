@@ -518,7 +518,7 @@ export class RejectedRecovery extends State implements WithProtectionParameters 
     private async _cancel(): Promise<NoProtection> {
         return Promise.all(this.sharedState.allRequests.map(request => {
             if (request instanceof CancellableRequest) {
-                request.cancel()
+                return request.cancel();
             } else {
                 return Promise.reject("Request cannot be cancelled.")
             }

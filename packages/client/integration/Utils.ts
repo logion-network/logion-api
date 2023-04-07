@@ -1,4 +1,4 @@
-import { buildApi, UUID } from "@logion/node-api";
+import { buildApi, UUID, Currency, Numbers } from "@logion/node-api";
 import { Keyring } from "@polkadot/api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import FormData from "form-data";
@@ -92,10 +92,10 @@ export async function setupInitialState(): Promise<State> {
 }
 
 export async function initRequesterBalance(config: LogionClientConfig, signer: Signer, requester: string): Promise<void> {
-    await transferTokens(config, signer, ALICE.address, requester, 1000000000);
+    await transferTokens(config, signer, ALICE.address, requester, Currency.toCanonicalAmount(new Numbers.PrefixedNumber("10", Numbers.NONE)));
 }
 
-async function transferTokens(config: LogionClientConfig, signer: Signer, source: string, destination: string, amount: number) {
+async function transferTokens(config: LogionClientConfig, signer: Signer, source: string, destination: string, amount: bigint) {
     const api = await buildApi(config.rpcEndpoints);
     await signer.signAndSend({
         signerId: source,

@@ -85,28 +85,32 @@ async function requestRecovery(state: State): Promise<PendingProtection> {
 
     const authenticatedClient = client.withCurrentAddress(NEW_ADDRESS)
 
-    const noProtection = await authenticatedClient.protectionState() as NoProtection;
-
-    console.log("Requesting recovery")
-    return await noProtection.requestRecovery({
-        recoveredAddress: REQUESTER_ADDRESS,
-        signer,
-        legalOfficer1: authenticatedClient.getLegalOfficer(alice.address),
-        legalOfficer2: authenticatedClient.getLegalOfficer(charlie.address),
-        userIdentity: {
-            email: "john.doe@invalid.domain",
-            firstName: "John",
-            lastName: "Doe",
-            phoneNumber: "+1234",
-        },
-        postalAddress: {
-            city: "",
-            country: "",
-            line1: "",
-            line2: "",
-            postalCode: "",
-        }
-    });
+    const current = await authenticatedClient.protectionState();
+    expect(current).toBeInstanceOf(NoProtection);
+    if(current instanceof NoProtection) {
+        console.log("Requesting recovery")
+        return await current.requestRecovery({
+            recoveredAddress: REQUESTER_ADDRESS,
+            signer,
+            legalOfficer1: authenticatedClient.getLegalOfficer(alice.address),
+            legalOfficer2: authenticatedClient.getLegalOfficer(charlie.address),
+            userIdentity: {
+                email: "john.doe@invalid.domain",
+                firstName: "John",
+                lastName: "Doe",
+                phoneNumber: "+1234",
+            },
+            postalAddress: {
+                city: "",
+                country: "",
+                line1: "",
+                line2: "",
+                postalCode: "",
+            }
+        });
+    } else {
+        throw new Error("Unexpected state, aborting");
+    }
 }
 
 async function acceptRequestAndVouch(

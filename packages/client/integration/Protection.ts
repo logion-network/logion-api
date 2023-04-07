@@ -35,9 +35,12 @@ async function requestProtectionAndCancel(requester: string, state: State): Prom
     await rejectRequest(client, signer, bob, requester, "Your protection request is not complete");
     await rejectRequest(client, signer, alice, requester, "Some info is missing");
 
-    const rejected = await pending.refresh() as RejectedProtection;
-
-    return rejected.cancel();
+    const maybeRejected = await pending.refresh();
+    if(maybeRejected instanceof RejectedProtection) {
+        return maybeRejected.cancel();
+    } else {
+        throw new Error("Unexpected state, aborting");
+    }
 }
 
 async function requestProtection(requester: string, state: State): Promise<PendingProtection> {
@@ -49,24 +52,29 @@ async function requestProtection(requester: string, state: State): Promise<Pendi
     const authenticatedClient = client.withCurrentAddress(requester);
 
     console.log("Requesting protection")
-    const noProtection = await authenticatedClient.protectionState() as NoProtection;
-    return await noProtection.requestProtection({
-        legalOfficer1: authenticatedClient.getLegalOfficer(alice.address),
-        legalOfficer2: authenticatedClient.getLegalOfficer(bob.address),
-        userIdentity: {
-            email: "john.doe@invalid.domain",
-            firstName: "John",
-            lastName: "Doe",
-            phoneNumber: "+1234",
-        },
-        postalAddress: {
-            city: "",
-            country: "",
-            line1: "",
-            line2: "",
-            postalCode: "",
-        }
-    });
+    const current = await authenticatedClient.protectionState();
+    expect(current).toBeInstanceOf(NoProtection);
+    if(current instanceof NoProtection) {
+        return await current.requestProtection({
+            legalOfficer1: authenticatedClient.getLegalOfficer(alice.address),
+            legalOfficer2: authenticatedClient.getLegalOfficer(bob.address),
+            userIdentity: {
+                email: "john.doe@invalid.domain",
+                firstName: "John",
+                lastName: "Doe",
+                phoneNumber: "+1234",
+            },
+            postalAddress: {
+                city: "",
+                country: "",
+                line1: "",
+                line2: "",
+                postalCode: "",
+            }
+        });
+    } else {
+        throw new Error("Unexpected state, aborting");
+    }
 }
 
 async function enableProtection(requester: string, state: State): Promise<ActiveProtection | PendingRecovery | undefined> {
