@@ -52,6 +52,7 @@ export const DEFAULT_LOC: LegalOfficerCase = {
         address: "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb",
         type: "Polkadot",
         toOtherAccountId: () => { throw new Error() },
+        toKey: () => "Polkadot:5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb",
     },
     metadata: [
         {

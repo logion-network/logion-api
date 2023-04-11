@@ -1,5 +1,6 @@
 import { CrossmintEVMWalletAdapter } from "@crossmint/connect";
 import { BaseSigner, SignAndSendFunction, TypedSignature } from "@logion/client";
+import { ValidAccountId } from "@logion/node-api";
 
 export class CrossmintSigner extends BaseSigner {
 
@@ -13,7 +14,7 @@ export class CrossmintSigner extends BaseSigner {
 
     private crossmint: CrossmintEVMWalletAdapter;
 
-    async signToHex(_signerId: string, message: string): Promise<TypedSignature> {
+    async signToHex(_signerId: ValidAccountId, message: string): Promise<TypedSignature> {
         const signature = await this.crossmint.signMessage(message);
         return { signature, type: "CROSSMINT_ETHEREUM" };
     }
