@@ -175,10 +175,6 @@ export class KeyringSigner extends BaseSigner {
     private keyring: Keyring;
 
     async signToHex(signerId: ValidAccountId, message: string): Promise<TypedSignature> {
-        if(signerId.type !== "Polkadot") {
-            throw new Error(`Unsupported account type ${signerId.type}`);
-        }
-
         const keypair = this.keyring.getPair(signerId.address);
         const bytes = keypair.sign(message);
         const signature = '0x' + Buffer.from(bytes).toString('hex');
