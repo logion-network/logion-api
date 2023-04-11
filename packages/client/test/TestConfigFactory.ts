@@ -12,6 +12,7 @@ import {
     LegalOfficer,
     LegalOfficerClass
 } from "../src/index.js";
+import { buildSimpleNodeApi } from "./Utils.js";
 
 export class TestConfigFactory {
 
@@ -57,9 +58,11 @@ export class TestConfigFactory {
 
     setupAuthenticationClientMock(config: LogionClientConfig, legalOfficers: LegalOfficer[]): Mock<AuthenticationClient> {
         const authenticationClient = new Mock<AuthenticationClient>();
-        this._componentFactory.setup(instance => instance.buildAuthenticationClient(config.directoryEndpoint,
-                It.Is<LegalOfficerClass[]>(value => legalOfficers.map(lo => lo.address).every(item => value.map(lo => lo.address).includes(item))), It.IsAny()))
-            .returns(authenticationClient.object());
+        this._componentFactory.setup(instance => instance.buildAuthenticationClient(
+            It.IsAny(),
+            config.directoryEndpoint,
+            It.Is<LegalOfficerClass[]>(value => legalOfficers.map(lo => lo.address).every(item => value.map(lo => lo.address).includes(item))), It.IsAny()
+        )).returns(authenticationClient.object());
         return authenticationClient;
     }
 

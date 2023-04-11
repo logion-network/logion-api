@@ -2,10 +2,10 @@ import { ClosedCollectionLoc, HashOrContent, hashString, ItemFileWithContent, Lo
 import { initRequesterBalance, LegalOfficerWorker, NEW_ADDRESS, State, TEST_LOGION_CLIENT_CONFIG, VTP_ADDRESS } from "./Utils.js";
 
 export async function tokensRecords(state: State) {
-    const { alice } = state;
+    const { alice, newAccount, vtpAccount } = state;
     const legalOfficer = new LegalOfficerWorker(alice, state);
 
-    const userClient = state.client.withCurrentAddress(NEW_ADDRESS);
+    const userClient = state.client.withCurrentAddress(newAccount);
     let collectionLoc: LocRequestState = await (await userClient.locsState()).requestCollectionLoc({
         legalOfficer: userClient.getLegalOfficer(alice.address),
         description: "Some LOC with records",
@@ -18,7 +18,7 @@ export async function tokensRecords(state: State) {
 
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, VTP_ADDRESS);
 
-    const vtpClient = state.client.withCurrentAddress(VTP_ADDRESS);
+    const vtpClient = state.client.withCurrentAddress(vtpAccount);
     let closedcollectionLoc = (await vtpClient.locsState()).findById(collectionLocId) as ClosedCollectionLoc;
 
     const recordId = hashString("record-id");

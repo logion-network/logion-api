@@ -1,4 +1,4 @@
-import { LocType, UUID } from "@logion/node-api";
+import { LocType, UUID, ValidAccountId } from "@logion/node-api";
 import {
     PalletLogionLocLegalOfficerCase,
     PalletLogionLocRequester,
@@ -22,7 +22,8 @@ import {
     mockOption,
     mockVec,
     REQUESTER,
-    mockCodecWithToBigInt
+    mockCodecWithToBigInt,
+    buildValidPolkadotAccountId
 } from "./Utils.js";
 
 export const EXISTING_FILE_HASH = "0xa4d9f9f1a02baae960d1a7c4cedb25940a414ae4c545bf2f14ab24691fec09a5";
@@ -31,7 +32,7 @@ export const EXISTING_FILE: LocFile = {
     name: "existing-file.txt",
     hash: EXISTING_FILE_HASH,
     nature: "Some nature",
-    submitter: REQUESTER,
+    submitter: REQUESTER.address,
     restrictedDelivery: false,
     contentType: "text/plain",
     size: "42",
@@ -52,14 +53,14 @@ export type LocAndRequest = {
     loc: Option<PalletLogionLocLegalOfficerCase>
 }
 
-export function buildLocAndRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: Option<PalletLogionLocLocVoidInfo>, requester: string = REQUESTER): LocAndRequest {
+export function buildLocAndRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: Option<PalletLogionLocLocVoidInfo>, requester: ValidAccountId = REQUESTER): LocAndRequest {
     return {
         request: buildLocRequest(ownerAddress, status, locType, voidInfo !== undefined, requester),
         loc: buildLoc(ownerAddress, status, locType, voidInfo, requester)
     }
 }
 
-export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voided?: boolean, requester: string = REQUESTER): LocRequest {
+export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voided?: boolean, requester: ValidAccountId = REQUESTER): LocRequest {
     return {
         id: new UUID().toString(),
         createdOn: DateTime.now().toISO(),
@@ -67,7 +68,7 @@ export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, 
         files: [ EXISTING_FILE ],
         links: [],
         metadata: [],
-        requesterAddress: requester,
+        requesterAddress: requester.address,
         ownerAddress,
         status,
         locType,
@@ -76,9 +77,9 @@ export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, 
     };
 }
 
-export const ISSUER = "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb";
+export const ISSUER = buildValidPolkadotAccountId("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb")!;
 
-export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: Option<PalletLogionLocLocVoidInfo>, requester: string = REQUESTER): Option<PalletLogionLocLegalOfficerCase> {
+export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: Option<PalletLogionLocLocVoidInfo>, requester: ValidAccountId = REQUESTER): Option<PalletLogionLocLegalOfficerCase> {
     return mockOption<PalletLogionLocLegalOfficerCase>({
         owner: mockCodecWithToString<AccountId32>(ownerAddress),
         requester: mockPalletLogionLocRequester(requester),
@@ -87,7 +88,7 @@ export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType
             mockLogionLocFile({
                 hash: EXISTING_FILE_HASH,
                 nature: "Some nature",
-                submitter: requester,
+                submitter: requester.address,
                 size: 128n,
             })
         ]),
@@ -103,11 +104,13 @@ export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType
     });
 }
 
-function mockPalletLogionLocRequester(address: string): PalletLogionLocRequester {
+function mockPalletLogionLocRequester(address: ValidAccountId): PalletLogionLocRequester {
     const mock = new Mock<PalletLogionLocRequester>();
-    mock.setup(instance => instance.isAccount).returns(true);
-    mock.setup(instance => instance.isLoc).returns(false);
-    mock.setup(instance => instance.asAccount).returns(mockCodecWithToString<AccountId32>(address));
+    if(address.type === "Polkadot") {
+        mock.setup(instance => instance.isAccount).returns(true);
+        mock.setup(instance => instance.isLoc).returns(false);
+        mock.setup(instance => instance.asAccount).returns(mockCodecWithToString<AccountId32>(address.address));
+    }
     return mock.object();
 }
 

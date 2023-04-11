@@ -6,7 +6,8 @@ import { AccountTokens, AuthenticationClient, LegalOfficer, LegalOfficerClass } 
 import { AxiosFactory } from "../src/index.js";
 import { Token } from "../src/index.js";
 import { RawSigner, SignRawParameters } from "../src/index.js";
-import { ALICE, buildAliceTokens, DIRECTORY_ENDPOINT } from "./Utils.js";
+import { ALICE, buildAliceTokens, buildSimpleNodeApi, buildValidPolkadotAccountId, DIRECTORY_ENDPOINT } from "./Utils.js";
+import { ValidAccountId } from "@logion/node-api";
 
 describe("AuthenticationClient", () => {
 
@@ -21,8 +22,10 @@ describe("AuthenticationClient", () => {
 
     it("refreshes tokens", async () => {
         const axiosFactory = new Mock<AxiosFactory>();
-        const tokens = buildAliceTokens(DateTime.now().plus({hours: 1}));
-        const token = tokens.get(ALICE.address)!.value;
+        const api = buildSimpleNodeApi();
+        const tokens = buildAliceTokens(api, DateTime.now().plus({hours: 1}));
+        const alice = buildValidPolkadotAccountId(ALICE.address)!;
+        const token = tokens.get(alice)!.value;
         const legalOfficers = [ new LegalOfficerClass({ legalOfficer: ALICE, axiosFactory: axiosFactory.object(), token }) ];
 
         const axiosInstance = new Mock<AxiosInstance>();
@@ -32,21 +35,21 @@ describe("AuthenticationClient", () => {
         const newToken = "new-token";
         refreshResponse.setup(instance => instance.data).returns({
             tokens: {
-                [ALICE.address]: {
+                [alice.toKey() || ""]: {
                     value: newToken,
                     expiredOn: DateTime.now().plus({hours: 2}).toISO()
                 }
             }
         });
         axiosInstance.setup(instance => instance.put('/api/auth/refresh', It.Is<any>(body =>
-            body.tokens[ALICE.address] === token
+            body.tokens[alice.toKey()] === token
         ))).returns(Promise.resolve(refreshResponse.object()));
 
-        const client = new AuthenticationClient(DIRECTORY_ENDPOINT, legalOfficers, axiosFactory.object());
+        const client = new AuthenticationClient(api, DIRECTORY_ENDPOINT, legalOfficers, axiosFactory.object());
 
         const refreshedTokens = await client.refresh(tokens);
 
-        expect(refreshedTokens.get(ALICE.address)).toEqual(jasmine.objectContaining({
+        expect(refreshedTokens.get(alice)).toEqual(jasmine.objectContaining({
             value: newToken
         }));
     });
@@ -63,11 +66,12 @@ async function testAuthentication(legalOfficers: LegalOfficer[], expectedEndpoin
             .returns(axiosInstance.object());
     }
 
-    const addresses = [ "some-address" ];
+    const addresses = [ buildValidPolkadotAccountId("some-address")! ];
     const sessionId = "session-id";
     setupSignIn(axiosInstance, addresses, sessionId);
 
-    const client = new AuthenticationClient(DIRECTORY_ENDPOINT, legalOfficers.map(legalOfficer => new LegalOfficerClass({
+    const api = buildSimpleNodeApi();
+    const client = new AuthenticationClient(api, DIRECTORY_ENDPOINT, legalOfficers.map(legalOfficer => new LegalOfficerClass({
         legalOfficer,
         axiosFactory: axiosFactory.object(),
     })), axiosFactory.object());
@@ -80,12 +84,12 @@ async function testAuthentication(legalOfficers: LegalOfficer[], expectedEndpoin
 
     const tokens = await client.authenticate(addresses, signer.object());
 
-    expect(tokens.get("some-address")).toEqual(jasmine.objectContaining({
+    expect(tokens.get(addresses[0])).toEqual(jasmine.objectContaining({
         value: "some-address-token"
     }));
 }
 
-function setupSignIn(axiosInstance: Mock<AxiosInstance>, addresses: string[], sessionId: string) {
+function setupSignIn(axiosInstance: Mock<AxiosInstance>, addresses: ValidAccountId[], sessionId: string) {
 
     const signInResponse = new Mock<AxiosResponse<any, any>>();
     signInResponse.setup(instance => instance.data).returns({
@@ -96,7 +100,7 @@ function setupSignIn(axiosInstance: Mock<AxiosInstance>, addresses: string[], se
     ))).returns(Promise.resolve(signInResponse.object()));
 }
 
-function setupSignatures(signer: Mock<RawSigner>, addresses: string[], sessionId: string, signatures: string[]) {
+function setupSignatures(signer: Mock<RawSigner>, addresses: ValidAccountId[], sessionId: string, signatures: string[]) {
     for(let i = 0; i < addresses.length; ++i) {
         signer.setup(instance => instance.signRaw(It.Is<SignRawParameters>(params =>
             params.resource === "authentication"
@@ -107,12 +111,12 @@ function setupSignatures(signer: Mock<RawSigner>, addresses: string[], sessionId
     }
 }
 
-function setupAuthenticate(axiosInstance: Mock<AxiosInstance>, addresses: string[], sessionId: string, signatures: string[]) {
+function setupAuthenticate(axiosInstance: Mock<AxiosInstance>, accounts: ValidAccountId[], sessionId: string, signatures: string[]) {
     const authenticateResponse = new Mock<AxiosResponse<any, any>>();
     const tokens: any = {};
-    for(const address of addresses) {
-        tokens[address] = {
-            value: `${address}-token`,
+    for(const account of accounts) {
+        tokens[`Polkadot:${account.address}`] = {
+            value: `${account.address}-token`,
             expiredOn: DateTime.now().plus({hours: 1}).toISO()
         };
     }
@@ -120,13 +124,13 @@ function setupAuthenticate(axiosInstance: Mock<AxiosInstance>, addresses: string
         tokens
     });
     axiosInstance.setup(instance => instance.post(`/api/auth/${sessionId}/authenticate`, It.Is<any>(body =>
-        bodyIncludesSignatures(body, addresses, signatures)
+        bodyIncludesSignatures(body, accounts, signatures)
     ))).returns(Promise.resolve(authenticateResponse.object()));
 }
 
-function bodyIncludesSignatures(body: any, addresses: string[], signatures: string[]): boolean {
+function bodyIncludesSignatures(body: any, addresses: ValidAccountId[], signatures: string[]): boolean {
     for(let i = 0; i < addresses.length; ++i) {
-        const address = addresses[i];
+        const address = addresses[i].toKey();
         if(body.signatures[address].signature !== signatures[i] || body.signatures[address].signedOn === undefined) {
             return false;
         }
@@ -141,68 +145,78 @@ describe("AccountTokens", () => {
 
     const now = DateTime.now();
 
-    const ADDRESS_WITH_VALID_TOKEN = "1";
+    const ADDRESS_WITH_VALID_TOKEN = buildValidPolkadotAccountId("1")!;
 
-    const ADDRESS_WITH_EXPIRED_TOKEN = "2";
+    const ADDRESS_WITH_EXPIRED_TOKEN = buildValidPolkadotAccountId("2")!;
 
-    const addresses = [ ADDRESS_WITH_VALID_TOKEN, ADDRESS_WITH_EXPIRED_TOKEN ];
+    const addresses = [
+        ADDRESS_WITH_VALID_TOKEN,
+        ADDRESS_WITH_EXPIRED_TOKEN,
+    ];
 
     const tokensRecord: Record<string, Token> = {
-        "1": {
+        [ADDRESS_WITH_VALID_TOKEN.toKey()]: {
             value: "token-valid",
             expirationDateTime: now.plus({hours: 1})
         },
-        "2": {
+        [ADDRESS_WITH_EXPIRED_TOKEN.toKey()]: {
             value: "token-expired",
             expirationDateTime: now.plus({hours: -1})
         }
     };
 
+    const OTHER_ADDRESS = buildValidPolkadotAccountId("3")!;
+
     const otherTokensRecord: Record<string, Token> = {
-        "3": {
+        [OTHER_ADDRESS.toKey()]: {
             value: "token-3",
             expirationDateTime: now.plus({hours: 1})
         }
     };
 
     it("exposes tokens", () => {
-        const tokens = new AccountTokens(tokensRecord);
+        const api = buildSimpleNodeApi();
+        const tokens = new AccountTokens(api, tokensRecord);
         expect(tokens.length).toBe(2);
         expect(tokens.addresses).toEqual(addresses);
-        expect(tokens.get(ADDRESS_WITH_VALID_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_VALID_TOKEN]);
-        expect(tokens.get(ADDRESS_WITH_EXPIRED_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_EXPIRED_TOKEN]);
+        expect(tokens.get(ADDRESS_WITH_VALID_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_VALID_TOKEN.toKey()]);
+        expect(tokens.get(ADDRESS_WITH_EXPIRED_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_EXPIRED_TOKEN.toKey()]);
     });
 
     it("merges", () => {
-        const merged = new AccountTokens(tokensRecord).merge(new AccountTokens(otherTokensRecord));
+        const api = buildSimpleNodeApi();
+        const merged = new AccountTokens(api, tokensRecord).merge(new AccountTokens(api, otherTokensRecord));
 
         expect(merged.length).toBe(3);
 
         expect(merged.addresses).toContain(ADDRESS_WITH_VALID_TOKEN);
         expect(merged.addresses).toContain(ADDRESS_WITH_EXPIRED_TOKEN);
-        expect(merged.addresses).toContain("3");
+        expect(merged.addresses).toContain(OTHER_ADDRESS);
 
-        expect(merged.get(ADDRESS_WITH_VALID_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_VALID_TOKEN]);
-        expect(merged.get(ADDRESS_WITH_EXPIRED_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_EXPIRED_TOKEN]);
-        expect(merged.get("3")).toEqual(otherTokensRecord["3"]);
+        expect(merged.get(ADDRESS_WITH_VALID_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_VALID_TOKEN.toKey()]);
+        expect(merged.get(ADDRESS_WITH_EXPIRED_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_EXPIRED_TOKEN.toKey()]);
+        expect(merged.get(OTHER_ADDRESS)).toEqual(otherTokensRecord[OTHER_ADDRESS.toKey()]);
     });
 
     it("cleanUps", () => {
-        const tokens = new AccountTokens(tokensRecord).cleanUp(now);
+        const api = buildSimpleNodeApi();
+        const tokens = new AccountTokens(api, tokensRecord).cleanUp(now);
         expect(tokens.length).toBe(1);
         expect(tokens.addresses).toContain(ADDRESS_WITH_VALID_TOKEN);
-        expect(tokens.get(ADDRESS_WITH_VALID_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_VALID_TOKEN]);
+        expect(tokens.get(ADDRESS_WITH_VALID_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_VALID_TOKEN.toKey()]);
     });
 
     it("detects same tokens deeply", () => {
-        const tokens = new AccountTokens(tokensRecord);
-        const otherTokens = new AccountTokens(tokensRecord);
+        const api = buildSimpleNodeApi();
+        const tokens = new AccountTokens(api, tokensRecord);
+        const otherTokens = new AccountTokens(buildSimpleNodeApi(), tokensRecord);
         expect(tokens.equals(otherTokens)).toBe(true);
     });
 
     it("detects different tokens", () => {
-        const tokens = new AccountTokens(tokensRecord);
-        const otherTokens = new AccountTokens(otherTokensRecord);
+        const api = buildSimpleNodeApi();
+        const tokens = new AccountTokens(api, tokensRecord);
+        const otherTokens = new AccountTokens(buildSimpleNodeApi(), otherTokensRecord);
         expect(tokens.equals(otherTokens)).toBe(false);
     });
 });

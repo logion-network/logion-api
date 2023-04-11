@@ -6,10 +6,10 @@ import { BalanceState } from "../src/Balance.js";
 import { waitFor } from "../src/Polling.js";
 
 export async function transfers(state: State) {
-    const { client, signer } = state;
+    const { client, signer, aliceAccount, requesterAccount } = state;
 
     // Alice transfers to user.
-    const aliceClient = client.withCurrentAddress(ALICE.address)
+    const aliceClient = client.withCurrentAddress(aliceAccount)
     let aliceState = await aliceClient.balanceState();
 
     checkBalance(aliceState, "100.00k");
@@ -29,7 +29,7 @@ export async function transfers(state: State) {
     expect(aliceState.transactions[0].transferValue).toBe(new PrefixedNumber("5", KILO).convertTo(LGNT_SMALLEST_UNIT).coefficient.unnormalize().toString());
 
     // User transfers to Alice.
-    const userClient = client.withCurrentAddress(REQUESTER_ADDRESS)
+    const userClient = client.withCurrentAddress(requesterAccount)
     let userState = await userClient.balanceState();
 
     checkBalance(userState, "5.00k");

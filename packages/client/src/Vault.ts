@@ -45,9 +45,9 @@ export class VaultState extends State {
         const client = new VaultClient({
             axiosFactory: sharedState.axiosFactory,
             networkState: sharedState.networkState,
-            currentAddress,
+            currentAddress: currentAddress.address,
             token: token.value,
-            isLegalOfficer: sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === currentAddress) !== undefined,
+            isLegalOfficer: sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === currentAddress.address) !== undefined,
             isRecovery: sharedState.isRecovery,
         });
         const result = await client.fetchAll(sharedState.selectedLegalOfficers);
@@ -85,7 +85,7 @@ export class VaultState extends State {
             );
         } else {
             const { currentAddress } = authenticatedCurrentAddress(sharedState);
-            return getVaultAddress(currentAddress, sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address));
+            return getVaultAddress(currentAddress.address, sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address));
         }
     }
 
@@ -150,7 +150,7 @@ export class VaultState extends State {
         const { amount, destination, signer, callback, legalOfficer } = params;
 
         const currentAddress = getDefinedCurrentAddress(this.sharedState);
-        const signerId = currentAddress;
+        const signerId = currentAddress.address;
 
         let submittable: SubmittableExtrinsic;
         if(this.sharedState.isRecovery) {
@@ -214,7 +214,7 @@ export class VaultState extends State {
     }): Promise<SubmittableExtrinsic> {
         const { destination, amount } = params;
         return requestVaultTransfer({
-            signerId: getDefinedCurrentAddress(this.sharedState),
+            signerId: getDefinedCurrentAddress(this.sharedState).address,
             api: this.sharedState.nodeApi,
             amount,
             destination,
@@ -237,7 +237,7 @@ export class VaultState extends State {
         signer: Signer,
         callback?: SignCallback,
     ): Promise<VaultState> {
-        const signerId = getDefinedCurrentAddress(this.sharedState);
+        const signerId = getDefinedCurrentAddress(this.sharedState).address;
         const amount = new PrefixedNumber(request.amount, LGNT_SMALLEST_UNIT);
 
         let submittable: SubmittableExtrinsic;

@@ -35,7 +35,7 @@ export class PublicApi {
         const { loc, client } = locAndClient;
 
         const locRequest = await client.getLocRequest(params);
-        const data = LocRequestState.buildLocData(loc, locRequest, EMPTY_LOC_ISSUERS);
+        const data = LocRequestState.buildLocData(this.sharedState.nodeApi, loc, locRequest, EMPTY_LOC_ISSUERS);
         return new PublicLoc({
             data,
             client,

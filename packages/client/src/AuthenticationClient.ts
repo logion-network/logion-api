@@ -1,3 +1,4 @@
+import { LogionNodeApi, ValidAccountId } from "@logion/node-api";
 import { AxiosInstance } from "axios";
 import { DateTime } from "luxon";
 import { AxiosFactory } from "./AxiosFactory";
@@ -17,11 +18,14 @@ type AuthenticationResponse = Record<string, { value: string, expiredOn: string 
 
 export class AuthenticationClient {
 
-    constructor(directoryEndpoint: string, legalOfficers: LegalOfficerClass[], axiosFactory: AxiosFactory) {
+    constructor(api: LogionNodeApi, directoryEndpoint: string, legalOfficers: LegalOfficerClass[], axiosFactory: AxiosFactory) {
+        this.api = api;
         this.directoryEndpoint = directoryEndpoint;
         this.legalOfficers = legalOfficers;
         this.axiosFactory = axiosFactory;
     }
+
+    private api: LogionNodeApi;
 
     private directoryEndpoint: string;
 
@@ -29,7 +33,7 @@ export class AuthenticationClient {
 
     private axiosFactory: AxiosFactory;
 
-    async authenticate(addresses: string[], signer: RawSigner): Promise<AccountTokens> {
+    async authenticate(addresses: ValidAccountId[], signer: RawSigner): Promise<AccountTokens> {
         return this.doWithDirectoryOrFirstAvailableNode(axios => this.authenticateWithAxios(axios, addresses, signer));
     }
 
@@ -54,7 +58,7 @@ export class AuthenticationClient {
         throw new Error("Unable to find an available node");
     }
 
-    private async authenticateWithAxios(axios: AxiosInstance, addresses: string[], signer: RawSigner): Promise<AccountTokens> {
+    private async authenticateWithAxios(axios: AxiosInstance, addresses: ValidAccountId[], signer: RawSigner): Promise<AccountTokens> {
         const signInResponse = await axios.post("/api/auth/sign-in", { addresses });
         const sessionId = signInResponse.data.sessionId;
         const attributes = [ sessionId ];
@@ -69,7 +73,7 @@ export class AuthenticationClient {
                 signedOn,
                 attributes,
             });
-            signatures[address] = {
+            signatures[address.toKey()] = {
                 signature: signature.signature,
                 signedOn: toIsoString(signedOn),
                 type: signature.type,
@@ -91,7 +95,7 @@ export class AuthenticationClient {
                 expirationDateTime: fromIsoString(authenticatedAddresses[authenticatedAddress].expiredOn)
             }
         }
-        return new AccountTokens(tokens);
+        return new AccountTokens(this.api, tokens);
     }
 
     async refresh(accountTokens: AccountTokens): Promise<AccountTokens> {
@@ -106,7 +110,7 @@ export class AuthenticationClient {
             const address = addresses[i];
             const tokenValue = accountTokens.get(address)?.value;
             if(tokenValue) {
-                tokens[address] = tokenValue;
+                tokens[address.toKey()] = tokenValue;
             }
         }
 
@@ -122,26 +126,29 @@ export class AuthenticationClient {
 
 export class AccountTokens {
 
-    constructor(initialState: Record<string, Token>) {
+    constructor(api: LogionNodeApi, initialState: Record<string, Token>) {
+        this.api = api;
         this.store = { ...initialState };
     }
 
+    private api: LogionNodeApi;
+
     private store: Record<string, Token>;
 
-    get(address: string): Token | undefined {
-        return this.store[address];
+    get(address?: ValidAccountId): Token | undefined {
+        return this.store[address?.toKey() || ""];
     }
 
     merge(tokens: AccountTokens): AccountTokens {
         const newStore = { ...this.store };
         for(const address of tokens.addresses) {
-            newStore[address] = tokens.store[address];
+            newStore[address.toKey()] = tokens.store[address.toKey()];
         }
-        return new AccountTokens(newStore);
+        return new AccountTokens(tokens.api, newStore);
     }
 
-    get addresses(): string[] {
-        return Object.keys(this.store);
+    get addresses(): ValidAccountId[] {
+        return Object.keys(this.store).map(key => ValidAccountId.parseKey(this.api, key));
     }
 
     cleanUp(now: DateTime): AccountTokens {
@@ -149,10 +156,10 @@ export class AccountTokens {
         for(const address of this.addresses) {
             const token = this.get(address);
             if(token && token.expirationDateTime > now) {
-                newStore[address] = token;
+                newStore[address.toKey()] = token;
             }
         }
-        return new AccountTokens(newStore);
+        return new AccountTokens(this.api, newStore);
     }
 
     equals(other: AccountTokens): boolean {
@@ -174,7 +181,7 @@ export class AccountTokens {
         return this.addresses.length;
     }
 
-    isAuthenticated(now: DateTime, address: string | undefined): boolean {
+    isAuthenticated(now: DateTime, address: ValidAccountId | undefined): boolean {
         if(address === undefined) {
             return false;
         }
@@ -189,7 +196,7 @@ export class AccountTokens {
     earliestExpiration(): DateTime | undefined {
         let earliest: DateTime | undefined;
         for(const address of this.addresses) {
-            const expiration = this.store[address].expirationDateTime;
+            const expiration = this.store[address.toKey()].expirationDateTime;
             if(earliest === undefined || earliest > expiration) {
                 earliest = expiration;
             }

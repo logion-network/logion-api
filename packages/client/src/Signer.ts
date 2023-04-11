@@ -4,14 +4,14 @@ import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { ISubmittableResult } from '@polkadot/types/types';
 import { base64Encode } from '@polkadot/util-crypto';
 import { Registry } from '@polkadot/types-codec/types';
-import { toHex, getErrorMessage, Event, getExtrinsicEvents } from '@logion/node-api';
+import { toHex, getErrorMessage, Event, getExtrinsicEvents, ValidAccountId } from '@logion/node-api';
 import { Hash } from 'fast-sha256';
 
 import { toIsoString } from "./DateTimeUtil.js";
 import { requireDefined } from "./assertions.js";
 
 export interface SignRawParameters {
-    signerId: string;
+    signerId: ValidAccountId;
     resource: string;
     operation: string;
     signedOn: DateTime;
@@ -86,7 +86,7 @@ export abstract class BaseSigner implements FullSigner {
         return await this.signToHex(parameters.signerId, message);
     }
 
-    abstract signToHex(signerId: string, message: string): Promise<TypedSignature>;
+    abstract signToHex(signerId: ValidAccountId, message: string): Promise<TypedSignature>;
 
     buildMessage(parameters: SignRawParameters): string {
         return toHex(hashAttributes(this.buildAttributes(parameters)));
@@ -174,8 +174,8 @@ export class KeyringSigner extends BaseSigner {
 
     private keyring: Keyring;
 
-    async signToHex(signerId: string, message: string): Promise<TypedSignature> {
-        const keypair = this.keyring.getPair(signerId);
+    async signToHex(signerId: ValidAccountId, message: string): Promise<TypedSignature> {
+        const keypair = this.keyring.getPair(signerId.address);
         const bytes = keypair.sign(message);
         const signature = '0x' + Buffer.from(bytes).toString('hex');
         const type: SignatureType = keypair.type === "ethereum" ? "ETHEREUM" : "POLKADOT";

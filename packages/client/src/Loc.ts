@@ -1,4 +1,4 @@
-import { UUID, LegalOfficerCase, LocType, VoidInfo, ItemFile, VerifiedIssuer } from "@logion/node-api";
+import { UUID, LegalOfficerCase, LocType, VoidInfo, ItemFile, VerifiedIssuer, ValidAccountId, AnyAccountId, LogionNodeApi } from "@logion/node-api";
 
 import {
     LocRequest,
@@ -36,7 +36,7 @@ import { downloadFile, TypedFile } from "./Http.js";
 export interface LocData extends LocVerifiedIssuers {
     id: UUID
     ownerAddress: string;
-    requesterAddress?: string;
+    requesterAddress?: ValidAccountId;
     requesterLocId?: UUID;
     description: string;
     locType: LocType;
@@ -243,7 +243,7 @@ export class LocsState extends State {
         const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
         const request = await client.createLocRequest({
             ownerAddress: legalOfficer.address,
-            requesterAddress: this.sharedState.currentAddress || "",
+            requesterAddress: this.sharedState.currentAddress?.address || "",
             description,
             locType,
             userIdentity,
@@ -381,7 +381,9 @@ export class LocsState extends State {
     private _isVerifiedThirdParty: boolean | undefined;
 
     private computeIsVerifiedThirdParty(): boolean {
-        return this.closedLocs["Identity"].find(loc => loc.data().verifiedThirdParty && loc.data().requesterAddress === this.sharedState.currentAddress) !== undefined;
+        return this.closedLocs["Identity"].find(loc => loc.data().verifiedThirdParty
+            && loc.data().requesterAddress?.address === this.sharedState.currentAddress?.address
+            && loc.data().requesterAddress?.type === this.sharedState.currentAddress?.type) !== undefined;
     }
 
     get openVerifiedThirdPartyLocs(): Record<LocType, OpenLoc[]> {
@@ -513,14 +515,14 @@ export abstract class LocRequestState extends State {
 
     data(): LocData {
         this.ensureCurrent();
-        return LocRequestState.buildLocData(this.legalOfficerCase, this.request, this.locIssuers);
+        return LocRequestState.buildLocData(this.locSharedState.nodeApi, this.legalOfficerCase, this.request, this.locIssuers);
     }
 
-    static buildLocData(legalOfficerCase: LegalOfficerCase | undefined, request: LocRequest, locIssuers: LocVerifiedIssuers): LocData {
+    static buildLocData(api: LogionNodeApi, legalOfficerCase: LegalOfficerCase | undefined, request: LocRequest, locIssuers: LocVerifiedIssuers): LocData {
         if (legalOfficerCase) {
             return LocRequestState.dataFromRequestAndLoc(request, legalOfficerCase, locIssuers);
         } else {
-            return LocRequestState.dataFromRequest(request, locIssuers);
+            return LocRequestState.dataFromRequest(api, request, locIssuers);
         }
     }
 
@@ -568,11 +570,11 @@ export abstract class LocRequestState extends State {
         return result;
     }
 
-    private static dataFromRequest(request: LocRequest, locIssuers: LocVerifiedIssuers): LocData {
+    private static dataFromRequest(api: LogionNodeApi, request: LocRequest, locIssuers: LocVerifiedIssuers): LocData {
         return {
             ...request,
             ...locIssuers,
-            requesterAddress: request.requesterAddress || undefined,
+            requesterAddress: request.requesterAddress ? new AnyAccountId(api, request.requesterAddress, "Polkadot").toValidAccountId() : undefined,
             requesterLocId: request.requesterIdentityLoc ? new UUID(request.requesterIdentityLoc) : undefined,
             id: new UUID(request.id),
             closed: false,
@@ -590,7 +592,6 @@ export abstract class LocRequestState extends State {
         const data: LocData = {
             ...loc,
             ...locIssuers,
-            requesterAddress: loc.requesterAddress?.address,
             id: new UUID(request.id),
             ownerAddress: loc.owner,
             closedOn: request.closedOn,

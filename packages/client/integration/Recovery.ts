@@ -1,4 +1,4 @@
-import { buildApi } from "@logion/node-api";
+import { ValidAccountId, buildApi } from "@logion/node-api";
 
 import {
     AcceptedProtection,
@@ -16,13 +16,13 @@ import { aliceAcceptsTransfer } from "./Vault.js";
 import { initRequesterBalance, NEW_ADDRESS, REQUESTER_ADDRESS, State } from "./Utils.js";
 
 export async function requestRecoveryAndCancel(state: State) {
-    const { client, signer, alice, charlie } = state;
+    const { client, signer, alice, aliceAccount, charlie, charlieAccount } = state;
 
     const pending = await requestRecovery(state) as PendingProtection;
 
     console.log("LO's - Alice and Bob Rejecting")
-    await rejectRequest(client, signer, charlie, NEW_ADDRESS, "Your protection request is not complete");
-    await rejectRequest(client, signer, alice, NEW_ADDRESS, "Some info is missing");
+    await rejectRequest(client, signer, charlie, charlieAccount, NEW_ADDRESS, "Your protection request is not complete");
+    await rejectRequest(client, signer, alice, aliceAccount, NEW_ADDRESS, "Some info is missing");
 
     const rejected = await pending.refresh() as RejectedProtection;
 
@@ -31,20 +31,20 @@ export async function requestRecoveryAndCancel(state: State) {
 }
 
 export async function recoverLostAccount(state: State) {
-    const { client, signer, alice, charlie } = state;
+    const { client, signer, alice, aliceAccount, charlie, charlieAccount } = state;
 
     const requested = await requestRecovery(state);
 
     console.log("LO's - Alice Rejecting")
-    await rejectRequest(client, signer, alice, NEW_ADDRESS, "for some reason");
+    await rejectRequest(client, signer, alice, aliceAccount, NEW_ADDRESS, "for some reason");
 
     console.log("User resubmitting to Alice");
     const rejected = await requested.refresh() as RejectedProtection;
     const pending = await rejected.resubmit(alice);
 
     console.log("LO's - Accepting and vouching")
-    await acceptRequestAndVouch(client.config, client, signer, alice, REQUESTER_ADDRESS, NEW_ADDRESS);
-    await acceptRequestAndVouch(client.config, client, signer, charlie, REQUESTER_ADDRESS, NEW_ADDRESS);
+    await acceptRequestAndVouch(client.config, client, signer, alice, aliceAccount, REQUESTER_ADDRESS, NEW_ADDRESS);
+    await acceptRequestAndVouch(client.config, client, signer, charlie, charlieAccount, REQUESTER_ADDRESS, NEW_ADDRESS);
 
     const accepted = (await pending.refresh()) as AcceptedProtection;
 
@@ -79,34 +79,38 @@ export async function recoverLostAccount(state: State) {
 }
 
 async function requestRecovery(state: State): Promise<PendingProtection> {
-    const { client, signer, alice, charlie } = state;
+    const { client, signer, alice, charlie, newAccount } = state;
 
     await initRequesterBalance(client.config, signer, NEW_ADDRESS);
 
-    const authenticatedClient = client.withCurrentAddress(NEW_ADDRESS)
+    const authenticatedClient = client.withCurrentAddress(newAccount);
 
-    const noProtection = await authenticatedClient.protectionState() as NoProtection;
-
-    console.log("Requesting recovery")
-    return await noProtection.requestRecovery({
-        recoveredAddress: REQUESTER_ADDRESS,
-        signer,
-        legalOfficer1: authenticatedClient.getLegalOfficer(alice.address),
-        legalOfficer2: authenticatedClient.getLegalOfficer(charlie.address),
-        userIdentity: {
-            email: "john.doe@invalid.domain",
-            firstName: "John",
-            lastName: "Doe",
-            phoneNumber: "+1234",
-        },
-        postalAddress: {
-            city: "",
-            country: "",
-            line1: "",
-            line2: "",
-            postalCode: "",
-        }
-    });
+    const current = await authenticatedClient.protectionState();
+    expect(current).toBeInstanceOf(NoProtection);
+    if(current instanceof NoProtection) {
+        console.log("Requesting recovery")
+        return await current.requestRecovery({
+            recoveredAddress: REQUESTER_ADDRESS,
+            signer,
+            legalOfficer1: authenticatedClient.getLegalOfficer(alice.address),
+            legalOfficer2: authenticatedClient.getLegalOfficer(charlie.address),
+            userIdentity: {
+                email: "john.doe@invalid.domain",
+                firstName: "John",
+                lastName: "Doe",
+                phoneNumber: "+1234",
+            },
+            postalAddress: {
+                city: "",
+                country: "",
+                line1: "",
+                line2: "",
+                postalCode: "",
+            }
+        });
+    } else {
+        throw new Error("Unexpected state, aborting");
+    }
 }
 
 async function acceptRequestAndVouch(
@@ -114,10 +118,11 @@ async function acceptRequestAndVouch(
     client: LogionClient,
     signer: FullSigner,
     legalOfficer: LegalOfficer,
+    legalOfficerAccount: ValidAccountId,
     lostAddress: string,
     requesterAddress: string,
 ) {
-    await acceptRequest(config, client, signer, legalOfficer, requesterAddress)
+    await acceptRequest(config, client, signer, legalOfficer, legalOfficerAccount, requesterAddress)
     await vouchRecovery(config, signer, legalOfficer, lostAddress, requesterAddress)
 }
 

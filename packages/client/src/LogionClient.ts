@@ -1,6 +1,6 @@
 import { AxiosInstance } from "axios";
 import { DateTime, DurationLike } from "luxon";
-import { getRecoveryConfig, isValidAccountId, LogionNodeApi } from "@logion/node-api";
+import { getRecoveryConfig, isValidAccountId, LogionNodeApi, ValidAccountId } from "@logion/node-api";
 
 import { AccountTokens } from "./AuthenticationClient.js";
 import { BalanceState, getBalanceState } from "./Balance.js";
@@ -40,7 +40,7 @@ export class LogionClient {
             legalOfficers,
             allLegalOfficers,
             networkState: componentFactory.buildNetworkState(nodesUp, []),
-            tokens: new AccountTokens({}),
+            tokens: new AccountTokens(nodeApi, {}),
             currentAddress: undefined,
         };
         return new LogionClient(sharedState);
@@ -62,7 +62,7 @@ export class LogionClient {
         return this.sharedState.config;
     }
 
-    get currentAddress(): string | undefined {
+    get currentAddress(): ValidAccountId | undefined {
         return this.sharedState.currentAddress;
     }
 
@@ -115,12 +115,13 @@ export class LogionClient {
             return this;
         }
         const client = this.sharedState.componentFactory.buildAuthenticationClient(
+            this.sharedState.nodeApi,
             this.sharedState.config.directoryEndpoint,
             this.sharedState.legalOfficers,
             this.sharedState.axiosFactory
         );
         const tokens = await client.refresh(this.sharedState.tokens);
-        const token = tokens.get(this.currentAddress || "")?.value;
+        const token = tokens.get(this.currentAddress)?.value;
         const sharedState = this.refreshLegalOfficers(this.sharedState, token);
         return new LogionClient({
             ...sharedState,
@@ -138,7 +139,7 @@ export class LogionClient {
         };
     }
 
-    withCurrentAddress(currentAddress?: string): LogionClient {
+    withCurrentAddress(currentAddress?: ValidAccountId): LogionClient {
         this.ensureConnected();
         let directoryClient: DirectoryClient;
         if(currentAddress !== undefined) {
@@ -153,7 +154,7 @@ export class LogionClient {
                 this.sharedState.axiosFactory,
             );
         }
-        const token = this.sharedState.tokens.get(currentAddress || "")?.value;
+        const token = this.sharedState.tokens.get(currentAddress)?.value;
         const sharedState = this.refreshLegalOfficers(this.sharedState, token);
         return new LogionClient({
             ...sharedState,
@@ -170,7 +171,7 @@ export class LogionClient {
         );
         return new LogionClient({
             ...this.sharedState,
-            tokens: new AccountTokens({}),
+            tokens: new AccountTokens(this.sharedState.nodeApi, {}),
             currentAddress: undefined,
             directoryClient,
         });
@@ -189,7 +190,7 @@ export class LogionClient {
         const { currentAddress, token } = authenticatedCurrentAddress(this.sharedState);
         const recoveryClient = new RecoveryClient({
             axiosFactory: this.sharedState.axiosFactory,
-            currentAddress,
+            currentAddress: currentAddress.address,
             networkState: this.sharedState.networkState,
             token: token.value,
             nodeApi: this.sharedState.nodeApi,
@@ -202,9 +203,10 @@ export class LogionClient {
         return this.sharedState.tokens.isAuthenticated(now, this.currentAddress);
     }
 
-    async authenticate(addresses: string[], signer: RawSigner): Promise<LogionClient> {
+    async authenticate(addresses: ValidAccountId[], signer: RawSigner): Promise<LogionClient> {
         this.ensureConnected();
         const client = this.sharedState.componentFactory.buildAuthenticationClient(
+            this.sharedState.nodeApi,
             this.sharedState.config.directoryEndpoint,
             this.sharedState.legalOfficers,
             this.sharedState.axiosFactory
@@ -262,7 +264,7 @@ export class LogionClient {
 
     buildMultiSourceHttpClient(): MultiSourceHttpClient<LegalOfficerEndpoint> {
         const initialState = initMultiSourceHttpClientState(this.sharedState.networkState, this.sharedState.legalOfficers);
-        const token = this.sharedState.tokens.get(this.sharedState.currentAddress || "");
+        const token = this.sharedState.tokens.get(this.sharedState.currentAddress);
         if(!token) {
             throw new Error("Authentication required");
         }

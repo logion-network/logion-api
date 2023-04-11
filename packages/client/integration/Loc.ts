@@ -17,12 +17,9 @@ import {
 
 import { State, TEST_LOGION_CLIENT_CONFIG, NEW_ADDRESS, initRequesterBalance, LegalOfficerWorker } from "./Utils.js";
 
-const USER_ADDRESS = NEW_ADDRESS;
-
 export async function requestTransactionLoc(state: State) {
-
-    const { alice } = state;
-    const client = state.client.withCurrentAddress(USER_ADDRESS);
+    const { alice, newAccount } = state;
+    const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
 
     const legalOfficer = new LegalOfficerWorker(alice, state);
@@ -61,7 +58,7 @@ export async function requestTransactionLoc(state: State) {
     expect(draftRequest).toBeInstanceOf(DraftRequest);
     pendingRequest = await draftRequest.submit();
 
-    await legalOfficer.openTransactionLoc(pendingRequest.locId, USER_ADDRESS);
+    await legalOfficer.openTransactionLoc(pendingRequest.locId, newAccount.address);
 
     let openLoc = await pendingRequest.refresh() as OpenLoc;
     expect(openLoc).toBeInstanceOf(OpenLoc)
@@ -96,13 +93,13 @@ function checkData(data: LocData, locRequestStatus: LocRequestStatus) {
 
 export async function collectionLoc(state: State) {
 
-    const { alice } = state;
-    const client = state.client.withCurrentAddress(USER_ADDRESS);
+    const { alice, newAccount } = state;
+    const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
 
     const legalOfficer = new LegalOfficerWorker(alice, state);
 
-    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, USER_ADDRESS);
+    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, newAccount.address);
 
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficer: client.getLegalOfficer(alice.address),
@@ -114,7 +111,7 @@ export async function collectionLoc(state: State) {
     expect(locsState.pendingRequests["Collection"][0].data().status).toBe("REQUESTED");
 
     const locId = pendingRequest.locId;
-    await legalOfficer.openCollectionLoc(locId, USER_ADDRESS, false);
+    await legalOfficer.openCollectionLoc(locId, newAccount.address, false);
 
     let openLoc = await pendingRequest.refresh() as OpenLoc;
     await legalOfficer.closeLoc(locId);
@@ -147,13 +144,13 @@ export async function collectionLoc(state: State) {
 
 export async function collectionLocWithUpload(state: State) {
 
-    const { alice } = state;
-    const client = state.client.withCurrentAddress(USER_ADDRESS);
+    const { alice, newAccount } = state;
+    const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
 
     const legalOfficer = new LegalOfficerWorker(alice, state);
 
-    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, USER_ADDRESS);
+    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, newAccount.address);
 
     const logionClassificationLocRequest = await locsState.requestTransactionLoc({
         legalOfficer: client.getLegalOfficer(alice.address),
@@ -161,14 +158,14 @@ export async function collectionLocWithUpload(state: State) {
         draft: false,
     });
     locsState = logionClassificationLocRequest.locsState();
-    await legalOfficer.createValidTermsAndConditionsLoc(logionClassificationLocRequest.locId, USER_ADDRESS);
+    await legalOfficer.createValidTermsAndConditionsLoc(logionClassificationLocRequest.locId, newAccount.address);
     const creativeCommonsLocRequest = await locsState.requestTransactionLoc({
         legalOfficer: client.getLegalOfficer(alice.address),
         description: "This is the LOC acting usage of CreativeCommons on logion",
         draft: false,
     });
     locsState = creativeCommonsLocRequest.locsState();
-    await legalOfficer.createValidTermsAndConditionsLoc(creativeCommonsLocRequest.locId, USER_ADDRESS);
+    await legalOfficer.createValidTermsAndConditionsLoc(creativeCommonsLocRequest.locId, newAccount.address);
 
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficer: client.getLegalOfficer(alice.address),
@@ -176,7 +173,7 @@ export async function collectionLocWithUpload(state: State) {
         draft: false,
     });
 
-    await legalOfficer.openCollectionLoc(pendingRequest.locId, USER_ADDRESS, true);
+    await legalOfficer.openCollectionLoc(pendingRequest.locId, newAccount.address, true);
 
     let openLoc = await pendingRequest.refresh() as OpenLoc;
     await legalOfficer.closeLoc(openLoc.locId);
@@ -188,7 +185,7 @@ export async function collectionLocWithUpload(state: State) {
     const firstFileHash = hashString(firstFileContent);
     const firstItemToken: ItemTokenWithRestrictedType = {
         type: "owner",
-        id: USER_ADDRESS,
+        id: newAccount.address,
     };
     closedLoc = await closedLoc.addCollectionItem({
         itemId: firstItemId,
@@ -280,9 +277,9 @@ export async function collectionLocWithUpload(state: State) {
 
 export async function identityLoc(state: State) {
 
-    const { alice } = state;
+    const { alice, newAccount } = state;
     const legalOfficer = new LegalOfficerWorker(alice, state);
-    const client = state.client.withCurrentAddress(USER_ADDRESS);
+    const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
 
     const pendingRequest = await locsState.requestIdentityLoc({
@@ -307,5 +304,5 @@ export async function identityLoc(state: State) {
     locsState = pendingRequest.locsState();
     expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REQUESTED");
 
-    await legalOfficer.createValidIdentityLoc(pendingRequest.locId, USER_ADDRESS);
+    await legalOfficer.createValidIdentityLoc(pendingRequest.locId, newAccount.address);
 }

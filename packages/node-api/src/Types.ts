@@ -130,7 +130,19 @@ export type AccountType = "Polkadot" | "Ethereum";
 
 export const ETHEREUM_ADDRESS_LENGTH_IN_BITS = 20 * 8;
 
-export class AnyAccountId {
+export interface AccountId {
+    readonly address: string;
+    readonly type: AccountType;
+}
+
+/**
+ * @deprecated Use logionApi.queries.getValidAccountId(address, "Polkadot")
+ */
+export function validPolkadotAccountId(api: ApiPromise, address: string): ValidAccountId {
+    return new AnyAccountId(api, address, "Polkadot").toValidAccountId();
+}
+
+export class AnyAccountId implements AccountId {
     constructor(api: ApiPromise, address: string, type: AccountType) {
         this.api = api;
         this.address = address;
@@ -170,9 +182,30 @@ export class AnyAccountId {
     toValidAccountId(): ValidAccountId {
         return new ValidAccountId(this);
     }
+
+    toKey(): string {
+        return accountIdToKey(this);
+    }
+
+    static parseKey(api: ApiPromise, key: string): AnyAccountId { 
+        if(key.startsWith(POLKADOT_PREFIX)) {
+            return new AnyAccountId(api, key.substring(POLKADOT_PREFIX.length), "Polkadot");
+        } else if(key.startsWith(ETHEREUM_PREFIX)) {
+            return new AnyAccountId(api, key.substring(ETHEREUM_PREFIX.length), "Ethereum");
+        } else {
+            throw new Error("Unsupported key format");
+        }
+    }
 }
 
-export class ValidAccountId {
+const POLKADOT_PREFIX = "Polkadot:";
+const ETHEREUM_PREFIX = "Ethereum:";
+
+function accountIdToKey(accountId: AccountId): string {
+    return `${accountId.type}:${accountId.address}`;
+}
+
+export class ValidAccountId implements AccountId {
 
     constructor(accountId: AnyAccountId) {
         const error = accountId.validate();
@@ -190,9 +223,17 @@ export class ValidAccountId {
     toOtherAccountId(): OtherAccountId {
         return new OtherAccountId(this);
     }
+
+    toKey(): string {
+        return accountIdToKey(this);
+    }
+
+    static parseKey(api: ApiPromise, key: string): ValidAccountId { 
+        return AnyAccountId.parseKey(api, key).toValidAccountId();
+    }
 }
 
-export class OtherAccountId {
+export class OtherAccountId implements AccountId {
 
     constructor(accountId: ValidAccountId) {
         if(accountId.type === "Polkadot") {
@@ -205,4 +246,8 @@ export class OtherAccountId {
 
     readonly address: string;
     readonly type: AccountType;
+
+    toKey(): string {
+        return accountIdToKey(this);
+    }
 }

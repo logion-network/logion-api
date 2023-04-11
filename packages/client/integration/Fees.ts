@@ -6,5 +6,5 @@ export async function fees(state: State) {
     const api = client.nodeApi;
     const submittable = api.tx.balances.transfer(ALICE.address, "10000000");
     const fees = await client.public.fees.estimateWithoutStorage({ origin: REQUESTER_ADDRESS, submittable });
-    expect(fees.totalFee).toBe(273154144n);
+    expect(fees.totalFee).toBe(2629491440000000n);
 }
