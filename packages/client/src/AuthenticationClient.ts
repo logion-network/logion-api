@@ -58,22 +58,23 @@ export class AuthenticationClient {
         throw new Error("Unable to find an available node");
     }
 
-    private async authenticateWithAxios(axios: AxiosInstance, addresses: ValidAccountId[], signer: RawSigner): Promise<AccountTokens> {
+    private async authenticateWithAxios(axios: AxiosInstance, validAccountIds: ValidAccountId[], signer: RawSigner): Promise<AccountTokens> {
+        const addresses = validAccountIds.map(validAccountId => validAccountId.toKey());
         const signInResponse = await axios.post("/api/auth/sign-in", { addresses });
         const sessionId = signInResponse.data.sessionId;
         const attributes = [ sessionId ];
 
         const signatures: Record<string, AuthenticationSignature> = {};
-        for(const address of addresses) {
+        for(const validAccountId of validAccountIds) {
             const signedOn = DateTime.now();
             const signature = await signer.signRaw({
-                signerId: address,
+                signerId: validAccountId,
                 resource: 'authentication',
                 operation: 'login',
                 signedOn,
                 attributes,
             });
-            signatures[address.toKey()] = {
+            signatures[validAccountId.toKey()] = {
                 signature: signature.signature,
                 signedOn: toIsoString(signedOn),
                 type: signature.type,
