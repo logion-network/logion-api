@@ -89,15 +89,16 @@ async function testAuthentication(legalOfficers: LegalOfficer[], expectedEndpoin
     }));
 }
 
-function setupSignIn(axiosInstance: Mock<AxiosInstance>, addresses: ValidAccountId[], sessionId: string) {
+function setupSignIn(axiosInstance: Mock<AxiosInstance>, validAccountIds: ValidAccountId[], sessionId: string) {
 
     const signInResponse = new Mock<AxiosResponse<any, any>>();
     signInResponse.setup(instance => instance.data).returns({
         sessionId
     });
-    axiosInstance.setup(instance => instance.post('/api/auth/sign-in', It.Is<any>(body =>
-        body.addresses === addresses
-    ))).returns(Promise.resolve(signInResponse.object()));
+    const addresses = validAccountIds.map(validAccountId => validAccountId.toKey());
+    axiosInstance.setup(instance => instance.post('/api/auth/sign-in', It.Is<{ addresses: string[] }>(data => {
+        return data.addresses.every(address => addresses.includes(address));
+    }))).returns(Promise.resolve(signInResponse.object()));
 }
 
 function setupSignatures(signer: Mock<RawSigner>, addresses: ValidAccountId[], sessionId: string, signatures: string[]) {
