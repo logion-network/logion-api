@@ -838,8 +838,7 @@ async function getVoidedCollectionLoc() {
 function expectDataToMatch(data: LocData, request: LocRequest) {
     expect(data.id.toString()).toBe(request.id.toString());
     expect(data.ownerAddress).toBe(request.ownerAddress);
-    expect(data.requesterAddress?.address).toBe(request.requesterAddress ? request.requesterAddress : undefined);
-    expect(data.requesterAddress?.type).toBe(request.requesterAddress ? "Polkadot" : undefined);
+    expect(data.requesterAddress).toEqual(request.requesterAddress);
     expect(data.requesterLocId?.toString()).toBe(request.requesterIdentityLoc ? request.requesterIdentityLoc : undefined);
     expect(data.description).toBe(request.description);
     expect(data.locType).toBe(request.locType);
