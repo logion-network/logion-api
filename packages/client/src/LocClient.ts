@@ -974,7 +974,7 @@ export class AuthenticatedLocClient extends LocClient {
             nodeIssuers.forEach(issuer => chainSelectedIssuers.add(issuer.address));
 
             const issuers: VerifiedThirdParty[] = [];
-            if(this.currentAddress === request.requesterAddress
+            if((this.currentAddress.address === request.requesterAddress?.address && this.currentAddress.type === request.requesterAddress.type)
                 || this.currentAddress.address === request.ownerAddress
                 || chainSelectedIssuers.has(this.currentAddress.address)) {
 
