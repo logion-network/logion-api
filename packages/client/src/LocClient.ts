@@ -382,6 +382,9 @@ export class LocMultiClient {
     }
 
     async fetchAllForVerifiedThirdParty(legalOfficers: LegalOfficerClass[]): Promise<LocRequest[]> {
+        if (this.currentAddress.type !== "Polkadot") {
+            return [];
+        }
         const entries = await this.nodeApi.query.logionLoc.locsByVerifiedIssuerMap.entries(this.currentAddress.address);
         const requests: LocRequest[] = [];
         for(const entry of entries) {
@@ -953,7 +956,7 @@ export class AuthenticatedLocClient extends LocClient {
         availableVerifiedIssuers?: Record<string, VerifiedIssuer[]>,
         selectedIssuers?: Record<string, VerifiedIssuer[]>,
     ): Promise<LocVerifiedIssuers> {
-        if(!this.currentAddress || (request.status !== "OPEN" && request.status !== "CLOSED")) {
+        if(!this.currentAddress || this.currentAddress.type !== "Polkadot" || (request.status !== "OPEN" && request.status !== "CLOSED")) {
             return EMPTY_LOC_ISSUERS;
         } else {
             const locId = new UUID(request.id);
