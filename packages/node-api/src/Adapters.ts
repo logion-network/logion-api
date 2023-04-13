@@ -44,7 +44,7 @@ export class Adapters {
             requesterAddress = new AnyAccountId(this.api, rawLoc.requester.asAccount.toString(), "Polkadot").toValidAccountId();
         } else if(rawLoc.requester.isOtherAccount) {
             if(rawLoc.requester.asOtherAccount.isEthereum) {
-                requesterAddress = new AnyAccountId(this.api, rawLoc.requester.asAccount.toString(), "Ethereum").toValidAccountId();
+                requesterAddress = new AnyAccountId(this.api, rawLoc.requester.asOtherAccount.asEthereum.toHex(), "Ethereum").toValidAccountId();
             } else {
                 throw new Error("Unsupported other account value");
             }
