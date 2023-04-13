@@ -10,7 +10,8 @@ import {
     ItemToken,
     TermsAndConditionsElement,
     TypesTokensRecordFile,
-    TypesTokensRecord
+    TypesTokensRecord,
+    OtherAccountId
 } from './Types.js';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { PalletLogionLocTokensRecordFile, PalletLogionLocTokensRecord } from '@polkadot/types/lookup';
@@ -65,6 +66,23 @@ export interface PolkadotIdentityLocCreationParameters {
 export function createPolkadotIdentityLoc(parameters: PolkadotIdentityLocCreationParameters): SubmittableExtrinsic {
     const logionApi = new LogionNodeApiClass(parameters.api);
     return logionApi.polkadot.tx.logionLoc.createPolkadotIdentityLoc(Adapters.toLocId(parameters.locId), parameters.requester);
+}
+
+/**
+ * @deprecated
+ */
+export interface OtherIdentityLocCreationParameters {
+    api: ApiPromise;
+    locId: UUID;
+    requester: OtherAccountId;
+}
+
+/**
+ * @deprecated use logionApi.polkadot.tx.logionLoc.createPolkadotIdentityLoc(Adapters.toLocId(locId), requester)
+ */
+export function createOtherIdentityLoc(parameters: OtherIdentityLocCreationParameters): SubmittableExtrinsic {
+    const logionApi = new LogionNodeApiClass(parameters.api);
+    return logionApi.polkadot.tx.logionLoc.createOtherIdentityLoc(Adapters.toLocId(parameters.locId), logionApi.adapters.toPalletLogionLocOtherAccountId(parameters.requester));
 }
 
 /**
