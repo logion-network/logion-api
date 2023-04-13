@@ -243,7 +243,6 @@ export class LocsState extends State {
         const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
         const request = await client.createLocRequest({
             ownerAddress: legalOfficer.address,
-            requesterAddress: this.sharedState.currentAddress?.address || "",
             description,
             locType,
             userIdentity,
@@ -574,7 +573,7 @@ export abstract class LocRequestState extends State {
         return {
             ...request,
             ...locIssuers,
-            requesterAddress: request.requesterAddress ? new AnyAccountId(api, request.requesterAddress, "Polkadot").toValidAccountId() : undefined,
+            requesterAddress: request.requesterAddress ? new AnyAccountId(api, request.requesterAddress.address, request.requesterAddress.type).toValidAccountId() : undefined,
             requesterLocId: request.requesterIdentityLoc ? new UUID(request.requesterIdentityLoc) : undefined,
             id: new UUID(request.id),
             closed: false,

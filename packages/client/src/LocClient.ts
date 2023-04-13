@@ -23,6 +23,7 @@ import {
     VerifiedIssuer,
     getLegalOfficerVerifiedIssuersBatch,
     getVerifiedIssuersBatch,
+    ValidAccountId
 } from '@logion/node-api';
 import { Option } from "@polkadot/types-codec";
 import { PalletLogionLocVerifiedIssuer } from "@polkadot/types/lookup";
@@ -109,7 +110,7 @@ export interface LocVerifiedIssuers {
 
 export interface LocRequest {
     ownerAddress: string;
-    requesterAddress?: string | null;
+    requesterAddress?: ValidAccountId;
     requesterIdentityLoc?: string | null;
     description: string;
     locType: LocType;
@@ -250,7 +251,6 @@ export interface FetchLocRequestSpecification {
 
 export interface CreateLocRequest {
     ownerAddress: string;
-    requesterAddress: string;
     description: string;
     locType: LocType;
     userIdentity?: UserIdentity;
@@ -311,7 +311,7 @@ export class LocMultiClient {
         const { currentAddress, token } = authenticatedCurrentAddress(sharedState);
         return new LocMultiClient({
             axiosFactory: sharedState.axiosFactory,
-            currentAddress: currentAddress.address,
+            currentAddress: currentAddress,
             networkState: sharedState.networkState,
             token: token.value,
             nodeApi: sharedState.nodeApi,
@@ -322,7 +322,7 @@ export class LocMultiClient {
     constructor(params: {
         networkState: NetworkState<LegalOfficerEndpoint>,
         axiosFactory: AxiosFactory,
-        currentAddress: string,
+        currentAddress: ValidAccountId,
         token: string,
         nodeApi: LogionNodeApi,
         componentFactory: ComponentFactory,
@@ -339,7 +339,7 @@ export class LocMultiClient {
 
     private readonly axiosFactory: AxiosFactory;
 
-    private readonly currentAddress: string;
+    private readonly currentAddress: ValidAccountId;
 
     private readonly token: string;
 
@@ -367,7 +367,7 @@ export class LocMultiClient {
         );
 
         const defaultSpec: FetchLocRequestSpecification = {
-            requesterAddress: this.currentAddress,
+            requesterAddress: this.currentAddress.address,
             locTypes: [ "Transaction", "Collection", "Identity" ],
             statuses: [ "OPEN", "REQUESTED", "REJECTED", "CLOSED", "DRAFT" ]
         };
@@ -382,7 +382,10 @@ export class LocMultiClient {
     }
 
     async fetchAllForVerifiedThirdParty(legalOfficers: LegalOfficerClass[]): Promise<LocRequest[]> {
-        const entries = await this.nodeApi.query.logionLoc.locsByVerifiedIssuerMap.entries(this.currentAddress);
+        if (this.currentAddress.type !== "Polkadot") {
+            return [];
+        }
+        const entries = await this.nodeApi.query.logionLoc.locsByVerifiedIssuerMap.entries(this.currentAddress.address);
         const requests: LocRequest[] = [];
         for(const entry of entries) {
             const owner = entry[0].args[1].toString();
@@ -695,7 +698,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     constructor(params: {
         axiosFactory: AxiosFactory,
-        currentAddress: string,
+        currentAddress: ValidAccountId,
         nodeApi: LogionNodeApi,
         legalOfficer: LegalOfficerClass,
         componentFactory: ComponentFactory,
@@ -709,7 +712,7 @@ export class AuthenticatedLocClient extends LocClient {
         this.componentFactory = params.componentFactory;
     }
 
-    private readonly currentAddress: string;
+    private readonly currentAddress: ValidAccountId;
     private readonly componentFactory: ComponentFactory;
 
     async createLocRequest(request: CreateLocRequest): Promise<LocRequest> {
@@ -859,7 +862,7 @@ export class AuthenticatedLocClient extends LocClient {
             termsAndConditions,
         });
         await signer.signAndSend({
-            signerId: this.currentAddress,
+            signerId: this.currentAddress.address,
             submittable,
             callback
         });
@@ -953,16 +956,16 @@ export class AuthenticatedLocClient extends LocClient {
         availableVerifiedIssuers?: Record<string, VerifiedIssuer[]>,
         selectedIssuers?: Record<string, VerifiedIssuer[]>,
     ): Promise<LocVerifiedIssuers> {
-        if(!this.currentAddress || (request.status !== "OPEN" && request.status !== "CLOSED")) {
+        if(!this.currentAddress || this.currentAddress.type !== "Polkadot" || (request.status !== "OPEN" && request.status !== "CLOSED")) {
             return EMPTY_LOC_ISSUERS;
         } else {
             const locId = new UUID(request.id);
             let verifiedThirdParty = false;
             if(request.locType === "Identity" && request.status === "CLOSED") {
                 if(availableVerifiedIssuers) {
-                    verifiedThirdParty = availableVerifiedIssuers[request.ownerAddress].find(issuer => issuer.address === request.requesterAddress) !== undefined;
+                    verifiedThirdParty = availableVerifiedIssuers[request.ownerAddress].find(issuer => issuer.address === request.requesterAddress?.address && request.requesterAddress?.type === "Polkadot") !== undefined;
                 } else {
-                    const maybeIssuer = await this.nodeApi.query.logionLoc.verifiedIssuersMap(request.ownerAddress, request.requesterAddress) as Option<PalletLogionLocVerifiedIssuer>;
+                    const maybeIssuer = await this.nodeApi.query.logionLoc.verifiedIssuersMap(request.ownerAddress, request.requesterAddress?.address) as Option<PalletLogionLocVerifiedIssuer>;
                     verifiedThirdParty = maybeIssuer.isSome;
                 }
             }
@@ -972,8 +975,8 @@ export class AuthenticatedLocClient extends LocClient {
 
             const issuers: VerifiedThirdParty[] = [];
             if(this.currentAddress === request.requesterAddress
-                || this.currentAddress === request.ownerAddress
-                || chainSelectedIssuers.has(this.currentAddress)) {
+                || this.currentAddress.address === request.ownerAddress
+                || chainSelectedIssuers.has(this.currentAddress.address)) {
 
                 const backendIssuers = request.selectedIssuers;
                 const addedIssuers = new Set<string>();
@@ -1017,13 +1020,13 @@ export class AuthenticatedLocClient extends LocClient {
 
     async canAddRecord(request: LocRequest): Promise<boolean> {
         return this.currentAddress === request.requesterAddress
-            || this.currentAddress === request.ownerAddress
+            || this.currentAddress.address === request.ownerAddress
             || await this.isIssuerOf(request);
     }
 
     private async isIssuerOf(request: LocRequest): Promise<boolean> {
         const issuers = await this.getLocIssuers(request);
-        return issuers.issuers.find(issuer => issuer.address === this.currentAddress) !== undefined;
+        return issuers.issuers.find(issuer => issuer.address === this.currentAddress.address && this.currentAddress.type === "Polkadot") !== undefined;
     }
 
     async addTokensRecord(parameters: AddTokensRecordParams & FetchParameters): Promise<void> {
@@ -1056,7 +1059,7 @@ export class AuthenticatedLocClient extends LocClient {
             newTokensRecordFiles(this.nodeApi, chainItemFiles),
         );
         await signer.signAndSend({
-            signerId: this.currentAddress,
+            signerId: this.currentAddress.address,
             submittable,
             callback
         });

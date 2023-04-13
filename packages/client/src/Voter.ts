@@ -58,7 +58,7 @@ export class VoterApi {
             ...this.sharedState,
             axiosFactory: this.sharedState.axiosFactory,
             nodeApi: this.sharedState.nodeApi,
-            currentAddress: this.sharedState.currentAddress.address,
+            currentAddress: this.sharedState.currentAddress,
             legalOfficer,
         });
         const locRequest = await client.getLocRequest({ locId });
