@@ -701,7 +701,7 @@ declare module '@polkadot/api-base/types/submittable' {
        **/
       createLogionTransactionLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, requesterLocId: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, u128]>;
       /**
-       * Creates a new Identity LOC whose requester is an Ethereum address.
+       * Creates a new Identity LOC whose requester is another address (Currently only Ethereum address is supported).
        **/
       createOtherIdentityLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, requesterAccountId: PalletLogionLocOtherAccountId | { Ethereum: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, PalletLogionLocOtherAccountId]>;
       /**

@@ -88,7 +88,8 @@ export default {
             "_enum": {
                 "None": null,
                 "Account": "AccountId",
-                "Loc": "LocId"
+                "Loc": "LocId",
+                "OtherAccount": "OtherAccountId",
             }
         },
         CollectionSize: "u32",
@@ -169,6 +170,11 @@ export default {
         UnboundedTokensRecordFileOf: "TokensRecordFile",
         VerifiedIssuer: {
             identityLoc: "LocId",
-        }
+        },
+        OtherAccountId: {
+            _enum: {
+                Ethereum: "H160",
+            }
+        },
     }
 };

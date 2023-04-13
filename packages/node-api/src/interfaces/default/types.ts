@@ -1,7 +1,7 @@
 // Auto-generated via `yarn polkadot-types-from-defs`, do not edit
 /* eslint-disable */
 
-import type { AccountId, Balance, BlockNumber, Hash } from '@logion/node-api/dist/interfaces/runtime';
+import type { AccountId, Balance, BlockNumber, H160, Hash } from '@logion/node-api/dist/interfaces/runtime';
 import type { Bytes, Enum, Option, Struct, Vec, bool, u128, u32, u64, u8 } from '@polkadot/types-codec';
 import type { AccountInfoWithDualRefCount } from '@polkadot/types/interfaces/system';
 import type { DepositBalance } from '@polkadot/types/interfaces/uniques';
@@ -166,6 +166,13 @@ export interface MetadataItem extends Struct {
 /** @name OpaquePeerId */
 export interface OpaquePeerId extends Bytes {}
 
+/** @name OtherAccountId */
+export interface OtherAccountId extends Enum {
+  readonly isEthereum: boolean;
+  readonly asEthereum: H160;
+  readonly type: 'Ethereum';
+}
+
 /** @name Requester */
 export interface Requester extends Enum {
   readonly isNone: boolean;
@@ -173,7 +180,9 @@ export interface Requester extends Enum {
   readonly asAccount: AccountId;
   readonly isLoc: boolean;
   readonly asLoc: LocId;
-  readonly type: 'None' | 'Account' | 'Loc';
+  readonly isOtherAccount: boolean;
+  readonly asOtherAccount: OtherAccountId;
+  readonly type: 'None' | 'Account' | 'Loc' | 'OtherAccount';
 }
 
 /** @name StorageVersion */
