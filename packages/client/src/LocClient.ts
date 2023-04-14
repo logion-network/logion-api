@@ -56,7 +56,7 @@ export interface Published {
 export interface FileInfo extends Partial<AddedOn> {
     hash: string;
     nature: string;
-    submitter: string;
+    submitter: ValidAccountId;
     name: string;
     restrictedDelivery: boolean;
     contentType: string;

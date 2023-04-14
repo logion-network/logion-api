@@ -1,4 +1,4 @@
-import { createPolkadotTransactionLoc, UUID, getLegalOfficerCase, addFile } from "../src/index.js";
+import { createPolkadotTransactionLoc, UUID, getLegalOfficerCase, addFile, AnyAccountId, addMetadata } from "../src/index.js";
 import { ALICE, REQUESTER, setup, signAndSend } from "./Util.js";
 
 export async function createTransactionLocTest() {
@@ -22,6 +22,33 @@ export async function createTransactionLocTest() {
     expect(loc?.locType).toBe("Transaction");
 }
 
+export async function addMetadataToTransactionLocTest() {
+    const { alice, api } = await setup();
+
+    const name = "Some name";
+    const value = "Some value";
+    const addMetadataExtrinsic = addMetadata({
+        api,
+        locId: TRANSACTION_LOC_ID,
+        item: {
+            name,
+            value,
+            submitter: new AnyAccountId(api, ALICE, "Polkadot").toValidAccountId(),
+        }
+    });
+    await signAndSend(alice, addMetadataExtrinsic);
+
+    const loc = await getLegalOfficerCase({
+        api,
+        locId: TRANSACTION_LOC_ID,
+    });
+    expect(loc?.metadata.length).toBe(1);
+    expect(loc?.metadata[0].name).toBe(name);
+    expect(loc?.metadata[0].value).toBe(value);
+    expect(loc?.metadata[0].submitter.address).toBe(ALICE);
+    expect(loc?.metadata[0].submitter.type).toBe("Polkadot");
+}
+
 export async function addFileToTransactionLocTest() {
     const { alice, api } = await setup();
 
@@ -33,7 +60,7 @@ export async function addFileToTransactionLocTest() {
         locId: TRANSACTION_LOC_ID,
         hash,
         nature,
-        submitter: ALICE,
+        submitter: new AnyAccountId(api, ALICE, "Polkadot").toValidAccountId(),
         size,
     });
     await signAndSend(alice, addFileExtrinsic);
@@ -45,7 +72,8 @@ export async function addFileToTransactionLocTest() {
     expect(loc?.files.length).toBe(1);
     expect(loc?.files[0].hash).toBe(hash);
     expect(loc?.files[0].nature).toBe(nature);
-    expect(loc?.files[0].submitter).toBe(ALICE);
+    expect(loc?.files[0].submitter.address).toBe(ALICE);
+    expect(loc?.files[0].submitter.type).toBe("Polkadot");
     expect(loc?.files[0].size).toBe(size);
 }
 

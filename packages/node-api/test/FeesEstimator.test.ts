@@ -1,4 +1,4 @@
-import { mockPolkadotApi } from "./__mocks__/PolkadotApiMock.js";
+import { mockPolkadotApi, mockValidAccountId } from "./__mocks__/PolkadotApiMock.js";
 mockPolkadotApi();
 const { ApiPromise } = await import('@polkadot/api');
 
@@ -9,6 +9,7 @@ import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
 import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces';
 import type { Codec } from '@polkadot/types-codec/types';
 import { setQueryFileStorageFee, setAddFile } from "./__mocks__/PolkadotApiMock.js";
+import { Adapters } from "../src/Adapters.js";
 const { UUID, FeesEstimator } = await import("../src/index.js");
 
 describe("FeesEstimator", () => {
@@ -34,12 +35,12 @@ describe("FeesEstimator", () => {
         setAddFile(() => submittable.object())
 
         const api = new ApiPromise();
-        const estimator = new FeesEstimator(api);
+        const estimator = new FeesEstimator(api, new Adapters(api));
         const fees = await estimator.estimateAddFile({
             locId: new UUID(LOC_REQUEST_ID),
             hash: "0xf2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
             nature: "Some nature",
-            submitter: DEFAULT_LEGAL_OFFICER,
+            submitter: mockValidAccountId(DEFAULT_LEGAL_OFFICER),
             size: BigInt(42),
             origin: DEFAULT_LEGAL_OFFICER,
         });
@@ -57,7 +58,7 @@ describe("FeesEstimator", () => {
         submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
 
         const api = new ApiPromise();
-        const estimator = new FeesEstimator(api);
+        const estimator = new FeesEstimator(api, new Adapters(api));
         const fees = await estimator.estimateWithoutStorage({
             origin: DEFAULT_LEGAL_OFFICER,
             submittable: submittable.object(),

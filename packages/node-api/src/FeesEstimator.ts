@@ -2,6 +2,7 @@ import { LogionNodeApi } from "./Connection.js";
 import { UUID } from "./UUID.js";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types.js";
 import { Adapters } from "./Adapters.js";
+import { ValidAccountId } from "./Types.js";
 
 export class Fees {
 
@@ -20,21 +21,23 @@ export class Fees {
 
 export class FeesEstimator {
 
-    constructor(api: LogionNodeApi) {
+    constructor(api: LogionNodeApi, adapters: Adapters) {
         this.api = api;
+        this.adapters = adapters;
     }
 
     private readonly api: LogionNodeApi;
+    private readonly adapters: Adapters;
 
     async estimateAddFile(args: {
         locId: UUID,
         hash: string,
         nature: string,
-        submitter: string,
+        submitter: ValidAccountId,
         size: bigint,
         origin: string,
     }): Promise<Fees> {
-        const submittable = this.api.tx.logionLoc.addFile(Adapters.toLocId(args.locId), Adapters.toLocFile(args));
+        const submittable = this.api.tx.logionLoc.addFile(Adapters.toLocId(args.locId), this.adapters.toLocFile(args));
         const inclusionFee = await this.estimateInclusionFee(args.origin, submittable);
         const storageFee = await this.estimateStorageFee({
             numOfEntries: 1n,

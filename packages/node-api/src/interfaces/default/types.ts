@@ -79,7 +79,7 @@ export interface CollectionSize extends u32 {}
 export interface File extends Struct {
   readonly hash: Hash;
   readonly nature: Bytes;
-  readonly submitter: AccountId;
+  readonly submitter: SupportedAccountId;
 }
 
 /** @name HostData */
@@ -160,7 +160,7 @@ export interface LogionVote extends Struct {
 export interface MetadataItem extends Struct {
   readonly name: Bytes;
   readonly value: Bytes;
-  readonly submitter: AccountId;
+  readonly submitter: SupportedAccountId;
 }
 
 /** @name OpaquePeerId */
@@ -197,6 +197,16 @@ export interface StorageVersion extends Enum {
   readonly isV8AddSeal: boolean;
   readonly isV9TermsAndConditions: boolean;
   readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions';
+}
+
+/** @name SupportedAccountId */
+export interface SupportedAccountId extends Enum {
+  readonly isNone: boolean;
+  readonly isPolkadot: boolean;
+  readonly asPolkadot: AccountId;
+  readonly isOther: boolean;
+  readonly asOther: OtherAccountId;
+  readonly type: 'None' | 'Polkadot' | 'Other';
 }
 
 /** @name TAssetBalance */

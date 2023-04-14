@@ -1,4 +1,4 @@
-import { mockPolkadotApi, DEFAULT_ITEM, DEFAULT_LOC } from "./__mocks__/PolkadotApiMock.js";
+import { mockPolkadotApi, DEFAULT_ITEM, DEFAULT_LOC, mockValidAccountId } from "./__mocks__/PolkadotApiMock.js";
 mockPolkadotApi();
 const { ApiPromise } = await import('@polkadot/api');
 
@@ -19,6 +19,7 @@ import {
     LogionNodeApiClass,
     TermsAndConditionsElement
 } from "../src/index.js";
+import { createdPolkadotType } from "./Util.js";
 
 describe("LogionLoc", () => {
 
@@ -41,7 +42,7 @@ describe("LogionLoc", () => {
         const item = {
             name: "a_name",
             value: "a_value",
-            submitter: "owner",
+            submitter: mockValidAccountId("owner"),
         };
         const locId = new UUID();
 
@@ -51,9 +52,10 @@ describe("LogionLoc", () => {
             item,
         });
 
-        expect(api.tx.logionLoc.addMetadata).toHaveBeenCalledWith(locId.toHexString(), jasmine.objectContaining({
-            name: item.name,
-            value: item.value
+        expect(api.tx.logionLoc.addMetadata).toHaveBeenCalledWith(locId.toHexString(), createdPolkadotType({
+            name: "0x615f6e616d65",
+            value: "0x615f76616c7565",
+            submitter: createdPolkadotType({"Polkadot": "owner"}),
         }));
     });
 
@@ -83,7 +85,7 @@ describe("LogionLoc", () => {
         const api = new ApiPromise();
         const hash = "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2";
         const nature = "file-nature";
-        const submitter = "submitter";
+        const submitter = mockValidAccountId("submitter");
         const locId = new UUID();
         const size = BigInt(128000);
         addFile({
@@ -95,12 +97,12 @@ describe("LogionLoc", () => {
             size,
         });
 
-        expect(api.tx.logionLoc.addFile).toHaveBeenCalledWith(locId.toHexString(), {
+        expect(api.tx.logionLoc.addFile).toHaveBeenCalledWith(locId.toHexString(), createdPolkadotType({
             hash_: hash,
             nature: "file-nature",
-            submitter,
+            submitter: createdPolkadotType({"Polkadot": "submitter"}),
             size_: size,
-        });
+        }));
     });
 
     it("fetches collection item", async () => {
