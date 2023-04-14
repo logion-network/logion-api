@@ -1,13 +1,14 @@
 import { ApiPromise } from "@polkadot/api";
 import { Call, FunctionMetadataLatest } from "@polkadot/types/interfaces";
-import { FrameSystemAccountInfo, PalletLogionLocFile, PalletLogionLocLegalOfficerCase, PalletLogionLocCollectionItem, PalletLogionLocTokensRecordFile, PalletLogionLocTokensRecord, PalletLogionLocOtherAccountId } from '@polkadot/types/lookup';
+import { FrameSystemAccountInfo, PalletLogionLocFile, PalletLogionLocLegalOfficerCase, PalletLogionLocCollectionItem, PalletLogionLocTokensRecordFile, PalletLogionLocTokensRecord, PalletLogionLocOtherAccountId, PalletLogionLocSupportedAccountId, PalletLogionLocMetadataItem } from '@polkadot/types/lookup';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { ISubmittableResult } from "@polkadot/types/types";
 import { Vec } from "@polkadot/types-codec";
 import { CallBase, AnyTuple, AnyJson } from "@polkadot/types-codec/types";
 import { DispatchError } from '@polkadot/types/interfaces/system/types';
-import { TypesAccountData, File, LegalOfficerCase, LocType, TypesJsonObject, TypesJsonCall, TypesErrorMetadata, TypesEvent, CollectionItem, ItemFile, ItemToken, TermsAndConditionsElement, TypesTokensRecordFile, TypesTokensRecord, ValidAccountId, AnyAccountId, OtherAccountId } from "./Types.js";
+import { TypesAccountData, File, LegalOfficerCase, LocType, TypesJsonObject, TypesJsonCall, TypesErrorMetadata, TypesEvent, CollectionItem, ItemFile, ItemToken, TermsAndConditionsElement, TypesTokensRecordFile, TypesTokensRecord, ValidAccountId, AnyAccountId, OtherAccountId, MetadataItem } from "./Types.js";
 import { UUID } from "./UUID.js";
+import { stringToHex } from "@polkadot/util";
 
 
 export class Adapters {
@@ -56,12 +57,12 @@ export class Adapters {
             metadata: rawLoc.metadata.toArray().map(rawItem => ({
                 name: rawItem.name.toUtf8(),
                 value: rawItem.value.toUtf8(),
-                submitter: rawItem.submitter.toString(),
+                submitter: this.fromPalletLogionLocSupportedAccountId(rawItem.submitter),
             })),
             files: rawLoc.files.toArray().map(rawFile => ({
                 hash: rawFile.hash_.toHex(),
                 nature: rawFile.nature.toUtf8(),
-                submitter: rawFile.submitter.toString(),
+                submitter: this.fromPalletLogionLocSupportedAccountId(rawFile.submitter),
                 size: rawFile.size_.toBigInt(),
             })),
             links: rawLoc.links.toArray().map(rawLink => ({
@@ -236,18 +237,45 @@ export class Adapters {
         return id.toHexString();
     }
 
-    static toLocFile(file: {
-        hash: string;
-        nature: string;
-        submitter: string;
-        size: bigint
-    }): { hash_?: string; nature?: string; submitter?: string; size_?: bigint } {
-        return {
+    toLocFile(file: File): PalletLogionLocFile {
+        return this.api.createType("PalletLogionLocFile", {
             hash_: file.hash,
             nature: file.nature,
-            submitter: file.submitter,
+            submitter: this.toPalletLogionLocSupportedAccountId(file.submitter),
             size_: file.size,
-        };
+        });
+    }
+
+    toPalletLogionLocSupportedAccountId(accountId: ValidAccountId): PalletLogionLocSupportedAccountId {
+        if(accountId.type === "Polkadot") {
+            return this.api.createType("PalletLogionLocSupportedAccountId", { Polkadot: accountId.address });
+        } else if(accountId.type === "Ethereum") {
+            return this.api.createType("PalletLogionLocSupportedAccountId", { Other: { Ethereum: accountId.address } });
+        } else {
+            throw new Error(`Unsupported account type ${accountId.type}`);
+        }
+    }
+
+    fromPalletLogionLocSupportedAccountId(accountId: PalletLogionLocSupportedAccountId): ValidAccountId {
+        if(accountId.isPolkadot) {
+            return new AnyAccountId(this.api, accountId.asPolkadot.toString(), "Polkadot").toValidAccountId();
+        } else if(accountId.isOther) {
+            if(accountId.asOther.isEthereum) {
+                return new AnyAccountId(this.api, accountId.asOther.asEthereum.toHex(), "Ethereum").toValidAccountId();
+            } else {
+                throw new Error(`Unsupported account type ${accountId.asOther.type}`);
+            }
+        } else {
+            throw new Error(`Unsupported account type ${accountId.type}`);
+        }
+    }
+
+    toPalletLogionLocMetadataItem(item: MetadataItem): PalletLogionLocMetadataItem {
+        return this.api.createType("PalletLogionLocMetadataItem", {
+            name: stringToHex(item.name),
+            value: stringToHex(item.value),
+            submitter: this.toPalletLogionLocSupportedAccountId(item.submitter),
+        });
     }
 
     static toLocLink(link: {
@@ -256,7 +284,7 @@ export class Adapters {
     }): { id?: string; nature?: string } {
         return {
             id: Adapters.toLocId(link.target),
-            nature: link.nature,
+            nature: stringToHex(link.nature),
         };
     }
 

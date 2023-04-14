@@ -11,7 +11,8 @@ import {
     TermsAndConditionsElement,
     TypesTokensRecordFile,
     TypesTokensRecord,
-    OtherAccountId
+    OtherAccountId,
+    ValidAccountId
 } from './Types.js';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { PalletLogionLocTokensRecordFile, PalletLogionLocTokensRecord } from '@polkadot/types/lookup';
@@ -136,7 +137,7 @@ export interface AddMetadataParameters {
  */
 export function addMetadata(parameters: AddMetadataParameters): SubmittableExtrinsic {
     const logionApi = new LogionNodeApiClass(parameters.api);
-    return logionApi.polkadot.tx.logionLoc.addMetadata(Adapters.toLocId(parameters.locId), parameters.item);
+    return logionApi.polkadot.tx.logionLoc.addMetadata(Adapters.toLocId(parameters.locId), logionApi.adapters.toPalletLogionLocMetadataItem(parameters.item));
 }
 
 /**
@@ -187,7 +188,7 @@ export interface AddFileParameters {
     locId: UUID;
     hash: string;
     nature: string;
-    submitter: string;
+    submitter: ValidAccountId;
     size: bigint;
 }
 
@@ -196,7 +197,7 @@ export interface AddFileParameters {
  */
 export function addFile(parameters: AddFileParameters): SubmittableExtrinsic {
     const logionApi = new LogionNodeApiClass(parameters.api);
-    return logionApi.polkadot.tx.logionLoc.addFile(Adapters.toLocId(parameters.locId), Adapters.toLocFile(parameters));
+    return logionApi.polkadot.tx.logionLoc.addFile(Adapters.toLocId(parameters.locId), logionApi.adapters.toLocFile(parameters));
 }
 
 /**

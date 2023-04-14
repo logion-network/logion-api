@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { BN } from "bn.js";
-import type { CollectionItem, LegalOfficerCase } from "../../src/index.js";
+import { AnyAccountId, CollectionItem, LegalOfficerCase, ValidAccountId } from "../../src/index.js";
 import { UUID } from "../../src/UUID.js";
 
 export class WsProvider {
@@ -46,26 +46,28 @@ export function setAddFile(mockFn: any) {
     addFile = mockFn;
 }
 
+export function mockValidAccountId(address: string): ValidAccountId {
+    const api = {
+        createType: (_type: string, ...args: any[]) => args,
+    } as any;
+    return new AnyAccountId(api, address, "Polkadot").toValidAccountId();
+}
+
 export const DEFAULT_LOC: LegalOfficerCase = {
     owner: "owner",
-    requesterAddress: {
-        address: "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb",
-        type: "Polkadot",
-        toOtherAccountId: () => { throw new Error() },
-        toKey: () => "Polkadot:5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb",
-    },
+    requesterAddress: mockValidAccountId("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb"),
     metadata: [
         {
             name: "meta_name",
             value: "meta_value",
-            submitter: "owner",
+            submitter: mockValidAccountId("owner"),
         }
     ],
     files: [
         {
             hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
             nature: "file-nature",
-            submitter: "owner",
+            submitter: mockValidAccountId("owner"),
             size: BigInt(128000),
         }
     ],
@@ -174,7 +176,10 @@ export class ApiPromise {
                                 toUtf8: () => item.value
                             },
                             submitter: {
-                                toString: () => item.submitter
+                                isPolkadot: true,
+                                asPolkadot: {
+                                    toString: () => item.submitter.address
+                                }
                             }
                         }))
                     },
@@ -187,7 +192,10 @@ export class ApiPromise {
                                 toUtf8: () => file.nature
                             },
                             submitter: {
-                                toString: () => file.submitter
+                                isPolkadot: true,
+                                asPolkadot: {
+                                    toString: () => file.submitter.address
+                                }
                             },
                             size_: {
                                 toBigInt: () => file.size
@@ -314,7 +322,7 @@ export class ApiPromise {
         }
     }
 
-    createType = () => ({});
+    createType = (_type: string, ...args: any[]) => args;
 }
 
 export function triggerEvent(eventName: string) {

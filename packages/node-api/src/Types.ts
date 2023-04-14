@@ -12,13 +12,13 @@ export interface TypesAccountData {
 export interface MetadataItem {
     name: string;
     value: string;
-    submitter: string;
+    submitter: ValidAccountId;
 }
 
 export interface File {
     hash: string;
     nature: string;
-    submitter: string;
+    submitter: ValidAccountId;
     size: bigint;
 }
 

@@ -6,6 +6,7 @@ import {
     PalletLogionLocFile,
     PalletLogionLocCollectionItem,
     PalletLogionLocLocVoidInfo,
+    PalletLogionLocSupportedAccountId,
 } from "@polkadot/types/lookup";
 import { AccountId32, H256 } from "@polkadot/types/interfaces/runtime";
 import { Option, Bytes, u32 } from "@polkadot/types-codec";
@@ -32,7 +33,7 @@ export const EXISTING_FILE: LocFile = {
     name: "existing-file.txt",
     hash: EXISTING_FILE_HASH,
     nature: "Some nature",
-    submitter: REQUESTER.address,
+    submitter: REQUESTER,
     restrictedDelivery: false,
     contentType: "text/plain",
     size: "42",
@@ -123,7 +124,7 @@ function mockLogionLocFile(file: {
     const mock = new Mock<PalletLogionLocFile>();
     mock.setup(instance => instance.hash_).returns(mockCodecWithToHex<H256>(file.hash));
     mock.setup(instance => instance.nature).returns(mockCodecWithToUtf8<Bytes>(file.nature));
-    mock.setup(instance => instance.submitter).returns(mockCodecWithToString<AccountId32>(file.submitter));
+    mock.setup(instance => instance.submitter).returns({ isPolkadot: true, asPolkadot: mockCodecWithToString<AccountId32>(file.submitter) } as PalletLogionLocSupportedAccountId);
     mock.setup(instance => instance.size_).returns(mockCodecWithToBigInt<u32>(file.size));
     return mock.object();
 }

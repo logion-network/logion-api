@@ -50,7 +50,7 @@ export default {
         MetadataItem: {
             name: "Vec<u8>",
             value: "Vec<u8>",
-            submitter: "AccountId"
+            submitter: "SupportedAccountId"
         },
         LocType: {
             _enum: [
@@ -66,7 +66,7 @@ export default {
         File: {
             hash: "Hash",
             nature: "Vec<u8>",
-            submitter: "AccountId"
+            submitter: "SupportedAccountId"
         },
         LocVoidInfo: {
             replacer: "Option<LocId>"
@@ -174,6 +174,13 @@ export default {
         OtherAccountId: {
             _enum: {
                 Ethereum: "H160",
+            }
+        },
+        SupportedAccountId: {
+            _enum: {
+                None: null,
+                Polkadot: "AccountId",
+                Other: "OtherAccountId",
             }
         },
     }
