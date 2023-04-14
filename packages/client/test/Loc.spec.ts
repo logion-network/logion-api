@@ -48,7 +48,8 @@ import {
     mockOption,
     REQUESTER,
     SUCCESSFUL_SUBMISSION,
-    buildSimpleNodeApi
+    buildSimpleNodeApi,
+    buildValidPolkadotAccountId
 } from "./Utils.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
 import {
@@ -838,7 +839,7 @@ async function getVoidedCollectionLoc() {
 function expectDataToMatch(data: LocData, request: LocRequest) {
     expect(data.id.toString()).toBe(request.id.toString());
     expect(data.ownerAddress).toBe(request.ownerAddress);
-    expect(data.requesterAddress).toEqual(request.requesterAddress);
+    expect(data.requesterAddress).toEqual(buildValidPolkadotAccountId(request.requesterAddress?.address));
     expect(data.requesterLocId?.toString()).toBe(request.requesterIdentityLoc ? request.requesterIdentityLoc : undefined);
     expect(data.description).toBe(request.description);
     expect(data.locType).toBe(request.locType);

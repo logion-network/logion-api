@@ -15,7 +15,7 @@ import {
 } from "../src/index.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
 import { It } from "moq.ts";
-import { AnyAccountId, LogionNodeApi, ValidAccountId } from "@logion/node-api";
+import { AccountType, AnyAccountId, LogionNodeApi, ValidAccountId } from "@logion/node-api";
 
 export const ALICE: LegalOfficer = {
     name: "Alice",
@@ -203,9 +203,13 @@ export function mockCodecWithToBigInt<T extends Codec & { toBigInt: () => bigint
 }
 
 export function buildValidPolkadotAccountId(address: string | undefined): ValidAccountId | undefined {
+    return buildValidAccountId(address, "Polkadot");
+}
+
+export function buildValidAccountId(address: string | undefined, type: AccountType): ValidAccountId | undefined {
     if(address) {
         const api = buildSimpleNodeApi();
-        return new AnyAccountId(api, address, "Polkadot").toValidAccountId();
+        return new AnyAccountId(api, address, type).toValidAccountId();
     } else {
         return undefined;
     }

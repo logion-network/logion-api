@@ -68,10 +68,12 @@ export interface MergedLink extends LocLink, Published {
 }
 
 export interface MergedFile extends FileInfo, Published {
+    submitter: ValidAccountId;
     size: bigint;
 }
 
 export interface MergedMetadataItem extends LocMetadataItem, Published {
+    submitter: ValidAccountId;
 }
 
 export class LocsState extends State {
@@ -519,7 +521,7 @@ export abstract class LocRequestState extends State {
 
     static buildLocData(api: LogionNodeApi, legalOfficerCase: LegalOfficerCase | undefined, request: LocRequest, locIssuers: LocVerifiedIssuers): LocData {
         if (legalOfficerCase) {
-            return LocRequestState.dataFromRequestAndLoc(request, legalOfficerCase, locIssuers);
+            return LocRequestState.dataFromRequestAndLoc(api, request, legalOfficerCase, locIssuers);
         } else {
             return LocRequestState.dataFromRequest(api, request, locIssuers);
         }
@@ -580,14 +582,14 @@ export abstract class LocRequestState extends State {
             replacerOf: undefined,
             voidInfo: undefined,
             identityLocId: request.identityLoc ? new UUID(request.identityLoc) : undefined,
-            metadata: request.metadata.map(item => LocRequestState.mergeMetadata(item)),
-            files: request.files.map(item => LocRequestState.mergeFile(item)),
+            metadata: request.metadata.map(item => LocRequestState.mergeMetadata(api, item)),
+            files: request.files.map(item => LocRequestState.mergeFile(api, item)),
             links: request.links.map(item => LocRequestState.mergeLink(item)),
             voteId: request.voteId ? request.voteId : undefined,
         };
     }
 
-    private static dataFromRequestAndLoc(request: LocRequest, loc: LegalOfficerCase, locIssuers: LocVerifiedIssuers): LocData {
+    private static dataFromRequestAndLoc(api: LogionNodeApi, request: LocRequest, loc: LegalOfficerCase, locIssuers: LocVerifiedIssuers): LocData {
         const data: LocData = {
             ...loc,
             ...locIssuers,
@@ -602,8 +604,8 @@ export abstract class LocRequestState extends State {
             identityLocId: request.identityLoc ? new UUID(request.identityLoc) : undefined,
             userIdentity: request.userIdentity,
             userPostalAddress: request.userPostalAddress,
-            metadata: request.metadata.map(item => LocRequestState.mergeMetadata(item, loc)),
-            files: request.files.map(item => LocRequestState.mergeFile(item, loc)),
+            metadata: request.metadata.map(item => LocRequestState.mergeMetadata(api, item, loc)),
+            files: request.files.map(item => LocRequestState.mergeFile(api, item, loc)),
             links: request.links.map(item => LocRequestState.mergeLink(item, loc)),
             seal: loc.closed ? loc.seal : request.seal,
             company: request.company,
@@ -620,7 +622,7 @@ export abstract class LocRequestState extends State {
         return data;
     }
 
-    private static mergeMetadata(backendMetadataItem: LocMetadataItem, chainLoc?: LegalOfficerCase): MergedMetadataItem {
+    private static mergeMetadata(api: LogionNodeApi, backendMetadataItem: LocMetadataItem, chainLoc?: LegalOfficerCase): MergedMetadataItem {
         const chainMetadataItem = chainLoc ? chainLoc.metadata.find(item => item.name === backendMetadataItem.name) : undefined;
         if(chainMetadataItem) {
             return {
@@ -631,12 +633,13 @@ export abstract class LocRequestState extends State {
         } else {
             return {
                 ...backendMetadataItem,
+                submitter: new AnyAccountId(api, backendMetadataItem.submitter.address, backendMetadataItem.submitter.type).toValidAccountId(),
                 published: false,
             };
         }
     }
 
-    private static mergeFile(backendFile: LocFile, chainLoc?: LegalOfficerCase): MergedFile {
+    private static mergeFile(api: LogionNodeApi, backendFile: LocFile, chainLoc?: LegalOfficerCase): MergedFile {
         const chainFile = chainLoc ? chainLoc.files.find(item => item.hash === backendFile.hash) : undefined;
         if(chainFile) {
             return {
@@ -647,6 +650,7 @@ export abstract class LocRequestState extends State {
         } else {
             return {
                 ...backendFile,
+                submitter: new AnyAccountId(api, backendFile.submitter.address, backendFile.submitter.type).toValidAccountId(),
                 size: BigInt(backendFile.size),
                 published: false,
             }

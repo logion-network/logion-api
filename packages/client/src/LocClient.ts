@@ -1,7 +1,6 @@
 import {
     LogionNodeApi,
     UUID,
-    MetadataItem,
     Link,
     LocType,
     LegalOfficerCase,
@@ -23,7 +22,8 @@ import {
     VerifiedIssuer,
     getLegalOfficerVerifiedIssuersBatch,
     getVerifiedIssuersBatch,
-    ValidAccountId
+    ValidAccountId,
+    AccountType
 } from '@logion/node-api';
 import { Option } from "@polkadot/types-codec";
 import { PalletLogionLocVerifiedIssuer } from "@polkadot/types/lookup";
@@ -53,10 +53,15 @@ export interface Published {
     published: boolean;
 }
 
+export interface SupportedAccountId {
+    type: AccountType;
+    address: string;
+}
+
 export interface FileInfo extends Partial<AddedOn> {
     hash: string;
     nature: string;
-    submitter: ValidAccountId;
+    submitter: SupportedAccountId;
     name: string;
     restrictedDelivery: boolean;
     contentType: string;
@@ -74,7 +79,10 @@ export interface LocFile extends FileInfo {
 /**
  * Blockchain MetadataItem, extended with timestamp.
  */
-export interface LocMetadataItem extends MetadataItem, Partial<AddedOn> {
+export interface LocMetadataItem extends Partial<AddedOn> {
+    name: string;
+    value: string;
+    submitter: SupportedAccountId;
     fees?: Fees;
 }
 
@@ -110,7 +118,7 @@ export interface LocVerifiedIssuers {
 
 export interface LocRequest {
     ownerAddress: string;
-    requesterAddress?: ValidAccountId;
+    requesterAddress?: SupportedAccountId;
     requesterIdentityLoc?: string | null;
     description: string;
     locType: LocType;
