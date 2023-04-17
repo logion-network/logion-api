@@ -964,7 +964,7 @@ export class AuthenticatedLocClient extends LocClient {
         availableVerifiedIssuers?: Record<string, VerifiedIssuer[]>,
         selectedIssuers?: Record<string, VerifiedIssuer[]>,
     ): Promise<LocVerifiedIssuers> {
-        if(!this.currentAddress || this.currentAddress.type !== "Polkadot" || (request.status !== "OPEN" && request.status !== "CLOSED")) {
+        if(!this.currentAddress || (request.status !== "OPEN" && request.status !== "CLOSED")) {
             return EMPTY_LOC_ISSUERS;
         } else {
             const locId = new UUID(request.id);
@@ -972,7 +972,7 @@ export class AuthenticatedLocClient extends LocClient {
             if(request.locType === "Identity" && request.status === "CLOSED") {
                 if(availableVerifiedIssuers) {
                     verifiedThirdParty = availableVerifiedIssuers[request.ownerAddress].find(issuer => issuer.address === request.requesterAddress?.address && request.requesterAddress?.type === "Polkadot") !== undefined;
-                } else {
+                } else if(request.requesterAddress?.type === "Polkadot") {
                     const maybeIssuer = await this.nodeApi.query.logionLoc.verifiedIssuersMap(request.ownerAddress, request.requesterAddress?.address) as Option<PalletLogionLocVerifiedIssuer>;
                     verifiedThirdParty = maybeIssuer.isSome;
                 }
@@ -983,7 +983,7 @@ export class AuthenticatedLocClient extends LocClient {
 
             const issuers: VerifiedThirdParty[] = [];
             if((this.currentAddress.address === request.requesterAddress?.address && this.currentAddress.type === request.requesterAddress.type)
-                || this.currentAddress.address === request.ownerAddress
+                || (this.currentAddress.address === request.ownerAddress && this.currentAddress.type === "Polkadot")
                 || chainSelectedIssuers.has(this.currentAddress.address)) {
 
                 const backendIssuers = request.selectedIssuers;
@@ -1027,7 +1027,7 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async canAddRecord(request: LocRequest): Promise<boolean> {
-        return this.currentAddress === request.requesterAddress
+        return (this.currentAddress.address === request.requesterAddress?.address && this.currentAddress.type === request.requesterAddress?.type)
             || this.currentAddress.address === request.ownerAddress
             || await this.isIssuerOf(request);
     }
