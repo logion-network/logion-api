@@ -32,21 +32,20 @@ In the example above, the var `locsState` must not be used any more as soon as `
 ### Request
 
 ```typescript
-const pendingRequest = await locsState.requestTransactionLoc({
+const draftRequest = await locsState.requestTransactionLoc({
     legalOfficer: alice,
     description: "This is a Transaction LOC",
-    userIdentity: {
-        email: "john.doe@invalid.domain",
-        firstName: "John",
-        lastName: "Doe",
-        phoneNumber: "+1234",
-    },
+    draft: true,
 });
 ```
 
-:::note
-The user identity must not be added when the requesting account is protected by the legal officer
-:::
+### Submit
+At this stage it's already possible to add [metadata](#metadata) or files, to be published later by the LO.
+When done, the request has to be submitted to the LO:
+
+```typescript
+const pendingRequest = await draftRequest.submit();
+```
 
 Then you have to wait for the LO to open the LOC:
 
@@ -82,16 +81,19 @@ openLoc = await openLoc.deleteMetadata({
 A Collection LOC can be requested to a given Legal Officer by providing a description.
 
 ```typescript
-const pendingRequest = await locsState.requestCollectionLoc({
+const draftRequest = await locsState.requestCollectionLoc({
     legalOfficer: alice,
     description: "This is a Collection LOC",
-    userIdentity: {
-        email: "john.doe@invalid.domain",
-        firstName: "John",
-        lastName: "Doe",
-        phoneNumber: "+1234",
-    },
+    draft: true
 });
+```
+
+### Submit
+At this stage it's already possible to add [metadata](#metadata) or files, to be published later by the LO.
+When done, the request has to be submitted to the LO:
+
+```typescript
+const pendingRequest = await draftRequest.submit();
 ```
 
 Then you have to wait for the LO to open and close the LOC:
@@ -287,7 +289,7 @@ Except for the request, described here, everything else is similar to the [Trans
 An Identity LOC is requested this way:
 
 ```typescript
-const pendingRequest = await locsState.requestIdentityLoc({
+const draftRequest = await locsState.requestIdentityLoc({
     legalOfficer: alice,
     description: "This is an Identity LOC",
     userIdentity: {
@@ -302,8 +304,17 @@ const pendingRequest = await locsState.requestIdentityLoc({
         postalCode: "10000",
         city: "MyCity",
         country: "Wonderland"
-    }
+    },
+    draft: true
 });
+```
+
+### Submit
+At this stage it's already possible to add [metadata](#metadata) or files, to be published later by the LO.
+When done, the request has to be submitted to the LO:
+
+```typescript
+const pendingRequest = await draftRequest.submit();
 ```
 
 ## Query
