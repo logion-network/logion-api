@@ -1,7 +1,10 @@
 @startuml
 hide empty description
 state "Decision" as decision <<choice>>
-[*] --> PendingRequest: requestIdentityLoc()
+[*] --> PendingRequest: requestIdentityLoc\n(draft: false)
+[*] --> DraftRequest: requestIdentityLoc\n(draft: true)
+DraftRequest --> DraftRequest: addMetadata(),\n addFile(),\n deleteMetadata(),\n deleteFile(),\n
+DraftRequest --> PendingRequest: submit()
 PendingRequest --> decision
 decision --> RejectedRequest: LO rejects\n the Request
 decision --> OpenLoc: LO accepts\n the Request
