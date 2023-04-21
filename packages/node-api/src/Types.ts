@@ -42,6 +42,7 @@ export interface LegalOfficerCase {
     collectionMaxSize?: number;
     collectionCanUpload: boolean;
     seal?: string;
+    sponsorshipId?: UUID;
 }
 
 export type LocType = 'Transaction' | 'Collection' | 'Identity';
@@ -239,15 +240,24 @@ export class OtherAccountId implements AccountId {
         if(accountId.type === "Polkadot") {
             throw new Error("Type cannot be Polkadot")
         }
-
-        this.address = accountId.address;
-        this.type = accountId.type;
+        this.validAccountId = accountId;
     }
 
-    readonly address: string;
-    readonly type: AccountType;
+    private validAccountId: ValidAccountId;
+
+    get address(): string {
+        return this.validAccountId.address;
+    }
+
+    get type(): AccountType {
+        return this.validAccountId.type;
+    }
 
     toKey(): string {
         return accountIdToKey(this);
+    }
+
+    toValidAccountId(): ValidAccountId {
+        return this.validAccountId;
     }
 }

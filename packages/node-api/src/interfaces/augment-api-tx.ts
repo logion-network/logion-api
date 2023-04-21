@@ -10,7 +10,7 @@ import type { Bytes, Compact, Option, Struct, U8aFixed, Vec, bool, u128, u16, u3
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
 import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, Call, H256, MultiAddress } from '@polkadot/types/interfaces/runtime';
-import type { LogionNodeRuntimeOpaqueSessionKeys, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFile, PalletLogionLocLocLink, PalletLogionLocMetadataItem, PalletLogionLocOtherAccountId, PalletLogionLocTermsAndConditionsElement, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
+import type { LogionNodeRuntimeOpaqueSessionKeys, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFile, PalletLogionLocLocLink, PalletLogionLocMetadataItem, PalletLogionLocOtherAccountId, PalletLogionLocSupportedAccountId, PalletLogionLocTermsAndConditionsElement, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
 
 export type __AugmentedSubmittable = AugmentedSubmittable<() => unknown>;
 export type __SubmittableExtrinsic<ApiType extends ApiTypes> = SubmittableExtrinsic<ApiType>;
@@ -703,7 +703,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * Creates a new Identity LOC whose requester is another address (Currently only Ethereum address is supported).
        **/
-      createOtherIdentityLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, requesterAccountId: PalletLogionLocOtherAccountId | { Ethereum: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, PalletLogionLocOtherAccountId]>;
+      createOtherIdentityLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, requesterAccountId: PalletLogionLocOtherAccountId | { Ethereum: any } | string | Uint8Array, sponsorshipId: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, PalletLogionLocOtherAccountId, Compact<u128>]>;
       /**
        * Creates a new Polkadot Identity LOC i.e. a LOC linking a real identity to an AccountId.
        **/
@@ -732,6 +732,14 @@ declare module '@polkadot/api-base/types/submittable' {
        * Select/unselect an issuer on a given LOC
        **/
       setIssuerSelection: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, issuer: AccountId32 | string | Uint8Array, selected: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, bool]>;
+      /**
+       * Creates a sponsorship.
+       **/
+      sponsor: AugmentedSubmittable<(sponsorshipId: Compact<u128> | AnyNumber | Uint8Array, sponsoredAccount: PalletLogionLocSupportedAccountId | { None: any } | { Polkadot: any } | { Other: any } | string | Uint8Array, legalOfficer: AccountId32 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, PalletLogionLocSupportedAccountId, AccountId32]>;
+      /**
+       * Withdraws an unused sponsorship.
+       **/
+      withdrawSponsorship: AugmentedSubmittable<(sponsorshipId: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>]>;
       /**
        * Generic tx
        **/

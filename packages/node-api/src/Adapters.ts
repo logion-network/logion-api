@@ -3,7 +3,7 @@ import { Call, FunctionMetadataLatest } from "@polkadot/types/interfaces";
 import { FrameSystemAccountInfo, PalletLogionLocFile, PalletLogionLocLegalOfficerCase, PalletLogionLocCollectionItem, PalletLogionLocTokensRecordFile, PalletLogionLocTokensRecord, PalletLogionLocOtherAccountId, PalletLogionLocSupportedAccountId, PalletLogionLocMetadataItem } from '@polkadot/types/lookup';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { ISubmittableResult } from "@polkadot/types/types";
-import { Vec } from "@polkadot/types-codec";
+import { Compact, Vec, u128 } from "@polkadot/types-codec";
 import { CallBase, AnyTuple, AnyJson } from "@polkadot/types-codec/types";
 import { DispatchError } from '@polkadot/types/interfaces/system/types';
 import { TypesAccountData, File, LegalOfficerCase, LocType, TypesJsonObject, TypesJsonCall, TypesErrorMetadata, TypesEvent, CollectionItem, ItemFile, ItemToken, TermsAndConditionsElement, TypesTokensRecordFile, TypesTokensRecord, ValidAccountId, AnyAccountId, OtherAccountId, MetadataItem } from "./Types.js";
@@ -79,6 +79,7 @@ export class Adapters {
             collectionMaxSize: rawLoc.collectionMaxSize.isSome ? rawLoc.collectionMaxSize.unwrap().toNumber() : undefined,
             collectionCanUpload: rawLoc.collectionCanUpload.isTrue,
             seal: rawLoc.seal.isSome ? rawLoc.seal.unwrap().toHex() : undefined,
+            sponsorshipId: rawLoc.sponsorshipId.isSome ? Adapters.fromSponsorshipId(rawLoc.sponsorshipId.unwrap()) : undefined,
         };
     }
 
@@ -237,6 +238,14 @@ export class Adapters {
         return id.toHexString();
     }
 
+    toLocId(id: UUID): Compact<u128> {
+        return this.toCompactU128Uuid(id);
+    }
+
+    private toCompactU128Uuid(id: UUID): Compact<u128> {
+        return this.api.createType("Compact<u128>", id.toHexString());
+    }
+
     toLocFile(file: File): PalletLogionLocFile {
         return this.api.createType("PalletLogionLocFile", {
             hash_: file.hash,
@@ -369,5 +378,13 @@ export class Adapters {
 
     toPalletLogionLocOtherAccountId(accountId: OtherAccountId): PalletLogionLocOtherAccountId {
         return this.api.createType("PalletLogionLocOtherAccountId", { Ethereum: accountId.address });
+    }
+
+    toSponsorshipId(id: UUID): Compact<u128> {
+        return this.toCompactU128Uuid(id);
+    }
+
+    static fromSponsorshipId(sponsorshipId: u128): UUID {
+        return UUID.fromDecimalStringOrThrow(sponsorshipId.toString());
     }
 }

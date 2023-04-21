@@ -46,6 +46,7 @@ export default {
             collection_max_size: "Option<CollectionSize>",
             collection_can_upload: "bool",
             seal: "Option<Hash>",
+            sponsorship_id: "Option<SponsorshipId>",
         },
         MetadataItem: {
             name: "Vec<u8>",
@@ -183,5 +184,12 @@ export default {
                 Other: "OtherAccountId",
             }
         },
+        SponsorshipId: "u128",
+        Sponsorship: {
+            sponsor: "AccountId",
+            sponsored_account: "SupportedAccountId",
+            legal_officer: "AccountId",
+            loc_id: "Option<LocId>",
+        }
     }
 };

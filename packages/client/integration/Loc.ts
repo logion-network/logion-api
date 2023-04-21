@@ -1,3 +1,4 @@
+import { UUID } from "@logion/node-api";
 import {
     HashOrContent,
     hashString,
@@ -15,7 +16,7 @@ import {
     RejectedRequest
 } from "../src/index.js";
 
-import { State, TEST_LOGION_CLIENT_CONFIG, NEW_ADDRESS, initRequesterBalance, LegalOfficerWorker } from "./Utils.js";
+import { State, TEST_LOGION_CLIENT_CONFIG, initRequesterBalance, LegalOfficerWorker } from "./Utils.js";
 
 export async function requestTransactionLoc(state: State) {
     const { alice, newAccount } = state;
@@ -305,4 +306,46 @@ export async function identityLoc(state: State) {
     expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REQUESTED");
 
     await legalOfficer.createValidIdentityLoc(pendingRequest.locId, newAccount.address);
+}
+
+export async function otherIdentityLoc(state: State) {
+    const { alice, aliceAccount, ethereumAccount } = state;
+    const legalOfficer = new LegalOfficerWorker(alice, state);
+
+    const sponsorshipId = new UUID();
+    const aliceClient = state.client.withCurrentAddress(aliceAccount);
+    await aliceClient.sponsorship.sponsor({
+        sponsorshipId,
+        sponsoredAccount: ethereumAccount.toOtherAccountId(),
+        legalOfficer: alice,
+        signer: state.signer,
+    });
+
+    const client = state.client.withCurrentAddress(ethereumAccount);
+    let locsState = await client.locsState();
+
+    const pendingRequest = await locsState.requestIdentityLoc({
+        legalOfficer: client.getLegalOfficer(alice.address),
+        description: "This is an Identity LOC",
+        userIdentity: {
+            email: "john.doe@invalid.domain",
+            firstName: "John",
+            lastName: "Doe",
+            phoneNumber: "+1234",
+        },
+        userPostalAddress: {
+            line1: "Peace Street",
+            line2: "2nd floor",
+            postalCode: "10000",
+            city: "MyCity",
+            country: "Wonderland"
+        },
+        draft: false,
+        sponsorshipId,
+    });
+
+    locsState = pendingRequest.locsState();
+    expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REQUESTED");
+
+    await legalOfficer.createOtherIdentityLoc(pendingRequest.locId, ethereumAccount.toOtherAccountId(), sponsorshipId);
 }

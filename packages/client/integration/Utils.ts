@@ -1,4 +1,4 @@
-import { buildApi, UUID, Currency, Numbers, AnyAccountId, validPolkadotAccountId, ValidAccountId } from "@logion/node-api";
+import { buildApi, UUID, Currency, Numbers, AnyAccountId, validPolkadotAccountId, ValidAccountId, OtherAccountId, LogionNodeApiClass } from "@logion/node-api";
 import { Keyring } from "@polkadot/api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import FormData from "form-data";
@@ -33,7 +33,8 @@ class IntegrationTestSignAndSendStrategy implements SignAndSendStrategy {
 
 export function buildSigner(seeds: string []): FullSigner {
     const keyring = new Keyring({ type: 'sr25519' });
-    seeds.forEach(seed => keyring.addFromUri(seed))
+    seeds.forEach(seed => keyring.addFromUri(seed));
+    keyring.addFromUri(ETHEREUM_SEED, undefined, "ethereum");
     return new KeyringSigner(keyring, new IntegrationTestSignAndSendStrategy());
 }
 
@@ -52,6 +53,9 @@ export const NEW_SECRET_SEED = "inquiry nose frog devote demand main front cauti
 export const VTP_ADDRESS = "5FU3mAsShn2b8CAe5cnVShzFNVgJssoXoMdAB9evGvKm5x4N";
 export const VTP_SECRET_SEED = "exit photo know trouble stay hollow gate river upgrade twenty south random";
 
+export const ETHEREUM_ADDRESS = "0x2469a2fd33ad71a3525cc2047bdd4f3ca851e89f";
+export const ETHEREUM_SEED = "0x09dc05bbed08ff234919b84002a1eb6f856a6e949b017289fc7d457e1bb5e9d4";
+
 export interface State {
     signer: FullSigner;
     client: LogionClient;
@@ -64,6 +68,7 @@ export interface State {
     bobAccount: ValidAccountId,
     charlieAccount: ValidAccountId,
     vtpAccount: ValidAccountId,
+    ethereumAccount: ValidAccountId,
 }
 
 export async function setupInitialState(): Promise<State> {
@@ -82,6 +87,7 @@ export async function setupInitialState(): Promise<State> {
     const bobAccount = validPolkadotAccountId(anonymousClient.nodeApi, BOB.address);
     const charlieAccount = validPolkadotAccountId(anonymousClient.nodeApi, CHARLIE.address);
     const vtpAccount = validPolkadotAccountId(anonymousClient.nodeApi, VTP_ADDRESS);
+    const ethereumAccount = new AnyAccountId(anonymousClient.nodeApi, ETHEREUM_ADDRESS, "Ethereum").toValidAccountId();
     const client = await anonymousClient.authenticate([
         requesterAccount,
         newAccount,
@@ -89,6 +95,7 @@ export async function setupInitialState(): Promise<State> {
         bobAccount,
         charlieAccount,
         vtpAccount,
+        ethereumAccount,
     ], signer);
     const legalOfficers = client.legalOfficers;
     const alice = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === ALICE.address));
@@ -106,6 +113,7 @@ export async function setupInitialState(): Promise<State> {
         bobAccount,
         charlieAccount,
         vtpAccount,
+        ethereumAccount,
     };
 }
 
@@ -177,6 +185,18 @@ export class LegalOfficerWorker {
         const token = authenticatedClient.tokens.get(legalOfficerAccount)!;
         const axiosFactory = new AxiosFactory();
         return axiosFactory.buildAxiosInstance(this.legalOfficer.node, token.value);
+    }
+
+    async createOtherIdentityLoc(id: UUID, requesterAccountId: OtherAccountId, sponsorshipId: UUID) {
+        const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
+        const apiClass = new LogionNodeApiClass(api);
+        const submittable = apiClass.polkadot.tx.logionLoc.createOtherIdentityLoc(
+            apiClass.adapters.toLocId(id),
+            apiClass.adapters.toPalletLogionLocOtherAccountId(requesterAccountId),
+            apiClass.adapters.toSponsorshipId(sponsorshipId),
+        );
+        await this.openLoc(id, submittable);
+        await this.closeLoc(id);
     }
 
     async rejectPendingLoc(id: UUID) {

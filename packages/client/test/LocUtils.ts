@@ -102,6 +102,7 @@ export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType
         collectionMaxSize: mockEmptyOption(),
         collectionCanUpload: mockBool(false),
         seal: mockEmptyOption(),
+        sponsorshipId: mockEmptyOption(),
     });
 }
 

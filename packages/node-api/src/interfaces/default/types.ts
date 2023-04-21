@@ -103,6 +103,7 @@ export interface LegalOfficerCaseOf extends Struct {
   readonly collection_max_size: Option<CollectionSize>;
   readonly collection_can_upload: bool;
   readonly seal: Option<Hash>;
+  readonly sponsorship_id: Option<SponsorshipId>;
 }
 
 /** @name LegalOfficerCaseSummary */
@@ -184,6 +185,17 @@ export interface Requester extends Enum {
   readonly asOtherAccount: OtherAccountId;
   readonly type: 'None' | 'Account' | 'Loc' | 'OtherAccount';
 }
+
+/** @name Sponsorship */
+export interface Sponsorship extends Struct {
+  readonly sponsor: AccountId;
+  readonly sponsored_account: SupportedAccountId;
+  readonly legal_officer: AccountId;
+  readonly loc_id: Option<LocId>;
+}
+
+/** @name SponsorshipId */
+export interface SponsorshipId extends u128 {}
 
 /** @name StorageVersion */
 export interface StorageVersion extends Enum {

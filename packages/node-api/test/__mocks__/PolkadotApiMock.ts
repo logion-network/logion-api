@@ -242,6 +242,10 @@ export class ApiPromise {
                         unwrap: () => ({
                             toHex: () => DEFAULT_LOC.seal
                         })
+                    },
+                    sponsorshipId: {
+                        isSome: DEFAULT_LOC.sponsorshipId !== undefined,
+                        isNone: DEFAULT_LOC.sponsorshipId === undefined,
                     }
                 })
             }),

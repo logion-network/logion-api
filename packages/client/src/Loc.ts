@@ -62,6 +62,7 @@ export interface LocData extends LocVerifiedIssuers {
     iDenfy?: IdenfyVerificationSession;
     voteId?: string;
     template?: string;
+    sponsorshipId?: UUID;
 }
 
 export interface MergedLink extends LocLink, Published {
@@ -234,6 +235,9 @@ export class LocsState extends State {
         if (userPostalAddress === undefined) {
             throw new Error("User Postal Address is mandatory for an Identity LOC")
         }
+        if(this._client.currentAddress?.type === "Ethereum" && !params.sponsorshipId) {
+            throw new Error("Identity LOC requests with an Ethereum address must be sponsored");
+        }
         return this.requestLoc({
             ...params,
             locType: "Identity"
@@ -241,7 +245,7 @@ export class LocsState extends State {
     }
 
     async requestLoc(params: CreateLocRequestParams & { locType: LocType }): Promise<DraftRequest | PendingRequest> {
-        const { legalOfficer, locType, description, userIdentity, userPostalAddress, company, draft, template } = params;
+        const { legalOfficer, locType, description, userIdentity, userPostalAddress, company, draft, template, sponsorshipId } = params;
         const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
         const request = await client.createLocRequest({
             ownerAddress: legalOfficer.address,
@@ -252,6 +256,7 @@ export class LocsState extends State {
             company,
             draft,
             template,
+            sponsorshipId: sponsorshipId?.toString(),
         });
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
         if(draft) {
@@ -418,6 +423,7 @@ export interface CreateLocRequestParams {
     company?: string;
     draft: boolean;
     template?: string;
+    sponsorshipId?: UUID;
 }
 
 export interface CreateSofRequestParams {
@@ -586,6 +592,7 @@ export abstract class LocRequestState extends State {
             files: request.files.map(item => LocRequestState.mergeFile(api, item)),
             links: request.links.map(item => LocRequestState.mergeLink(item)),
             voteId: request.voteId ? request.voteId : undefined,
+            sponsorshipId: request.sponsorshipId ? new UUID(request.sponsorshipId) : undefined,
         };
     }
 
