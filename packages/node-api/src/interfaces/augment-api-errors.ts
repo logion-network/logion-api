@@ -226,6 +226,10 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       AlreadyNominated: AugmentedError<ApiType>;
       /**
+       * The sponsorship to be withdrawn has already been used
+       **/
+      AlreadyUsed: AugmentedError<ApiType>;
+      /**
        * Occurs when trying to void a LOC already void
        **/
       AlreadyVoid: AugmentedError<ApiType>;
@@ -234,6 +238,10 @@ declare module '@polkadot/api-base/types/errors' {
        * or the submitter is not an issuer or the requester
        **/
       CannotAddRecord: AugmentedError<ApiType>;
+      /**
+       * The sponsorship cannot be used for creating the new LOC
+       **/
+      CannotLinkToSponsorship: AugmentedError<ApiType>;
       /**
        * Occurs when trying to mutate a closed LOC
        **/

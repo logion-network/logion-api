@@ -3,7 +3,7 @@ import { enablesProtection, requestsProtectionAndCancel } from "./Protection.js"
 import { transfers } from "./Balance.js";
 import { providesVault } from "./Vault.js";
 import { recoverLostAccount, requestRecoveryAndCancel } from "./Recovery.js";
-import { requestTransactionLoc, collectionLoc, collectionLocWithUpload, identityLoc } from "./Loc.js";
+import { requestTransactionLoc, collectionLoc, collectionLocWithUpload, identityLoc, otherIdentityLoc } from "./Loc.js";
 import { verifiedThirdParty } from "./VerifiedThirdParty.js";
 import { tokensRecords } from "./TokensRecord.js";
 import { fees } from "./Fees.js";
@@ -42,6 +42,10 @@ describe("Logion SDK", () => {
 
     it("provides Identity LOC", async () => {
         await identityLoc(state);
+    });
+
+    it("provides Other Identity LOC", async () => {
+        await otherIdentityLoc(state);
     });
 
     it("requests a Transaction LOC", async () => {

@@ -10,7 +10,7 @@ import type { Bytes, Null, Option, Result, U8aFixed, Vec, bool, u128, u32, u64, 
 import type { ITuple } from '@polkadot/types-codec/types';
 import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, H256 } from '@polkadot/types/interfaces/runtime';
-import type { FrameSupportDispatchDispatchInfo, FrameSupportTokensMiscBalanceStatus, PalletLogionVoteBallot, PalletMultisigTimepoint, SpConsensusGrandpaAppPublic, SpRuntimeDispatchError } from '@polkadot/types/lookup';
+import type { FrameSupportDispatchDispatchInfo, FrameSupportTokensMiscBalanceStatus, PalletLogionLocSupportedAccountId, PalletLogionVoteBallot, PalletMultisigTimepoint, SpConsensusGrandpaAppPublic, SpRuntimeDispatchError } from '@polkadot/types/lookup';
 
 export type __AugmentedEvent<ApiType extends ApiTypes> = AugmentedEvent<ApiType>;
 
@@ -212,6 +212,14 @@ declare module '@polkadot/api-base/types/events' {
        * Issued when LOC is voided. [locId]
        **/
       LocVoid: AugmentedEvent<ApiType, [u128]>;
+      /**
+       * Issued when a sponsorship was successfully created [sponsorship_id, sponsor, sponsored_account]
+       **/
+      SponsorshipCreated: AugmentedEvent<ApiType, [u128, AccountId32, PalletLogionLocSupportedAccountId]>;
+      /**
+       * Issued when a sponsorship was successfully withdrawn [sponsorship_id, sponsor, sponsored_account]
+       **/
+      SponsorshipWithdrawn: AugmentedEvent<ApiType, [u128, AccountId32, PalletLogionLocSupportedAccountId]>;
       /**
        * Issued when File Storage Fee is withdrawn. [payerAccountId, storageFee]
        **/

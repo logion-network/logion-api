@@ -76,6 +76,7 @@ export interface OtherIdentityLocCreationParameters {
     api: ApiPromise;
     locId: UUID;
     requester: OtherAccountId;
+    sponsorshipId: UUID;
 }
 
 /**
@@ -83,7 +84,11 @@ export interface OtherIdentityLocCreationParameters {
  */
 export function createOtherIdentityLoc(parameters: OtherIdentityLocCreationParameters): SubmittableExtrinsic {
     const logionApi = new LogionNodeApiClass(parameters.api);
-    return logionApi.polkadot.tx.logionLoc.createOtherIdentityLoc(Adapters.toLocId(parameters.locId), logionApi.adapters.toPalletLogionLocOtherAccountId(parameters.requester));
+    return logionApi.polkadot.tx.logionLoc.createOtherIdentityLoc(
+        Adapters.toLocId(parameters.locId),
+        logionApi.adapters.toPalletLogionLocOtherAccountId(parameters.requester),
+        logionApi.adapters.toSponsorshipId(parameters.sponsorshipId),
+    );
 }
 
 /**

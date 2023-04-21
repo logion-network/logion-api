@@ -141,6 +141,7 @@ export interface LocRequest {
     voteId?: string | null;
     selectedIssuers: VerifiedIssuerIdentity[];
     template?: string;
+    sponsorshipId?: string;
 }
 
 export interface IdenfyVerificationSession {
@@ -266,6 +267,7 @@ export interface CreateLocRequest {
     company?: string;
     draft: boolean;
     template?: string;
+    sponsorshipId?: string;
 }
 
 export interface CreateSofRequest {
