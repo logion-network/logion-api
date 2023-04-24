@@ -1,4 +1,4 @@
-import { getVerifiedIssuers, getLegalOfficerVerifiedIssuers, newTokensRecordFiles, nLgnt, toUnwrappedTokensRecord, UUID, getLegalOfficerVerifiedIssuersBatch, getVerifiedIssuersBatch, getLegalOfficerCasesMap } from "../src/index.js";
+import { getVerifiedIssuers, getLegalOfficerVerifiedIssuers, newTokensRecordFiles, nLgnt, toUnwrappedTokensRecord, UUID, getLegalOfficerVerifiedIssuersBatch, getVerifiedIssuersBatch, getLegalOfficerCasesMap, AnyAccountId, LogionNodeApiClass } from "../src/index.js";
 import { ALICE, DAVE, ISSUER, REQUESTER, setup, signAndSend, signAndSendBatch } from "./Util.js";
 
 export async function verifiedIssuers() {
@@ -6,6 +6,7 @@ export async function verifiedIssuers() {
 
     const issuerIdentityLocId = new UUID();
     const collectionLocId = new UUID();
+    const logionApi = new LogionNodeApiClass(api);
     await signAndSendBatch(alice, [
         api.tx.balances.transfer(ISSUER, nLgnt("1")),
         api.tx.logionLoc.createPolkadotIdentityLoc(issuerIdentityLocId.toDecimalString(), ISSUER),
@@ -13,11 +14,11 @@ export async function verifiedIssuers() {
         api.tx.logionLoc.nominateIssuer(ISSUER, issuerIdentityLocId.toDecimalString()),
         api.tx.logionLoc.createCollectionLoc(collectionLocId.toDecimalString(), REQUESTER, null, 200, true),
         api.tx.logionLoc.setIssuerSelection(collectionLocId.toDecimalString(), ISSUER, true),
-        api.tx.logionLoc.addMetadata(collectionLocId.toDecimalString(), {
+        api.tx.logionLoc.addMetadata(collectionLocId.toDecimalString(), logionApi.adapters.toPalletLogionLocMetadataItem({
             name: "Test",
             value: "Test",
-            submitter: ISSUER,
-        }),
+            submitter: new AnyAccountId(api, ISSUER, "Polkadot").toValidAccountId(),
+        })),
         api.tx.logionLoc.close(collectionLocId.toDecimalString()),
     ]);
 
