@@ -268,3 +268,8 @@ export interface Sponsorship {
     legalOfficer: AccountId;
     locId: UUID | undefined;
 }
+
+export interface VerifiedIssuerType {
+    address: string;
+    identityLocId: UUID;
+}

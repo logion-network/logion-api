@@ -17,3 +17,4 @@ export * from "./UUID.js";
 export * from "./Vault.js";
 export * from "./VaultClass.js";
 export * from "./VerifiedIssuers.js";
+export * from "./LocBatch.js";

@@ -278,6 +278,10 @@ export class Adapters {
         return this.api.createType("Compact<u128>", id.toHexString());
     }
 
+    fromLocId(locId: u128): UUID {
+        return UUID.fromDecimalStringOrThrow(locId.toString());
+    }
+
     toLocFile(file: File): PalletLogionLocFile {
         return this.api.createType("PalletLogionLocFile", {
             hash_: file.hash,

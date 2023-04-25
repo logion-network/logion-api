@@ -10,6 +10,9 @@ import { FeesEstimator } from './FeesEstimator.js';
 import { Queries } from './Queries.js';
 import { ChainTime } from './ChainTime.js';
 import { Vault } from './VaultClass.js';
+import { LocBatch } from './LocBatch.js';
+import { UUID } from './UUID.js';
+import { LegalOfficerCase, VerifiedIssuerType } from './Types.js';
 
 export type LogionNodeApi = ApiPromise;
 
@@ -54,6 +57,24 @@ export class LogionNodeApiClass {
 
     vault(requester: string, legalOfficers: string[]) {
         return new Vault(this.polkadot, requester, legalOfficers);
+    }
+
+    readonly batch = {
+        /**
+         * Builds a LocBatch instance.
+         * 
+         * @param ids The LOCs to consider.
+         * @param locs DEPRECATED - this parameter will be removed
+         * @param availableVerifiedIssuers DEPRECATED - this parameter will be removed
+         * @returns a LocBatch instance
+         */
+        locs: (ids: UUID[], locs?: Record<string, LegalOfficerCase>, availableVerifiedIssuers?: Record<string, VerifiedIssuerType[]>) => new LocBatch({
+            api: this.polkadot,
+            adapters: this.adapters,
+            locIds: ids,
+            locs,
+            availableVerifiedIssuers,
+        }),
     }
 }
 
