@@ -1,12 +1,44 @@
 import { ApiPromise } from "@polkadot/api";
 import { Call, FunctionMetadataLatest } from "@polkadot/types/interfaces";
-import { FrameSystemAccountInfo, PalletLogionLocFile, PalletLogionLocLegalOfficerCase, PalletLogionLocCollectionItem, PalletLogionLocTokensRecordFile, PalletLogionLocTokensRecord, PalletLogionLocOtherAccountId, PalletLogionLocSupportedAccountId, PalletLogionLocMetadataItem } from '@polkadot/types/lookup';
+import {
+    FrameSystemAccountInfo,
+    PalletLogionLocFile,
+    PalletLogionLocLegalOfficerCase,
+    PalletLogionLocCollectionItem,
+    PalletLogionLocTokensRecordFile,
+    PalletLogionLocTokensRecord,
+    PalletLogionLocOtherAccountId,
+    PalletLogionLocSupportedAccountId,
+    PalletLogionLocMetadataItem,
+    PalletLogionLocSponsorship
+} from '@polkadot/types/lookup';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { ISubmittableResult } from "@polkadot/types/types";
 import { Compact, Vec, u128 } from "@polkadot/types-codec";
 import { CallBase, AnyTuple, AnyJson } from "@polkadot/types-codec/types";
 import { DispatchError } from '@polkadot/types/interfaces/system/types';
-import { TypesAccountData, File, LegalOfficerCase, LocType, TypesJsonObject, TypesJsonCall, TypesErrorMetadata, TypesEvent, CollectionItem, ItemFile, ItemToken, TermsAndConditionsElement, TypesTokensRecordFile, TypesTokensRecord, ValidAccountId, AnyAccountId, OtherAccountId, MetadataItem } from "./Types.js";
+import {
+    TypesAccountData,
+    File,
+    LegalOfficerCase,
+    LocType,
+    TypesJsonObject,
+    TypesJsonCall,
+    TypesErrorMetadata,
+    TypesEvent,
+    CollectionItem,
+    ItemFile,
+    ItemToken,
+    TermsAndConditionsElement,
+    TypesTokensRecordFile,
+    TypesTokensRecord,
+    ValidAccountId,
+    AnyAccountId,
+    OtherAccountId,
+    MetadataItem,
+    Sponsorship,
+    AccountId
+} from "./Types.js";
 import { UUID } from "./UUID.js";
 import { stringToHex } from "@polkadot/util";
 
@@ -79,7 +111,7 @@ export class Adapters {
             collectionMaxSize: rawLoc.collectionMaxSize.isSome ? rawLoc.collectionMaxSize.unwrap().toNumber() : undefined,
             collectionCanUpload: rawLoc.collectionCanUpload.isTrue,
             seal: rawLoc.seal.isSome ? rawLoc.seal.unwrap().toHex() : undefined,
-            sponsorshipId: rawLoc.sponsorshipId.isSome ? Adapters.fromSponsorshipId(rawLoc.sponsorshipId.unwrap()) : undefined,
+            sponsorshipId: rawLoc.sponsorshipId.isSome ? this.fromSponsorshipId(rawLoc.sponsorshipId.unwrap()) : undefined,
         };
     }
 
@@ -384,7 +416,30 @@ export class Adapters {
         return this.toCompactU128Uuid(id);
     }
 
-    static fromSponsorshipId(sponsorshipId: u128): UUID {
+    fromSponsorshipId(sponsorshipId: u128): UUID {
         return UUID.fromDecimalStringOrThrow(sponsorshipId.toString());
+    }
+
+    toSponsorship(sponsorship: PalletLogionLocSponsorship): Sponsorship {
+        return {
+            sponsor: { type: "Polkadot", address: sponsorship.sponsor.toString() },
+            sponsoredAccount: this.toAccountId(sponsorship.sponsoredAccount),
+            legalOfficer: { type: "Polkadot", address: sponsorship.legalOfficer.toString() },
+            locId: sponsorship.locId.isSome ? UUID.fromDecimalStringOrThrow(sponsorship.locId.unwrap().toString()) : undefined
+        }
+    }
+
+    toAccountId(account: PalletLogionLocSupportedAccountId): AccountId {
+        let type: string = account.type;
+        if (account.isPolkadot) {
+            return { type: "Polkadot", address: account.toString() }
+        } else if (account.isOther) {
+            const otherAccount = account.asOther;
+            type = otherAccount.type;
+            if (otherAccount.isEthereum) {
+                return { type: "Ethereum", address: account.asOther.asEthereum.toHex() }
+            }
+        }
+        throw new Error(`Unsupported account type: ${ type }`);
     }
 }

@@ -261,3 +261,10 @@ export class OtherAccountId implements AccountId {
         return this.validAccountId;
     }
 }
+
+export interface Sponsorship {
+    sponsor: AccountId;
+    sponsoredAccount: AccountId;
+    legalOfficer: AccountId;
+    locId: UUID | undefined;
+}
