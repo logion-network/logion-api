@@ -2,7 +2,16 @@ import { ApiPromise } from "@polkadot/api";
 import { Adapters } from "./Adapters.js";
 import * as Currency from "./Currency.js";
 import * as Numbers from "./numbers.js";
-import { AccountType, AnyAccountId, CollectionItem, LegalOfficerCase, TypesAccountData, TypesRecoveryConfig, ValidAccountId } from "./Types.js";
+import {
+    AccountType,
+    AnyAccountId,
+    CollectionItem,
+    LegalOfficerCase,
+    TypesAccountData,
+    TypesRecoveryConfig,
+    ValidAccountId,
+    Sponsorship
+} from "./Types.js";
 import { UUID } from "./UUID.js";
 
 export interface Coin {
@@ -30,6 +39,11 @@ export class Queries {
     ) {
         this.api = api;
         this.adapters = adapters;
+    }
+
+    static async of(apiPromise: Promise<ApiPromise>): Promise<Queries> {
+        const api = await apiPromise;
+        return new Queries(api, new Adapters(api));
     }
 
     private api: ApiPromise;
@@ -186,5 +200,14 @@ export class Queries {
             return undefined
         }
         return proxy.unwrap().toString();
+    }
+
+    async getSponsorship(sponsorshipId: UUID): Promise<Sponsorship | undefined> {
+        const result = await this.api.query.logionLoc.sponsorshipMap(this.adapters.toSponsorshipId(sponsorshipId).unwrap());
+        if (result.isSome) {
+            return this.adapters.toSponsorship(result.unwrap())
+        } else {
+            return undefined;
+        }
     }
 }
