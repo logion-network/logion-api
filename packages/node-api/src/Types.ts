@@ -134,6 +134,7 @@ export const ETHEREUM_ADDRESS_LENGTH_IN_BITS = 20 * 8;
 export interface AccountId {
     readonly address: string;
     readonly type: AccountType;
+    equals(other: AccountId): boolean;
 }
 
 /**
@@ -205,6 +206,10 @@ export class AnyAccountId implements AccountId {
             throw new Error("Unsupported key format");
         }
     }
+
+    equals(other: AccountId): boolean {
+        return this.type === other.type && this.address === other.address;
+    }
 }
 
 const POLKADOT_PREFIX = "Polkadot:";
@@ -240,6 +245,10 @@ export class ValidAccountId implements AccountId {
     static parseKey(api: ApiPromise, key: string): ValidAccountId { 
         return AnyAccountId.parseKey(api, key).toValidAccountId();
     }
+
+    equals(other: AccountId): boolean {
+        return this.type === other.type && this.address === other.address;
+    }
 }
 
 export class OtherAccountId implements AccountId {
@@ -267,6 +276,10 @@ export class OtherAccountId implements AccountId {
 
     toValidAccountId(): ValidAccountId {
         return this.validAccountId;
+    }
+
+    equals(other: AccountId): boolean {
+        return this.validAccountId.equals(other);
     }
 }
 
