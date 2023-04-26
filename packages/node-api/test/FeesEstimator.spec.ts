@@ -1,26 +1,16 @@
-import { mockPolkadotApi, mockValidAccountId } from "./__mocks__/PolkadotApiMock.js";
-mockPolkadotApi();
-const { ApiPromise } = await import('@polkadot/api');
-
+import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types.js";
-import { Balance } from "../src/interfaces/index.js";
-import { Mock } from "moq.ts";
-import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
 import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces';
-import type { Codec } from '@polkadot/types-codec/types';
-import { setQueryFileStorageFee, setAddFile } from "./__mocks__/PolkadotApiMock.js";
+import { Mock } from "moq.ts";
+import { Balance } from "../src/interfaces/index.js";
+import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
 import { Adapters } from "../src/Adapters.js";
-const { UUID, FeesEstimator } = await import("../src/index.js");
+import { POLKADOT_API_CREATE_TYPE, mockCodecWithToString, mockValidAccountId } from "./Util.js";
+import { UUID, FeesEstimator } from "../src/index.js";
 
 describe("FeesEstimator", () => {
 
     const LOC_REQUEST_ID = "9a1575ca-fbe8-4a61-a5b0-357300b7a57d";
-
-    function mockCodecWithToString<T extends Codec>(value: string): T {
-        return ({
-            toString: () => value,
-        }) as T;
-    }
 
     it("estimates fees on file add", async () => {
         const expectedStorageFee = BigInt(100);
@@ -31,10 +21,10 @@ describe("FeesEstimator", () => {
         const submittable = new Mock<SubmittableExtrinsic>();
         submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
 
-        setQueryFileStorageFee(() => Promise.resolve({ toBigInt: () => expectedStorageFee } as Balance ))
-        setAddFile(() => submittable.object())
+        const queryFileStorageFee = () => Promise.resolve({ toBigInt: () => expectedStorageFee } as Balance );
+        const addFile = () => submittable.object();
 
-        const api = new ApiPromise();
+        const api = mockPolkadotApiForFeesEstimator(queryFileStorageFee, addFile);
         const estimator = new FeesEstimator(api, new Adapters(api));
         const fees = await estimator.estimateAddFile({
             locId: new UUID(LOC_REQUEST_ID),
@@ -57,7 +47,7 @@ describe("FeesEstimator", () => {
         const submittable = new Mock<SubmittableExtrinsic>();
         submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
 
-        const api = new ApiPromise();
+        const api = mockPolkadotApiForFeesEstimator();
         const estimator = new FeesEstimator(api, new Adapters(api));
         const fees = await estimator.estimateWithoutStorage({
             origin: DEFAULT_LEGAL_OFFICER,
@@ -69,3 +59,19 @@ describe("FeesEstimator", () => {
         expect(fees.totalFee).toBe(expectedInclusionFee);
     });
 });
+
+function mockPolkadotApiForFeesEstimator(queryFileStorageFee?: any, addFile?: any) {
+    return {
+        tx: {
+            logionLoc: {
+                addFile,
+            },
+        },
+        call: {
+            feesApi: {
+                queryFileStorageFee,
+            }
+        },
+        createType: POLKADOT_API_CREATE_TYPE,
+    } as unknown as ApiPromise;
+}

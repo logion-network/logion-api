@@ -1,6 +1,6 @@
-import { LogionNodeApi } from "./Connection.js";
-import { UUID } from "./UUID.js";
+import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types.js";
+import { UUID } from "./UUID.js";
 import { Adapters } from "./Adapters.js";
 import { ValidAccountId } from "./Types.js";
 
@@ -21,12 +21,12 @@ export class Fees {
 
 export class FeesEstimator {
 
-    constructor(api: LogionNodeApi, adapters: Adapters) {
+    constructor(api: ApiPromise, adapters: Adapters) {
         this.api = api;
         this.adapters = adapters;
     }
 
-    private readonly api: LogionNodeApi;
+    private readonly api: ApiPromise;
     private readonly adapters: Adapters;
 
     async estimateAddFile(args: {
