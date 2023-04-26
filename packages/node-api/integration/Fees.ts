@@ -1,10 +1,8 @@
 import { setup } from "./Util.js";
-import { Adapters, FeesEstimator } from "../src/index.js";
 
 export async function fees() {
     const { api } = await setup();
-    const feesEstimator = new FeesEstimator(api, new Adapters(api));
-    const fee = await feesEstimator.estimateStorageFee({
+    const fee = await api.fees.estimateStorageFee({
         numOfEntries: BigInt(10),
         totSize: BigInt(15000),
     });

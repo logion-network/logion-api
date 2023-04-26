@@ -91,6 +91,7 @@ export async function buildApiClass(endpoint: string | string[]): Promise<Logion
         provider,
         types,
         rpc: jsonrpc,
+        runtime: definitions.runtime.runtime,
     });
     return new LogionNodeApiClass(api);
 }

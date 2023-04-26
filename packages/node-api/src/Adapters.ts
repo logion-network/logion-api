@@ -55,7 +55,8 @@ export class Adapters {
         return this.api.createType("PalletLogionLocFile", {
             hash_: file.hash,
             nature: file.nature,
-            submitter: file.submitter,
+            submitter: this.toPalletLogionLocSupportedAccountId(file.submitter),
+            size_: file.size,
         });
     }
 

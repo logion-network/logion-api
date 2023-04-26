@@ -1,49 +1,34 @@
-import { getVerifiedIssuers, getLegalOfficerVerifiedIssuers, newTokensRecordFiles, nLgnt, toUnwrappedTokensRecord, UUID, getLegalOfficerVerifiedIssuersBatch, getVerifiedIssuersBatch, getLegalOfficerCasesMap, AnyAccountId, LogionNodeApiClass } from "../src/index.js";
-import { ALICE, DAVE, ISSUER, REQUESTER, setup, signAndSend, signAndSendBatch } from "./Util.js";
+import { Currency, UUID, Adapters } from "../src/index.js";
+import { ALICE, ISSUER, REQUESTER, setup, signAndSend, signAndSendBatch } from "./Util.js";
 
 export async function verifiedIssuers() {
     const { api, alice, issuer } = await setup();
 
     const issuerIdentityLocId = new UUID();
     const collectionLocId = new UUID();
-    const logionApi = new LogionNodeApiClass(api);
     await signAndSendBatch(alice, [
-        api.tx.balances.transfer(ISSUER, nLgnt("1")),
-        api.tx.logionLoc.createPolkadotIdentityLoc(issuerIdentityLocId.toDecimalString(), ISSUER),
-        api.tx.logionLoc.close(issuerIdentityLocId.toDecimalString()),
-        api.tx.logionLoc.nominateIssuer(ISSUER, issuerIdentityLocId.toDecimalString()),
-        api.tx.logionLoc.createCollectionLoc(collectionLocId.toDecimalString(), REQUESTER, null, 200, true),
-        api.tx.logionLoc.setIssuerSelection(collectionLocId.toDecimalString(), ISSUER, true),
-        api.tx.logionLoc.addMetadata(collectionLocId.toDecimalString(), logionApi.adapters.toPalletLogionLocMetadataItem({
+        api.polkadot.tx.balances.transfer(ISSUER, Currency.toCanonicalAmount(Currency.nLgnt(1n))),
+        api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(issuerIdentityLocId.toDecimalString(), ISSUER),
+        api.polkadot.tx.logionLoc.close(issuerIdentityLocId.toDecimalString()),
+        api.polkadot.tx.logionLoc.nominateIssuer(ISSUER, issuerIdentityLocId.toDecimalString()),
+        api.polkadot.tx.logionLoc.createCollectionLoc(collectionLocId.toDecimalString(), REQUESTER, null, 200, true),
+        api.polkadot.tx.logionLoc.setIssuerSelection(collectionLocId.toDecimalString(), ISSUER, true),
+        api.polkadot.tx.logionLoc.addMetadata(collectionLocId.toDecimalString(), api.adapters.toPalletLogionLocMetadataItem({
             name: "Test",
             value: "Test",
-            submitter: new AnyAccountId(api, ISSUER, "Polkadot").toValidAccountId(),
+            submitter: api.queries.getValidAccountId(ISSUER, "Polkadot"),
         })),
-        api.tx.logionLoc.close(collectionLocId.toDecimalString()),
+        api.polkadot.tx.logionLoc.close(collectionLocId.toDecimalString()),
     ]);
 
-    expect((await api.query.logionLoc.verifiedIssuersMap(ALICE, ISSUER)).isSome).toBe(true);
+    expect((await api.polkadot.query.logionLoc.verifiedIssuersMap(ALICE, ISSUER)).isSome).toBe(true);
 
-    const aliceVerifiedIssuers = await getLegalOfficerVerifiedIssuers(api, ALICE);
-    expect(aliceVerifiedIssuers.length).toBe(1);
-    expect(aliceVerifiedIssuers[0].address).toBe(ISSUER);
-    expect(aliceVerifiedIssuers[0].identityLocId.toString()).toBe(issuerIdentityLocId.toString());
+    const batch = api.batch.locs([ collectionLocId ]);
 
-    const aliceAndDaveVerifiedIssuers = await getLegalOfficerVerifiedIssuersBatch(api, [ ALICE, DAVE ]);
-    expect(ALICE in aliceAndDaveVerifiedIssuers).toBe(true);
-    expect(DAVE in aliceAndDaveVerifiedIssuers).toBe(true);
-    expect(aliceAndDaveVerifiedIssuers[ALICE].length).toBe(1);
-    expect(aliceAndDaveVerifiedIssuers[DAVE].length).toBe(0);
-
-    const collectionVerifiedIssuers = await getVerifiedIssuers(api, collectionLocId);
-    expect(collectionVerifiedIssuers.length).toBe(1);
-    expect(collectionVerifiedIssuers[0].address).toBe(ISSUER);
-    expect(collectionVerifiedIssuers[0].identityLocId.toString()).toBe(issuerIdentityLocId.toString());
-
-    const locs = await getLegalOfficerCasesMap({ api, locIds: [ collectionLocId ] });
-    const collectionVerifiedIssuersBatch = await getVerifiedIssuersBatch(api, [ collectionLocId ], locs, aliceAndDaveVerifiedIssuers);
-    expect(collectionLocId.toDecimalString() in collectionVerifiedIssuersBatch).toBe(true);
-    expect(collectionVerifiedIssuersBatch[collectionLocId.toDecimalString()].length).toBe(1);
+    const collectionVerifiedIssuers = await batch.getLocsVerifiedIssuers();
+    expect(collectionVerifiedIssuers[collectionLocId.toDecimalString()].length).toBe(1);
+    expect(collectionVerifiedIssuers[collectionLocId.toDecimalString()][0].address).toBe(ISSUER);
+    expect(collectionVerifiedIssuers[collectionLocId.toDecimalString()][0].identityLocId.toString()).toBe(issuerIdentityLocId.toString());
 
     const recordId = "0x5b2ef8140cfcf72237f2182b9f5eb05eb643a26f9a823e5e804d5543976a4fb9";
     const recordDescription = "Some description";
@@ -51,11 +36,11 @@ export async function verifiedIssuers() {
     const recordFileContentType = "text/plain";
     const recordFileSize = "5";
     const recordFileHash = "0x7d6fd7774f0d87624da6dcf16d0d3d104c3191e771fbe2f39c86aed4b2bf1a0f";
-    await signAndSend(issuer, api.tx.logionLoc.addTokensRecord(
-        collectionLocId.toDecimalString(),
+    await signAndSend(issuer, api.polkadot.tx.logionLoc.addTokensRecord(
+        api.adapters.toLocId(collectionLocId),
         recordId,
         recordDescription,
-        newTokensRecordFiles(api, [
+        api.adapters.newTokensRecordFileVec([
             {
                 name: recordFileName,
                 contentType: recordFileContentType,
@@ -65,7 +50,7 @@ export async function verifiedIssuers() {
         ]),
     ));
 
-    const record = await toUnwrappedTokensRecord(api.query.logionLoc.tokensRecordsMap(collectionLocId.toDecimalString(), recordId));
+    const record = Adapters.toTokensRecord((await api.polkadot.query.logionLoc.tokensRecordsMap(collectionLocId.toDecimalString(), recordId)).unwrap());
     expect(record.description).toBe(recordDescription);
     expect(record.files.length).toBe(1);
     expect(record.files[0].name).toBe(recordFileName);
