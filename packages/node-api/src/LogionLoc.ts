@@ -170,19 +170,19 @@ export interface GetLegalOfficerCasesParameters {
 }
 
 /**
- * @deprecated use logionApi.queries.getLegalOfficerCases(locIds)
+ * @deprecated use logionApi.batch.locs(locIds).getLocs()
  */
 export async function getLegalOfficerCases(parameters: GetLegalOfficerCasesParameters): Promise<(LegalOfficerCase | undefined)[]> {
     const logionApi = new LogionNodeApiClass(parameters.api);
-    return logionApi.queries.getLegalOfficerCases(parameters.locIds);
+    return Object.values(await logionApi.batch.locs(parameters.locIds).getLocs());
 }
 
 /**
- * @deprecated use logionApi.queries.getLegalOfficerCasesMap(locIds)
+ * @deprecated use logionApi.batch.locs(locIds).getLocs()
  */
 export async function getLegalOfficerCasesMap(parameters: GetLegalOfficerCasesParameters): Promise<Record<string, LegalOfficerCase>> {
     const logionApi = new LogionNodeApiClass(parameters.api);
-    return logionApi.queries.getLegalOfficerCasesMap(parameters.locIds);
+    return await logionApi.batch.locs(parameters.locIds).getLocs();
 }
 
 /**

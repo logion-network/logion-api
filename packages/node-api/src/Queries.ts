@@ -124,33 +124,6 @@ export class Queries {
         }
     }
 
-    async getLegalOfficerCases(locIds: UUID[]): Promise<(LegalOfficerCase | undefined)[]> {
-        const result = await this.api.query.logionLoc.locMap.multi(locIds.map(id => id.toHexString()));
-        const locs: (LegalOfficerCase | undefined)[] = [];
-        for(let i = 0; i < result.length; ++i) {
-            const option = result[i];
-            if(option.isSome) {
-                locs.push(this.adapters.fromPalletLogionLocLegalOfficerCase(option.unwrap()));
-            } else {
-                locs.push(undefined);
-            }
-        }
-        return locs;
-    }
-
-    async getLegalOfficerCasesMap(locIds: UUID[]): Promise<Record<string, LegalOfficerCase>> {
-        const locs = await this.getLegalOfficerCases(locIds);
-        const map: Record<string, LegalOfficerCase> = {};
-        for(let i = 0; i < locs.length; ++i) {
-            const loc = locs[i];
-            const locId = locIds[i];
-            if(loc !== undefined) {
-                map[locId.toDecimalString()] = loc;
-            }
-        }
-        return map;
-    }
-
     async getCollectionItem(locId: UUID, itemId: string): Promise<CollectionItem | undefined> {
         const result = await this.api.query.logionLoc.collectionItemsMap(Adapters.toLocId(locId), itemId);
         if(result.isSome) {
