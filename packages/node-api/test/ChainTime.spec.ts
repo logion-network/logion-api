@@ -1,20 +1,17 @@
-import { mockPolkadotApi, CURRENT_BLOCK_NUMBER } from "./__mocks__/PolkadotApiMock.js";
-mockPolkadotApi();
-
-const { ApiPromise } = await import('@polkadot/api');
-const { ChainTime } = await import("../src/index.js");
+import { ApiPromise } from "@polkadot/api";
+import { ChainTime } from "../src/index.js";
 
 describe("ChainTime", () => {
 
     it("creates now", async () => {
-        const api = await ApiPromise.create();
+        const api = buildPolkadotApiForTime();
         const chainTime = await ChainTime.now(api);
         expect(chainTime.currentTime).toBeDefined();
         expect(chainTime.currentBlock).toBe(CURRENT_BLOCK_NUMBER.toBigInt());
     })
 
     it("creates chain time by date in the future", async () => {
-        const api = await ApiPromise.create();
+        const api = buildPolkadotApiForTime();
         const nowTime = await ChainTime.now(api);
         const blocksInFuture = 3;
         const msInFuture = EXPECTED_BLOCK_TIME_IN_MS * blocksInFuture;
@@ -29,7 +26,7 @@ describe("ChainTime", () => {
     const EXPECTED_BLOCK_TIME_IN_MS = 6000;
 
     it("creates chain time by date in the past", async () => {
-        const api = await ApiPromise.create();
+        const api = buildPolkadotApiForTime();
         const nowTime = await ChainTime.now(api);
         const blocksInPast = 3;
         const msInPast = EXPECTED_BLOCK_TIME_IN_MS * blocksInPast;
@@ -42,7 +39,7 @@ describe("ChainTime", () => {
     })
 
     it("creates chain time by block in the future", async () => {
-        const api = await ApiPromise.create();
+        const api = buildPolkadotApiForTime();
         const nowTime = await ChainTime.now(api);
         const blocksInFuture = BigInt(3);
 
@@ -54,7 +51,7 @@ describe("ChainTime", () => {
     })
 
     it("creates chain time by block in the past", async () => {
-        const api = await ApiPromise.create();
+        const api = buildPolkadotApiForTime();
         const nowTime = await ChainTime.now(api);
         const blocksInPast = BigInt(3);
 
@@ -65,3 +62,33 @@ describe("ChainTime", () => {
         expect(atTime.currentBlock).toBe(nowTime.currentBlock - BigInt(blocksInPast));
     })
 })
+
+function buildPolkadotApiForTime() {
+    return {
+        consts: {
+            timestamp: {
+                minimumPeriod: {
+                    toBigInt: () => BigInt(3000)
+                }
+            }
+        },
+
+        rpc: {
+            chain: {
+                getBlock: () => CURRENT_BLOCK,
+            }
+        }
+    } as unknown as ApiPromise;
+}
+
+export const CURRENT_BLOCK_NUMBER = {
+    toBigInt: () => BigInt(42)
+};
+
+export const CURRENT_BLOCK = {
+    block: {
+        header: {
+            number: CURRENT_BLOCK_NUMBER
+        }
+    }
+};
