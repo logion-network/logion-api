@@ -1,38 +1,31 @@
-import { createCollectionLoc, UUID, getLegalOfficerCase, addCollectionItem, closeLoc, getCollectionItem, getCollectionItems, getLegalOfficerCasesMap } from "../src/index.js";
+import { UUID } from "../src/index.js";
 import { REQUESTER, setup, signAndSend } from "./Util.js";
 
 export async function createCollectionLocLimitedInSizeTest() {
     const { api, alice } = await setup();
-    const createExtrinsic = createCollectionLoc({
-        api,
-        locId: COLLECTION_LOC_ID,
-        canUpload: false,
-        requester: REQUESTER,
-        maxSize: "100",
-    });
+    const createExtrinsic = api.polkadot.tx.logionLoc.createCollectionLoc(
+        api.adapters.toLocId(COLLECTION_LOC_ID),
+        REQUESTER,
+        null,
+        100,
+        false
+    );
     await signAndSend(alice, createExtrinsic);
-    const loc = await getLegalOfficerCase({
-        api,
-        locId: COLLECTION_LOC_ID,
-    });
+    const loc = await api.queries.getLegalOfficerCase(COLLECTION_LOC_ID);
     expect(loc?.locType).toBe("Collection");
     expect(loc?.collectionMaxSize).toBe(100);
 
-    const map = await getLegalOfficerCasesMap({ api, locIds: [COLLECTION_LOC_ID]});
+    const map = await api.batch.locs([ COLLECTION_LOC_ID ]).getLocs();
     expect(map[COLLECTION_LOC_ID.toDecimalString()]).toBeDefined();
 }
 
 export async function closeCollectionLocTest() {
     const { api, alice } = await setup();
-    const closeExtrinsic = closeLoc({
-        api,
-        locId: COLLECTION_LOC_ID,
-    });
+    const closeExtrinsic = api.polkadot.tx.logionLoc.close(
+        api.adapters.toLocId(COLLECTION_LOC_ID)
+    );
     await signAndSend(alice, closeExtrinsic);
-    const loc = await getLegalOfficerCase({
-        api,
-        locId: COLLECTION_LOC_ID,
-    });
+    const loc = await api.queries.getLegalOfficerCase(COLLECTION_LOC_ID);
     expect(loc?.closed).toBe(true);
 }
 
@@ -40,45 +33,34 @@ export async function addCollectionItemTest() {
     const { api, requester } = await setup();
     
     const item1Id = "0x5b2ef8140cfcf72237f2182b9f5eb05eb643a26f9a823e5e804d5543976a4fb9";
-    const addItem1Extrinsic = addCollectionItem({
-        api,
-        collectionId: COLLECTION_LOC_ID,
-        itemId: item1Id,
-        itemDescription: "Item 1",
-        itemFiles: [],
-        restrictedDelivery: false,
-    });
+    const addItem1Extrinsic = api.polkadot.tx.logionLoc.addCollectionItem(
+        api.adapters.toLocId(COLLECTION_LOC_ID),
+        item1Id,
+        "Item 1",
+        [],
+        null,
+        false,
+    );
     await signAndSend(requester, addItem1Extrinsic);
 
     const item2Id = "0x95307d8ad3f1404a0633015b923753ac0734fec44043fe02120f9661072f05f3";
-    const addItem2Extrinsic = addCollectionItem({
-        api,
-        collectionId: COLLECTION_LOC_ID,
-        itemId: item2Id,
-        itemDescription: "Item 2",
-        itemFiles: [],
-        restrictedDelivery: false,
-    });
+    const addItem2Extrinsic = api.polkadot.tx.logionLoc.addCollectionItem(
+        api.adapters.toLocId(COLLECTION_LOC_ID),
+        item2Id,
+        "Item 2",
+        [],
+        null,
+        false,
+    );
     await signAndSend(requester, addItem2Extrinsic);
 
-    const items = await getCollectionItems({
-        api,
-        locId: COLLECTION_LOC_ID,
-    })
+    const items = await api.queries.getCollectionItems(COLLECTION_LOC_ID);
     expect(items.length).toBe(2);
 
-    const item1 = await getCollectionItem({
-        api,
-        locId: COLLECTION_LOC_ID,
-        itemId: item1Id,
-    });
+    const item1 = await api.queries.getCollectionItem(COLLECTION_LOC_ID, item1Id);
     expect(item1?.id).toBe(item1Id);
 
-    const item2 = await getCollectionItem({
-        api,
-        locId: COLLECTION_LOC_ID,
-        itemId: item2Id,
-    });
+    const item2 = await api.queries.getCollectionItem(COLLECTION_LOC_ID, item2Id);
     expect(item2?.id).toBe(item2Id);
 }
 

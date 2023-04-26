@@ -392,7 +392,7 @@ export function toTokensRecord(substrateObject: PalletLogionLocTokensRecord): To
 }
 
 /**
- * @deprecated
+ * @deprecated this function nas no replacement
  */
 export async function toUnwrappedTokensRecord(query: Promise<Option<PalletLogionLocTokensRecord>>): Promise<TokensRecord> {
     return toTokensRecord((await query).unwrap());

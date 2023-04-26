@@ -1,20 +1,16 @@
-import { createPolkadotTransactionLoc, UUID, getLegalOfficerCase, addFile, AnyAccountId, addMetadata } from "../src/index.js";
+import { UUID } from "../src/index.js";
 import { ALICE, REQUESTER, setup, signAndSend } from "./Util.js";
 
 export async function createTransactionLocTest() {
     const { alice, api } = await setup();
 
-    const createLocExtrinsic = createPolkadotTransactionLoc({
-        api,
-        locId: TRANSACTION_LOC_ID,
-        requester: REQUESTER,
-    });
+    const createLocExtrinsic = api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
+        api.adapters.toLocId(TRANSACTION_LOC_ID),
+        REQUESTER,
+    );
     await signAndSend(alice, createLocExtrinsic);
 
-    const loc = await getLegalOfficerCase({
-        api,
-        locId: TRANSACTION_LOC_ID,
-    });
+    const loc = await api.queries.getLegalOfficerCase(TRANSACTION_LOC_ID);
     expect(loc?.owner).toBe(ALICE);
     expect(loc?.requesterAddress?.address).toBe(REQUESTER);
     expect(loc?.requesterAddress?.type).toBe("Polkadot");
@@ -27,21 +23,17 @@ export async function addMetadataToTransactionLocTest() {
 
     const name = "Some name";
     const value = "Some value";
-    const addMetadataExtrinsic = addMetadata({
-        api,
-        locId: TRANSACTION_LOC_ID,
-        item: {
+    const addMetadataExtrinsic = api.polkadot.tx.logionLoc.addMetadata(
+        api.adapters.toLocId(TRANSACTION_LOC_ID),
+        api.adapters.toPalletLogionLocMetadataItem({
             name,
             value,
-            submitter: new AnyAccountId(api, ALICE, "Polkadot").toValidAccountId(),
-        }
-    });
+            submitter: api.queries.getValidAccountId(ALICE, "Polkadot"),
+        }),
+    );
     await signAndSend(alice, addMetadataExtrinsic);
 
-    const loc = await getLegalOfficerCase({
-        api,
-        locId: TRANSACTION_LOC_ID,
-    });
+    const loc = await api.queries.getLegalOfficerCase(TRANSACTION_LOC_ID);
     expect(loc?.metadata.length).toBe(1);
     expect(loc?.metadata[0].name).toBe(name);
     expect(loc?.metadata[0].value).toBe(value);
@@ -55,20 +47,18 @@ export async function addFileToTransactionLocTest() {
     const hash = "0x46d9bb04725470dc8483395f635805e9da5e105c7b2b90935b895a0f4f364d80";
     const nature = "Some nature";
     const size = BigInt(456);
-    const addFileExtrinsic = addFile({
-        api,
-        locId: TRANSACTION_LOC_ID,
-        hash,
-        nature,
-        submitter: new AnyAccountId(api, ALICE, "Polkadot").toValidAccountId(),
-        size,
-    });
+    const addFileExtrinsic = api.polkadot.tx.logionLoc.addFile(
+        api.adapters.toLocId(TRANSACTION_LOC_ID),
+        api.adapters.toPalletLogionLocFile({
+            hash,
+            nature,
+            submitter: api.queries.getValidAccountId(ALICE, "Polkadot"),
+            size,
+        }),
+    );
     await signAndSend(alice, addFileExtrinsic);
 
-    const loc = await getLegalOfficerCase({
-        api,
-        locId: TRANSACTION_LOC_ID,
-    });
+    const loc = await api.queries.getLegalOfficerCase(TRANSACTION_LOC_ID);
     expect(loc?.files.length).toBe(1);
     expect(loc?.files[0].hash).toBe(hash);
     expect(loc?.files[0].nature).toBe(nature);

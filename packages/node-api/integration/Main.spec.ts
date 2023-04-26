@@ -1,7 +1,6 @@
 import { transferTokens, failedTransfer } from "./Balances.js";
 import { addCollectionItemTest, closeCollectionLocTest, createCollectionLocLimitedInSizeTest } from "./CollectionLoc.js";
 import { addGuardian } from "./LoAuthorityList.js";
-import { queryInfos } from "./Query.js";
 import { addFileToTransactionLocTest, addMetadataToTransactionLocTest, createTransactionLocTest } from "./TransactionLoc.js";
 import { createVote } from "./Vote.js";
 import { verifiedIssuers } from "./VerifiedIssuers.js";
@@ -11,8 +10,6 @@ import { adapts } from "./Adapters.js";
 describe("Logion Node API", () => {
 
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 300000;
-
-    it("queries extrinsic infos", queryInfos);
 
     it("transfers logion tokens", transferTokens);
     it("fails transferring more logion tokens than available", failedTransfer);

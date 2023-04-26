@@ -95,7 +95,7 @@ export async function estimateFee(parameters: BuildTransferCallParameters): Prom
 }
 
 /**
- * @deprecated use Currency.nLgnt(amount)
+ * @deprecated use Currency.toCanonicalAmount(Currency.nLgnt(BigInt(amount))).toString()
  */
 export function nLgnt(amount: string): string {
     return Currency.toCanonicalAmount(Currency.nLgnt(BigInt(amount))).toString();

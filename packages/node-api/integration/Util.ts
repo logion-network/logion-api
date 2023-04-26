@@ -1,12 +1,12 @@
-import { ApiPromise, Keyring } from "@polkadot/api";
+import { Keyring } from "@polkadot/api";
 import { IKeyringPair, ISubmittableResult } from "@polkadot/types/types";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { waitReady } from "@polkadot/wasm-crypto";
 
-import { buildApi } from "../src/index.js";
+import { LogionNodeApiClass, buildApiClass } from "../src/index.js";
 
 export interface State {
-    api: ApiPromise;
+    api: LogionNodeApiClass;
     keyring: Keyring;
     alice: IKeyringPair;
     requester: IKeyringPair;
@@ -22,7 +22,7 @@ export async function setup(): Promise<State> {
         const alice = keyring.addFromUri(ALICE_SEED);
         const requester = keyring.addFromUri(REQUESTER_SECRET_SEED);
         const issuer = keyring.addFromUri(ISSUER_SECRET_SEED);
-        const api = await buildApi("ws://127.0.0.1:9944");
+        const api = await buildApiClass("ws://127.0.0.1:9944");
         state = {
             api,
             keyring,

@@ -144,6 +144,14 @@ export function validPolkadotAccountId(api: ApiPromise, address: string): ValidA
 }
 
 export class AnyAccountId implements AccountId {
+
+    /**
+     * Developers should not construct directly this object but call logionApi.queries.getValidAccountId(address, type).
+     * 
+     * @param api 
+     * @param address 
+     * @param type 
+     */
     constructor(api: ApiPromise, address: string, type: AccountType) {
         this.api = api;
         this.address = address;
