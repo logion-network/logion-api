@@ -34,11 +34,11 @@ export async function getVerifiedIssuersBatch(
 }
 
 /**
- * @deprecated this function has no replacement
+ * @deprecated use logionApi.queries.getLegalOfficerVerifiedIssuers(legalOfficerAddress)
  */
 export async function getLegalOfficerVerifiedIssuers(api: LogionNodeApi, legalOfficerAddress: string): Promise<VerifiedIssuer[]> {
-    const issuers = await getLegalOfficerVerifiedIssuersBatch(api, [legalOfficerAddress]);
-    return issuers[legalOfficerAddress];
+    const logionApi = new LogionNodeApiClass(api);
+    return logionApi.queries.getLegalOfficerVerifiedIssuers(legalOfficerAddress);
 }
 
 /**

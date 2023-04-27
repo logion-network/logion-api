@@ -10,7 +10,8 @@ import {
     TypesAccountData,
     TypesRecoveryConfig,
     ValidAccountId,
-    Sponsorship
+    Sponsorship,
+    VerifiedIssuerType
 } from "./Types.js";
 import { UUID } from "./UUID.js";
 
@@ -181,5 +182,23 @@ export class Queries {
         } else {
             return undefined;
         }
+    }
+
+    async getLegalOfficerVerifiedIssuers(legalOfficerAddress: string): Promise<VerifiedIssuerType[]> {
+        const issuers: VerifiedIssuerType[] = [];
+
+        const entries = await this.api.query.logionLoc.verifiedIssuersMap.entries(legalOfficerAddress);
+        for(const entry of entries) {
+            const address = entry[0].args[1].toString();
+            const issuerOption = entry[1];
+            const identityLocId = UUID.fromDecimalStringOrThrow(issuerOption.unwrap().identityLoc.toString());
+
+            issuers.push({
+                address,
+                identityLocId,
+            });
+        }
+
+        return issuers;
     }
 }

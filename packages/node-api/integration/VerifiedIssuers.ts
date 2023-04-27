@@ -22,6 +22,7 @@ export async function verifiedIssuers() {
     ]);
 
     expect((await api.polkadot.query.logionLoc.verifiedIssuersMap(ALICE, ISSUER)).isSome).toBe(true);
+    expect((await api.queries.getLegalOfficerVerifiedIssuers(ALICE)).length).toBe(1);
 
     const batch = api.batch.locs([ collectionLocId ]);
 
