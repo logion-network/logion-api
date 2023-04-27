@@ -1,5 +1,3 @@
-import { LogionNodeApi } from "@logion/node-api";
-import { Mock } from "moq.ts";
 import {
     ItemTokenWithRestrictedType,
     TokenType,
@@ -7,6 +5,7 @@ import {
     isTokenType,
     isTokenCompatibleWith, NetworkType
 } from "../src/index.js";
+import { buildLogionNodeApiMock } from "./TestConfigFactory.js";
 
 const ercNonFungibleTypes: TokenType[] = [
     "ethereum_erc721",
@@ -141,11 +140,7 @@ function testNonFungibleErcValidToken(type: TokenType) {
 }
 
 function testValid(token: ItemTokenWithRestrictedType, polkadotAddress?: string) {
-    const api = new Mock<LogionNodeApi>();
-    if(polkadotAddress) {
-        api.setup(instance => instance.createType("AccountId", polkadotAddress))
-            .returns(undefined as any);
-    }
+    const api = buildLogionNodeApiMock();
     const result = validateToken(api.object(), token);
     expect(result.valid).toBe(true);
     expect(result.error).not.toBeDefined();
@@ -159,7 +154,8 @@ function testErcInvalidIdType(type: TokenType) {
 }
 
 function testInvalid(token: ItemTokenWithRestrictedType, message: string) {
-    const api = new Mock<LogionNodeApi>();
+    const api = buildLogionNodeApiMock();
+    api.setup(instance => instance.queries.isValidAccountId).returns(() => false);
     const result = validateToken(api.object(), token);
     expect(result.valid).toBe(false);
     expect(result.error).toBe(message);

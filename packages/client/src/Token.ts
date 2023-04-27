@@ -1,4 +1,4 @@
-import { isValidAccountId, LogionNodeApi } from "@logion/node-api";
+import { LogionNodeApiClass } from "@logion/node-api";
 import { isHex } from "@polkadot/util";
 
 export interface ItemTokenWithRestrictedType {
@@ -61,7 +61,7 @@ export interface TokenValidationResult {
     error?: string;
 }
 
-export function validateToken(api: LogionNodeApi, itemToken: ItemTokenWithRestrictedType): TokenValidationResult {
+export function validateToken(api: LogionNodeApiClass, itemToken: ItemTokenWithRestrictedType): TokenValidationResult {
     if(isErcNft(itemToken.type)) {
         const { result, idObject } = validateErcToken(itemToken);
         if(result.valid) {
@@ -86,7 +86,7 @@ export function validateToken(api: LogionNodeApi, itemToken: ItemTokenWithRestri
     } else if(itemToken.type.includes("erc20")) {
         return validateErcToken(itemToken).result;
     } else if(itemToken.type === "owner") {
-        if(isHex(itemToken.id, ETHEREUM_ADDRESS_LENGTH_IN_BITS) || isValidAccountId(api, itemToken.id)) {
+        if(isHex(itemToken.id, ETHEREUM_ADDRESS_LENGTH_IN_BITS) || api.queries.isValidAccountId(itemToken.id)) {
             return { valid: true };
         } else {
             return {

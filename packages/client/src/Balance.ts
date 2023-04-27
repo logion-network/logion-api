@@ -1,10 +1,7 @@
 import {
-    PrefixedNumber,
-    asRecovered,
     CoinBalance,
-    transferSubmittable,
-    getBalances,
-    buildTransferCall
+    Numbers,
+    Currency,
 } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types'; 
 
@@ -16,7 +13,7 @@ import { State } from "./State.js";
 export interface TransferParam {
     signer: Signer;
     destination: string;
-    amount: PrefixedNumber;
+    amount: Numbers.PrefixedNumber;
     callback?: SignCallback;
 }
 
@@ -36,7 +33,7 @@ export async function getBalanceState(sharedState: SharedState & { isRecovery: b
     }
     const client = newTransactionClient(targetAddress, sharedState);
     const transactions = await client.fetchTransactions();
-    const balances = await getBalances({ api: sharedState.nodeApi, accountId: targetAddress });
+    const balances = await sharedState.nodeApi.queries.getCoinBalances(targetAddress);
     return new BalanceState({
         ...sharedState,
         transactions,
@@ -80,21 +77,18 @@ export class BalanceState extends State {
 
         let submittable: SubmittableExtrinsic;
         if(this.sharedState.isRecovery) {
-            submittable = asRecovered({
-                api: this.sharedState.nodeApi,
-                recoveredAccountId: this.sharedState.recoveredAddress || "",
-                call: buildTransferCall({
-                    api: this.sharedState.nodeApi,
+            submittable =  this.sharedState.nodeApi.polkadot.tx.recovery.asRecovered(
+                this.sharedState.recoveredAddress || "",
+                this.sharedState.nodeApi.polkadot.tx.balances.transfer(
                     destination,
-                    amount,
-                })
-            });
+                    Currency.toCanonicalAmount(amount),
+                )
+            );
         } else {
-            submittable = transferSubmittable({
-                api: this.sharedState.nodeApi,
+            submittable = this.sharedState.nodeApi.polkadot.tx.balances.transfer(
                 destination,
-                amount,
-            });
+                Currency.toCanonicalAmount(amount),
+            );
         }
 
         await signer.signAndSend({

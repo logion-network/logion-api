@@ -1,4 +1,4 @@
-import { LogionNodeApi, ValidAccountId } from "@logion/node-api";
+import { LogionNodeApiClass, ValidAccountId } from "@logion/node-api";
 
 import { AccountTokens } from "./AuthenticationClient.js";
 import { AxiosFactory } from "./AxiosFactory.js";
@@ -25,7 +25,7 @@ export interface SharedState {
     axiosFactory: AxiosFactory;
     directoryClient: DirectoryClient;
     networkState: NetworkState<LegalOfficerEndpoint>;
-    nodeApi: LogionNodeApi;
+    nodeApi: LogionNodeApiClass;
     legalOfficers: LegalOfficerClass[];
     allLegalOfficers: LegalOfficerClass[];
     tokens: AccountTokens;

@@ -1,4 +1,4 @@
-import { ValidAccountId, buildApi } from "@logion/node-api";
+import { ValidAccountId, buildApiClass } from "@logion/node-api";
 
 import {
     AcceptedProtection,
@@ -67,7 +67,7 @@ export async function recoverLostAccount(state: State) {
     const pendingRequest = recoveredVault.pendingVaultTransferRequests[0];
 
     console.log("Alice accepts transfer from recovered vault")
-    await aliceAcceptsTransfer(state, pendingRequest);
+    await aliceAcceptsTransfer(state, pendingRequest, claimed);
 
     console.log("Transfer from recovered account")
     const recoveredBalance = await claimed.recoveredBalanceState();
@@ -133,9 +133,9 @@ async function vouchRecovery(
     lost: string,
     rescuer: string,
 ): Promise<void> {
-    const api = await buildApi(config.rpcEndpoints);
+    const api = await buildApiClass(config.rpcEndpoints);
     await signer.signAndSend({
         signerId: legalOfficerAddress.address,
-        submittable: api.tx.recovery.vouchRecovery(lost, rescuer)
+        submittable: api.polkadot.tx.recovery.vouchRecovery(lost, rescuer)
     })
 }

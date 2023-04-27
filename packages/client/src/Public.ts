@@ -1,4 +1,4 @@
-import { LegalOfficerCase, UUID, FeesEstimator, Adapters } from "@logion/node-api";
+import { LegalOfficerCase, UUID, FeesEstimator } from "@logion/node-api";
 
 import { CollectionItem } from "./CollectionItem.js";
 import { CheckCertifiedCopyResult, CheckResultType } from "./Deliveries.js";
@@ -20,7 +20,7 @@ export class PublicApi {
         sharedState: SharedState
     }) {
         this.sharedState = args.sharedState;
-        this.fees = new FeesEstimator(args.sharedState.nodeApi, new Adapters(args.sharedState.nodeApi));
+        this.fees = args.sharedState.nodeApi.fees;
     }
 
     private sharedState: SharedState;
