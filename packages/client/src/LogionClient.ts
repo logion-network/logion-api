@@ -1,6 +1,6 @@
 import { AxiosInstance } from "axios";
 import { DateTime, DurationLike } from "luxon";
-import { LogionNodeApi, LogionNodeApiClass, ValidAccountId } from "@logion/node-api";
+import { LogionNodeApi, LogionNodeApiClass, UUID, ValidAccountId } from "@logion/node-api";
 
 import { AccountTokens } from "./AuthenticationClient.js";
 import { BalanceState, getBalanceState } from "./Balance.js";
@@ -17,7 +17,7 @@ import { PublicApi } from "./Public.js";
 import { FetchAllLocsParams } from "./LocClient.js";
 import { NetworkState } from "./NetworkState.js";
 import { VoterApi } from "./Voter.js";
-import { Sponsorship } from "./Sponsorship.js";
+import { SponsorshipState, SponsorshipApi } from "./Sponsorship.js";
 import { requireDefined } from "./assertions.js";
 
 export class LogionClient {
@@ -351,11 +351,19 @@ export class LogionClient {
         }
     }
 
-    get sponsorship(): Sponsorship {
+    get sponsorship(): SponsorshipApi {
         this.ensureConnected();
-        return new Sponsorship({
-            api: this.sharedState.nodeApi,
+        return new SponsorshipApi({
+            api: new LogionNodeApiClass(this.sharedState.nodeApi.polkadot),
             signerId: requireDefined(this.currentAddress?.address),
+        });
+    }
+
+    sponsorshipState(sponsorshipId: UUID): Promise<SponsorshipState> {
+        return SponsorshipState.getState({
+            sharedState: this.sharedState,
+            client: this,
+            id: sponsorshipId,
         });
     }
 }

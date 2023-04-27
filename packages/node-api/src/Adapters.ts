@@ -37,7 +37,7 @@ import {
     OtherAccountId,
     MetadataItem,
     Sponsorship,
-    AccountId
+    AccountId, AccountType
 } from "./Types.js";
 import { UUID } from "./UUID.js";
 import { stringToHex } from "@polkadot/util";
@@ -49,7 +49,7 @@ export class Adapters {
         this.api = api;
     }
 
-    private  api: ApiPromise;
+    private readonly api: ApiPromise;
 
     toPalletLogionLocFile(file: File): PalletLogionLocFile {
         return this.api.createType("PalletLogionLocFile", {
@@ -427,9 +427,9 @@ export class Adapters {
 
     toSponsorship(sponsorship: PalletLogionLocSponsorship): Sponsorship {
         return {
-            sponsor: { type: "Polkadot", address: sponsorship.sponsor.toString() },
+            sponsor: this.getValidAccountId(sponsorship.sponsor.toString(), "Polkadot"),
             sponsoredAccount: this.toAccountId(sponsorship.sponsoredAccount),
-            legalOfficer: { type: "Polkadot", address: sponsorship.legalOfficer.toString() },
+            legalOfficer: this.getValidAccountId(sponsorship.legalOfficer.toString(), "Polkadot"),
             locId: sponsorship.locId.isSome ? UUID.fromDecimalStringOrThrow(sponsorship.locId.unwrap().toString()) : undefined
         }
     }
@@ -437,14 +437,20 @@ export class Adapters {
     toAccountId(account: PalletLogionLocSupportedAccountId): AccountId {
         let type: string = account.type;
         if (account.isPolkadot) {
-            return { type: "Polkadot", address: account.toString() }
+            return this.getValidAccountId(account.toString(), "Polkadot");
         } else if (account.isOther) {
             const otherAccount = account.asOther;
             type = otherAccount.type;
             if (otherAccount.isEthereum) {
-                return { type: "Ethereum", address: account.asOther.asEthereum.toHex() }
+                return this.getValidAccountId(account.asOther.asEthereum.toHex(), "Ethereum")
             }
         }
         throw new Error(`Unsupported account type: ${ type }`);
     }
+
+    getValidAccountId(accountId: string, type: AccountType): ValidAccountId {
+        const anyAccountId = new AnyAccountId(this.api, accountId, type);
+        return anyAccountId.toValidAccountId();
+    }
+
 }

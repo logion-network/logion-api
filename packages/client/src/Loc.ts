@@ -1,4 +1,13 @@
-import { UUID, LegalOfficerCase, LocType, VoidInfo, ItemFile, ValidAccountId, LogionNodeApiClass, LocBatch } from "@logion/node-api";
+import {
+    UUID,
+    LegalOfficerCase,
+    LocType,
+    VoidInfo,
+    ItemFile,
+    ValidAccountId,
+    LogionNodeApiClass,
+    LocBatch,
+} from "@logion/node-api";
 
 import {
     LocRequest,
@@ -124,6 +133,13 @@ export class LocsState extends State {
     get rejectedRequests(): Record<LocType, RejectedRequest[]> {
         this.ensureCurrent();
         return this.withPredicate(this._locs, loc => loc instanceof RejectedRequest);
+    }
+
+    getLocRequestState(index: number): LocRequestState | undefined {
+        const allLocs = Object.values(this._locs);
+        if (index >= 0 && index < allLocs.length) {
+            return allLocs[index];
+        }
     }
 
     hasValidIdentityLoc(legalOfficer: LegalOfficer): boolean {

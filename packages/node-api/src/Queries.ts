@@ -58,8 +58,7 @@ export class Queries {
     }
 
     getValidAccountId(accountId: string, type: AccountType): ValidAccountId {
-        const anyAccountId = new AnyAccountId(this.api, accountId, type);
-        return anyAccountId.toValidAccountId();
+        return this.adapters.getValidAccountId(accountId, type);
     }
 
     async getAccountData(accountId: string): Promise<TypesAccountData> {

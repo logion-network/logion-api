@@ -26,6 +26,7 @@ export { LegalOfficerDecision, LoRecoveryClient, ProtectionRequest, ProtectionRe
 export * from './SharedClient.js';
 export * from './Signer.js';
 export * from './State.js';
+export * from './Sponsorship.js';
 export * from './Token.js';
 export * from './TransactionClient.js';
 export * from './Types.js';

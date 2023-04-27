@@ -244,6 +244,7 @@ export interface FetchLocRequestSpecification {
     requesterAddress?: string,
     statuses: LocRequestStatus[],
     locTypes: LocType[],
+    sponsorshipId?: string;
 }
 
 export interface CreateLocRequest {
