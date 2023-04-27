@@ -279,6 +279,14 @@ export class Adapters {
         return this.api.createType("Compact<u128>", id.toHexString());
     }
 
+    toNonCompactLocId(id: UUID): u128 {
+        return this.toNonCompactU128Uuid(id);
+    }
+
+    private toNonCompactU128Uuid(id: UUID): u128 {
+        return this.api.createType("u128", id.toDecimalString());
+    }
+
     fromLocId(locId: u128): UUID {
         return UUID.fromDecimalStringOrThrow(locId.toString());
     }
@@ -419,6 +427,10 @@ export class Adapters {
 
     toSponsorshipId(id: UUID): Compact<u128> {
         return this.toCompactU128Uuid(id);
+    }
+
+    toNonCompactSponsorshipId(id: UUID): u128 {
+        return this.toNonCompactU128Uuid(id);
     }
 
     fromSponsorshipId(sponsorshipId: u128): UUID {
