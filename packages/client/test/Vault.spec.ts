@@ -1,10 +1,9 @@
-import { PrefixedNumber, ATTO, ValidAccountId } from '@logion/node-api';
+import { PrefixedNumber, ATTO, ValidAccountId, Vault } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces/payment';
 import type { Header, BlockNumber } from '@polkadot/types/interfaces/runtime';
 import type { IU8a } from '@polkadot/types-codec/types';
 import type { Compact } from '@polkadot/types-codec/base';
-import { Call } from "@polkadot/types/interfaces";
 import { DateTime } from 'luxon';
 import { It, Mock } from "moq.ts";
 
@@ -26,7 +25,6 @@ import {
     buildTestAuthenticatedSharedSate,
     LEGAL_OFFICERS,
     LOGION_CLIENT_CONFIG,
-    mockEmptyOption,
     REQUESTER,
     RECOVERED_ADDRESS as RECOVERING_ADDRESS,
     buildSimpleNodeApi
@@ -60,19 +58,22 @@ describe("Vault", () => {
         const maxWeight = "100000";
         const transfer = buildTransferSubmittable(vaultAddress, maxWeight);
 
-        const multisig = new Mock<SubmittableExtrinsic>();
         const signer = new Mock<Signer>();
         const multisigBlockHash = "0x1234567890abcdef";
         signer.setup(instance => instance.signAndSend(
             It.Is<SignParameters>(param =>
                 param.signerId === REQUESTER.address
-                && param.submittable === multisig.object()
+                && param.submittable === transfer
             )
         )).returns(Promise.resolve({
             block: multisigBlockHash,
             index: 1,
             events: [],
         }));
+
+        const vault = new Mock<Vault>();
+        vault.setup(instance => instance.address).returns(vaultAddress);
+        vault.setup(instance => instance.tx.transferFromVault(It.IsAny())).returns(Promise.resolve(transfer));
 
         const client = buildVaultClientForCreation(expectedPendingRequest);
 
@@ -83,17 +84,11 @@ describe("Vault", () => {
                 factory.setupAxiosFactoryMock();
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                nodeApi.setup(instance => instance.tx.balances.transfer(destination, 200n)).returns(transfer);
-                nodeApi.setup(instance => instance.query.multisig.multisigs(vaultAddress, transfer.method.hash)).returns(Promise.resolve(mockEmptyOption()));
-                nodeApi.setup(instance => instance.tx.vault.requestCall(It.Is<string[]>(legalOfficers =>
-                    legalOfficers[0] === BOB.address && legalOfficers[1] === ALICE.address
-                ), transfer.method.hash, It.Is<{refTime: string}>(weight => weight.refTime === maxWeight))).returns(multisig.object());
-
                 const blockHeader = new Mock<Header>();
                 const blockNumber = new Mock<Compact<BlockNumber>>();
                 blockHeader.setup(instance => instance.number).returns(blockNumber.object());
                 blockNumber.setup(instance => instance.toString()).returns(expectedPendingRequest.block);
-                nodeApi.setup(instance => instance.rpc.chain.getHeader(multisigBlockHash)).returns(Promise.resolve(blockHeader.object()));
+                nodeApi.setup(instance => instance.polkadot.rpc.chain.getHeader(multisigBlockHash)).returns(Promise.resolve(blockHeader.object()));
             },
             currentAddress,
             LEGAL_OFFICERS,
@@ -114,6 +109,7 @@ describe("Vault", () => {
             isRecovery: false,
             balances: [],
             transactions: [],
+            vault: vault.object(),
         });
 
         const nextState = await state.createVaultTransferRequest({
@@ -149,6 +145,10 @@ describe("Vault", () => {
             events: [],
         }));
 
+        const vault = new Mock<Vault>();
+        vault.setup(instance => instance.address).returns(vaultAddress);
+        vault.setup(instance => instance.tx.transferFromVault(It.IsAny())).returns(Promise.resolve(transfer));
+
         const client = buildVaultClientForCreation(expectedPendingRequest);
 
         const sharedState = await buildTestAuthenticatedSharedSate(
@@ -158,24 +158,13 @@ describe("Vault", () => {
                 factory.setupAxiosFactoryMock();
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                nodeApi.setup(instance => instance.tx.balances.transfer(destination, 200n)).returns(transfer);
-                nodeApi.setup(instance => instance.query.multisig.multisigs(vaultAddress, transfer.method.hash)).returns(Promise.resolve(mockEmptyOption()));
-                const multisig = new Mock<SubmittableExtrinsic>();
-                nodeApi.setup(instance => instance.tx.vault.requestCall(It.Is<string[]>(legalOfficers =>
-                    legalOfficers[0] === BOB.address && legalOfficers[1] === ALICE.address
-                ), transfer.method.hash, It.Is<{refTime: string}>(weight => weight.refTime === maxWeight))).returns(multisig.object());
-
-                const multisigCall = new Mock<Call>();
-                nodeApi.setup(instance => instance.createType("Call", multisig.object()))
-                    .returns(multisigCall.object());
-
-                nodeApi.setup(instance => instance.tx.recovery.asRecovered(REQUESTER.address, multisigCall.object())).returns(asRecovered.object());
+                nodeApi.setup(instance => instance.polkadot.tx.recovery.asRecovered(REQUESTER.address, transfer)).returns(asRecovered.object());
 
                 const blockHeader = new Mock<Header>();
                 const blockNumber = new Mock<Compact<BlockNumber>>();
                 blockHeader.setup(instance => instance.number).returns(blockNumber.object());
                 blockNumber.setup(instance => instance.toString()).returns(expectedPendingRequest.block);
-                nodeApi.setup(instance => instance.rpc.chain.getHeader(asRecoveredBlockHash)).returns(Promise.resolve(blockHeader.object()));
+                nodeApi.setup(instance => instance.polkadot.rpc.chain.getHeader(asRecoveredBlockHash)).returns(Promise.resolve(blockHeader.object()));
             },
             currentAddress,
             LEGAL_OFFICERS,
@@ -197,6 +186,7 @@ describe("Vault", () => {
             recoveredAddress: REQUESTER.address,
             balances: [],
             transactions: [],
+            vault: vault.object(),
         });
 
         const nextState = await state.createVaultTransferRequest({
@@ -213,8 +203,6 @@ describe("Vault", () => {
     it("cancels regular transfer", async () => {
         const currentAddress = REQUESTER;
         const tokens = buildTokens(currentAddress);
-        const maxWeight = "100000";
-        const transfer = buildTransferSubmittable(vaultAddress, maxWeight);
 
         const cancel = new Mock<SubmittableExtrinsic>();
         const signer = new Mock<Signer>();
@@ -232,6 +220,10 @@ describe("Vault", () => {
 
         const requestToCancel = expectedPendingRequest;
 
+        const vault = new Mock<Vault>();
+        vault.setup(instance => instance.address).returns(vaultAddress);
+        vault.setup(instance => instance.tx.cancelVaultTransfer(It.IsAny())).returns(cancel.object());
+
         const client = buildVaultClientForCancel(requestToCancel);
 
         const sharedState = await buildTestAuthenticatedSharedSate(
@@ -239,13 +231,7 @@ describe("Vault", () => {
                 factory.setupDefaultNetworkState();
                 factory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
                 factory.setupAxiosFactoryMock();
-
-                const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                nodeApi.setup(instance => instance.tx.balances.transfer(destination, 200n)).returns(transfer);
-                nodeApi.setup(instance => instance.tx.multisig.cancelAsMulti(2, sortedLegalOfficers(), It.Is<{height: bigint, index: number}>(timepoint =>
-                    timepoint.height === BigInt(requestToCancel.block)
-                    && timepoint.index === requestToCancel.index
-                ), transfer.method.hash)).returns(cancel.object());
+                factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
             },
             currentAddress,
             LEGAL_OFFICERS,
@@ -266,6 +252,7 @@ describe("Vault", () => {
             isRecovery: false,
             balances: [],
             transactions: [],
+            vault: vault.object(),
         });
 
         const nextState = await state.cancelVaultTransferRequest(ALICE, requestToCancel, signer.object());
@@ -278,8 +265,6 @@ describe("Vault", () => {
     it("cancels recovery transfer", async () => {
         const currentAddress = RECOVERING_ADDRESS;
         const tokens = buildTokens(currentAddress);
-        const maxWeight = "100000";
-        const transfer = buildTransferSubmittable(vaultAddress, maxWeight);
 
         const asRecovered = new Mock<SubmittableExtrinsic>();
         const signer = new Mock<Signer>();
@@ -297,6 +282,11 @@ describe("Vault", () => {
 
         const requestToCancel = expectedPendingRequest;
 
+        const vault = new Mock<Vault>();
+        vault.setup(instance => instance.address).returns(vaultAddress);
+        const cancel = new Mock<SubmittableExtrinsic>();
+        vault.setup(instance => instance.tx.cancelVaultTransfer(It.IsAny())).returns(cancel.object());
+
         const client = buildVaultClientForCancel(requestToCancel);
 
         const sharedState = await buildTestAuthenticatedSharedSate(
@@ -306,19 +296,7 @@ describe("Vault", () => {
                 factory.setupAxiosFactoryMock();
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                nodeApi.setup(instance => instance.tx.balances.transfer(destination, 200n)).returns(transfer);
-
-                const cancel = new Mock<SubmittableExtrinsic>();
-                nodeApi.setup(instance => instance.tx.multisig.cancelAsMulti(2, sortedLegalOfficers(), It.Is<{height: bigint, index: number}>(timepoint =>
-                    timepoint.height === BigInt(requestToCancel.block)
-                    && timepoint.index === requestToCancel.index
-                ), transfer.method.hash)).returns(cancel.object());
-
-                const cancelCall = new Mock<Call>();
-                nodeApi.setup(instance => instance.createType("Call", cancel.object()))
-                    .returns(cancelCall.object());
-
-                nodeApi.setup(instance => instance.tx.recovery.asRecovered(REQUESTER.address, cancelCall.object())).returns(asRecovered.object());
+                nodeApi.setup(instance => instance.polkadot.tx.recovery.asRecovered(REQUESTER.address, cancel.object())).returns(asRecovered.object());
             },
             currentAddress,
             LEGAL_OFFICERS,
@@ -340,6 +318,7 @@ describe("Vault", () => {
             recoveredAddress: REQUESTER.address,
             balances: [],
             transactions: [],
+            vault: vault.object(),
         });
 
         const nextState = await state.cancelVaultTransferRequest(ALICE, requestToCancel, signer.object());
@@ -397,10 +376,4 @@ function buildVaultClientForCancel(requestToCancel: VaultTransferRequest): Vault
         && request.origin === requestToCancel.origin
     ))).returns(Promise.resolve());
     return client.object();
-}
-
-function sortedLegalOfficers(): string[] {
-    return It.Is<string[]>(legalOfficers =>
-        legalOfficers[0] === BOB.address && legalOfficers[1] === ALICE.address
-    );
 }

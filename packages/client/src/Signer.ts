@@ -1,12 +1,12 @@
-import { DateTime } from "luxon";
+import { TypesEvent, Adapters, ValidAccountId } from '@logion/node-api';
 import { Keyring } from '@polkadot/api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { ISubmittableResult } from '@polkadot/types/types';
-import { base64Encode } from '@polkadot/util-crypto';
 import { Registry } from '@polkadot/types-codec/types';
-import { toHex, getErrorMessage, Event, getExtrinsicEvents, ValidAccountId } from '@logion/node-api';
+import { base64Encode } from '@polkadot/util-crypto';
+import { stringToHex } from '@polkadot/util';
 import { Hash } from 'fast-sha256';
-
+import { DateTime } from "luxon";
 import { toIsoString } from "./DateTimeUtil.js";
 import { requireDefined } from "./assertions.js";
 
@@ -42,7 +42,7 @@ export interface SignParameters {
 export interface SuccessfulSubmission {
     readonly block: string;
     readonly index: number;
-    readonly events: Event[];
+    readonly events: TypesEvent[];
 }
 
 export interface Signer {
@@ -89,7 +89,7 @@ export abstract class BaseSigner implements FullSigner {
     abstract signToHex(signerId: ValidAccountId, message: string): Promise<TypedSignature>;
 
     buildMessage(parameters: SignRawParameters): string {
-        return toHex(hashAttributes(this.buildAttributes(parameters)));
+        return stringToHex(hashAttributes(this.buildAttributes(parameters)));
     }
 
     buildAttributes(parameters: SignRawParameters): string[] {
@@ -152,12 +152,12 @@ export abstract class BaseSigner implements FullSigner {
         if (params.result.dispatchError || params.signAndSendStrategy.canUnsub(params.result)) {
             params.unsub();
             if(params.result.dispatchError) {
-                params.reject(new Error(getErrorMessage(params.result.dispatchError)));
+                params.reject(new Error(Adapters.getErrorMessage(params.result.dispatchError)));
             } else {
                 params.resolve({
                     block: requireDefined(params.submissionState.block),
                     index: params.result.txIndex || -1,
-                    events: getExtrinsicEvents(params.result),
+                    events: Adapters.getExtrinsicEvents(params.result),
                 });
             }
         }

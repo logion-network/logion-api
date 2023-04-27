@@ -1,4 +1,4 @@
-import { buildApi, UUID, ValidAccountId } from '@logion/node-api';
+import { buildApiClass, UUID, ValidAccountId } from '@logion/node-api';
 
 import {
     LogionClient,
@@ -175,15 +175,18 @@ async function createAndCloseIdentityLoc(
     legalOfficerAddress: string,
     requesterAddress: string
 ): Promise<UUID> {
-    const api = await buildApi(config.rpcEndpoints);
+    const api = await buildApiClass(config.rpcEndpoints);
     const identityLocId = new UUID();
     await signer.signAndSend({
         signerId: legalOfficerAddress,
-        submittable: api.tx.logionLoc.createPolkadotIdentityLoc(identityLocId.toDecimalString(), requesterAddress)
+        submittable: api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
+            api.adapters.toLocId(identityLocId),
+            requesterAddress
+        )
     });
     await signer.signAndSend({
         signerId: legalOfficerAddress,
-        submittable: api.tx.logionLoc.close(identityLocId.toDecimalString())
+        submittable: api.polkadot.tx.logionLoc.close(api.adapters.toLocId(identityLocId))
     });
     return identityLocId;
 }

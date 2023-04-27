@@ -1,6 +1,6 @@
-import { buildApi, LGNT_SMALLEST_UNIT, NONE, PrefixedNumber, approveVaultTransfer } from "@logion/node-api";
+import { buildApiClass, Currency } from "@logion/node-api";
 
-import { ActiveProtection, VaultTransferRequest } from "../src/index.js";
+import { ActiveProtection, ClaimedRecovery, PendingRecovery, VaultTransferRequest, WithProtectionParameters } from "../src/index.js";
 import { REQUESTER_ADDRESS, State } from "./Utils.js";
 import { checkCoinBalance } from "./Balance.js";
 
@@ -18,7 +18,7 @@ export async function providesVault(state: State) {
     balanceState = await balanceState.transfer({
         signer,
         destination: vaultAddress,
-        amount: new PrefixedNumber("5", NONE)
+        amount: Currency.nLgnt(5n),
     });
     vaultState = await vaultState.refresh();
     checkCoinBalance(vaultState.balances[0], "5.00");
@@ -26,14 +26,14 @@ export async function providesVault(state: State) {
     // Transfer back from vault
     vaultState = await vaultState.createVaultTransferRequest({
         legalOfficer: alice,
-        amount: new PrefixedNumber("1", NONE),
+        amount: Currency.nLgnt(1n),
         destination: REQUESTER_ADDRESS,
         signer
     });
     const pendingRequest = vaultState.pendingVaultTransferRequests[0];
 
     // Alice accepts
-    await aliceAcceptsTransfer(state, pendingRequest);
+    await aliceAcceptsTransfer(state, pendingRequest, activeProtection);
 
     // Check balances
     vaultState = await vaultState.refresh();
@@ -43,17 +43,19 @@ export async function providesVault(state: State) {
     checkCoinBalance(vaultState.balances[0], "4.00");
 }
 
-export async function aliceAcceptsTransfer(state: State, request: VaultTransferRequest) {
-    const { client, signer, aliceAccount } = state;
+export async function aliceAcceptsTransfer(state: State, request: VaultTransferRequest, activeProtection: WithProtectionParameters) {
+    const { client, signer, aliceAccount, requesterAccount } = state;
 
-    const api = await buildApi(client.config.rpcEndpoints);
+    const api = await buildApiClass(client.config.rpcEndpoints);
 
     const signerId = aliceAccount.address;
-    const amount = new PrefixedNumber(request!.amount, LGNT_SMALLEST_UNIT);
-    const submittable = await approveVaultTransfer({
+    const amount = Currency.toPrefixedNumberAmount(BigInt(request!.amount));
+    const vault = api.vault(
+        requesterAccount.address,
+        activeProtection.protectionParameters.states.map(state => state.legalOfficer.address)
+    );
+    const submittable = await vault.tx.approveVaultTransfer({
         signerId,
-        api,
-        requester: request!.origin,
         destination: request!.destination,
         amount,
         block: BigInt(request!.block),

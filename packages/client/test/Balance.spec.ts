@@ -1,7 +1,5 @@
-import { PrefixedNumber, ATTO } from "@logion/node-api";
-import { FrameSystemAccountInfo } from "@polkadot/types/lookup";
+import { PrefixedNumber, ATTO, CoinBalance, Currency, Queries } from "@logion/node-api";
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
-import { Call } from "@polkadot/types/interfaces";
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { DateTime } from "luxon";
 import { It, Mock, Times } from 'moq.ts';
@@ -18,12 +16,9 @@ import {
 } from "./Utils.js";
 import { AccountTokens, LogionClient, Transaction, AxiosFactory, BalanceState, Signer, LegalOfficerClass } from "../src/index.js";
 
-const REQUESTER_ADDRESS = buildValidPolkadotAccountId("5ERRWWYABvYjyUG2oLCNifkmcCQT44ijPpQNxtwZZFj86Jjd")!;
-
 describe("Balance", () => {
 
     it("gets balances", async () => {
-
         const config = buildTestConfig(testConfigFactory => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
             testConfigFactory.setupDefaultNetworkState();
@@ -32,19 +27,15 @@ describe("Balance", () => {
 
             directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
-            const accountInfo = mockAccountInfo(100n);
-            nodeApi.setup(instance => instance.query.system.account(REQUESTER_ADDRESS.address))
-                .returns(Promise.resolve(accountInfo))
+            nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS.address))
+                .returns(Promise.resolve([ COIN_BALANCE ]));
         })
         const client = (await LogionClient.create(config)).withCurrentAddress(REQUESTER_ADDRESS)
 
         const balanceState = await client.balanceState();
 
-        expect(balanceState.balances[0].available.coefficient.toNumber()).toEqual(100)
-        expect(balanceState.balances[0].available.prefix).toEqual(ATTO)
-        expect(balanceState.balances[0].balance.coefficient.toNumber()).toEqual(100)
-        expect(balanceState.balances[0].balance.prefix).toEqual(ATTO)
-
+        expect(balanceState.balances.length).toBe(1);
+        expect(balanceState.balances[0]).toEqual(COIN_BALANCE);
     })
 
     it("gets transactions", async () => {
@@ -93,9 +84,8 @@ describe("Balance", () => {
                 axiosFactory: axiosFactory.object(),
             }) ]));
 
-            const accountInfo = mockAccountInfo(100n);
-            nodeApi.setup(instance => instance.query.system.account(REQUESTER_ADDRESS.address))
-                .returns(Promise.resolve(accountInfo))
+            nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS.address))
+                .returns(Promise.resolve([ COIN_BALANCE ]));
         })
         const client = (await LogionClient.create(config)).withCurrentAddress(REQUESTER_ADDRESS)
 
@@ -125,11 +115,10 @@ describe("Balance", () => {
 
                 directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
-                const accountInfo = mockAccountInfo(1000000n);
-                nodeApi.setup(instance => instance.query.system.account(REQUESTER_ADDRESS.address))
-                    .returns(Promise.resolve(accountInfo));
+                nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS.address))
+                    .returns(Promise.resolve([ COIN_BALANCE ]));
 
-                nodeApi.setup(instance => instance.tx.balances.transfer(REQUESTER_ADDRESS.address, "200"))
+                nodeApi.setup(instance => instance.polkadot.tx.balances.transfer(REQUESTER_ADDRESS.address, "200"))
                     .returns(transfer.object());
 
                 setupFetchTransactions(axiosFactory, [], REQUESTER_ADDRESS.address);
@@ -176,7 +165,6 @@ describe("Balance", () => {
         const asRecovered = new Mock<SubmittableExtrinsic>();
         const amount = new PrefixedNumber("200", ATTO);
         const transfer = new Mock<SubmittableExtrinsic>();
-        const call = new Mock<Call>();
         const sharedState = await buildTestAuthenticatedSharedSate(
             testConfigFactory => {
                 const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
@@ -186,17 +174,13 @@ describe("Balance", () => {
 
                 directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
-                const accountInfo = mockAccountInfo(1000000n);
-                nodeApi.setup(instance => instance.query.system.account(recoveredAddress))
-                    .returns(Promise.resolve(accountInfo));
+                nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS.address))
+                    .returns(Promise.resolve([ COIN_BALANCE ]));
 
-                nodeApi.setup(instance => instance.tx.balances.transfer(REQUESTER_ADDRESS.address, "200"))
+                nodeApi.setup(instance => instance.polkadot.tx.balances.transfer(REQUESTER_ADDRESS.address, "200"))
                     .returns(transfer.object());
 
-                nodeApi.setup(instance => instance.createType("Call", transfer.object()))
-                    .returns(call.object());
-
-                nodeApi.setup(instance => instance.tx.recovery.asRecovered(recoveredAddress, call.object()))
+                nodeApi.setup(instance => instance.polkadot.tx.recovery.asRecovered(recoveredAddress, transfer.object()))
                     .returns(asRecovered.object());
 
                 setupFetchTransactions(axiosFactory, [], recoveredAddress);
@@ -230,6 +214,8 @@ describe("Balance", () => {
     })
 })
 
+const REQUESTER_ADDRESS = buildValidPolkadotAccountId("5ERRWWYABvYjyUG2oLCNifkmcCQT44ijPpQNxtwZZFj86Jjd")!;
+
 function setupFetchTransactions(axiosFactory: Mock<AxiosFactory>, transactions: Transaction [], address: string) {
     const axios = new Mock<AxiosInstance>();
     const response = new Mock<AxiosResponse<any>>();
@@ -242,17 +228,9 @@ function setupFetchTransactions(axiosFactory: Mock<AxiosFactory>, transactions: 
         .returns(axios.object());
 }
 
-function mockAccountInfo(free: bigint): FrameSystemAccountInfo {
-    const accountInfo = {
-        data: {
-            free: {
-                toString: () => free.toString(),
-                add: () => free.toString()
-            },
-            reserved: {
-                toString: () => "0",
-            }
-        }
-    }
-    return accountInfo as unknown as FrameSystemAccountInfo;
-}
+const COIN_BALANCE: CoinBalance = {
+    coin: Queries.getCoin("lgnt"),
+    balance: Currency.nLgnt(100n),
+    available: Currency.nLgnt(100n),
+    level: 100,
+};

@@ -1,4 +1,5 @@
 import { DateTime } from "luxon";
+import { ApiPromise } from "@polkadot/api";
 import { Option, Vec, bool } from "@polkadot/types-codec";
 import type { Codec } from '@polkadot/types-codec/types';
 
@@ -15,7 +16,7 @@ import {
 } from "../src/index.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
 import { It } from "moq.ts";
-import { AccountType, AnyAccountId, LogionNodeApi, ValidAccountId } from "@logion/node-api";
+import { AccountType, AnyAccountId, LogionNodeApiClass, UUID, ValidAccountId } from "@logion/node-api";
 
 export const ALICE: LegalOfficer = {
     name: "Alice",
@@ -54,7 +55,7 @@ export const LEGAL_OFFICERS = [ ALICE, BOB, CHARLIE ];
 
 export const DIRECTORY_ENDPOINT = "https://directory.logion.network";
 
-export function buildAliceTokens(api: LogionNodeApi, expirationDateTime: DateTime): AccountTokens {
+export function buildAliceTokens(api: LogionNodeApiClass, expirationDateTime: DateTime): AccountTokens {
     return new AccountTokens(api, {
         [`Polkadot:${ALICE.address}`]: {
             value: "alice token",
@@ -63,7 +64,7 @@ export function buildAliceTokens(api: LogionNodeApi, expirationDateTime: DateTim
     });
 }
 
-export function buildAliceAndBobTokens(api: LogionNodeApi, expirationDateTime: DateTime): AccountTokens {
+export function buildAliceAndBobTokens(api: LogionNodeApiClass, expirationDateTime: DateTime): AccountTokens {
     return new AccountTokens(api, {
         [`Polkadot:${ALICE.address}`]: {
             value: "alice token",
@@ -209,15 +210,19 @@ export function buildValidPolkadotAccountId(address: string | undefined): ValidA
 export function buildValidAccountId(address: string | undefined, type: AccountType): ValidAccountId | undefined {
     if(address) {
         const api = buildSimpleNodeApi();
-        return new AnyAccountId(api, address, type).toValidAccountId();
+        return new AnyAccountId(api.polkadot, address, type).toValidAccountId();
     } else {
         return undefined;
     }
 }
 
-export function buildSimpleNodeApi(): LogionNodeApi {
+export function buildSimpleNodeApi(): LogionNodeApiClass {
     const api = {
         createType: () => undefined,
-    };
-    return api as unknown as LogionNodeApi;
+    } as unknown as ApiPromise;
+    return new LogionNodeApiClass(api);
+}
+
+export function ItIsUuid(expected: UUID): UUID {
+    return It.Is<UUID>(uuid => uuid.toString() === expected.toString());
 }

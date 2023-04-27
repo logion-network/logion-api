@@ -1,4 +1,4 @@
-import { buildApi, UUID, Currency, Numbers, AnyAccountId, validPolkadotAccountId, ValidAccountId, OtherAccountId, LogionNodeApiClass } from "@logion/node-api";
+import { buildApiClass, UUID, Currency, Numbers, ValidAccountId, OtherAccountId } from "@logion/node-api";
 import { Keyring } from "@polkadot/api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import FormData from "form-data";
@@ -81,13 +81,13 @@ export async function setupInitialState(): Promise<State> {
         CHARLIE_SECRET_SEED,
         VTP_SECRET_SEED,
     ]);
-    const requesterAccount = validPolkadotAccountId(anonymousClient.nodeApi, REQUESTER_ADDRESS);
-    const newAccount = validPolkadotAccountId(anonymousClient.nodeApi, NEW_ADDRESS);
-    const aliceAccount = validPolkadotAccountId(anonymousClient.nodeApi, ALICE.address);
-    const bobAccount = validPolkadotAccountId(anonymousClient.nodeApi, BOB.address);
-    const charlieAccount = validPolkadotAccountId(anonymousClient.nodeApi, CHARLIE.address);
-    const vtpAccount = validPolkadotAccountId(anonymousClient.nodeApi, VTP_ADDRESS);
-    const ethereumAccount = new AnyAccountId(anonymousClient.nodeApi, ETHEREUM_ADDRESS, "Ethereum").toValidAccountId();
+    const requesterAccount = anonymousClient.logionApi.queries.getValidAccountId(REQUESTER_ADDRESS, "Polkadot");
+    const newAccount = anonymousClient.logionApi.queries.getValidAccountId(NEW_ADDRESS, "Polkadot");
+    const aliceAccount = anonymousClient.logionApi.queries.getValidAccountId(ALICE.address, "Polkadot");
+    const bobAccount = anonymousClient.logionApi.queries.getValidAccountId(BOB.address, "Polkadot");
+    const charlieAccount = anonymousClient.logionApi.queries.getValidAccountId(CHARLIE.address, "Polkadot");
+    const vtpAccount = anonymousClient.logionApi.queries.getValidAccountId(VTP_ADDRESS, "Polkadot");
+    const ethereumAccount = anonymousClient.logionApi.queries.getValidAccountId(ETHEREUM_ADDRESS, "Ethereum");
     const client = await anonymousClient.authenticate([
         requesterAccount,
         newAccount,
@@ -122,10 +122,10 @@ export async function initRequesterBalance(config: LogionClientConfig, signer: S
 }
 
 async function transferTokens(config: LogionClientConfig, signer: Signer, source: string, destination: string, amount: bigint) {
-    const api = await buildApi(config.rpcEndpoints);
+    const api = await buildApiClass(config.rpcEndpoints);
     await signer.signAndSend({
         signerId: source,
-        submittable: api.tx.balances.transfer(destination, amount)
+        submittable: api.polkadot.tx.balances.transfer(destination, amount)
     });
 }
 
@@ -148,8 +148,8 @@ export class LegalOfficerWorker {
     }
 
     async createValidIdentityLoc(id: UUID, requesterAccountId: string): Promise<void> {
-        const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        const submittable = api.tx.logionLoc.createPolkadotIdentityLoc(id.toDecimalString(), requesterAccountId);
+        const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
+        const submittable = api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(api.adapters.toLocId(id), requesterAccountId);
         await this.openLoc(id, submittable);
         await this.closeLoc(id);
     }
@@ -160,8 +160,8 @@ export class LegalOfficerWorker {
     }
 
     async openTransactionLoc(id: UUID, requesterAccountId: string) {
-        const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        const submittable = api.tx.logionLoc.createPolkadotTransactionLoc(id.toDecimalString(), requesterAccountId);
+        const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
+        const submittable = api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(api.adapters.toLocId(id), requesterAccountId);
         await this.openLoc(id, submittable);
     }
 
@@ -180,7 +180,7 @@ export class LegalOfficerWorker {
 
     async buildLegalOfficerAxios() {
         const { client, signer } = this.state;
-        const legalOfficerAccount = validPolkadotAccountId(client.nodeApi, this.legalOfficer.address);
+        const legalOfficerAccount = client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot");
         const authenticatedClient = await client.authenticate([ legalOfficerAccount ], signer);
         const token = authenticatedClient.tokens.get(legalOfficerAccount)!;
         const axiosFactory = new AxiosFactory();
@@ -188,12 +188,11 @@ export class LegalOfficerWorker {
     }
 
     async createOtherIdentityLoc(id: UUID, requesterAccountId: OtherAccountId, sponsorshipId: UUID) {
-        const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        const apiClass = new LogionNodeApiClass(api);
-        const submittable = apiClass.polkadot.tx.logionLoc.createOtherIdentityLoc(
-            apiClass.adapters.toLocId(id),
-            apiClass.adapters.toPalletLogionLocOtherAccountId(requesterAccountId),
-            apiClass.adapters.toSponsorshipId(sponsorshipId),
+        const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
+        const submittable = api.polkadot.tx.logionLoc.createOtherIdentityLoc(
+            api.adapters.toLocId(id),
+            api.adapters.toPalletLogionLocOtherAccountId(requesterAccountId),
+            api.adapters.toSponsorshipId(sponsorshipId),
         );
         await this.openLoc(id, submittable);
         await this.closeLoc(id);
@@ -209,10 +208,10 @@ export class LegalOfficerWorker {
     }
 
     async openCollectionLoc(id: UUID, requesterAccountId: string, withUpload: boolean) {
-        const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
+        const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
         await this.state.signer.signAndSend({
             signerId: this.legalOfficer.address,
-            submittable: api.tx.logionLoc.createCollectionLoc(id.toDecimalString(), requesterAccountId, null, "100", withUpload)
+            submittable: api.polkadot.tx.logionLoc.createCollectionLoc(api.adapters.toLocId(id), requesterAccountId, null, "100", withUpload)
         });
 
         const axios = await this.buildLegalOfficerAxios();
@@ -224,10 +223,10 @@ export class LegalOfficerWorker {
     }
 
     async closeLoc(id: UUID) {
-        const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
+        const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
         await this.state.signer.signAndSend({
             signerId: this.legalOfficer.address,
-            submittable: api.tx.logionLoc.close(id.toDecimalString())
+            submittable: api.polkadot.tx.logionLoc.close(api.adapters.toLocId(id))
         });
 
         const axios = await this.buildLegalOfficerAxios();
@@ -239,8 +238,8 @@ export class LegalOfficerWorker {
     }
 
     async nominateVerifiedThirdParty(issuerAddress: string, identityLocId: UUID) {
-        const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        const submittable = api.tx.logionLoc.nominateIssuer(issuerAddress, identityLocId.toDecimalString());
+        const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
+        const submittable = api.polkadot.tx.logionLoc.nominateIssuer(issuerAddress, identityLocId.toDecimalString());
         await this.state.signer.signAndSend({
             signerId: this.legalOfficer.address,
             submittable,
@@ -248,8 +247,8 @@ export class LegalOfficerWorker {
     }
 
     async selectVtp(locId: UUID, issuerAddress: string, selected: boolean) {
-        const api = await buildApi(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        const submittable = api.tx.logionLoc.setIssuerSelection(locId.toDecimalString(), issuerAddress, selected);
+        const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
+        const submittable = api.polkadot.tx.logionLoc.setIssuerSelection(api.adapters.toLocId(locId), issuerAddress, selected);
         await this.state.signer.signAndSend({
             signerId: this.legalOfficer.address,
             submittable,

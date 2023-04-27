@@ -1,4 +1,4 @@
-import { LogionNodeApi, UUID, FeesEstimator } from "@logion/node-api";
+import { LogionNodeApiClass, UUID, FeesEstimator } from "@logion/node-api";
 import { AxiosInstance, AxiosResponse } from "axios";
 import { It, Mock } from "moq.ts";
 
@@ -16,22 +16,23 @@ import {
     ALICE,
     buildSimpleNodeApi,
     buildTestAuthenticatedSharedSate,
+    ItIsUuid,
     LEGAL_OFFICERS,
     LOGION_CLIENT_CONFIG,
-    mockEmptyOption,
     REQUESTER
 } from "./Utils.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
 import {
     buildCollectionItem,
-    buildLoc,
-    buildLocRequest,
     buildOffchainCollectionItem,
     EXISTING_FILE,
     EXISTING_ITEM_ID,
     ITEM_DESCRIPTION,
     EXISTING_ITEM_FILE,
-    EXISTING_ITEM_FILE_HASH
+    EXISTING_ITEM_FILE_HASH,
+    mockGetLegalOfficerCase,
+    mockLocBatchFactory,
+    buildLocAndRequest
 } from "./LocUtils.js";
 
 describe("PublicApi", () => {
@@ -40,7 +41,7 @@ describe("PublicApi", () => {
         const sharedState = await buildSharedState();
         const publicApi = new PublicApi({ sharedState });
 
-        const publicLoc = await publicApi.findLocById({ locId: new UUID(LOC_REQUEST.id) });
+        const publicLoc = await publicApi.findLocById({ locId: new UUID(LOC.request.id) });
 
         expect(publicLoc).toBeDefined();
         expect(publicLoc).toBeInstanceOf(PublicLoc);
@@ -50,7 +51,7 @@ describe("PublicApi", () => {
         const sharedState = await buildSharedState();
         const publicApi = new PublicApi({ sharedState });
 
-        const item = await publicApi.findCollectionLocItemById({ locId: new UUID(LOC_REQUEST.id), itemId: EXISTING_ITEM_ID });
+        const item = await publicApi.findCollectionLocItemById({ locId: new UUID(LOC.request.id), itemId: EXISTING_ITEM_ID });
 
         expect(item).toBeDefined();
         expect(item).toBeInstanceOf(CollectionItem);
@@ -62,7 +63,7 @@ describe("PublicApi", () => {
 
         const estimator = publicApi.fees;
 
-        expect(estimator).toBeInstanceOf(FeesEstimator);
+        expect(estimator).toBeDefined();
     });
 });
 
@@ -85,7 +86,7 @@ describe("PublicLoc", () => {
     });
 
     it("finds item on check", async () => {
-        const locId = new UUID(LOC_REQUEST.id);
+        const locId = new UUID(LOC.request.id);
 
         const data = new Mock<LocData>();
         data.setup(instance => instance.id).returns(locId);
@@ -117,7 +118,7 @@ describe("PublicLoc", () => {
     });
 
     it("finds item file on check", async () => {
-        const locId = new UUID(LOC_REQUEST.id);
+        const locId = new UUID(LOC.request.id);
 
         const data = new Mock<LocData>();
         data.setup(instance => instance.id).returns(locId);
@@ -149,14 +150,13 @@ describe("PublicLoc", () => {
     });
 });
 
-const LOC_REQUEST = buildLocRequest(ALICE.address, "CLOSED", "Collection");
-const LOC = buildLoc(ALICE.address, "CLOSED", "Collection");
+const LOC = buildLocAndRequest(ALICE.address, "CLOSED", "Collection");
 
 const COLLECTION_ITEM = buildCollectionItem();
-const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem(LOC_REQUEST.id);
+const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem(LOC.request.id);
 
 let aliceAxiosMock: Mock<AxiosInstance>;
-let nodeApiMock: Mock<LogionNodeApi>;
+let nodeApiMock: Mock<LogionNodeApiClass>;
 
 async function buildSharedState(): Promise<SharedState> {
     return await buildTestAuthenticatedSharedSate(
@@ -168,27 +168,24 @@ async function buildSharedState(): Promise<SharedState> {
             const axiosFactoryMock = factory.setupAxiosFactoryMock();
 
             aliceAxiosMock = new Mock<AxiosInstance>();
-            aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ LOC_REQUEST.id }/public`)).returnsAsync({
-                data: LOC_REQUEST
+            aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ LOC.request.id }/public`)).returnsAsync({
+                data: LOC.request
             } as AxiosResponse);
-            aliceAxiosMock.setup(instance => instance.get(`/api/collection/${ LOC_REQUEST.id }/items/${ EXISTING_ITEM_ID }`)).returnsAsync({
+            aliceAxiosMock.setup(instance => instance.get(`/api/collection/${ LOC.request.id }/items/${ EXISTING_ITEM_ID }`)).returnsAsync({
                 data: OFFCHAIN_COLLECTION_ITEM
             } as AxiosResponse);
             axiosFactoryMock.setup(instance => instance.buildAxiosInstance(ALICE.node, undefined))
                 .returns(aliceAxiosMock.object());
 
             nodeApiMock = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-            nodeApiMock.setup(instance => instance.query.logionLoc.locMap(new UUID(LOC_REQUEST.id).toHexString()))
-                .returnsAsync(LOC);
+            nodeApiMock.setup(instance => instance.queries.getLegalOfficerCase).returns(mockGetLegalOfficerCase([LOC]));
+            nodeApiMock.setup(instance => instance.batch.locs).returns(mockLocBatchFactory([LOC]));
 
-            nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(
-                It.Is<UUID>(locId => locId.toString() !== LOC_REQUEST.id),
-                It.Is<string>(itemId => itemId !== EXISTING_ITEM_ID
-            )))
-                .returnsAsync(mockEmptyOption());
-            nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(new UUID(LOC_REQUEST.id).toHexString(), EXISTING_ITEM_ID))
+            nodeApiMock.setup(instance => instance.queries.getCollectionItem(ItIsUuid(new UUID(LOC.request.id)), EXISTING_ITEM_ID))
                 .returnsAsync(COLLECTION_ITEM);
-            nodeApiMock.setup(instance => instance.createType(It.IsAny())).returns(undefined);
+
+            const feesEstimator = new Mock<FeesEstimator>();
+            nodeApiMock.setup(instance => instance.fees).returns(feesEstimator.object());
         },
         undefined,
         LEGAL_OFFICERS,

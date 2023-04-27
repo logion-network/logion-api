@@ -87,9 +87,8 @@ export class SponsorshipState {
     }
 
     private static async getValidSponsorship(sharedState: SharedState, id: UUID): Promise<Sponsorship> {
-        const api = new LogionNodeApiClass(sharedState.nodeApi);
         const requester = getDefinedCurrentAddress(sharedState);
-        const sponsorship = await api.queries.getSponsorship(id);
+        const sponsorship = await sharedState.nodeApi.queries.getSponsorship(id);
         if (sponsorship === undefined) {
             throw new Error("Sponsorship not found")
         }

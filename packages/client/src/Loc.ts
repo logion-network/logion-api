@@ -4,10 +4,9 @@ import {
     LocType,
     VoidInfo,
     ItemFile,
-    VerifiedIssuer,
     ValidAccountId,
-    AnyAccountId,
-    LogionNodeApi
+    LogionNodeApiClass,
+    LocBatch,
 } from "@logion/node-api";
 
 import {
@@ -295,14 +294,8 @@ export class LocsState extends State {
         const locIds = locRequests
             .filter(request => request.status === "OPEN" || request.status === "CLOSED")
             .map(request => new UUID(request.id));
-        const legalOfficerCases = await locMultiClient.getLocs({ locIds });
-        const availableVerifiedIssuers = await locMultiClient.getLegalOfficersVerifiedIssuers(locRequests.map(request => request.ownerAddress));
-        const selectedIssuers = await locMultiClient.getSelectedVerifiedIssuers({
-            locIds,
-            locs: legalOfficerCases,
-            availableVerifiedIssuers,
-        });
-        locsState._locs = await this.toStates(locMultiClient, locsState, locRequests, legalOfficerCases, availableVerifiedIssuers, selectedIssuers);
+        const locBatch = await locMultiClient.getLocBatch(locIds);
+        locsState._locs = await this.toStates(locMultiClient, locsState, locRequests, locBatch);
 
         if(locsState.isVerifiedThirdParty) {
             const legalOfficers = this.getVerifiedThirdPartyLegalOfficers(locsState);
@@ -310,16 +303,8 @@ export class LocsState extends State {
             const verifiedThirdPartyLocIds = verifiedThirdPartyRequests
                 .filter(request => request.status === "OPEN" || request.status === "CLOSED")
                 .map(request => new UUID(request.id));
-            const verifiedThirdPartyLegalOfficerCases = await locMultiClient.getLocs({
-                locIds: verifiedThirdPartyLocIds,
-            });
-            const verifiedThirdPartyAvailableVerifiedIssuers = await locMultiClient.getLegalOfficersVerifiedIssuers(verifiedThirdPartyRequests.map(request => request.ownerAddress));
-            const verifiedThirdPartySelectedIssuers = await locMultiClient.getSelectedVerifiedIssuers({
-                locIds: verifiedThirdPartyLocIds,
-                locs: verifiedThirdPartyLegalOfficerCases,
-                availableVerifiedIssuers: verifiedThirdPartyAvailableVerifiedIssuers,
-            });
-            locsState._verifiedThirdPartyLocs = await this.toStates(locMultiClient, locsState, verifiedThirdPartyRequests, verifiedThirdPartyLegalOfficerCases, verifiedThirdPartyAvailableVerifiedIssuers, verifiedThirdPartySelectedIssuers);
+            const verifiedThirdPartyLocBatch = await locMultiClient.getLocBatch(verifiedThirdPartyLocIds);
+            locsState._verifiedThirdPartyLocs = await this.toStates(locMultiClient, locsState, verifiedThirdPartyRequests, verifiedThirdPartyLocBatch);
         }
 
         return locsState;
@@ -329,14 +314,12 @@ export class LocsState extends State {
         locMultiClient: LocMultiClient,
         locsState: LocsState,
         locRequests: LocRequest[],
-        legalOfficerCases: Record<string, LegalOfficerCase>,
-        availableVerifiedIssuers: Record<string, VerifiedIssuer[]>,
-        selectedIssuers: Record<string, VerifiedIssuer[]>,
+        locBatch: LocBatch,
     ): Promise<Record<string, LocRequestState>> {
         const refreshedLocs: Record<string, LocRequestState> = {};
         for (const locRequest of locRequests) {
             try {
-                const state = await this.toState(locMultiClient, locsState, locRequest, legalOfficerCases, availableVerifiedIssuers, selectedIssuers);
+                const state = await this.toState(locMultiClient, locsState, locRequest, locBatch);
                 refreshedLocs[state.locId.toString()] = state;
             } catch(e) {
                 console.warn(e);
@@ -349,9 +332,7 @@ export class LocsState extends State {
         locMultiClient: LocMultiClient,
         locsState: LocsState,
         locRequest: LocRequest,
-        legalOfficerCases: Record<string, LegalOfficerCase>,
-        availableVerifiedIssuers: Record<string, VerifiedIssuer[]>,
-        selectedIssuers: Record<string, VerifiedIssuer[]>,
+        locBatch: LocBatch,
     ): Promise<AnyLocState> {
         const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === locRequest.ownerAddress);
         if (legalOfficer) {
@@ -363,8 +344,9 @@ export class LocsState extends State {
                 locsState,
             };
             const id = new UUID(locRequest.id);
+            const legalOfficerCases = await locBatch.getLocs();
             const legalOfficerCase = legalOfficerCases[id.toDecimalString()];
-            const locIssuers = await client.getLocIssuers(locRequest, legalOfficerCases, availableVerifiedIssuers, selectedIssuers);
+            const locIssuers = await client.getLocIssuers(locRequest, locBatch);
             if((locRequest.status === "OPEN" || locRequest.status === "CLOSED") && !legalOfficerCase) {
                 throw new Error("LOC expected");
             }
@@ -526,7 +508,7 @@ export abstract class LocRequestState extends State {
     async refresh(): Promise<LocRequestState> {
         const client = this.locSharedState.client;
         const request = await client.getLocRequest({ locId: this.locId });
-        const locIssuers = await client.getLocIssuers(request);
+        const locIssuers = await client.getLocIssuers(request, this.locSharedState.nodeApi.batch.locs([ this.locId ]));
         const newState = await LocRequestState.createFromRequest(this.locSharedState, request, locIssuers);
         const newLocsState = this.locSharedState.locsState.refreshWith(newState); // Discards this state
         return newLocsState.findById(this.locId);
@@ -542,7 +524,7 @@ export abstract class LocRequestState extends State {
         return LocRequestState.buildLocData(this.locSharedState.nodeApi, this.legalOfficerCase, this.request, this.locIssuers);
     }
 
-    static buildLocData(api: LogionNodeApi, legalOfficerCase: LegalOfficerCase | undefined, request: LocRequest, locIssuers: LocVerifiedIssuers): LocData {
+    static buildLocData(api: LogionNodeApiClass, legalOfficerCase: LegalOfficerCase | undefined, request: LocRequest, locIssuers: LocVerifiedIssuers): LocData {
         if (legalOfficerCase) {
             return LocRequestState.dataFromRequestAndLoc(api, request, legalOfficerCase, locIssuers);
         } else {
@@ -594,11 +576,11 @@ export abstract class LocRequestState extends State {
         return result;
     }
 
-    private static dataFromRequest(api: LogionNodeApi, request: LocRequest, locIssuers: LocVerifiedIssuers): LocData {
+    private static dataFromRequest(api: LogionNodeApiClass, request: LocRequest, locIssuers: LocVerifiedIssuers): LocData {
         return {
             ...request,
             ...locIssuers,
-            requesterAddress: request.requesterAddress ? new AnyAccountId(api, request.requesterAddress.address, request.requesterAddress.type).toValidAccountId() : undefined,
+            requesterAddress: request.requesterAddress ? api.queries.getValidAccountId(request.requesterAddress.address, request.requesterAddress.type) : undefined,
             requesterLocId: request.requesterIdentityLoc ? new UUID(request.requesterIdentityLoc) : undefined,
             id: new UUID(request.id),
             closed: false,
@@ -613,7 +595,7 @@ export abstract class LocRequestState extends State {
         };
     }
 
-    private static dataFromRequestAndLoc(api: LogionNodeApi, request: LocRequest, loc: LegalOfficerCase, locIssuers: LocVerifiedIssuers): LocData {
+    private static dataFromRequestAndLoc(api: LogionNodeApiClass, request: LocRequest, loc: LegalOfficerCase, locIssuers: LocVerifiedIssuers): LocData {
         const data: LocData = {
             ...loc,
             ...locIssuers,
@@ -646,7 +628,7 @@ export abstract class LocRequestState extends State {
         return data;
     }
 
-    private static mergeMetadata(api: LogionNodeApi, backendMetadataItem: LocMetadataItem, chainLoc?: LegalOfficerCase): MergedMetadataItem {
+    private static mergeMetadata(api: LogionNodeApiClass, backendMetadataItem: LocMetadataItem, chainLoc?: LegalOfficerCase): MergedMetadataItem {
         const chainMetadataItem = chainLoc ? chainLoc.metadata.find(item => item.name === backendMetadataItem.name) : undefined;
         if(chainMetadataItem) {
             return {
@@ -657,13 +639,13 @@ export abstract class LocRequestState extends State {
         } else {
             return {
                 ...backendMetadataItem,
-                submitter: new AnyAccountId(api, backendMetadataItem.submitter.address, backendMetadataItem.submitter.type).toValidAccountId(),
+                submitter: api.queries.getValidAccountId(backendMetadataItem.submitter.address, backendMetadataItem.submitter.type),
                 published: false,
             };
         }
     }
 
-    private static mergeFile(api: LogionNodeApi, backendFile: LocFile, chainLoc?: LegalOfficerCase): MergedFile {
+    private static mergeFile(api: LogionNodeApiClass, backendFile: LocFile, chainLoc?: LegalOfficerCase): MergedFile {
         const chainFile = chainLoc ? chainLoc.files.find(item => item.hash === backendFile.hash) : undefined;
         if(chainFile) {
             return {
@@ -674,7 +656,7 @@ export abstract class LocRequestState extends State {
         } else {
             return {
                 ...backendFile,
-                submitter: new AnyAccountId(api, backendFile.submitter.address, backendFile.submitter.type).toValidAccountId(),
+                submitter: api.queries.getValidAccountId(backendFile.submitter.address, backendFile.submitter.type),
                 size: BigInt(backendFile.size),
                 published: false,
             }

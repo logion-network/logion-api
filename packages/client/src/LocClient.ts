@@ -1,32 +1,20 @@
 import {
-    LogionNodeApi,
+    LogionNodeApiClass,
     UUID,
     Link,
     LocType,
     LegalOfficerCase,
     ItemFile,
-    getLegalOfficerCase,
-    addCollectionItem,
-    getCollectionItem,
-    getCollectionSize,
-    GetLegalOfficerCaseParameters,
-    getCollectionItems,
     CollectionItem,
     TermsAndConditionsElement as ChainTermsAndConditionsElement,
-    getVerifiedIssuers,
-    newTokensRecordFiles,
-    TokensRecordFile,
-    toTokensRecord,
-    TokensRecord as ChainTokensRecord,
-    getLegalOfficerCasesMap,
-    VerifiedIssuer,
-    getLegalOfficerVerifiedIssuersBatch,
-    getVerifiedIssuersBatch,
     ValidAccountId,
-    AccountType
+    AccountType,
+    LocBatch,
+    Adapters,
+    TypesTokensRecord,
+    TypesTokensRecordFile
 } from '@logion/node-api';
-import { Option } from "@polkadot/types-codec";
-import { PalletLogionLocVerifiedIssuer } from "@polkadot/types/lookup";
+import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AxiosInstance } from 'axios';
 
 import { UserIdentity, LegalOfficer, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -335,7 +323,7 @@ export class LocMultiClient {
         axiosFactory: AxiosFactory,
         currentAddress: ValidAccountId,
         token: string,
-        nodeApi: LogionNodeApi,
+        nodeApi: LogionNodeApiClass,
         componentFactory: ComponentFactory,
     }) {
         this.networkState = params.networkState;
@@ -354,7 +342,7 @@ export class LocMultiClient {
 
     private readonly token: string;
 
-    private readonly nodeApi: LogionNodeApi;
+    private readonly nodeApi: LogionNodeApiClass;
 
     private readonly componentFactory: ComponentFactory;
 
@@ -396,7 +384,7 @@ export class LocMultiClient {
         if (this.currentAddress.type !== "Polkadot") {
             return [];
         }
-        const entries = await this.nodeApi.query.logionLoc.locsByVerifiedIssuerMap.entries(this.currentAddress.address);
+        const entries = await this.nodeApi.polkadot.query.logionLoc.locsByVerifiedIssuerMap.entries(this.currentAddress.address);
         const requests: LocRequest[] = [];
         for(const entry of entries) {
             const owner = entry[0].args[1].toString();
@@ -415,29 +403,20 @@ export class LocMultiClient {
         });
     }
 
-    static async getLoc(params: GetLegalOfficerCaseParameters): Promise<LegalOfficerCase> {
+    static async getLoc(params: { api: LogionNodeApiClass, locId: UUID }): Promise<LegalOfficerCase> {
         return requireDefined(
-            await getLegalOfficerCase(params),
+            await params.api.queries.getLegalOfficerCase(params.locId),
             () => new Error(`LOC not found on chain: ${ params.locId.toDecimalString() }`)
         );
     }
 
-    static async getLocs(params: { api: LogionNodeApi, locIds: UUID[] }): Promise<Record<string, LegalOfficerCase>> {
+    static async getLocBatch(params: { api: LogionNodeApiClass, locIds: UUID[] }): Promise<LocBatch> {
         const { api, locIds } = params;
-        return getLegalOfficerCasesMap({ api, locIds });
+        return api.batch.locs(locIds);
     }
 
-    async getLocs(params: { locIds: UUID[] }): Promise<Record<string, LegalOfficerCase>> {
-        return LocMultiClient.getLocs({ ...params, api: this.nodeApi });
-    }
-
-    async getLegalOfficersVerifiedIssuers(legalOfficerAddresses: string[]): Promise<Record<string, VerifiedIssuer[]>> {
-        return getLegalOfficerVerifiedIssuersBatch(this.nodeApi, legalOfficerAddresses);
-    }
-
-    async getSelectedVerifiedIssuers(params: { locIds: UUID[], locs: Record<string, LegalOfficerCase>, availableVerifiedIssuers: Record<string, VerifiedIssuer[]> }): Promise<Record<string, VerifiedIssuer[]>> {
-        const { locIds, locs, availableVerifiedIssuers } = params;
-        return getVerifiedIssuersBatch(this.nodeApi, locIds, locs, availableVerifiedIssuers);
+    async getLocBatch(locIds: UUID[]): Promise<LocBatch> {
+        return LocMultiClient.getLocBatch({ api: this.nodeApi, locIds });
     }
 }
 
@@ -481,7 +460,7 @@ export abstract class LocClient {
 
     constructor(params: {
         axiosFactory: AxiosFactory,
-        nodeApi: LogionNodeApi,
+        nodeApi: LogionNodeApiClass,
         legalOfficer: LegalOfficerClass,
     }) {
         this.axiosFactory = params.axiosFactory;
@@ -490,7 +469,7 @@ export abstract class LocClient {
     }
 
     protected readonly axiosFactory: AxiosFactory;
-    protected readonly nodeApi: LogionNodeApi;
+    protected readonly nodeApi: LogionNodeApiClass;
     protected readonly legalOfficer: LegalOfficerClass;
 
     async getLoc(parameters: FetchParameters): Promise<LegalOfficerCase> {
@@ -503,11 +482,7 @@ export abstract class LocClient {
 
     async getCollectionItem(parameters: { itemId: string } & FetchParameters): Promise<UploadableCollectionItem | undefined> {
         const { locId, itemId } = parameters;
-        const onchainItem = await getCollectionItem({
-            api: this.nodeApi,
-            locId,
-            itemId
-        });
+        const onchainItem = await this.nodeApi.queries.getCollectionItem(locId, itemId);
         if(!onchainItem) {
             return undefined;
         }
@@ -545,10 +520,7 @@ export abstract class LocClient {
 
     async getCollectionItems(parameters: FetchParameters): Promise<UploadableCollectionItem[]> {
         const { locId } = parameters;
-        const onchainItems = await getCollectionItems({
-            api: this.nodeApi,
-            locId,
-        });
+        const onchainItems = await this.nodeApi.queries.getCollectionItems(locId);
 
         const onchainItemsMap: Record<string, CollectionItem> = {};
         for(const item of onchainItems) {
@@ -577,21 +549,18 @@ export abstract class LocClient {
 
     async getCollectionSize(parameters: FetchParameters): Promise<number | undefined> {
         const { locId } = parameters;
-        return await getCollectionSize({
-            api: this.nodeApi,
-            locId,
-        });
+        return await this.nodeApi.queries.getCollectionSize(locId);
     }
 
     async getTokensRecord(parameters: { recordId: string } & FetchParameters): Promise<ClientTokensRecord | undefined> {
         const { locId, recordId } = parameters;
-        const onchainRecord = await this.nodeApi.query.logionLoc.tokensRecordsMap(locId.toDecimalString(), recordId);
+        const onchainRecord = await this.nodeApi.polkadot.query.logionLoc.tokensRecordsMap(locId.toDecimalString(), recordId);
         if(onchainRecord.isNone) {
             return undefined;
         }
         try {
             const offchainRecord = await this.getOffchainRecord({ locId, recordId });
-            return this.mergeRecords(toTokensRecord(onchainRecord.unwrap()), offchainRecord);
+            return this.mergeRecords(Adapters.toTokensRecord(onchainRecord.unwrap()), offchainRecord);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -603,7 +572,7 @@ export abstract class LocClient {
         return response.data;
     }
 
-    private mergeRecords(onchainItem: ChainTokensRecord, offchainItem: OffchainTokensRecord): ClientTokensRecord {
+    private mergeRecords(onchainItem: TypesTokensRecord, offchainItem: OffchainTokensRecord): ClientTokensRecord {
         return {
             id: offchainItem.recordId,
             description: onchainItem.description,
@@ -619,11 +588,11 @@ export abstract class LocClient {
 
     async getTokensRecords(parameters: GetTokensRecordsRequest): Promise<ClientTokensRecord[]> {
         const { locId } = parameters;
-        const onchainRecords = await this.nodeApi.query.logionLoc.tokensRecordsMap.entries(locId.toDecimalString());
+        const onchainRecords = await this.nodeApi.polkadot.query.logionLoc.tokensRecordsMap.entries(locId.toDecimalString());
 
-        const onchainRecordsMap: Record<string, ChainTokensRecord> = {};
+        const onchainRecordsMap: Record<string, TypesTokensRecord> = {};
         for(const entry of onchainRecords) {
-            onchainRecordsMap[entry[0].args[1].toHex()] = toTokensRecord(entry[1].unwrap());
+            onchainRecordsMap[entry[0].args[1].toHex()] = Adapters.toTokensRecord(entry[1].unwrap());
         }
 
         try {
@@ -710,7 +679,7 @@ export class AuthenticatedLocClient extends LocClient {
     constructor(params: {
         axiosFactory: AxiosFactory,
         currentAddress: ValidAccountId,
-        nodeApi: LogionNodeApi,
+        nodeApi: LogionNodeApiClass,
         legalOfficer: LegalOfficerClass,
         componentFactory: ComponentFactory,
     }) {
@@ -862,16 +831,27 @@ export class AuthenticatedLocClient extends LocClient {
             parameters.specificLicenses.forEach(addTC);
         }
 
-        const submittable = addCollectionItem({
-            api: this.nodeApi,
-            collectionId: locId,
-            itemId,
-            itemDescription,
-            itemFiles: chainItemFiles,
-            itemToken,
-            restrictedDelivery: booleanRestrictedDelivery,
-            termsAndConditions,
-        });
+        let submittable: SubmittableExtrinsic;
+        if(termsAndConditions.length === 0) {
+            submittable = this.nodeApi.polkadot.tx.logionLoc.addCollectionItem(
+                this.nodeApi.adapters.toLocId(locId),
+                itemId,
+                itemDescription,
+                chainItemFiles.map(Adapters.toCollectionItemFile),
+                Adapters.toCollectionItemToken(itemToken),
+                booleanRestrictedDelivery,
+            );
+        } else {
+            submittable = this.nodeApi.polkadot.tx.logionLoc.addCollectionItemWithTermsAndConditions(
+                this.nodeApi.adapters.toLocId(locId),
+                itemId,
+                itemDescription,
+                chainItemFiles.map(Adapters.toCollectionItemFile),
+                Adapters.toCollectionItemToken(itemToken),
+                booleanRestrictedDelivery,
+                termsAndConditions.map(Adapters.toTermsAndConditionsElement),
+            );
+        }
         await signer.signAndSend({
             signerId: this.currentAddress.address,
             submittable,
@@ -963,9 +943,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     async getLocIssuers(
         request: LocRequest,
-        locs?: Record<string, LegalOfficerCase>,
-        availableVerifiedIssuers?: Record<string, VerifiedIssuer[]>,
-        selectedIssuers?: Record<string, VerifiedIssuer[]>,
+        locBatch: LocBatch,
     ): Promise<LocVerifiedIssuers> {
         if(!this.currentAddress || (request.status !== "OPEN" && request.status !== "CLOSED")) {
             return EMPTY_LOC_ISSUERS;
@@ -973,14 +951,10 @@ export class AuthenticatedLocClient extends LocClient {
             const locId = new UUID(request.id);
             let verifiedThirdParty = false;
             if(request.locType === "Identity" && request.status === "CLOSED") {
-                if(availableVerifiedIssuers) {
-                    verifiedThirdParty = availableVerifiedIssuers[request.ownerAddress].find(issuer => issuer.address === request.requesterAddress?.address && request.requesterAddress?.type === "Polkadot") !== undefined;
-                } else if(request.requesterAddress?.type === "Polkadot") {
-                    const maybeIssuer = await this.nodeApi.query.logionLoc.verifiedIssuersMap(request.ownerAddress, request.requesterAddress?.address) as Option<PalletLogionLocVerifiedIssuer>;
-                    verifiedThirdParty = maybeIssuer.isSome;
-                }
+                const availableVerifiedIssuers = await locBatch.getAvailableVerifiedIssuers();
+                verifiedThirdParty = availableVerifiedIssuers[request.ownerAddress].find(issuer => issuer.address === request.requesterAddress?.address && request.requesterAddress?.type === "Polkadot") !== undefined;
             }
-            const nodeIssuers = selectedIssuers ? selectedIssuers[locId.toDecimalString()] : await getVerifiedIssuers(this.nodeApi, locId, locs, availableVerifiedIssuers);
+            const nodeIssuers = (await locBatch.getLocsVerifiedIssuers())[locId.toDecimalString()];
             const chainSelectedIssuers = new Set<string>();
             nodeIssuers.forEach(issuer => chainSelectedIssuers.add(issuer.address));
 
@@ -1036,7 +1010,7 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private async isIssuerOf(request: LocRequest): Promise<boolean> {
-        const issuers = await this.getLocIssuers(request);
+        const issuers = await this.getLocIssuers(request, this.nodeApi.batch.locs([ new UUID(request.id) ]));
         return issuers.issuers.find(issuer => issuer.address === this.currentAddress.address && this.currentAddress.type === "Polkadot") !== undefined;
     }
 
@@ -1050,7 +1024,7 @@ export class AuthenticatedLocClient extends LocClient {
             files,
         } = parameters;
 
-        const chainItemFiles: TokensRecordFile[] = [];
+        const chainItemFiles: TypesTokensRecordFile[] = [];
         for(const itemFile of files) {
             await itemFile.finalize(); // Ensure hash and size
         }
@@ -1063,11 +1037,11 @@ export class AuthenticatedLocClient extends LocClient {
             });
         }
 
-        const submittable = this.nodeApi.tx.logionLoc.addTokensRecord(
-            locId.toDecimalString(),
+        const submittable = this.nodeApi.polkadot.tx.logionLoc.addTokensRecord(
+            this.nodeApi.adapters.toLocId(locId),
             recordId,
             description,
-            newTokensRecordFiles(this.nodeApi, chainItemFiles),
+            this.nodeApi.adapters.newTokensRecordFileVec(chainItemFiles),
         );
         await signer.signAndSend({
             signerId: this.currentAddress.address,

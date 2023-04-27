@@ -3,6 +3,7 @@ export {
     ISubmittableResult,
 };
 
+export * from './assertions.js';
 export * from './AuthenticationClient.js';
 export * from './AxiosFactory.js';
 export * from './Balance.js';

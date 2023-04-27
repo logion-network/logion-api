@@ -49,11 +49,11 @@ export class Queries {
     private api: ApiPromise;
     private adapters: Adapters;
 
-    isValidAccountId(accountId?: string | null): boolean {
+    isValidAccountId(accountId?: string | null, type?: AccountType): boolean {
         if(accountId === null || accountId === undefined || accountId === '') {
             return false;
         }
-        const anyAccountId = new AnyAccountId(this.api, accountId, "Polkadot");
+        const anyAccountId = new AnyAccountId(this.api, accountId, type || "Polkadot");
         return anyAccountId.isValid();
     }
 

@@ -1,6 +1,3 @@
-import type { Option, Vec } from '@polkadot/types-codec';
-import { PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig } from "@polkadot/types/lookup";
-import type { AccountId } from '@polkadot/types/interfaces/runtime';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { DateTime } from 'luxon';
 import { It, Mock } from 'moq.ts';
@@ -22,15 +19,12 @@ import {
     UserIdentity,
     Signer,
     AccountTokens,
-    LegalOfficerClass
 } from '../src/index.js';
 import {
     ALICE,
     BOB,
     buildTestAuthenticatedSharedSate,
     LOGION_CLIENT_CONFIG,
-    mockOption,
-    mockEmptyOption,
     SUCCESSFUL_SUBMISSION,
     REQUESTER,
     RECOVERED_ADDRESS,
@@ -439,25 +433,14 @@ describe("NoProtection", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                nodeApi.setup(instance => instance.query.recovery.activeRecoveries(RECOVERED_ADDRESS.address, currentAddress.address))
-                    .returns(Promise.resolve(mockEmptyOption<PalletRecoveryActiveRecovery>()));
+                nodeApi.setup(instance => instance.queries.getActiveRecovery(RECOVERED_ADDRESS.address, currentAddress.address))
+                    .returns(Promise.resolve(undefined));
 
-                const aliceAccountId = new Mock<AccountId>();
-                aliceAccountId.setup(instance => instance.toString()).returns(ALICE.address);
-                const bobAccountId = new Mock<AccountId>();
-                bobAccountId.setup(instance => instance.toString()).returns(BOB.address);
-                const friends = new Mock<Vec<AccountId>>();
-                friends.setup(instance => instance.toArray()).returns([
-                    aliceAccountId.object(),
-                    bobAccountId.object()
-                ]);
-                nodeApi.setup(instance => instance.query.recovery.recoverable(RECOVERED_ADDRESS.address))
-                    .returns(Promise.resolve(mockOption<PalletRecoveryRecoveryConfig>({
-                        friends: friends.object()
-                    })));
+                nodeApi.setup(instance => instance.queries.getRecoveryConfig(RECOVERED_ADDRESS.address))
+                    .returns(Promise.resolve({ legalOfficers: [ ALICE.address, BOB.address ] }));
 
                 const submittable = new Mock<SubmittableExtrinsic>();
-                nodeApi.setup(instance => instance.tx.recovery.initiateRecovery(RECOVERED_ADDRESS.address))
+                nodeApi.setup(instance => instance.polkadot.tx.recovery.initiateRecovery(RECOVERED_ADDRESS.address))
                     .returns(submittable.object());
 
                 const axiosFactory = factory.setupAxiosFactoryMock();
@@ -567,10 +550,10 @@ describe("PendingProtection", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress.address))
-                    .returns(Promise.resolve(mockEmptyOption<PalletRecoveryRecoveryConfig>()));
-                nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress.address))
-                    .returns(Promise.resolve(mockEmptyOption<AccountId>()));
+                nodeApi.setup(instance => instance.queries.getRecoveryConfig(currentAddress.address))
+                    .returns(Promise.resolve(undefined));
+                nodeApi.setup(instance => instance.queries.getProxy(currentAddress.address))
+                    .returns(Promise.resolve(undefined));
             },
             currentAddress,
             legalOfficers,
@@ -620,10 +603,10 @@ describe("PendingProtection", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress.address))
-                    .returns(Promise.resolve(mockEmptyOption<PalletRecoveryRecoveryConfig>()));
-                nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress.address))
-                    .returns(Promise.resolve(mockEmptyOption<AccountId>()));
+                nodeApi.setup(instance => instance.queries.getRecoveryConfig(currentAddress.address))
+                    .returns(Promise.resolve(undefined));
+                nodeApi.setup(instance => instance.queries.getProxy(currentAddress.address))
+                    .returns(Promise.resolve(undefined));
             },
             currentAddress,
             legalOfficers,
@@ -708,13 +691,13 @@ describe("AcceptedProtection", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(mockEmptyOption<PalletRecoveryRecoveryConfig>()));
-                nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
-                    .returns(Promise.resolve(mockEmptyOption<AccountId>()));
+                nodeApi.setup(instance => instance.queries.getRecoveryConfig(currentAddress.address))
+                    .returns(Promise.resolve(undefined));
+                nodeApi.setup(instance => instance.queries.getProxy(currentAddress.address))
+                    .returns(Promise.resolve(undefined));
 
                 const legalOfficersAddresses = legalOfficers.map(legalOfficer => legalOfficer.address);
-                nodeApi.setup(instance => instance.tx.verifiedRecovery.createRecovery(It.Is<string[]>(
+                nodeApi.setup(instance => instance.polkadot.tx.verifiedRecovery.createRecovery(It.Is<string[]>(
                         addresses => addresses.every(address => legalOfficersAddresses.includes(address)))))
                     .returns(submittable.object());
             },
@@ -771,13 +754,13 @@ describe("AcceptedProtection", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress))
-                    .returns(Promise.resolve(mockEmptyOption<PalletRecoveryRecoveryConfig>()));
-                nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress))
-                    .returns(Promise.resolve(mockEmptyOption<AccountId>()));
+                nodeApi.setup(instance => instance.queries.getRecoveryConfig(currentAddress.address))
+                    .returns(Promise.resolve(undefined));
+                nodeApi.setup(instance => instance.queries.getProxy(currentAddress.address))
+                    .returns(Promise.resolve(undefined));
 
                 const legalOfficersAddresses = legalOfficers.map(legalOfficer => legalOfficer.address);
-                nodeApi.setup(instance => instance.tx.verifiedRecovery.createRecovery(It.Is<string[]>(
+                nodeApi.setup(instance => instance.polkadot.tx.verifiedRecovery.createRecovery(It.Is<string[]>(
                         addresses => addresses.every(address => legalOfficersAddresses.includes(address)))))
                     .returns(submittable.object());
             },
@@ -839,19 +822,18 @@ describe("PendingRecovery", () => {
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const recoveryConfig = mockOption<PalletRecoveryRecoveryConfig>({
-                    friends: [
+                const recoveryConfig = {
+                    legalOfficers: [
                         ALICE.address,
                         BOB.address
                     ]
-                } as unknown as PalletRecoveryRecoveryConfig)
-                nodeApi.setup(instance => instance.query.recovery.recoverable(currentAddress.address))
-                    .returns(Promise.resolve(recoveryConfig as Option<PalletRecoveryRecoveryConfig>));
-                const proxy = mockOption<AccountId>(RECOVERED_ADDRESS as unknown as AccountId)
-                nodeApi.setup(instance => instance.query.recovery.proxy(currentAddress.address))
-                    .returns(Promise.resolve(proxy as Option<AccountId>));
+                };
+                nodeApi.setup(instance => instance.queries.getRecoveryConfig(currentAddress.address))
+                    .returns(Promise.resolve(recoveryConfig));
+                nodeApi.setup(instance => instance.queries.getProxy(currentAddress.address))
+                    .returns(Promise.resolve(RECOVERED_ADDRESS.address));
 
-                nodeApi.setup(instance => instance.tx.recovery.claimRecovery(RECOVERED_ADDRESS.address))
+                nodeApi.setup(instance => instance.polkadot.tx.recovery.claimRecovery(RECOVERED_ADDRESS.address))
                     .returns(submittable.object());
             },
             currentAddress,
