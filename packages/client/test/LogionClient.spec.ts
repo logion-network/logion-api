@@ -23,7 +23,7 @@ import {
     buildValidPolkadotAccountId,
     buildSimpleNodeApi
 } from './Utils.js';
-import { LogionNodeApi } from '@logion/node-api';
+import { LogionNodeApiClass } from '@logion/node-api';
 
 describe("LogionClient", () => {
 
@@ -49,7 +49,7 @@ describe("LogionClient", () => {
     it("uses tokens", async () => {
         const clientLegalOfficers: LegalOfficer[] = [ ALICE ];
         const token = 'token';
-        let api: Mock<LogionNodeApi>;
+        let api: Mock<LogionNodeApiClass>;
         const config = buildTestConfig(testConfigFactory => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
             testConfigFactory.setupDefaultNetworkState();

@@ -1,7 +1,5 @@
-import { LogionNodeApi, UUID } from "@logion/node-api";
-import { PalletLogionLocVerifiedIssuer } from '@polkadot/types/lookup';
+import { LogionNodeApiClass, UUID, VerifiedIssuerType } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
-import { Null } from "@polkadot/types-codec";
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import { DateTime } from "luxon";
 import { It, Mock, Times } from "moq.ts";
@@ -43,13 +41,12 @@ import {
     CHARLIE,
     buildTestAuthenticatedSharedSate,
     LOGION_CLIENT_CONFIG,
-    mockCodecWithToString,
-    mockEmptyOption,
-    mockOption,
     REQUESTER,
     SUCCESSFUL_SUBMISSION,
     buildSimpleNodeApi,
-    buildValidPolkadotAccountId
+    buildValidPolkadotAccountId,
+    ItIsUuid,
+    mockCodecWithToString
 } from "./Utils.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
 import {
@@ -61,7 +58,9 @@ import {
     ITEM_DESCRIPTION,
     mockVoidInfo,
     buildLocAndRequest,
-    ISSUER
+    ISSUER,
+    mockLocBatchFactory,
+    mockGetLegalOfficerCase
 } from "./LocUtils.js";
 
 describe("LocsState", () => {
@@ -253,7 +252,7 @@ describe("ClosedCollectionLoc", () => {
             signer: signer.object(),
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
-        nodeApiMock.verify(instance => instance.tx.logionLoc.addCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
     });
 
     it("adds collection item with Logion Classification", async () => {
@@ -269,7 +268,7 @@ describe("ClosedCollectionLoc", () => {
             specificLicenses: SPECIFIC_LICENSES,
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
-        nodeApiMock.verify(instance => instance.tx.logionLoc.addCollectionItemWithTermsAndConditions(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addCollectionItemWithTermsAndConditions(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
     });
 
     it("adds collection item with Creative Commons", async () => {
@@ -285,7 +284,7 @@ describe("ClosedCollectionLoc", () => {
             creativeCommons: CREATIVE_COMMONS,
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
-        nodeApiMock.verify(instance => instance.tx.logionLoc.addCollectionItemWithTermsAndConditions(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addCollectionItemWithTermsAndConditions(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
     });
 
     it("fails to add collection item with both Logion Classification and Creative Commons", async () => {
@@ -293,7 +292,6 @@ describe("ClosedCollectionLoc", () => {
 
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
-        // expectAsync(closedCollectionLoc).toBeRejected("Logion Classification and Creative Commons are mutually exclusive.");
         await expectAsync(closedLoc.addCollectionItem({
                 itemId: ITEM_ID,
                 itemDescription: ITEM_DESCRIPTION,
@@ -371,7 +369,7 @@ describe("ClosedCollectionLoc", () => {
         });
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
-        nodeApiMock.verify(instance => instance.tx.logionLoc.addTokensRecord(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addTokensRecord(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
     });
 
     it("uploads tokens record file", async () => {
@@ -511,7 +509,7 @@ const RECORD_FILES: ItemFileWithContent[] = [new ItemFileWithContent({
 let aliceAxiosMock: Mock<AxiosInstance>;
 let bobAxiosMock: Mock<AxiosInstance>;
 let charlieAxiosMock: Mock<AxiosInstance>;
-let nodeApiMock: Mock<LogionNodeApi>;
+let nodeApiMock: Mock<LogionNodeApiClass>;
 
 async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<SharedState> {
     const currentAddress = isVerifiedThirdParty ? ISSUER : REQUESTER;
@@ -646,95 +644,19 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
 
             nodeApiMock = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
 
-            const locMapImpl: any = (id: any) => {
-                const locData = ALL_LOCS.find(locData => new UUID(locData.request.id).toHexString() === id);
-                if(locData) {
-                    return Promise.resolve(locData.loc);
-                } else {
-                    return Promise.resolve(mockEmptyOption());
-                }
-            };
-            nodeApiMock.setup(instance => instance.query.logionLoc.locMap).returns(locMapImpl);
-
-            const multiImpl: any = (locIds: string[]) => {
-                const locs = locIds
-                    .map(id => ALL_LOCS.find(locData => new UUID(locData.request.id).toHexString() === id))
-                    .map(locData => locData ? locData.loc : mockEmptyOption());
-                return Promise.resolve(locs);
-            };
-            locMapImpl.multi = multiImpl;
-
-            const addCollectionItemExtrinsic = new Mock<SubmittableExtrinsic>();
-            nodeApiMock.setup(instance => instance.tx.logionLoc.addCollectionItem(
-                new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id).toDecimalString(),
-                ITEM_ID,
-                ITEM_DESCRIPTION,
-                [],
-                null,
-                false
-            )).returns(addCollectionItemExtrinsic.object());
-
-            const addCollectionItemWithTermsAndConditionsExtrinsic = new Mock<SubmittableExtrinsic>();
-            nodeApiMock.setup(instance => instance.tx.logionLoc.addCollectionItemWithTermsAndConditions(
-                new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id).toDecimalString(),
-                ITEM_ID,
-                ITEM_DESCRIPTION,
-                [],
-                null,
-                false,
-                It.Is<object[]>(args => args.length === 1),
-            )).returns(addCollectionItemWithTermsAndConditionsExtrinsic.object());
-
-            nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(
-                It.Is<UUID>(locId => locId.toString() !== ALICE_CLOSED_COLLECTION_LOC.request.id),
-                It.Is<string>(itemId => itemId !== EXISTING_ITEM_ID
-                )))
-                .returnsAsync(mockEmptyOption());
-            nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id).toHexString(), EXISTING_ITEM_ID))
-                .returnsAsync(COLLECTION_ITEM);
-            nodeApiMock.setup(instance => instance.query.logionLoc.collectionItemsMap(new UUID(BOB_VOID_COLLECTION_LOC.request.id).toHexString(), EXISTING_ITEM_ID))
-                .returnsAsync(COLLECTION_ITEM);
-
-            const verifiedIssuersMapImpl: any = (legalOfficer: string, issuer: string) => {
-                if(!isVerifiedThirdParty) {
-                    return Promise.resolve(mockEmptyOption<PalletLogionLocVerifiedIssuer>());
-                } else {
-                    if(legalOfficer === ALICE.address && issuer === ISSUER.address) {
-                        return Promise.resolve(mockEmptyOption<PalletLogionLocVerifiedIssuer>());
-                    } else {
-                        const verifiedIssuer: PalletLogionLocVerifiedIssuer = mockCodecWithToString(new UUID(ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request.id).toDecimalString());
-                        return Promise.resolve(mockOption(verifiedIssuer));
-                    }
-                }
-            };
-            verifiedIssuersMapImpl.entries = (legalOfficer: string) => {
-                if(!isVerifiedThirdParty || legalOfficer !== ALICE.address) {
-                    return Promise.resolve([]);
-                } else {
-                    const verifiedIssuer = {
-                        identityLoc: mockCodecWithToString(new UUID(ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request.id).toDecimalString()),
-                    };
-                    return Promise.resolve([
-                        [
-                            {
-                                args: [
-                                    mockCodecWithToString(ALICE.address),
-                                    mockCodecWithToString(ISSUER.address),
-                                ],
-                            } as any,
-                            mockOption(verifiedIssuer as PalletLogionLocVerifiedIssuer),
-                        ]
-                    ]);
-                }
-            };
-            nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersMap).returns(verifiedIssuersMapImpl);
-            nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersByLocMap.entries(It.IsAny())).returns(Promise.resolve([]));
-
-            const verifiedIssuersByLocMapMultiImpl: any = (keys: any[]) => Promise.resolve(keys.map(() => mockEmptyOption<Null>()));
-            nodeApiMock.setup(instance => instance.query.logionLoc.verifiedIssuersByLocMap.multi).returns(verifiedIssuersByLocMapMultiImpl);
-
+            nodeApiMock.setup(instance => instance.queries.getLegalOfficerCase).returns(mockGetLegalOfficerCase(ALL_LOCS));
+            
+            let verifiedIssuer: VerifiedIssuerType | undefined;
+            const verifiedIssuerAddress = ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.loc.requesterAddress?.address || "";
             if(isVerifiedThirdParty) {
-                nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(ISSUER.address)).returns(Promise.resolve([
+                verifiedIssuer = {
+                    address: verifiedIssuerAddress,
+                    identityLocId: new UUID(ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request.id),
+                };
+            }
+            nodeApiMock.setup(instance => instance.batch.locs).returns(mockLocBatchFactory(ALL_LOCS, verifiedIssuer));
+            if(verifiedIssuer) {
+                nodeApiMock.setup(instance => instance.polkadot.query.logionLoc.locsByVerifiedIssuerMap.entries(ISSUER.address)).returns(Promise.resolve([
                     [
                         {
                             args: [
@@ -756,14 +678,41 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                         mockCodecWithToString(""),
                     ]
                 ]));
-                nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(REQUESTER.address)).returns(Promise.resolve([]));
-            } else {
-                nodeApiMock.setup(instance => instance.query.logionLoc.locsByVerifiedIssuerMap.entries(It.IsAny())).returns(Promise.resolve([]));
             }
 
-            nodeApiMock.setup(instance => instance.createType).returns(() => ({} as any));
+            const addCollectionItemExtrinsic = new Mock<SubmittableExtrinsic>();
+            nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.addCollectionItem(
+                new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id).toDecimalString(),
+                ITEM_ID,
+                ITEM_DESCRIPTION,
+                [],
+                null,
+                false
+            )).returns(addCollectionItemExtrinsic.object());
+
+            const addCollectionItemWithTermsAndConditionsExtrinsic = new Mock<SubmittableExtrinsic>();
+            nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.addCollectionItemWithTermsAndConditions(
+                new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id).toDecimalString(),
+                ITEM_ID,
+                ITEM_DESCRIPTION,
+                [],
+                null,
+                false,
+                It.Is<object[]>(args => args.length === 1),
+            )).returns(addCollectionItemWithTermsAndConditionsExtrinsic.object());
+
+            nodeApiMock.setup(instance => instance.queries.getCollectionItem(
+                It.Is<UUID>(locId => locId.toString() !== ALICE_CLOSED_COLLECTION_LOC.request.id),
+                It.Is<string>(itemId => itemId !== EXISTING_ITEM_ID
+            )))
+                .returnsAsync(undefined);
+            nodeApiMock.setup(instance => instance.queries.getCollectionItem(ItIsUuid(new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id)), EXISTING_ITEM_ID))
+                .returnsAsync(COLLECTION_ITEM);
+            nodeApiMock.setup(instance => instance.queries.getCollectionItem(ItIsUuid(new UUID(BOB_VOID_COLLECTION_LOC.request.id)), EXISTING_ITEM_ID))
+                .returnsAsync(COLLECTION_ITEM);
+
             const addTokensRecordExtrinsic = new Mock<SubmittableExtrinsic>();
-            nodeApiMock.setup(instance => instance.tx.logionLoc.addTokensRecord(
+            nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.addTokensRecord(
                 new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id).toDecimalString(),
                 ITEM_ID,
                 ITEM_DESCRIPTION,

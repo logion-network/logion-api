@@ -1,7 +1,7 @@
-import { LogionNodeApi, UUID } from "@logion/node-api";
+import { LogionNodeApiClass, UUID } from "@logion/node-api";
 import { AxiosInstance, AxiosResponse } from "axios";
 import { DateTime } from "luxon";
-import { It, Mock } from "moq.ts";
+import { Mock } from "moq.ts";
 import {
     AccountTokens,
     SharedState,
@@ -14,6 +14,7 @@ import {
     buildSimpleNodeApi,
     buildTestAuthenticatedSharedSate,
     buildValidPolkadotAccountId,
+    ItIsUuid,
     LEGAL_OFFICERS,
     LOGION_CLIENT_CONFIG,
 } from "./Utils.js";
@@ -42,7 +43,7 @@ const LOC_REQUEST = buildLocRequest(ALICE.address, "CLOSED", "Identity");
 const LOC = buildLoc(ALICE.address, "CLOSED", "Identity");
 
 let aliceAxiosMock: Mock<AxiosInstance>;
-let nodeApiMock: Mock<LogionNodeApi>;
+let nodeApiMock: Mock<LogionNodeApiClass>;
 
 const currentAddress = buildValidPolkadotAccountId(ALICE.address);
 const token = "some-token";
@@ -73,9 +74,8 @@ async function buildSharedState(): Promise<SharedState> {
                 .returns(aliceAxiosMock.object());
 
             nodeApiMock = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-            nodeApiMock.setup(instance => instance.query.logionLoc.locMap(new UUID(LOC_REQUEST.id).toHexString()))
+            nodeApiMock.setup(instance => instance.queries.getLegalOfficerCase(ItIsUuid(new UUID(LOC_REQUEST.id))))
                 .returnsAsync(LOC);
-            nodeApiMock.setup(instance => instance.createType(It.IsAny())).returns(undefined);
         },
         currentAddress,
         LEGAL_OFFICERS,

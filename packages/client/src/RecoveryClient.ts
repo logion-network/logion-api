@@ -1,4 +1,4 @@
-import { LogionNodeApi, getProxy, getRecoveryConfig, RecoveryConfig } from "@logion/node-api";
+import { LogionNodeApiClass, TypesRecoveryConfig } from "@logion/node-api";
 import { AxiosInstance } from "axios";
 
 import { AxiosFactory } from "./AxiosFactory.js";
@@ -59,7 +59,7 @@ export interface FetchAllResult {
     acceptedProtectionRequests: ProtectionRequest[];
     rejectedProtectionRequests: ProtectionRequest[];
     cancelledProtectionRequests: ProtectionRequest[];
-    recoveryConfig: RecoveryConfig | undefined;
+    recoveryConfig: TypesRecoveryConfig | undefined;
     recoveredAddress: string | undefined;
 }
 
@@ -78,7 +78,7 @@ export class RecoveryClient {
         axiosFactory: AxiosFactory,
         currentAddress: string,
         token: string,
-        nodeApi: LogionNodeApi,
+        nodeApi: LogionNodeApiClass,
     }) {
         this.networkState = params.networkState;
         this.axiosFactory = params.axiosFactory;
@@ -95,7 +95,7 @@ export class RecoveryClient {
 
     private readonly token: string;
 
-    private readonly nodeApi: LogionNodeApi;
+    private readonly nodeApi: LogionNodeApiClass;
 
     async fetchAll(legalOfficers?: LegalOfficer[]): Promise<FetchAllResult> {
         const initialState = initMultiSourceHttpClientState(this.networkState, legalOfficers);
@@ -124,16 +124,8 @@ export class RecoveryClient {
             });
         }
 
-        const api = this.nodeApi;
-        const recoveryConfig = await getRecoveryConfig({
-            api,
-            accountId: this.currentAddress
-        });
-
-        const recoveredAddress = await getProxy({
-            api,
-            currentAddress: this.currentAddress
-        });
+        const recoveryConfig = await this.nodeApi.queries.getRecoveryConfig(this.currentAddress);
+        const recoveredAddress = await this.nodeApi.queries.getProxy(this.currentAddress);
 
         return {
             pendingProtectionRequests,

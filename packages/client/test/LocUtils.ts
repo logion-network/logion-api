@@ -1,27 +1,20 @@
-import { LocType, UUID, ValidAccountId } from "@logion/node-api";
+import { CollectionItem, LegalOfficerCase, LocBatch, LocType, UUID, ValidAccountId, VerifiedIssuerType, VoidInfo } from "@logion/node-api";
 import {
-    PalletLogionLocLegalOfficerCase,
     PalletLogionLocRequester,
     PalletLogionLocLocType,
     PalletLogionLocFile,
-    PalletLogionLocCollectionItem,
-    PalletLogionLocLocVoidInfo,
     PalletLogionLocSupportedAccountId,
 } from "@polkadot/types/lookup";
 import { AccountId32, H256 } from "@polkadot/types/interfaces/runtime";
-import { Option, Bytes, u32 } from "@polkadot/types-codec";
+import { Bytes, u32 } from "@polkadot/types-codec";
 import { DateTime } from "luxon";
 import { Mock } from "moq.ts";
 
 import { LocFile, LocRequest, LocRequestStatus, OffchainCollectionItem, UploadableItemFile } from "../src/index.js";
 import {
-    mockBool,
     mockCodecWithToHex,
     mockCodecWithToString,
     mockCodecWithToUtf8,
-    mockEmptyOption,
-    mockOption,
-    mockVec,
     REQUESTER,
     mockCodecWithToBigInt,
     buildValidPolkadotAccountId
@@ -51,10 +44,10 @@ export const EXISTING_ITEM_FILE: UploadableItemFile = {
 
 export type LocAndRequest = {
     request: LocRequest,
-    loc: Option<PalletLogionLocLegalOfficerCase>
+    loc: LegalOfficerCase
 }
 
-export function buildLocAndRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: Option<PalletLogionLocLocVoidInfo>, requester: ValidAccountId = REQUESTER): LocAndRequest {
+export function buildLocAndRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: VoidInfo, requester: ValidAccountId = REQUESTER): LocAndRequest {
     return {
         request: buildLocRequest(ownerAddress, status, locType, voidInfo !== undefined, requester),
         loc: buildLoc(ownerAddress, status, locType, voidInfo, requester)
@@ -80,30 +73,25 @@ export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, 
 
 export const ISSUER = buildValidPolkadotAccountId("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb")!;
 
-export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: Option<PalletLogionLocLocVoidInfo>, requester: ValidAccountId = REQUESTER): Option<PalletLogionLocLegalOfficerCase> {
-    return mockOption<PalletLogionLocLegalOfficerCase>({
-        owner: mockCodecWithToString<AccountId32>(ownerAddress),
-        requester: mockPalletLogionLocRequester(requester),
-        metadata: mockVec([]),
-        files: mockVec<PalletLogionLocFile>([
-            mockLogionLocFile({
+export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: VoidInfo, requester: ValidAccountId = REQUESTER): LegalOfficerCase {
+    return {
+        owner: ownerAddress,
+        requesterAddress: requester,
+        metadata: [],
+        files: [
+            {
                 hash: EXISTING_FILE_HASH,
                 nature: "Some nature",
-                submitter: requester.address,
+                submitter: requester,
                 size: 128n,
-            })
-        ]),
-        links: mockVec([]),
-        closed: mockBool(status === "CLOSED"),
-        locType: mockPalletLogionLocLocType(locType),
-        voidInfo: voidInfo ? voidInfo : mockEmptyOption(),
-        replacerOf: mockEmptyOption(),
-        collectionLastBlockSubmission: mockEmptyOption(),
-        collectionMaxSize: mockEmptyOption(),
-        collectionCanUpload: mockBool(false),
-        seal: mockEmptyOption(),
-        sponsorshipId: mockEmptyOption(),
-    });
+            }
+        ],
+        links: [],
+        closed: status === "CLOSED",
+        locType,
+        voidInfo,
+        collectionCanUpload: false,
+    };
 }
 
 function mockPalletLogionLocRequester(address: ValidAccountId): PalletLogionLocRequester {
@@ -141,14 +129,14 @@ function mockPalletLogionLocLocType(locType: LocType): PalletLogionLocLocType {
 
 export const ITEM_DESCRIPTION = "Some item description";
 
-export function buildCollectionItem(): Option<PalletLogionLocCollectionItem> {
-    return mockOption<PalletLogionLocCollectionItem>({
-        description: mockCodecWithToUtf8<Bytes>(ITEM_DESCRIPTION),
-        token: mockEmptyOption(),
-        files: mockVec([]),
-        restrictedDelivery: mockBool(false),
-        termsAndConditions: mockVec([]),
-    });
+export function buildCollectionItem(): CollectionItem {
+    return {
+        id: EXISTING_ITEM_ID,
+        description: ITEM_DESCRIPTION,
+        files: [],
+        restrictedDelivery: false,
+        termsAndConditions: [],
+    };
 }
 
 export const EXISTING_ITEM_ID = "0x3ba63a86247fac44f6f196db27ec10fdf5335367e3f6ac6be8da8594645bfc85";
@@ -162,8 +150,65 @@ export function buildOffchainCollectionItem(collectionLocId: string): OffchainCo
     });
 }
 
-export function mockVoidInfo(): Option<PalletLogionLocLocVoidInfo> {
-    return mockOption<PalletLogionLocLocVoidInfo>({
-        replacer: mockEmptyOption(),
-    });
+export function mockVoidInfo(): VoidInfo {
+    return {};
+}
+
+export function mockGetLegalOfficerCase(ALL_LOCS: LocAndRequest[]): ((locId: UUID) => Promise<LegalOfficerCase | undefined>) {
+    return (id: UUID) => {
+        const locData = ALL_LOCS.find(locData => new UUID(locData.request.id).toString() === id.toString());
+        if(locData) {
+            return Promise.resolve(locData.loc);
+        } else {
+            return Promise.resolve(undefined);
+        }
+    };
+}
+
+export function mockLocBatchFactory(ALL_LOCS: LocAndRequest[], verifiedIssuer?: VerifiedIssuerType): ((locIds: UUID[]) => LocBatch) {
+    return (locIds: UUID[]) => {
+        const locBatch = new Mock<LocBatch>();
+        const stringIds = locIds.map(uuid => uuid.toString());
+
+        const getLocsImpl = () => {
+            const locs: Record<string, LegalOfficerCase> = {};
+            ALL_LOCS.forEach(locAndRequest => {
+                if(stringIds.includes(locAndRequest.request.id)) {
+                    locs[new UUID(locAndRequest.request.id).toDecimalString()] = locAndRequest.loc;
+                }
+            });
+            return Promise.resolve(locs);
+        };
+        locBatch.setup(instance => instance.getLocs).returns(getLocsImpl);
+
+        const getLocsVerifiedIssuersImpl = () => {
+            const locsVerifiedIssuers: Record<string, VerifiedIssuerType[]> = {};
+            ALL_LOCS.forEach(locAndRequest => {
+                if(stringIds.includes(locAndRequest.request.id)) {
+                    locsVerifiedIssuers[new UUID(locAndRequest.request.id).toDecimalString()] ||= [];
+                    if(verifiedIssuer) {
+                        locsVerifiedIssuers[new UUID(locAndRequest.request.id).toDecimalString()].push(verifiedIssuer);
+                    }
+                }
+            });
+            return Promise.resolve(locsVerifiedIssuers);
+        };
+        locBatch.setup(instance => instance.getLocsVerifiedIssuers).returns(getLocsVerifiedIssuersImpl);
+
+        const getAvailableVerifiedIssuersImpl = () => {
+            const availableVerifiedIssuers: Record<string, VerifiedIssuerType[]> = {};
+            ALL_LOCS.forEach(locAndRequest => {
+                if(stringIds.includes(locAndRequest.request.id)) {
+                    availableVerifiedIssuers[locAndRequest.request.ownerAddress] ||= [];
+                    if(verifiedIssuer) {
+                        availableVerifiedIssuers[locAndRequest.request.ownerAddress].push(verifiedIssuer);
+                    }
+                }
+            });
+            return Promise.resolve(availableVerifiedIssuers);
+        };
+        locBatch.setup(instance => instance.getAvailableVerifiedIssuers).returns(getAvailableVerifiedIssuersImpl);
+
+        return locBatch.object();
+    };
 }

@@ -77,7 +77,7 @@ export class LocBatch {
         return map;
     }
 
-    private async getAvailableVerifiedIssuers(): Promise<Record<string, VerifiedIssuerType[]>> {
+    async getAvailableVerifiedIssuers(): Promise<Record<string, VerifiedIssuerType[]>> {
         this.availableVerifiedIssuers ||= await this.computeAvailableVerifiedIssuersMap();
         return this.availableVerifiedIssuers;
     }

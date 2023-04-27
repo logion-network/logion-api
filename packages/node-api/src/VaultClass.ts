@@ -33,11 +33,13 @@ export class Vault {
         this.api = api;
         this.requester = requester;
         this.legalOfficers = [ ...legalOfficers ].sort();
+        this.address = Vault.getVaultAddress(this.requester, this.legalOfficers);
     }
 
     private api: ApiPromise;
     private requester: string;
     private legalOfficers: string[];
+    readonly address: string;
 
     static getVaultAddress(requesterAddress: string, legalOfficers: string[]): string {
         const signatories: string[] = [ requesterAddress, ...legalOfficers ].sort();
@@ -47,9 +49,9 @@ export class Vault {
     readonly tx = {
         transferFromVault: async (parameters: RequestVaultOutTransferParameters): Promise<SubmittableExtrinsic> => {
             const actualAmount = Currency.toCanonicalAmount(parameters.amount);
-            const { submittable, weight, multisigOrigin } = await this.transferCallAndWeight(BigInt(actualAmount), parameters.destination);
+            const { submittable, weight } = await this.transferCallAndWeight(BigInt(actualAmount), parameters.destination);
         
-            const existingMultisig = await this.api.query.multisig.multisigs(multisigOrigin, submittable.method.hash);
+            const existingMultisig = await this.api.query.multisig.multisigs(this.address, submittable.method.hash);
             if(existingMultisig.isSome) {
                 throw new Error("A similar transfer has already been requested and is pending");
             }
@@ -89,15 +91,13 @@ export class Vault {
     private async transferCallAndWeight(
         amount: bigint,
         destination: string,
-    ): Promise<{ submittable: SubmittableExtrinsic, weight: Weight, multisigOrigin: string }> {
-        const multisigOrigin = Vault.getVaultAddress(this.requester, this.legalOfficers);
+    ): Promise<{ submittable: SubmittableExtrinsic, weight: Weight }> {
         const submittable = this.api.tx.balances.transfer(destination, amount);
-        const dispatchInfo = await submittable.paymentInfo(multisigOrigin);
+        const dispatchInfo = await submittable.paymentInfo(this.address);
         const weight = dispatchInfo.weight;
         return {
             submittable,
             weight,
-            multisigOrigin
         }
     }
 }

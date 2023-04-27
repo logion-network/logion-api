@@ -1,4 +1,4 @@
-import { LogionNodeApi, ValidAccountId } from "@logion/node-api";
+import { LogionNodeApiClass, ValidAccountId } from "@logion/node-api";
 import { AxiosInstance } from "axios";
 import { DateTime } from "luxon";
 import { AxiosFactory } from "./AxiosFactory";
@@ -18,14 +18,14 @@ type AuthenticationResponse = Record<string, { value: string, expiredOn: string 
 
 export class AuthenticationClient {
 
-    constructor(api: LogionNodeApi, directoryEndpoint: string, legalOfficers: LegalOfficerClass[], axiosFactory: AxiosFactory) {
+    constructor(api: LogionNodeApiClass, directoryEndpoint: string, legalOfficers: LegalOfficerClass[], axiosFactory: AxiosFactory) {
         this.api = api;
         this.directoryEndpoint = directoryEndpoint;
         this.legalOfficers = legalOfficers;
         this.axiosFactory = axiosFactory;
     }
 
-    private api: LogionNodeApi;
+    private api: LogionNodeApiClass;
 
     private directoryEndpoint: string;
 
@@ -127,12 +127,12 @@ export class AuthenticationClient {
 
 export class AccountTokens {
 
-    constructor(api: LogionNodeApi, initialState: Record<string, Token>) {
+    constructor(api: LogionNodeApiClass, initialState: Record<string, Token>) {
         this.api = api;
         this.store = { ...initialState };
     }
 
-    private api: LogionNodeApi;
+    private api: LogionNodeApiClass;
 
     private store: Record<string, Token>;
 
@@ -149,7 +149,7 @@ export class AccountTokens {
     }
 
     get addresses(): ValidAccountId[] {
-        return Object.keys(this.store).map(key => ValidAccountId.parseKey(this.api, key));
+        return Object.keys(this.store).map(key => ValidAccountId.parseKey(this.api.polkadot, key));
     }
 
     cleanUp(now: DateTime): AccountTokens {

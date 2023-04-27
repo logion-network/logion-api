@@ -1,10 +1,5 @@
 import {
-    claimRecovery,
-    createRecovery,
-    getActiveRecovery,
-    initiateRecovery,
-    RecoveryConfig,
-    getRecoveryConfig
+    TypesRecoveryConfig,
 } from "@logion/node-api";
 import {
     FetchAllResult,
@@ -42,7 +37,7 @@ export interface RecoverySharedState extends SharedState {
     rejectedProtectionRequests: ProtectionRequest[];
     cancelledProtectionRequests: ProtectionRequest[];
     allRequests: ProtectionRequest[];
-    recoveryConfig?: RecoveryConfig;
+    recoveryConfig?: TypesRecoveryConfig;
     recoveredAddress?: string;
     selectedLegalOfficers: LegalOfficerClass[];
 }
@@ -257,26 +252,19 @@ export class NoProtection extends State {
         callback?: SignCallback,
     }): Promise<PendingProtection> {
         const currentAddress = getDefinedCurrentAddress(this.sharedState);
-        const activeRecovery = await getActiveRecovery({
-            api: this.sharedState.nodeApi,
-            sourceAccount: params.recoveredAddress,
-            destinationAccount: currentAddress.address,
-        });
+        const activeRecovery = await this.sharedState.nodeApi.queries.getActiveRecovery(
+            params.recoveredAddress,
+            currentAddress.address,
+        );
         if (activeRecovery === undefined) {
-            const recoveryConfig = await getRecoveryConfig({
-                api: this.sharedState.nodeApi,
-                accountId: params.recoveredAddress,
-            });
+            const recoveryConfig = await this.sharedState.nodeApi.queries.getRecoveryConfig(params.recoveredAddress);
             if (recoveryConfig &&
                 recoveryConfig.legalOfficers.includes(params.legalOfficer1.address) &&
                 recoveryConfig.legalOfficers.includes(params.legalOfficer2.address)
             ) {
                 await params.signer.signAndSend({
                     signerId: currentAddress.address,
-                    submittable: initiateRecovery({
-                        api: this.sharedState.nodeApi,
-                        addressToRecover: params.recoveredAddress,
-                    }),
+                    submittable: this.sharedState.nodeApi.polkadot.tx.recovery.initiateRecovery(params.recoveredAddress),
                     callback: params.callback,
                 });
             } else {
@@ -610,18 +598,18 @@ export class AcceptedProtection extends State implements WithProtectionParameter
         signer: Signer,
         callback?: SignCallback,
     ): Promise<ActiveProtection | PendingRecovery> {
+        const sortedLegalOfficers = this.sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address).sort();
         await signer.signAndSend({
             signerId: getDefinedCurrentAddress(this.sharedState).address,
-            submittable: createRecovery({
-                api: this.sharedState.nodeApi,
-                legalOfficers: this.sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address),
-            }),
+            submittable: this.sharedState.nodeApi.polkadot.tx.verifiedRecovery.createRecovery(
+                sortedLegalOfficers,
+            ),
             callback
         });
         const newSharedState = {
             ...this.sharedState,
             recoveryConfig: {
-                legalOfficers: this.sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address)
+                legalOfficers: sortedLegalOfficers
             }
         };
 
@@ -747,10 +735,7 @@ export class PendingRecovery extends State implements WithProtectionParameters, 
         const addressToRecover = this.protectionParameters.recoveredAddress || "";
         await signer.signAndSend({
             signerId: getDefinedCurrentAddress(this.sharedState).address,
-            submittable: claimRecovery({
-                api: this.sharedState.nodeApi,
-                addressToRecover,
-            }),
+            submittable: this.sharedState.nodeApi.polkadot.tx.recovery.claimRecovery(addressToRecover),
             callback
         });
         return new ClaimedRecovery({

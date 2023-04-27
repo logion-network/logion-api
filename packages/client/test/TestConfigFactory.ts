@@ -1,4 +1,4 @@
-import { LogionNodeApi } from "@logion/node-api";
+import { LogionNodeApiClass, UUID } from "@logion/node-api";
 import FormData from "form-data";
 import { IMock, IPresetBuilder, It, Mock, Times } from "moq.ts";
 import { IExpression } from "moq.ts/lib/reflector/expression-reflector";
@@ -10,9 +10,10 @@ import {
     DirectoryClient,
     LogionClientConfig,
     LegalOfficer,
-    LegalOfficerClass
+    LegalOfficerClass,
+    requireDefined,
 } from "../src/index.js";
-import { buildSimpleNodeApi } from "./Utils.js";
+import { buildValidAccountId, mockCodecWithToBigInt, mockCodecWithToHex } from "./Utils.js";
 
 export class TestConfigFactory {
 
@@ -34,9 +35,8 @@ export class TestConfigFactory {
         this._componentFactory.setup(instance => instance.buildNetworkState).returns(DefaultComponentFactory.buildNetworkState);
     }
 
-    setupNodeApiMock(config: LogionClientConfig): Mock<LogionNodeApi> {
-        const nodeApi = new Mock<LogionNodeApi>();
-        nodeApi.setup(instance => instance.isConnected).returns(true);
+    setupNodeApiMock(config: LogionClientConfig): Mock<LogionNodeApiClass> {
+        const nodeApi = buildLogionNodeApiMock();
         this._componentFactory.setup(instance => instance.buildNodeApi(config.rpcEndpoints))
             .returns(Promise.resolve(nodeApi.object()));
         return nodeApi;
@@ -98,4 +98,16 @@ export class TestConfigFactory {
             axiosFactory: this._componentFactory.object().buildAxiosFactory(),
         }));
     }
+}
+
+export function buildLogionNodeApiMock(): Mock<LogionNodeApiClass> {
+    const nodeApi = new Mock<LogionNodeApiClass>();
+    nodeApi.setup(instance => instance.polkadot.isConnected).returns(true);
+
+    nodeApi.setup(instance => instance.queries.getValidAccountId).returns((address, type) => requireDefined(buildValidAccountId(address, type)));
+    nodeApi.setup(instance => instance.queries.isValidAccountId).returns(() => true);
+    nodeApi.setup(instance => instance.adapters.toLocId).returns(uuid => mockCodecWithToBigInt(BigInt(uuid.toDecimalString())));
+    nodeApi.setup(instance => instance.adapters.newTokensRecordFileVec).returns(files => mockCodecWithToHex(""));
+
+    return nodeApi;
 }

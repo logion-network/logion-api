@@ -1,6 +1,6 @@
 import { AxiosInstance } from "axios";
 import { DateTime, DurationLike } from "luxon";
-import { getRecoveryConfig, isValidAccountId, LogionNodeApi, LogionNodeApiClass, ValidAccountId } from "@logion/node-api";
+import { LogionNodeApi, LogionNodeApiClass, ValidAccountId } from "@logion/node-api";
 
 import { AccountTokens } from "./AuthenticationClient.js";
 import { BalanceState, getBalanceState } from "./Balance.js";
@@ -84,7 +84,14 @@ export class LogionClient {
         return this.sharedState.allLegalOfficers;
     }
 
+    /**
+     * @deprecated use logionApi
+     */
     get nodeApi(): LogionNodeApi {
+        return this.sharedState.nodeApi.polkadot;
+    }
+
+    get logionApi(): LogionNodeApiClass {
         return this.sharedState.nodeApi;
     }
 
@@ -97,7 +104,7 @@ export class LogionClient {
     }
 
     private ensureConnected() {
-        if(!this.sharedState.nodeApi.isConnected) {
+        if(!this.sharedState.nodeApi.polkadot.isConnected) {
             throw new Error("Client was disconnected");
         }
     }
@@ -239,7 +246,7 @@ export class LogionClient {
 
     async isRegisteredLegalOfficer(address: string): Promise<boolean> {
         this.ensureConnected();
-        const option = await this.sharedState.nodeApi.query.loAuthorityList.legalOfficerSet(address);
+        const option = await this.sharedState.nodeApi.polkadot.query.loAuthorityList.legalOfficerSet(address);
         return option.isSome;
     }
 
@@ -315,15 +322,12 @@ export class LogionClient {
 
     async isProtected(address: string): Promise<boolean> {
         this.ensureConnected();
-        const config = await getRecoveryConfig({
-            api: this.sharedState.nodeApi,
-            accountId: address
-        });
+        const config = await this.sharedState.nodeApi.queries.getRecoveryConfig(address);
         return config !== undefined;
     }
 
     isValidAddress(address: string): boolean {
-        return isValidAccountId(this.sharedState.nodeApi, address);
+        return this.sharedState.nodeApi.queries.isValidAccountId(address, "Polkadot");
     }
 
     async locsState(params?: FetchAllLocsParams): Promise<LocsState> {
@@ -342,15 +346,15 @@ export class LogionClient {
     }
 
     async disconnect() {
-        if(this.sharedState.nodeApi.isConnected) {
-            return this.sharedState.nodeApi.disconnect();
+        if(this.sharedState.nodeApi.polkadot.isConnected) {
+            return this.sharedState.nodeApi.polkadot.disconnect();
         }
     }
 
     get sponsorship(): Sponsorship {
         this.ensureConnected();
         return new Sponsorship({
-            api: new LogionNodeApiClass(this.sharedState.nodeApi),
+            api: this.sharedState.nodeApi,
             signerId: requireDefined(this.currentAddress?.address),
         });
     }
