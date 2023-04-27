@@ -354,7 +354,7 @@ export class LogionClient {
     get sponsorship(): SponsorshipApi {
         this.ensureConnected();
         return new SponsorshipApi({
-            api: new LogionNodeApiClass(this.sharedState.nodeApi.polkadot),
+            api: this.sharedState.nodeApi,
             signerId: requireDefined(this.currentAddress?.address),
         });
     }
