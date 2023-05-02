@@ -294,3 +294,15 @@ export interface VerifiedIssuerType {
     address: string;
     identityLocId: UUID;
 }
+
+export interface LegalOfficerData {
+    hostData?: Partial<HostData>;
+    isHost?: boolean;
+    hostAddress?: string;
+    guests?: string[];
+}
+
+export interface HostData {
+    nodeId: string;
+    baseUrl: string;
+}

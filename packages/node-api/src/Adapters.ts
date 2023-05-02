@@ -2,6 +2,7 @@ import { ApiPromise } from "@polkadot/api";
 import { Call, FunctionMetadataLatest } from "@polkadot/types/interfaces";
 import {
     FrameSystemAccountInfo,
+    PalletLoAuthorityListLegalOfficerData,
     PalletLogionLocFile,
     PalletLogionLocLegalOfficerCase,
     PalletLogionLocCollectionItem,
@@ -10,7 +11,7 @@ import {
     PalletLogionLocOtherAccountId,
     PalletLogionLocSupportedAccountId,
     PalletLogionLocMetadataItem,
-    PalletLogionLocSponsorship
+    PalletLogionLocSponsorship,
 } from '@polkadot/types/lookup';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { ISubmittableResult } from "@polkadot/types/types";
@@ -37,10 +38,11 @@ import {
     OtherAccountId,
     MetadataItem,
     Sponsorship,
-    AccountId, AccountType
+    AccountId, AccountType, HostData
 } from "./Types.js";
 import { UUID } from "./UUID.js";
-import { stringToHex } from "@polkadot/util";
+import { stringToHex, stringToU8a, u8aToHex } from "@polkadot/util";
+import { base58Decode, base58Encode } from "@polkadot/util-crypto";
 
 
 export class Adapters {
@@ -465,4 +467,34 @@ export class Adapters {
         return anyAccountId.toValidAccountId();
     }
 
+    toPalletLoAuthorityListLegalOfficerDataHost(legalOfficerData: Partial<HostData>): PalletLoAuthorityListLegalOfficerData {
+        let nodeId: string | null = null;
+        if(legalOfficerData.nodeId) {
+            const opaquePeerId = base58Decode(legalOfficerData.nodeId);
+            nodeId = u8aToHex(opaquePeerId);
+        }
+
+        let baseUrl: string | null = null;
+        if(legalOfficerData.baseUrl) {
+            const urlBytes = stringToU8a(legalOfficerData.baseUrl);
+            baseUrl = u8aToHex(urlBytes);
+        }
+        return this.api.createType<PalletLoAuthorityListLegalOfficerData>("PalletLoAuthorityListLegalOfficerData", { Host: { nodeId, baseUrl } });
+    }
+
+    toHostData(legalOfficerData: PalletLoAuthorityListLegalOfficerData): Partial<HostData> {
+        let nodeId: string | undefined;
+        if(legalOfficerData.asHost.nodeId.isSome) {
+            const opaquePeerId = legalOfficerData.asHost.nodeId.unwrap();
+            nodeId = base58Encode(opaquePeerId);
+        }
+    
+        let baseUrl: string | undefined;
+        if(legalOfficerData.asHost.baseUrl.isSome) {
+            const urlBytes = legalOfficerData.asHost.baseUrl.unwrap();
+            baseUrl = urlBytes.toUtf8();
+        }
+    
+        return { baseUrl, nodeId };
+    }
 }
