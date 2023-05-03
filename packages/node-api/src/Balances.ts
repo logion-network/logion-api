@@ -38,7 +38,7 @@ export async function getBalances(parameters: GetAccountDataParameters): Promise
  * @deprecated
  */
 export function scientificLogBalance(tokens: string): Numbers.ScientificNumber {
-    return Currency.nLgnt(BigInt(tokens)).scientificNumber.optimizeScale(3);
+    return Currency.toPrefixedNumberAmount(BigInt(tokens)).scientificNumber.optimizeScale(3);
 }
 
 /**

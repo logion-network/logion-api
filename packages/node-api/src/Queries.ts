@@ -11,7 +11,8 @@ import {
     TypesRecoveryConfig,
     ValidAccountId,
     Sponsorship,
-    VerifiedIssuerType
+    VerifiedIssuerType,
+    LegalOfficerData
 } from "./Types.js";
 import { UUID } from "./UUID.js";
 
@@ -200,5 +201,40 @@ export class Queries {
         }
 
         return issuers;
+    }
+
+    async getLegalOfficerData(address: string): Promise<LegalOfficerData> {
+        let onchainSettings: LegalOfficerData = {};
+        const legalOfficerData = await this.api.query.loAuthorityList.legalOfficerSet(address);
+        if(legalOfficerData.isSome) {
+            const someLegalOfficerData = legalOfficerData.unwrap();
+            if(someLegalOfficerData.isHost) {
+                const hostData = this.adapters.toHostData(someLegalOfficerData);
+                onchainSettings = {
+                    hostData,
+                    isHost: true,
+                    guests: await this.getGuestsOf(address),
+                };
+            } else {
+                const hostAddress = someLegalOfficerData.asGuest.toString();
+                const hostLegalOfficerData = await this.api.query.loAuthorityList.legalOfficerSet(hostAddress);
+                const hostData = this.adapters.toHostData(hostLegalOfficerData.unwrap());
+                onchainSettings = {
+                    hostData,
+                    isHost: false,
+                    hostAddress,
+                };
+            }
+        }
+        return onchainSettings;
+    }
+
+    private async getGuestsOf(address: string): Promise<string[]> {
+        const legalOfficerData = await this.api.query.loAuthorityList.legalOfficerSet.entries();
+        return legalOfficerData
+            .filter(entry => entry[1].isSome)
+            .filter(entry => entry[1].unwrap().isGuest)
+            .filter(entry => entry[1].unwrap().asGuest.toString() === address)
+            .map(entry => entry[0].args[0].toString());
     }
 }
