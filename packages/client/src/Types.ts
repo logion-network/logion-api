@@ -33,6 +33,13 @@ export interface LegalOfficer {
 
 export type Language = 'en' | 'fr';
 
+export interface BackendConfig {
+    features: {
+        iDenfy: boolean;
+        vote: boolean;
+    };
+}
+
 export class LegalOfficerClass implements LegalOfficer {
 
     constructor(args: {
@@ -64,6 +71,7 @@ export class LegalOfficerClass implements LegalOfficer {
 
     private axiosFactory: AxiosFactory;
     private token: string | undefined;
+    private config: BackendConfig | undefined;
 
     buildAxiosToNode(): AxiosInstance {
         return this.axiosFactory.buildAxiosInstance(this.node, this.token);
@@ -75,5 +83,19 @@ export class LegalOfficerClass implements LegalOfficer {
             axiosFactory: this.axiosFactory,
             token,
         });
+    }
+
+    async getConfig(): Promise<BackendConfig> {
+        this.config ||= await this.fetchConfig();
+        return this.config;
+    }
+
+    private async fetchConfig(): Promise<BackendConfig> {
+        if(!this.token) {
+            throw new Error("Authenticate first");
+        }
+        const axios = this.buildAxiosToNode();
+        const response = await axios.get("/api/config");
+        return response.data;
     }
 }

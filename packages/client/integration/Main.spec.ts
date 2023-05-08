@@ -7,6 +7,7 @@ import { requestTransactionLoc, collectionLoc, collectionLocWithUpload, identity
 import { verifiedThirdParty } from "./VerifiedThirdParty.js";
 import { tokensRecords } from "./TokensRecord.js";
 import { fees } from "./Fees.js";
+import { backendConfig } from "./LegalOfficer.js";
 
 describe("Logion SDK", () => {
 
@@ -16,6 +17,10 @@ describe("Logion SDK", () => {
 
     beforeAll(async () => {
         state = await setupInitialState();
+    });
+
+    it("fetches backend config", async () => {
+        await backendConfig(state);
     });
 
     it("estimates fees", async () => {

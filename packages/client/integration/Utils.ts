@@ -14,6 +14,7 @@ import {
     LegalOfficer,
     LogionClient,
     DefaultSignAndSendStrategy,
+    LegalOfficerClass,
 } from "../src/index.js";
 import { ALICE, BOB, CHARLIE } from "../test/Utils.js";
 import { requireDefined } from "../src/assertions.js";
@@ -59,9 +60,9 @@ export const ETHEREUM_SEED = "0x09dc05bbed08ff234919b84002a1eb6f856a6e949b017289
 export interface State {
     signer: FullSigner;
     client: LogionClient;
-    alice: LegalOfficer;
-    bob: LegalOfficer;
-    charlie: LegalOfficer;
+    alice: LegalOfficerClass;
+    bob: LegalOfficerClass;
+    charlie: LegalOfficerClass;
     requesterAccount: ValidAccountId,
     newAccount: ValidAccountId,
     aliceAccount: ValidAccountId,
