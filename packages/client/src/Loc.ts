@@ -41,6 +41,7 @@ import { State } from "./State.js";
 import { LogionClient } from "./LogionClient.js";
 import { TokensRecord as TokensRecordClass } from "./TokensRecord.js";
 import { downloadFile, TypedFile } from "./Http.js";
+import { requireDefined } from "./assertions.js";
 
 export interface LocData extends LocVerifiedIssuers {
     id: UUID
@@ -409,7 +410,7 @@ export class LocsState extends State {
 }
 
 export interface LocSharedState extends SharedState {
-    legalOfficer: LegalOfficer;
+    legalOfficer: LegalOfficerClass;
     client: AuthenticatedLocClient;
     locsState: LocsState;
 }
@@ -735,6 +736,12 @@ export abstract class EditableRequest extends LocRequestState {
     }
 }
 
+export interface IdenfyVerificationCreation {
+    successUrl: string;
+    errorUrl: string;
+    unverifiedUrl: string;
+}
+
 export class DraftRequest extends EditableRequest {
 
     veryNew(): PendingRequest {
@@ -762,6 +769,28 @@ export class DraftRequest extends EditableRequest {
         await this.locSharedState.client.cancel(this.locId);
         this.discard(undefined);
         return this.locSharedState.locsState.refreshWithout(this.locId);
+    }
+
+    isIDenfySessionInProgress(): boolean {
+        return this.data().iDenfy?.redirectUrl !== undefined;
+    }
+
+    async startNewIDenfySession(request: IdenfyVerificationCreation): Promise<DraftRequest> {
+        if(this.isIDenfySessionInProgress()) {
+            throw new Error("An iDenfy session is already in progress");
+        } else {
+            const axios = this.locSharedState.legalOfficer.buildAxiosToNode();
+            await axios.post(`/api/idenfy/verification-session/${ this.data().id.toString() }`, request);
+            return this.refresh();
+        }
+    }
+
+    get iDenfySessionUrl(): string {
+        if(!this.isIDenfySessionInProgress()) {
+            throw new Error("No iDenfy session in progress");
+        } else {
+            return requireDefined(this.data().iDenfy?.redirectUrl);
+        }
     }
 
     override withLocs(locsState: LocsState): DraftRequest {
