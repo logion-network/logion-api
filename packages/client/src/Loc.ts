@@ -219,6 +219,15 @@ export class LocsState extends State {
     }
 
     findById(locId: UUID): LocRequestState {
+        const loc = this.findByIdOrUndefined(locId);
+        if(!loc) {
+            throw new Error("LOC not found");
+        } else {
+            return loc;
+        }
+    }
+
+    findByIdOrUndefined(locId: UUID): LocRequestState | undefined {
         this.ensureCurrent();
         const stringLocId = locId.toString();
         if(stringLocId in this._locs) {
@@ -226,7 +235,7 @@ export class LocsState extends State {
         } else if(stringLocId in this._verifiedThirdPartyLocs) {
             return this._verifiedThirdPartyLocs[stringLocId];
         } else {
-            throw new Error("LOC not found");
+            return undefined;
         }
     }
 
