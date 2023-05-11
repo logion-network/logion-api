@@ -1,4 +1,4 @@
-import { PrefixedNumber, ATTO, CoinBalance, Currency, Queries } from "@logion/node-api";
+import { Numbers, CoinBalance, Currency, Queries } from "@logion/node-api";
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { DateTime } from "luxon";
@@ -104,7 +104,7 @@ describe("Balance", () => {
                 }
             }
         );
-        const amount = new PrefixedNumber("200", ATTO);
+        const amount = new Numbers.PrefixedNumber("200", Numbers.ATTO);
         const transfer = new Mock<SubmittableExtrinsic>();
         const sharedState = await buildTestAuthenticatedSharedSate(
             testConfigFactory => {
@@ -163,7 +163,7 @@ describe("Balance", () => {
         );
         const recoveredAddress = "5EBxoSssqNo23FvsDeUxjyQScnfEiGxJaNwuwqBH2Twe35BX";
         const asRecovered = new Mock<SubmittableExtrinsic>();
-        const amount = new PrefixedNumber("200", ATTO);
+        const amount = new Numbers.PrefixedNumber("200", Numbers.ATTO);
         const transfer = new Mock<SubmittableExtrinsic>();
         const sharedState = await buildTestAuthenticatedSharedSate(
             testConfigFactory => {
