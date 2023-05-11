@@ -1,6 +1,6 @@
 import { AxiosInstance } from "axios";
 import { DateTime, DurationLike } from "luxon";
-import { LogionNodeApi, LogionNodeApiClass, UUID, ValidAccountId } from "@logion/node-api";
+import { LogionNodeApiClass, UUID, ValidAccountId } from "@logion/node-api";
 
 import { AccountTokens } from "./AuthenticationClient.js";
 import { BalanceState, getBalanceState } from "./Balance.js";
@@ -82,13 +82,6 @@ export class LogionClient {
 
     get allLegalOfficers(): LegalOfficerClass[] {
         return this.sharedState.allLegalOfficers;
-    }
-
-    /**
-     * @deprecated use logionApi
-     */
-    get nodeApi(): LogionNodeApi {
-        return this.sharedState.nodeApi.polkadot;
     }
 
     get logionApi(): LogionNodeApiClass {

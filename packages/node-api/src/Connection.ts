@@ -14,25 +14,6 @@ import { LocBatch } from './LocBatch.js';
 import { UUID } from './UUID.js';
 import { LegalOfficerCase, VerifiedIssuerType } from './Types.js';
 
-/**
- * @deprecated use LogionNodeApiClass
- */
-export type LogionNodeApi = ApiPromise;
-
-/**
- * @deprecated use buildApiClass()
- */
-export async function buildApi(endpoint: string | string[]): Promise<LogionNodeApi> {
-    const provider = buildProvider(endpoint);
-    const types = Object.values(definitions).reduce((res, { types }): object => ({ ...res, ...types }), {});
-    return await ApiPromise.create({
-        provider,
-        types,
-        rpc: jsonrpc,
-        runtime: definitions.runtime.runtime,
-    });
-}
-
 function buildProvider(endpoint: string | string[]): WsProvider {
     let endpoints: string[];
     if(typeof endpoint === "string") {

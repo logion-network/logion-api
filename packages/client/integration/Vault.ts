@@ -1,6 +1,6 @@
 import { buildApiClass, Currency } from "@logion/node-api";
 
-import { ActiveProtection, ClaimedRecovery, PendingRecovery, VaultTransferRequest, WithProtectionParameters } from "../src/index.js";
+import { ActiveProtection, VaultTransferRequest, WithProtectionParameters } from "../src/index.js";
 import { REQUESTER_ADDRESS, State } from "./Utils.js";
 import { checkCoinBalance } from "./Balance.js";
 

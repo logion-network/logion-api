@@ -137,13 +137,6 @@ export interface AccountId {
     equals(other: AccountId): boolean;
 }
 
-/**
- * @deprecated Use logionApi.queries.getValidAccountId(address, "Polkadot")
- */
-export function validPolkadotAccountId(api: ApiPromise, address: string): ValidAccountId {
-    return new AnyAccountId(api, address, "Polkadot").toValidAccountId();
-}
-
 export class AnyAccountId implements AccountId {
 
     /**

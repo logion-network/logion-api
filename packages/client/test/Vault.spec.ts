@@ -1,4 +1,4 @@
-import { PrefixedNumber, ATTO, ValidAccountId, Vault } from '@logion/node-api';
+import { Numbers, ValidAccountId, Vault } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces/payment';
 import type { Header, BlockNumber } from '@polkadot/types/interfaces/runtime';
@@ -114,7 +114,7 @@ describe("Vault", () => {
 
         const nextState = await state.createVaultTransferRequest({
             legalOfficer: ALICE,
-            amount: new PrefixedNumber(amount, ATTO),
+            amount: new Numbers.PrefixedNumber(amount, Numbers.ATTO),
             destination,
             signer: signer.object()
         });
@@ -191,7 +191,7 @@ describe("Vault", () => {
 
         const nextState = await state.createVaultTransferRequest({
             legalOfficer: ALICE,
-            amount: new PrefixedNumber(amount, ATTO),
+            amount: new Numbers.PrefixedNumber(amount, Numbers.ATTO),
             destination,
             signer: signer.object()
         });

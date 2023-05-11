@@ -1,25 +1,5 @@
 import BN from "bn.js";
 
-/**
- * @deprecated Consider using optimizeScale or convertTo in Numbers.ScientificNumber or Numbers.PrefixedNumber.
- * See also toCanonicalAmount and toPrefixedNumber in Currency namespace.
- */
-export function amount(balance: string, decimals: number): string {
-    const prefixed = new ScientificNumber(balance, 0);
-    const converted = prefixed.convertTo(decimals);
-    return converted.coefficient.unnormalize();
-}
-
-/**
- * @deprecated Consider using optimizeScale or convertTo in Numbers.ScientificNumber or Numbers.PrefixedNumber.
- * See also toCanonicalAmount and toPrefixedNumber in Currency namespace.
- */
-export function balance(amount: string, decimals: number): string {
-    const prefixed = new ScientificNumber(amount, decimals);
-    const converted = prefixed.convertTo(0);
-    return converted.coefficient.unnormalize();
-}
-
 export class NormalizedNumber {
     private readonly _normalized: string;
     private readonly _integerPart: string;

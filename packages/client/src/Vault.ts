@@ -1,7 +1,6 @@
 import {
     Currency,
-    PrefixedNumber,
-    LGNT_SMALLEST_UNIT,
+    Numbers,
     CoinBalance,
     Vault,
 } from "@logion/node-api";
@@ -135,7 +134,7 @@ export class VaultState extends State {
 
     async createVaultTransferRequest(params: {
         legalOfficer: LegalOfficer,
-        amount: PrefixedNumber,
+        amount: Numbers.PrefixedNumber,
         destination: string,
         signer: Signer,
         callback?: SignCallback,
@@ -145,7 +144,7 @@ export class VaultState extends State {
 
     private async _createVaultTransferRequest(params: {
         legalOfficer: LegalOfficer,
-        amount: PrefixedNumber,
+        amount: Numbers.PrefixedNumber,
         destination: string,
         signer: Signer,
         callback?: SignCallback,
@@ -194,7 +193,7 @@ export class VaultState extends State {
 
     private async recoveryTransferSubmittable(params: {
         destination: string,
-        amount: PrefixedNumber,
+        amount: Numbers.PrefixedNumber,
     }): Promise<SubmittableExtrinsic> {
         const { destination, amount } = params;
         const transfer = await this.sharedState.vault.tx.transferFromVault({
@@ -209,7 +208,7 @@ export class VaultState extends State {
 
     private regularTransferSubmittable(params: {
         destination: string,
-        amount: PrefixedNumber,
+        amount: Numbers.PrefixedNumber,
     }): Promise<SubmittableExtrinsic> {
         const { destination, amount } = params;
         return this.sharedState.vault.tx.transferFromVault({
@@ -234,7 +233,7 @@ export class VaultState extends State {
         callback?: SignCallback,
     ): Promise<VaultState> {
         const signerId = getDefinedCurrentAddress(this.sharedState).address;
-        const amount = new PrefixedNumber(request.amount, LGNT_SMALLEST_UNIT);
+        const amount = Currency.toPrefixedNumberAmount(BigInt(request.amount));
 
         let submittable: SubmittableExtrinsic;
         if(this.sharedState.isRecovery) {
