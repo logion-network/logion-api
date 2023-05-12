@@ -1,7 +1,7 @@
 import { ClosedLoc, EditableRequest, HashOrContent, LocRequestState } from "../src/index.js";
-import { LegalOfficerWorker, NEW_ADDRESS, State, VTP_ADDRESS } from "./Utils.js";
+import { LegalOfficerWorker, NEW_ADDRESS, State, ISSUER_ADDRESS } from "./Utils.js";
 
-export async function verifiedThirdParty(state: State) {
+export async function verifiedIssuer(state: State) {
     const { alice, vtpAccount, newAccount } = state;
     const legalOfficer = new LegalOfficerWorker(alice, state);
 
@@ -10,7 +10,7 @@ export async function verifiedThirdParty(state: State) {
     let vtpLocsState = await vtpClient.locsState();
     const pendingRequest = await vtpLocsState.requestIdentityLoc({
         legalOfficer: vtpClient.getLegalOfficer(alice.address),
-        description: "This is a VTP Identity LOC",
+        description: "This is a verified issuer Identity LOC",
         userIdentity: {
             email: "john.doe.trusted@invalid.domain",
             firstName: "John",
@@ -26,35 +26,35 @@ export async function verifiedThirdParty(state: State) {
         },
         draft: false,
     });
-    await legalOfficer.createValidIdentityLoc(pendingRequest.locId, VTP_ADDRESS);
+    await legalOfficer.createValidIdentityLoc(pendingRequest.locId, ISSUER_ADDRESS);
     const closedIdentityLoc = await pendingRequest.refresh() as ClosedLoc;
 
-    await legalOfficer.nominateVerifiedThirdParty(VTP_ADDRESS, closedIdentityLoc.locId);
+    await legalOfficer.nominateVerifiedIssuer(ISSUER_ADDRESS, closedIdentityLoc.locId);
 
     const userClient = state.client.withCurrentAddress(newAccount);
     let newLoc: LocRequestState = await (await userClient.locsState()).requestTransactionLoc({
         legalOfficer: userClient.getLegalOfficer(alice.address),
-        description: "Some LOC with VTP",
+        description: "Some LOC with verified issuer",
         draft: false,
     });
     const locId = newLoc.locId;
     await legalOfficer.openTransactionLoc(locId, NEW_ADDRESS);
-    await legalOfficer.selectVtp(locId, VTP_ADDRESS, true);
+    await legalOfficer.selectVtp(locId, ISSUER_ADDRESS, true);
     newLoc = await newLoc.refresh();
     expect(newLoc.data().issuers.length).toBe(1);
     expect(newLoc.data().issuers[0].identityLocId).toBe(closedIdentityLoc.locId.toString());
     expect(newLoc.data().issuers[0].selected).toBe(true);
 
     vtpLocsState = await vtpClient.locsState();
-    expect(vtpLocsState.openVerifiedThirdPartyLocs["Transaction"].length).toBe(1);
+    expect(vtpLocsState.openVerifiedIssuerLocs["Transaction"].length).toBe(1);
     let vtpLoc = vtpLocsState.findById(locId);
 
     let openVtpLoc = await vtpLoc.refresh() as EditableRequest;
     openVtpLoc = await openVtpLoc.addMetadata({
-        name: "VTP data name",
-        value: "VTP data value"
+        name: "Verified issuer data name",
+        value: "Verified issuer data value"
     });
-    openVtpLoc = await openVtpLoc.deleteMetadata({ name: "VTP data name" });
+    openVtpLoc = await openVtpLoc.deleteMetadata({ name: "Verified issuer data name" });
 
     const file = HashOrContent.fromContent(Buffer.from("test"));
     openVtpLoc = await openVtpLoc.addFile({
@@ -64,7 +64,7 @@ export async function verifiedThirdParty(state: State) {
     });
     openVtpLoc = await openVtpLoc.deleteFile({ hash: file.contentHash });
 
-    await legalOfficer.selectVtp(newLoc.locId, VTP_ADDRESS, false);
+    await legalOfficer.selectVtp(newLoc.locId, ISSUER_ADDRESS, false);
     const userLoc = (await userClient.locsState()).findById(locId);
     expect(userLoc.data().issuers.length).toBe(1);
     expect(userLoc.data().issuers[0].identityLocId).toBe(closedIdentityLoc.locId.toString());

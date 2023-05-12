@@ -65,8 +65,8 @@ import {
 
 describe("LocsState", () => {
 
-    it("getInitialLocsState - not VTP", async () => testGetInitialState(false));
-    it("getInitialLocsState - VTP", async () => testGetInitialState(true));
+    it("getInitialLocsState - not verified issuer", async () => testGetInitialState(false));
+    it("getInitialLocsState - verified issuer", async () => testGetInitialState(true));
 
     it("checks that user has valid identity", async() => {
         const sharedState = await buildSharedState();
@@ -84,23 +84,23 @@ describe("LocsState", () => {
     it("detects that user is not a verified third party", async() => {
         const sharedState = await buildSharedState();
         const locs = await LocsState.getInitialLocsState(sharedState, client.object());
-        expect(locs.isVerifiedThirdParty).toBeFalse();
+        expect(locs.isVerifiedIssuer).toBeFalse();
     })
 
     it("detects that user is a verified third party", async() => {
         const sharedState = await buildSharedState(true);
         const locs = await LocsState.getInitialLocsState(sharedState, client.object());
-        expect(locs.isVerifiedThirdParty).toBeTrue();
+        expect(locs.isVerifiedIssuer).toBeTrue();
     })
 });
 
-async function testGetInitialState(isVerifiedThirdParty: boolean) {
-    const sharedState = await buildSharedState(isVerifiedThirdParty);
+async function testGetInitialState(isVerifiedIssuer: boolean) {
+    const sharedState = await buildSharedState(isVerifiedIssuer);
     const locs = await LocsState.getInitialLocsState(sharedState, client.object());
 
-    if(isVerifiedThirdParty) {
-        expect(locs.openVerifiedThirdPartyLocs["Transaction"].length).toBe(1);
-        expect(locs.closedVerifiedThirdPartyLocs["Transaction"].length).toBe(1);
+    if(isVerifiedIssuer) {
+        expect(locs.openVerifiedIssuerLocs["Transaction"].length).toBe(1);
+        expect(locs.closedVerifiedIssuerLocs["Transaction"].length).toBe(1);
     } else {
         expect(locs.pendingRequests.Transaction.length).toBe(1);
         const requestedLoc = locs.pendingRequests.Transaction[0];
@@ -464,9 +464,9 @@ const ALICE_CLOSED_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED",
 const ALICE_CLOSED_COLLECTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED", "Collection");
 const ALICE_REQUESTED_SOF_REQUEST = buildLocRequest(ALICE.address, "REQUESTED", "Transaction");
 const ALICE_REJECTED_TRANSACTION_LOC_REQUEST = buildLocRequest(ALICE.address, "REJECTED", "Transaction");
-const ALICE_CLOSED_IDENTITY_LOC_WITH_VTP = buildLocAndRequest(ALICE.address, "CLOSED", "Identity", undefined, ISSUER);
-const ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VTP = buildLocAndRequest(ALICE.address, "OPEN", "Transaction");
-const ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VTP = buildLocAndRequest(ALICE.address, "CLOSED", "Transaction");
+const ALICE_CLOSED_IDENTITY_LOC_WITH_VERIFIED_ISSUER = buildLocAndRequest(ALICE.address, "CLOSED", "Identity", undefined, ISSUER);
+const ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER = buildLocAndRequest(ALICE.address, "OPEN", "Transaction");
+const ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER = buildLocAndRequest(ALICE.address, "CLOSED", "Transaction");
 
 const BOB_REQUESTED_TRANSACTION_LOC_REQUEST = buildLocRequest(BOB.address, "REQUESTED", "Transaction");
 const BOB_OPEN_TRANSACTION_LOC = buildLocAndRequest(BOB.address, "OPEN", "Transaction");
@@ -480,9 +480,9 @@ const ALL_LOCS = [
     ALICE_OPEN_TRANSACTION_LOC,
     ALICE_CLOSED_TRANSACTION_LOC,
     ALICE_CLOSED_COLLECTION_LOC,
-    ALICE_CLOSED_IDENTITY_LOC_WITH_VTP,
-    ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VTP,
-    ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VTP,
+    ALICE_CLOSED_IDENTITY_LOC_WITH_VERIFIED_ISSUER,
+    ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER,
+    ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER,
     BOB_OPEN_TRANSACTION_LOC,
     BOB_VOID_TRANSACTION_LOC,
     BOB_VOID_COLLECTION_LOC,
@@ -511,8 +511,8 @@ let bobAxiosMock: Mock<AxiosInstance>;
 let charlieAxiosMock: Mock<AxiosInstance>;
 let nodeApiMock: Mock<LogionNodeApiClass>;
 
-async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<SharedState> {
-    const currentAddress = isVerifiedThirdParty ? ISSUER : REQUESTER;
+async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<SharedState> {
+    const currentAddress = isVerifiedIssuer ? ISSUER : REQUESTER;
     const token = "some-token";
     const tokens = new AccountTokens(
         buildSimpleNodeApi(),
@@ -546,11 +546,11 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                     }
                 } as AxiosResponse);
 
-            if(isVerifiedThirdParty) {
+            if(isVerifiedIssuer) {
                 aliceAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === ISSUER.address)))
                     .returnsAsync({
                         data: {
-                            requests: [ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request]
+                            requests: [ALICE_CLOSED_IDENTITY_LOC_WITH_VERIFIED_ISSUER.request]
                         }
                     } as AxiosResponse);
             }
@@ -574,8 +574,8 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                 } as AxiosResponse);
             [
                 ...aliceRequests,
-                ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VTP.request,
-                ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VTP.request,
+                ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER.request,
+                ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER.request,
             ].forEach(request => {
                 aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ request.id }`)).returnsAsync({
                     data: request
@@ -647,11 +647,11 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
             nodeApiMock.setup(instance => instance.queries.getLegalOfficerCase).returns(mockGetLegalOfficerCase(ALL_LOCS));
             
             let verifiedIssuer: VerifiedIssuerType | undefined;
-            const verifiedIssuerAddress = ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.loc.requesterAddress?.address || "";
-            if(isVerifiedThirdParty) {
+            const verifiedIssuerAddress = ALICE_CLOSED_IDENTITY_LOC_WITH_VERIFIED_ISSUER.loc.requesterAddress?.address || "";
+            if(isVerifiedIssuer) {
                 verifiedIssuer = {
                     address: verifiedIssuerAddress,
-                    identityLocId: new UUID(ALICE_CLOSED_IDENTITY_LOC_WITH_VTP.request.id),
+                    identityLocId: new UUID(ALICE_CLOSED_IDENTITY_LOC_WITH_VERIFIED_ISSUER.request.id),
                 };
             }
             nodeApiMock.setup(instance => instance.batch.locs).returns(mockLocBatchFactory(ALL_LOCS, verifiedIssuer));
@@ -662,7 +662,7 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                             args: [
                                 mockCodecWithToString(ISSUER.address),
                                 mockCodecWithToString(ALICE.address),
-                                mockCodecWithToString(new UUID(ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VTP.request.id).toDecimalString()),
+                                mockCodecWithToString(new UUID(ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER.request.id).toDecimalString()),
                             ],
                         } as any,
                         mockCodecWithToString(""),
@@ -672,7 +672,7 @@ async function buildSharedState(isVerifiedThirdParty: boolean = false): Promise<
                             args: [
                                 mockCodecWithToString(ISSUER.address),
                                 mockCodecWithToString(ALICE.address),
-                                mockCodecWithToString(new UUID(ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VTP.request.id).toDecimalString()),
+                                mockCodecWithToString(new UUID(ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER.request.id).toDecimalString()),
                             ],
                         } as any,
                         mockCodecWithToString(""),

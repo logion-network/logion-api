@@ -1,5 +1,5 @@
 import { ClosedCollectionLoc, HashOrContent, hashString, ItemFileWithContent, LocRequestState, MimeType } from "../src/index.js";
-import { initRequesterBalance, LegalOfficerWorker, NEW_ADDRESS, State, TEST_LOGION_CLIENT_CONFIG, VTP_ADDRESS } from "./Utils.js";
+import { initRequesterBalance, LegalOfficerWorker, NEW_ADDRESS, State, TEST_LOGION_CLIENT_CONFIG, ISSUER_ADDRESS } from "./Utils.js";
 
 export async function tokensRecords(state: State) {
     const { alice, newAccount, vtpAccount } = state;
@@ -13,10 +13,10 @@ export async function tokensRecords(state: State) {
     });
     const collectionLocId = collectionLoc.locId;
     await legalOfficer.openCollectionLoc(collectionLocId, NEW_ADDRESS, false);
-    await legalOfficer.selectVtp(collectionLocId, VTP_ADDRESS, true);
+    await legalOfficer.selectVtp(collectionLocId, ISSUER_ADDRESS, true);
     await legalOfficer.closeLoc(collectionLocId);
 
-    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, VTP_ADDRESS);
+    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, ISSUER_ADDRESS);
 
     const vtpClient = state.client.withCurrentAddress(vtpAccount);
     let closedcollectionLoc = (await vtpClient.locsState()).findById(collectionLocId) as ClosedCollectionLoc;

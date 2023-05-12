@@ -51,8 +51,8 @@ export const REQUESTER_SECRET_SEED = "unique chase zone team upset caution match
 export const NEW_ADDRESS = "5FWP7ha7wBpRomanrgCFuV8c7gBTsyexzWZR42umqGv8Rpx4";
 export const NEW_SECRET_SEED = "inquiry nose frog devote demand main front caution excess bridge mom voice";
 
-export const VTP_ADDRESS = "5FU3mAsShn2b8CAe5cnVShzFNVgJssoXoMdAB9evGvKm5x4N";
-export const VTP_SECRET_SEED = "exit photo know trouble stay hollow gate river upgrade twenty south random";
+export const ISSUER_ADDRESS = "5FU3mAsShn2b8CAe5cnVShzFNVgJssoXoMdAB9evGvKm5x4N";
+export const ISSUER_SECRET_SEED = "exit photo know trouble stay hollow gate river upgrade twenty south random";
 
 export const ETHEREUM_ADDRESS = "0x2469a2fd33ad71a3525cc2047bdd4f3ca851e89f";
 export const ETHEREUM_SEED = "0x09dc05bbed08ff234919b84002a1eb6f856a6e949b017289fc7d457e1bb5e9d4";
@@ -80,14 +80,14 @@ export async function setupInitialState(): Promise<State> {
         ALICE_SECRET_SEED,
         BOB_SECRET_SEED,
         CHARLIE_SECRET_SEED,
-        VTP_SECRET_SEED,
+        ISSUER_SECRET_SEED,
     ]);
     const requesterAccount = anonymousClient.logionApi.queries.getValidAccountId(REQUESTER_ADDRESS, "Polkadot");
     const newAccount = anonymousClient.logionApi.queries.getValidAccountId(NEW_ADDRESS, "Polkadot");
     const aliceAccount = anonymousClient.logionApi.queries.getValidAccountId(ALICE.address, "Polkadot");
     const bobAccount = anonymousClient.logionApi.queries.getValidAccountId(BOB.address, "Polkadot");
     const charlieAccount = anonymousClient.logionApi.queries.getValidAccountId(CHARLIE.address, "Polkadot");
-    const vtpAccount = anonymousClient.logionApi.queries.getValidAccountId(VTP_ADDRESS, "Polkadot");
+    const vtpAccount = anonymousClient.logionApi.queries.getValidAccountId(ISSUER_ADDRESS, "Polkadot");
     const ethereumAccount = anonymousClient.logionApi.queries.getValidAccountId(ETHEREUM_ADDRESS, "Ethereum");
     const client = await anonymousClient.authenticate([
         requesterAccount,
@@ -238,7 +238,7 @@ export class LegalOfficerWorker {
         }
     }
 
-    async nominateVerifiedThirdParty(issuerAddress: string, identityLocId: UUID) {
+    async nominateVerifiedIssuer(issuerAddress: string, identityLocId: UUID) {
         const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
         const submittable = api.polkadot.tx.logionLoc.nominateIssuer(issuerAddress, identityLocId.toDecimalString());
         await this.state.signer.signAndSend({
