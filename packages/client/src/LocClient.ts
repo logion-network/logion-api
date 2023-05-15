@@ -91,7 +91,7 @@ export interface LocRequestVoidInfo {
     voidedOn?: string;
 }
 
-export interface VerifiedThirdParty {
+export interface VerifiedIssuer {
     firstName: string;
     lastName: string;
     identityLocId: string;
@@ -100,8 +100,8 @@ export interface VerifiedThirdParty {
 }
 
 export interface LocVerifiedIssuers {
-    verifiedThirdParty: boolean;
-    issuers: VerifiedThirdParty[];
+    verifiedIssuer: boolean;
+    issuers: VerifiedIssuer[];
 }
 
 export interface LocRequest {
@@ -380,7 +380,7 @@ export class LocMultiClient {
         return aggregateArrays(multiResponse);
     }
 
-    async fetchAllForVerifiedThirdParty(legalOfficers: LegalOfficerClass[]): Promise<LocRequest[]> {
+    async fetchAllForVerifiedIssuer(legalOfficers: LegalOfficerClass[]): Promise<LocRequest[]> {
         if (this.currentAddress.type !== "Polkadot") {
             return [];
         }
@@ -949,16 +949,16 @@ export class AuthenticatedLocClient extends LocClient {
             return EMPTY_LOC_ISSUERS;
         } else {
             const locId = new UUID(request.id);
-            let verifiedThirdParty = false;
+            let verifiedIssuer = false;
             if(request.locType === "Identity" && request.status === "CLOSED") {
                 const availableVerifiedIssuers = await locBatch.getAvailableVerifiedIssuers();
-                verifiedThirdParty = availableVerifiedIssuers[request.ownerAddress].find(issuer => issuer.address === request.requesterAddress?.address && request.requesterAddress?.type === "Polkadot") !== undefined;
+                verifiedIssuer = availableVerifiedIssuers[request.ownerAddress].find(issuer => issuer.address === request.requesterAddress?.address && request.requesterAddress?.type === "Polkadot") !== undefined;
             }
             const nodeIssuers = (await locBatch.getLocsVerifiedIssuers())[locId.toDecimalString()];
             const chainSelectedIssuers = new Set<string>();
             nodeIssuers.forEach(issuer => chainSelectedIssuers.add(issuer.address));
 
-            const issuers: VerifiedThirdParty[] = [];
+            const issuers: VerifiedIssuer[] = [];
             if((this.currentAddress.address === request.requesterAddress?.address && this.currentAddress.type === request.requesterAddress.type)
                 || (this.currentAddress.address === request.ownerAddress && this.currentAddress.type === "Polkadot")
                 || chainSelectedIssuers.has(this.currentAddress.address)) {
@@ -997,7 +997,7 @@ export class AuthenticatedLocClient extends LocClient {
                 }
             }
             return {
-                verifiedThirdParty,
+                verifiedIssuer,
                 issuers,
             };
         }
@@ -1085,6 +1085,6 @@ export class AuthenticatedLocClient extends LocClient {
 }
 
 export const EMPTY_LOC_ISSUERS: LocVerifiedIssuers = {
-    verifiedThirdParty: false,
+    verifiedIssuer: false,
     issuers: [],
 }
