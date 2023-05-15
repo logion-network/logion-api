@@ -90,19 +90,19 @@ export interface MergedMetadataItem extends LocMetadataItem, Published {
 export class LocsState extends State {
     private readonly sharedState: SharedState;
     private _locs: Record<string, LocRequestState>;
-    private _verifiedThirdPartyLocs: Record<string, LocRequestState>;
+    private _verifiedIssuerLocs: Record<string, LocRequestState>;
     private readonly _client: LogionClient;
 
     constructor(
         sharedState: SharedState,
         locs: Record<string, LocRequestState>,
         client: LogionClient,
-        verifiedThirdPartyLocs: Record<string, LocRequestState>
+        verifiedIssuerLocs: Record<string, LocRequestState>
     ) {
         super();
         this.sharedState = sharedState;
         this._locs = locs;
-        this._verifiedThirdPartyLocs = verifiedThirdPartyLocs;
+        this._verifiedIssuerLocs = verifiedIssuerLocs;
         this._client = client;
     }
 
@@ -178,14 +178,14 @@ export class LocsState extends State {
     private _refreshWith(loc: LocRequestState): LocsState {
         const locsState = new LocsState(this.sharedState, {}, this._client, {});
         const refreshedLocs = this.refreshStates(locsState, this._locs);
-        const refreshedVerifiedThirdPartyLocs = this.refreshStates(locsState, this._verifiedThirdPartyLocs);
-        if(this.isVerifiedThirdPartyLoc(loc)) {
-            refreshedVerifiedThirdPartyLocs[loc.locId.toString()] = loc.withLocs(locsState);
+        const refreshedVerifiedIssuerLocs = this.refreshStates(locsState, this._verifiedIssuerLocs);
+        if(this.isVerifiedIssuerLoc(loc)) {
+            refreshedVerifiedIssuerLocs[loc.locId.toString()] = loc.withLocs(locsState);
         } else {
             refreshedLocs[loc.locId.toString()] = loc.withLocs(locsState);
         }
         locsState._locs = refreshedLocs;
-        locsState._verifiedThirdPartyLocs = refreshedVerifiedThirdPartyLocs;
+        locsState._verifiedIssuerLocs = refreshedVerifiedIssuerLocs;
         return locsState;
     }
 
@@ -198,8 +198,8 @@ export class LocsState extends State {
         return refreshedLocs;
     }
 
-    private isVerifiedThirdPartyLoc(loc: LocRequestState): boolean {
-        return loc.locId.toString() in this._verifiedThirdPartyLocs;
+    private isVerifiedIssuerLoc(loc: LocRequestState): boolean {
+        return loc.locId.toString() in this._verifiedIssuerLocs;
     }
 
     refreshWithout(locId: UUID): LocsState {
@@ -209,9 +209,9 @@ export class LocsState extends State {
     private _refreshWithout(locId: UUID): LocsState {
         const refreshedLocs: Record<string, LocRequestState> = { ...this._locs };
         delete refreshedLocs[locId.toString()];
-        const refreshedVerifiedThirdPartyLocs: Record<string, LocRequestState> = { ...this._verifiedThirdPartyLocs };
-        delete refreshedVerifiedThirdPartyLocs[locId.toString()];
-        return new LocsState(this.sharedState, refreshedLocs, this._client, refreshedVerifiedThirdPartyLocs);
+        const refreshedVerifiedIssuerLocs: Record<string, LocRequestState> = { ...this._verifiedIssuerLocs };
+        delete refreshedVerifiedIssuerLocs[locId.toString()];
+        return new LocsState(this.sharedState, refreshedLocs, this._client, refreshedVerifiedIssuerLocs);
     }
 
     static async getInitialLocsState(sharedState: SharedState, client: LogionClient, params?: FetchAllLocsParams): Promise<LocsState> {
@@ -232,8 +232,8 @@ export class LocsState extends State {
         const stringLocId = locId.toString();
         if(stringLocId in this._locs) {
             return this._locs[stringLocId];
-        } else if(stringLocId in this._verifiedThirdPartyLocs) {
-            return this._verifiedThirdPartyLocs[stringLocId];
+        } else if(stringLocId in this._verifiedIssuerLocs) {
+            return this._verifiedIssuerLocs[stringLocId];
         } else {
             return undefined;
         }
@@ -307,14 +307,14 @@ export class LocsState extends State {
         const locBatch = await locMultiClient.getLocBatch(locIds);
         locsState._locs = await this.toStates(locMultiClient, locsState, locRequests, locBatch);
 
-        if(locsState.isVerifiedThirdParty) {
-            const legalOfficers = this.getVerifiedThirdPartyLegalOfficers(locsState);
-            const verifiedThirdPartyRequests = await locMultiClient.fetchAllForVerifiedThirdParty(legalOfficers);
-            const verifiedThirdPartyLocIds = verifiedThirdPartyRequests
+        if(locsState.isVerifiedIssuer) {
+            const legalOfficers = this.getVerifiedIssuerLegalOfficers(locsState);
+            const verifiedIssuerRequests = await locMultiClient.fetchAllForVerifiedIssuer(legalOfficers);
+            const verifiedIssuerLocIds = verifiedIssuerRequests
                 .filter(request => request.status === "OPEN" || request.status === "CLOSED")
                 .map(request => new UUID(request.id));
-            const verifiedThirdPartyLocBatch = await locMultiClient.getLocBatch(verifiedThirdPartyLocIds);
-            locsState._verifiedThirdPartyLocs = await this.toStates(locMultiClient, locsState, verifiedThirdPartyRequests, verifiedThirdPartyLocBatch);
+            const verifiedIssuerLocBatch = await locMultiClient.getLocBatch(verifiedIssuerLocIds);
+            locsState._verifiedIssuerLocs = await this.toStates(locMultiClient, locsState, verifiedIssuerRequests, verifiedIssuerLocBatch);
         }
 
         return locsState;
@@ -366,9 +366,9 @@ export class LocsState extends State {
         }
     }
 
-    private getVerifiedThirdPartyLegalOfficers(locsState: LocsState): LegalOfficerClass[] {
+    private getVerifiedIssuerLegalOfficers(locsState: LocsState): LegalOfficerClass[] {
         return locsState.closedLocs["Identity"]
-            .filter(loc => loc.data().verifiedThirdParty)
+            .filter(loc => loc.data().verifiedIssuer)
             .map(loc => loc.data().ownerAddress)
             .map(address => locsState.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === address))
             .filter(this.isDefinedLegalOfficer);
@@ -383,38 +383,38 @@ export class LocsState extends State {
     }
 
     /**
-     * Tells if current user is a Verified Third Party.
+     * Tells if current user is a Verified Issuer.
      * 
      * @returns True if it is, false otherwise.
      */
-    get isVerifiedThirdParty(): boolean {
+    get isVerifiedIssuer(): boolean {
         this.ensureCurrent();
-        this._isVerifiedThirdParty ||= this.computeIsVerifiedThirdParty();
-        return this._isVerifiedThirdParty;
+        this._isVerifiedIssuer ||= this.computeIsVerifiedIssuer();
+        return this._isVerifiedIssuer;
     }
 
-    private _isVerifiedThirdParty: boolean | undefined;
+    private _isVerifiedIssuer: boolean | undefined;
 
-    private computeIsVerifiedThirdParty(): boolean {
-        return this.closedLocs["Identity"].find(loc => loc.data().verifiedThirdParty
+    private computeIsVerifiedIssuer(): boolean {
+        return this.closedLocs["Identity"].find(loc => loc.data().verifiedIssuer
             && loc.data().requesterAddress?.address === this.sharedState.currentAddress?.address
             && loc.data().requesterAddress?.type === this.sharedState.currentAddress?.type) !== undefined;
     }
 
-    get openVerifiedThirdPartyLocs(): Record<LocType, OpenLoc[]> {
+    get openVerifiedIssuerLocs(): Record<LocType, OpenLoc[]> {
         this.ensureCurrent();
-        if(!this.isVerifiedThirdParty) {
-            throw new Error("Authenticated user is not a Verified Third Party");
+        if(!this.isVerifiedIssuer) {
+            throw new Error("Authenticated user is not a Verified Issuer");
         }
-        return this.withPredicate(this._verifiedThirdPartyLocs, loc => loc instanceof OpenLoc);
+        return this.withPredicate(this._verifiedIssuerLocs, loc => loc instanceof OpenLoc);
     }
 
-    get closedVerifiedThirdPartyLocs(): Record<LocType, (ClosedLoc | ClosedCollectionLoc)[]> {
+    get closedVerifiedIssuerLocs(): Record<LocType, (ClosedLoc | ClosedCollectionLoc)[]> {
         this.ensureCurrent();
-        if(!this.isVerifiedThirdParty) {
-            throw new Error("Authenticated user is not a Verified Third Party");
+        if(!this.isVerifiedIssuer) {
+            throw new Error("Authenticated user is not a Verified Issuer");
         }
-        return this.withPredicate(this._verifiedThirdPartyLocs, loc => loc instanceof ClosedLoc || loc instanceof ClosedCollectionLoc);
+        return this.withPredicate(this._verifiedIssuerLocs, loc => loc instanceof ClosedLoc || loc instanceof ClosedCollectionLoc);
     }
 }
 
