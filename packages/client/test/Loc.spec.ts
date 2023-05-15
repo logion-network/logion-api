@@ -81,13 +81,13 @@ describe("LocsState", () => {
         expect(locs.legalOfficersWithValidIdentityLoc[0].address).toEqual(BOB.address);
     })
 
-    it("detects that user is not a verified third party", async() => {
+    it("detects that user is not a verified issuer", async() => {
         const sharedState = await buildSharedState();
         const locs = await LocsState.getInitialLocsState(sharedState, client.object());
         expect(locs.isVerifiedIssuer).toBeFalse();
     })
 
-    it("detects that user is a verified third party", async() => {
+    it("detects that user is a verified issuer", async() => {
         const sharedState = await buildSharedState(true);
         const locs = await LocsState.getInitialLocsState(sharedState, client.object());
         expect(locs.isVerifiedIssuer).toBeTrue();

@@ -2,7 +2,7 @@ import { ClosedCollectionLoc, HashOrContent, hashString, ItemFileWithContent, Lo
 import { initRequesterBalance, LegalOfficerWorker, NEW_ADDRESS, State, TEST_LOGION_CLIENT_CONFIG, ISSUER_ADDRESS } from "./Utils.js";
 
 export async function tokensRecords(state: State) {
-    const { alice, newAccount, vtpAccount } = state;
+    const { alice, newAccount, issuerAccount } = state;
     const legalOfficer = new LegalOfficerWorker(alice, state);
 
     const userClient = state.client.withCurrentAddress(newAccount);
@@ -13,13 +13,13 @@ export async function tokensRecords(state: State) {
     });
     const collectionLocId = collectionLoc.locId;
     await legalOfficer.openCollectionLoc(collectionLocId, NEW_ADDRESS, false);
-    await legalOfficer.selectVtp(collectionLocId, ISSUER_ADDRESS, true);
+    await legalOfficer.selectIssuer(collectionLocId, ISSUER_ADDRESS, true);
     await legalOfficer.closeLoc(collectionLocId);
 
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, ISSUER_ADDRESS);
 
-    const vtpClient = state.client.withCurrentAddress(vtpAccount);
-    let closedcollectionLoc = (await vtpClient.locsState()).findById(collectionLocId) as ClosedCollectionLoc;
+    const issuerClient = state.client.withCurrentAddress(issuerAccount);
+    let closedcollectionLoc = (await issuerClient.locsState()).findById(collectionLocId) as ClosedCollectionLoc;
 
     const recordId = hashString("record-id");
     const recordDescription = "Some tokens record";

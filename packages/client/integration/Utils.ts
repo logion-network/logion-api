@@ -68,7 +68,7 @@ export interface State {
     aliceAccount: ValidAccountId,
     bobAccount: ValidAccountId,
     charlieAccount: ValidAccountId,
-    vtpAccount: ValidAccountId,
+    issuerAccount: ValidAccountId,
     ethereumAccount: ValidAccountId,
 }
 
@@ -87,7 +87,7 @@ export async function setupInitialState(): Promise<State> {
     const aliceAccount = anonymousClient.logionApi.queries.getValidAccountId(ALICE.address, "Polkadot");
     const bobAccount = anonymousClient.logionApi.queries.getValidAccountId(BOB.address, "Polkadot");
     const charlieAccount = anonymousClient.logionApi.queries.getValidAccountId(CHARLIE.address, "Polkadot");
-    const vtpAccount = anonymousClient.logionApi.queries.getValidAccountId(ISSUER_ADDRESS, "Polkadot");
+    const issuerAccount = anonymousClient.logionApi.queries.getValidAccountId(ISSUER_ADDRESS, "Polkadot");
     const ethereumAccount = anonymousClient.logionApi.queries.getValidAccountId(ETHEREUM_ADDRESS, "Ethereum");
     const client = await anonymousClient.authenticate([
         requesterAccount,
@@ -95,7 +95,7 @@ export async function setupInitialState(): Promise<State> {
         aliceAccount,
         bobAccount,
         charlieAccount,
-        vtpAccount,
+        issuerAccount,
         ethereumAccount,
     ], signer);
     const legalOfficers = client.legalOfficers;
@@ -113,7 +113,7 @@ export async function setupInitialState(): Promise<State> {
         aliceAccount,
         bobAccount,
         charlieAccount,
-        vtpAccount,
+        issuerAccount,
         ethereumAccount,
     };
 }
@@ -247,7 +247,7 @@ export class LegalOfficerWorker {
         });
     }
 
-    async selectVtp(locId: UUID, issuerAddress: string, selected: boolean) {
+    async selectIssuer(locId: UUID, issuerAddress: string, selected: boolean) {
         const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
         const submittable = api.polkadot.tx.logionLoc.setIssuerSelection(api.adapters.toLocId(locId), issuerAddress, selected);
         await this.state.signer.signAndSend({

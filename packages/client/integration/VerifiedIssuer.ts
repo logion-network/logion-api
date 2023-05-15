@@ -2,14 +2,14 @@ import { ClosedLoc, EditableRequest, HashOrContent, LocRequestState } from "../s
 import { LegalOfficerWorker, NEW_ADDRESS, State, ISSUER_ADDRESS } from "./Utils.js";
 
 export async function verifiedIssuer(state: State) {
-    const { alice, vtpAccount, newAccount } = state;
+    const { alice, issuerAccount, newAccount } = state;
     const legalOfficer = new LegalOfficerWorker(alice, state);
 
-    const vtpClient = state.client.withCurrentAddress(vtpAccount);
+    const issuerClient = state.client.withCurrentAddress(issuerAccount);
 
-    let vtpLocsState = await vtpClient.locsState();
-    const pendingRequest = await vtpLocsState.requestIdentityLoc({
-        legalOfficer: vtpClient.getLegalOfficer(alice.address),
+    let issuerLocsState = await issuerClient.locsState();
+    const pendingRequest = await issuerLocsState.requestIdentityLoc({
+        legalOfficer: issuerClient.getLegalOfficer(alice.address),
         description: "This is a verified issuer Identity LOC",
         userIdentity: {
             email: "john.doe.trusted@invalid.domain",
@@ -39,32 +39,32 @@ export async function verifiedIssuer(state: State) {
     });
     const locId = newLoc.locId;
     await legalOfficer.openTransactionLoc(locId, NEW_ADDRESS);
-    await legalOfficer.selectVtp(locId, ISSUER_ADDRESS, true);
+    await legalOfficer.selectIssuer(locId, ISSUER_ADDRESS, true);
     newLoc = await newLoc.refresh();
     expect(newLoc.data().issuers.length).toBe(1);
     expect(newLoc.data().issuers[0].identityLocId).toBe(closedIdentityLoc.locId.toString());
     expect(newLoc.data().issuers[0].selected).toBe(true);
 
-    vtpLocsState = await vtpClient.locsState();
-    expect(vtpLocsState.openVerifiedIssuerLocs["Transaction"].length).toBe(1);
-    let vtpLoc = vtpLocsState.findById(locId);
+    issuerLocsState = await issuerClient.locsState();
+    expect(issuerLocsState.openVerifiedIssuerLocs["Transaction"].length).toBe(1);
+    let issuerLoc = issuerLocsState.findById(locId);
 
-    let openVtpLoc = await vtpLoc.refresh() as EditableRequest;
-    openVtpLoc = await openVtpLoc.addMetadata({
+    let openIssuerLoc = await issuerLoc.refresh() as EditableRequest;
+    openIssuerLoc = await openIssuerLoc.addMetadata({
         name: "Verified issuer data name",
         value: "Verified issuer data value"
     });
-    openVtpLoc = await openVtpLoc.deleteMetadata({ name: "Verified issuer data name" });
+    openIssuerLoc = await openIssuerLoc.deleteMetadata({ name: "Verified issuer data name" });
 
     const file = HashOrContent.fromContent(Buffer.from("test"));
-    openVtpLoc = await openVtpLoc.addFile({
+    openIssuerLoc = await openIssuerLoc.addFile({
         fileName: "test.txt",
         nature: "Some file nature",
         file,
     });
-    openVtpLoc = await openVtpLoc.deleteFile({ hash: file.contentHash });
+    openIssuerLoc = await openIssuerLoc.deleteFile({ hash: file.contentHash });
 
-    await legalOfficer.selectVtp(newLoc.locId, ISSUER_ADDRESS, false);
+    await legalOfficer.selectIssuer(newLoc.locId, ISSUER_ADDRESS, false);
     const userLoc = (await userClient.locsState()).findById(locId);
     expect(userLoc.data().issuers.length).toBe(1);
     expect(userLoc.data().issuers[0].identityLocId).toBe(closedIdentityLoc.locId.toString());
