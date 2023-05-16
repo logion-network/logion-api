@@ -13,18 +13,20 @@ import {
     LogionClassification,
     CreativeCommons,
     DraftRequest,
-    RejectedRequest
+    RejectedRequest,
+    ClosedLoc
 } from "../src/index.js";
 
 import { State, TEST_LOGION_CLIENT_CONFIG, initRequesterBalance, LegalOfficerWorker } from "./Utils.js";
 
 export async function requestTransactionLoc(state: State) {
-    const { alice, newAccount } = state;
+    const { alice, aliceAccount, newAccount, signer } = state;
     const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
 
     const legalOfficer = new LegalOfficerWorker(alice, state);
 
+    // Create DRAFT LOC with metadata
     let draftRequest = await locsState.requestTransactionLoc({
         legalOfficer: client.getLegalOfficer(alice.address),
         description: "This is a Transaction LOC",
@@ -37,37 +39,50 @@ export async function requestTransactionLoc(state: State) {
     checkData(locsState.draftRequests["Transaction"][0].data(), "DRAFT");
     checkData(draftRequest.data(), "DRAFT");
 
+    const metadataName = "Some name";
     draftRequest = await draftRequest.addMetadata({
-        name: "Some name",
+        name: metadataName,
         value: "Some value"
     }) as DraftRequest;
-    expect(draftRequest.data().metadata[0].name).toBe("Some name");
+    expect(draftRequest.data().metadata[0].name).toBe(metadataName);
     expect(draftRequest.data().metadata[0].value).toBe("Some value");
     expect(draftRequest.data().metadata[0].addedOn).toBeUndefined();
+    expect(draftRequest.data().metadata[0].status).toBe("DRAFT");
 
+    // Submit LOC
     let pendingRequest = await draftRequest.submit();
     expect(pendingRequest).toBeInstanceOf(PendingRequest);
     locsState = pendingRequest.locsState();
     expect(locsState.draftRequests['Transaction'].length).toBe(0);
     checkData(locsState.pendingRequests["Transaction"][0].data(), "REQUESTED");
     checkData(pendingRequest.data(), "REQUESTED");
+    expect(pendingRequest.data().metadata[0].status).toBe("REVIEW_PENDING");
 
-    await legalOfficer.rejectPendingLoc(pendingRequest.locId);
+    // Rework rejected LOC
+    const aliceClient = state.client.withCurrentAddress(aliceAccount);
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, statuses: [ "REQUESTED", "OPEN" ], locTypes: [ "Transaction" ] } });
+    let alicePendingLoc = aliceLocs.findById(pendingRequest.data().id) as PendingRequest;
+    let aliceRejectedLoc = await alicePendingLoc.legalOfficer.reject("Because.") as RejectedRequest;
     let rejectedRequest = await pendingRequest.refresh() as RejectedRequest;
     expect(rejectedRequest).toBeInstanceOf(RejectedRequest);
+    expect(rejectedRequest.data().metadata[0].status).toBe("REVIEW_REJECTED");
+
     draftRequest = await rejectedRequest.rework();
     expect(draftRequest).toBeInstanceOf(DraftRequest);
+    expect(draftRequest.data().metadata[0].status).toBe("DRAFT");
     pendingRequest = await draftRequest.submit();
 
-    await legalOfficer.openTransactionLoc(pendingRequest.locId, newAccount.address);
-
+    alicePendingLoc = await aliceRejectedLoc.refresh() as PendingRequest;
+    let aliceOpenLoc = await alicePendingLoc.legalOfficer.accept({ signer });
     let openLoc = await pendingRequest.refresh() as OpenLoc;
-    expect(openLoc).toBeInstanceOf(OpenLoc)
+    expect(openLoc).toBeInstanceOf(OpenLoc);
+    expect(openLoc.data().metadata[0].status).toBe("REVIEW_PENDING");
 
     locsState = openLoc.locsState();
     checkData(locsState.openLocs["Transaction"][0].data(), "OPEN");
     checkData(openLoc.data(), "OPEN");
 
+    // Add file to open LOC
     openLoc = await openLoc.addFile({
         fileName: "test.txt",
         nature: "Some file nature",
@@ -79,11 +94,57 @@ export async function requestTransactionLoc(state: State) {
     expect(openLoc.data().files[0].hash).toBe(hash);
     expect(openLoc.data().files[0].nature).toBe("Some file nature");
     expect(openLoc.data().files[0].addedOn).toBeUndefined();
+    expect(openLoc.data().files[0].status).toBe("DRAFT");
 
     const checkResult = await openLoc.checkHash(hash);
     expect(checkResult.file).toBeDefined();
     expect(checkResult.metadataItem).not.toBeDefined();
     expect(checkResult.collectionItem).not.toBeDefined();
+
+    openLoc = await openLoc.requestFileReview(hash) as OpenLoc;
+    expect(openLoc.data().files[0].status).toBe("REVIEW_PENDING");
+
+    aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewFile({ hash, decision: "ACCEPT" }) as OpenLoc;
+    expect(aliceOpenLoc.data().files[0].status).toBe("REVIEW_ACCEPTED");
+
+    openLoc = await openLoc.refresh() as OpenLoc;
+    openLoc = await openLoc.publishFile({ hash, signer });
+    expect(openLoc.data().files[0].status).toBe("PUBLISHED");
+
+    aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
+    aliceOpenLoc = await aliceOpenLoc.legalOfficer.acknowledgeFile({
+        hash,
+        signer,
+    }) as OpenLoc;
+    expect(aliceOpenLoc.data().files[0].status).toBe("ACKNOWLEDGED");
+
+    // Continue with metadata
+    aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
+    aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewMetadata({ name: metadataName, decision: "REJECT", rejectReason: "Because" }) as OpenLoc;
+    expect(aliceOpenLoc.data().metadata[0].status).toBe("REVIEW_REJECTED");
+    expect(aliceOpenLoc.data().metadata[0].rejectReason).toBe("Because");
+    openLoc = await openLoc.refresh() as OpenLoc;
+    openLoc = await openLoc.deleteMetadata({ name: metadataName }) as OpenLoc;
+    openLoc = await openLoc.addMetadata({
+        name: metadataName,
+        value: "Some value"
+    }) as OpenLoc;
+    openLoc = await openLoc.requestMetadataReview(metadataName) as OpenLoc;
+    aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
+    aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewMetadata({ name: metadataName, decision: "ACCEPT" }) as OpenLoc;
+    openLoc = await openLoc.refresh() as OpenLoc;
+    openLoc = await openLoc.publishMetadata({ name: metadataName, signer });
+    expect(openLoc.data().metadata[0].status).toBe("PUBLISHED");
+    aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
+    aliceOpenLoc = await aliceOpenLoc.legalOfficer.acknowledgeMetadata({
+        name: metadataName,
+        signer,
+    }) as OpenLoc;
+    expect(aliceOpenLoc.data().metadata[0].status).toBe("ACKNOWLEDGED");
+
+    // Close LOC
+    const closedLoc = await aliceOpenLoc.legalOfficer.close({ signer });
+    expect(closedLoc).toBeInstanceOf(ClosedLoc);
 }
 
 function checkData(data: LocData, locRequestStatus: LocRequestStatus) {
@@ -94,11 +155,9 @@ function checkData(data: LocData, locRequestStatus: LocRequestStatus) {
 
 export async function collectionLoc(state: State) {
 
-    const { alice, newAccount } = state;
+    const { alice, aliceAccount, newAccount, signer } = state;
     const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
-
-    const legalOfficer = new LegalOfficerWorker(alice, state);
 
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, newAccount.address);
 
@@ -112,10 +171,14 @@ export async function collectionLoc(state: State) {
     expect(locsState.pendingRequests["Collection"][0].data().status).toBe("REQUESTED");
 
     const locId = pendingRequest.locId;
-    await legalOfficer.openCollectionLoc(locId, newAccount.address, false);
+    const aliceClient = client.withCurrentAddress(aliceAccount);
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, locTypes: ["Collection"], statuses: ["REQUESTED"] } });
+    let alicePendingRequest = aliceLocs.findById(locId) as PendingRequest;
+    let aliceOpenLoc = await alicePendingRequest.legalOfficer.acceptCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
 
     let openLoc = await pendingRequest.refresh() as OpenLoc;
-    await legalOfficer.closeLoc(locId);
+    let aliceClosedLoc = await aliceOpenLoc.legalOfficer.close({ signer });
+    expect(aliceClosedLoc).toBeInstanceOf(ClosedCollectionLoc);
 
     let closedLoc = await openLoc.refresh() as ClosedCollectionLoc;
     expect(closedLoc).toBeInstanceOf(ClosedCollectionLoc);
@@ -145,7 +208,7 @@ export async function collectionLoc(state: State) {
 
 export async function collectionLocWithUpload(state: State) {
 
-    const { alice, newAccount } = state;
+    const { alice, aliceAccount, newAccount, signer } = state;
     const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
 
@@ -159,14 +222,14 @@ export async function collectionLocWithUpload(state: State) {
         draft: false,
     });
     locsState = logionClassificationLocRequest.locsState();
-    await legalOfficer.createValidTermsAndConditionsLoc(logionClassificationLocRequest.locId, newAccount.address);
+    await legalOfficer.openAndClose(logionClassificationLocRequest.locId);
     const creativeCommonsLocRequest = await locsState.requestTransactionLoc({
         legalOfficer: client.getLegalOfficer(alice.address),
         description: "This is the LOC acting usage of CreativeCommons on logion",
         draft: false,
     });
     locsState = creativeCommonsLocRequest.locsState();
-    await legalOfficer.createValidTermsAndConditionsLoc(creativeCommonsLocRequest.locId, newAccount.address);
+    await legalOfficer.openAndClose(creativeCommonsLocRequest.locId);
 
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficer: client.getLegalOfficer(alice.address),
@@ -174,10 +237,13 @@ export async function collectionLocWithUpload(state: State) {
         draft: false,
     });
 
-    await legalOfficer.openCollectionLoc(pendingRequest.locId, newAccount.address, true);
+    const aliceClient = client.withCurrentAddress(aliceAccount);
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, locTypes: ["Collection"], statuses: ["REQUESTED"] } });
+    let alicePendingRequest = aliceLocs.findById(pendingRequest.locId) as PendingRequest;
+    let aliceOpenLoc = await alicePendingRequest.legalOfficer.acceptCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
 
     let openLoc = await pendingRequest.refresh() as OpenLoc;
-    await legalOfficer.closeLoc(openLoc.locId);
+    await aliceOpenLoc.legalOfficer.close({ signer });
     let closedLoc = await openLoc.refresh() as ClosedCollectionLoc;
 
     const firstItemId = hashString("first-collection-item");
@@ -305,7 +371,7 @@ export async function identityLoc(state: State) {
     locsState = pendingRequest.locsState();
     expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REQUESTED");
 
-    await legalOfficer.createValidIdentityLoc(pendingRequest.locId, newAccount.address);
+    await legalOfficer.openAndClose(pendingRequest.locId);
 }
 
 export async function otherIdentityLoc(state: State) {
@@ -347,5 +413,5 @@ export async function otherIdentityLoc(state: State) {
     locsState = pendingRequest.locsState();
     expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REQUESTED");
 
-    await legalOfficer.createOtherIdentityLoc(pendingRequest.locId, ethereumAccount.toOtherAccountId(), sponsorshipId);
+    await legalOfficer.openAndClose(pendingRequest.locId);
 }

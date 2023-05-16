@@ -29,7 +29,7 @@ export class State {
      * @description Throws an error if this state was discarded.
      * This should be called by all public methods of client class.
      */
-    protected ensureCurrent() {
+    ensureCurrent() {
         if(this._discarded) {
             throw new Error("State was discarded");
         }
