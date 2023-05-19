@@ -1,5 +1,5 @@
 import { ClosedLoc, EditableRequest, HashOrContent, LocRequestState } from "../src/index.js";
-import { LegalOfficerWorker, NEW_ADDRESS, State, ISSUER_ADDRESS } from "./Utils.js";
+import { LegalOfficerWorker, State, ISSUER_ADDRESS } from "./Utils.js";
 
 export async function verifiedIssuer(state: State) {
     const { alice, issuerAccount, newAccount } = state;
@@ -26,7 +26,7 @@ export async function verifiedIssuer(state: State) {
         },
         draft: false,
     });
-    await legalOfficer.createValidIdentityLoc(pendingRequest.locId, ISSUER_ADDRESS);
+    await legalOfficer.openAndClose(pendingRequest.locId);
     const closedIdentityLoc = await pendingRequest.refresh() as ClosedLoc;
 
     await legalOfficer.nominateVerifiedIssuer(ISSUER_ADDRESS, closedIdentityLoc.locId);
@@ -38,7 +38,7 @@ export async function verifiedIssuer(state: State) {
         draft: false,
     });
     const locId = newLoc.locId;
-    await legalOfficer.openTransactionLoc(locId, NEW_ADDRESS);
+    await legalOfficer.openLoc(locId);
     await legalOfficer.selectIssuer(locId, ISSUER_ADDRESS, true);
     newLoc = await newLoc.refresh();
     expect(newLoc.data().issuers.length).toBe(1);

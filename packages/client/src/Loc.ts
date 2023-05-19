@@ -33,6 +33,13 @@ import {
     AddTokensRecordParams,
     GetTokensRecordsRequest,
     FileInfo,
+    ReviewFileParams,
+    BlockchainSubmissionParams,
+    mockPublishedItems,
+    AckFileParams,
+    ReviewMetadataParams,
+    AckMetadataParams,
+    AcceptCollectionLocParams,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -355,7 +362,7 @@ export class LocsState extends State {
             };
             const id = new UUID(locRequest.id);
             const legalOfficerCases = await locBatch.getLocs();
-            const legalOfficerCase = legalOfficerCases[id.toDecimalString()];
+            const legalOfficerCase = mockPublishedItems(id, legalOfficerCases[id.toDecimalString()]);
             const locIssuers = await client.getLocIssuers(locRequest, locBatch);
             if((locRequest.status === "OPEN" || locRequest.status === "CLOSED") && !legalOfficerCase) {
                 throw new Error("LOC expected");
@@ -743,6 +750,70 @@ export abstract class EditableRequest extends LocRequestState {
         })
         return await this.refresh() as EditableRequest
     }
+
+    async requestFileReview(hash: string): Promise<EditableRequest> {
+        const client = this.locSharedState.client;
+        await client.requestFileReview({
+            locId: this.locId,
+            hash,
+        });
+        return await this.refresh() as EditableRequest;
+    }
+
+    async requestMetadataReview(name: string): Promise<EditableRequest> {
+        const client = this.locSharedState.client;
+        await client.requestMetadataReview({
+            locId: this.locId,
+            name,
+        });
+        return await this.refresh() as EditableRequest;
+    }
+
+    get legalOfficer(): LegalOfficerEditableRequestCommands {
+        return new LegalOfficerEditableRequestCommands({
+            locId: this.locId,
+            client: this.locSharedState.client,
+            request: this,
+        });
+    }
+}
+
+/**
+ * Encapsulated calls can be used only by a Logion Legal Officer.
+ */
+export class LegalOfficerEditableRequestCommands {
+
+    constructor(args: {
+        locId: UUID,
+        client: AuthenticatedLocClient,
+        request: EditableRequest,
+    }) {
+        this.locId = args.locId;
+        this.client = args.client;
+        this.request = args.request;
+    }
+
+    protected locId: UUID;
+
+    protected client: AuthenticatedLocClient;
+
+    protected request: EditableRequest;
+
+    async reviewFile(params: ReviewFileParams): Promise<EditableRequest> {
+        await this.client.reviewFile({
+            ...params,
+            locId: this.locId,
+        });
+        return await this.request.refresh() as EditableRequest;
+    }
+
+    async reviewMetadata(params: ReviewMetadataParams): Promise<EditableRequest> {
+        await this.client.reviewMetadata({
+            ...params,
+            locId: this.locId,
+        });
+        return await this.request.refresh() as EditableRequest;
+    }
 }
 
 export interface IdenfyVerificationCreation {
@@ -753,7 +824,7 @@ export interface IdenfyVerificationCreation {
 
 export class DraftRequest extends EditableRequest {
 
-    veryNew(): PendingRequest {
+    veryNew(): DraftRequest {
         const newLocsState = this.locsState().refreshWith(this);
         return newLocsState.findById(this.locId) as DraftRequest;
     }
@@ -764,13 +835,7 @@ export class DraftRequest extends EditableRequest {
 
     async submit(): Promise<PendingRequest> {
         await this.locSharedState.client.submit(this.locId);
-        const request: LocRequest = {
-            ...this.request,
-            status: "REQUESTED",
-        };
-        const tempPending = new PendingRequest(this.locSharedState, request, undefined, EMPTY_LOC_ISSUERS);
-        const newLocsState = this.locSharedState.locsState.refreshWith(tempPending); // Discards this state
-        return newLocsState.findById(this.locId) as PendingRequest;
+        return await super.refresh() as PendingRequest;
     }
 
     async cancel(): Promise<LocsState> {
@@ -817,6 +882,88 @@ export class PendingRequest extends LocRequestState {
     override withLocs(locsState: LocsState): PendingRequest {
         return this._withLocs(locsState, PendingRequest);
     }
+
+    get legalOfficer(): LegalOfficerPendingRequestCommands {
+        return new LegalOfficerPendingRequestCommands({
+            locId: this.locId,
+            client: this.locSharedState.client,
+            request: this,
+        });
+    }
+}
+
+export class LegalOfficerPendingRequestCommands {
+
+    constructor(args: {
+        locId: UUID,
+        client: AuthenticatedLocClient,
+        request: PendingRequest,
+    }) {
+        this.locId = args.locId;
+        this.client = args.client;
+        this.request = args.request;
+    }
+
+    private locId: UUID;
+
+    private client: AuthenticatedLocClient;
+
+    private request: PendingRequest;
+
+    async reject(reason: string): Promise<RejectedRequest> {
+        this.request.ensureCurrent();
+        await this.client.rejectLoc({
+            locId: this.locId,
+            reason,
+        });
+        return await this.request.refresh() as RejectedRequest;
+    }
+
+    async accept(args: BlockchainSubmissionParams): Promise<OpenLoc> {
+        this.request.ensureCurrent();
+        const requester = this.request.data().requesterAddress;
+        const sponsorshipId = this.request.data().sponsorshipId;
+        if(!requester) {
+            throw new Error("Can only accept LOC with polkadot requester");
+        }
+        const locType = this.request.data().locType;
+        if(locType === "Transaction") {
+            await this.client.acceptTransactionLoc({
+                locId: this.locId,
+                requester,
+                ...args,
+            });
+        } else if(locType === "Identity") {
+            await this.client.acceptIdentityLoc({
+                locId: this.locId,
+                requester,
+                sponsorshipId,
+                ...args,
+            });
+        } else {
+            throw new Error(`Unsupported loc type ${ locType }`);
+        }
+        return await this.request.refresh() as OpenLoc;
+    }
+
+    async acceptCollection(args: AcceptCollectionLocParams): Promise<OpenLoc> {
+        this.request.ensureCurrent();
+        const requester = this.request.data().requesterAddress;
+        if(!requester) {
+            throw new Error("Can only accept LOC with polkadot requester");
+        }
+        const locType = this.request.data().locType;
+        if(locType === "Collection") {
+            await this.client.acceptCollectionLoc({
+                locId: this.locId,
+                requester,
+                ...args,
+            });
+        } else {
+            throw new Error(`Unsupported loc type ${ locType }`);
+        }
+        return await this.request.refresh() as OpenLoc;
+    }
 }
 
 export class RejectedRequest extends LocRequestState {
@@ -830,13 +977,7 @@ export class RejectedRequest extends LocRequestState {
 
     async rework(): Promise<DraftRequest> {
         await this.locSharedState.client.rework(this.locId);
-        const request: LocRequest = {
-            ...this.request,
-            status: "DRAFT",
-        };
-        const tempDraft = new DraftRequest(this.locSharedState, request, undefined, EMPTY_LOC_ISSUERS);
-        const newLocsState = this.locSharedState.locsState.refreshWith(tempDraft); // Discards this state
-        return newLocsState.findById(this.locId) as DraftRequest;
+        return await super.refresh() as DraftRequest;
     }
 
     override withLocs(locsState: LocsState): RejectedRequest {
@@ -856,6 +997,115 @@ export class OpenLoc extends EditableRequest {
 
     override withLocs(locsState: LocsState): OpenLoc {
         return this._withLocs(locsState, OpenLoc);
+    }
+
+    async publishFile(parameters: { hash: string } & BlockchainSubmissionParams): Promise<OpenLoc> {
+        const client = this.locSharedState.client;
+        const file = this.request.files.find(file => file.hash === parameters.hash && file.status === "REVIEW_ACCEPTED");
+        if(!file) {
+            throw new Error("File was not found or was not reviewed and accepted by the LLO yet");
+        }
+        await client.publishFile({
+            locId: this.locId,
+            file: {
+                hash: file.hash,
+                nature: file.nature,
+                size: BigInt(file.size),
+                submitter: this.locSharedState.nodeApi.queries.getValidAccountId(file.submitter.address, file.submitter.type),
+            },
+            signer: parameters.signer,
+            callback: parameters.callback,
+        });
+        return await this.refresh() as OpenLoc;
+    }
+
+    async publishMetadata(parameters: { name: string } & BlockchainSubmissionParams): Promise<OpenLoc> {
+        const client = this.locSharedState.client;
+        const metadata = this.request.metadata.find(metadata => metadata.name === parameters.name && metadata.status === "REVIEW_ACCEPTED");
+        if(!metadata) {
+            throw new Error("File was not found or was not reviewed and accepted by the LLO yet");
+        }
+        await client.publishMetadata({
+            locId: this.locId,
+            metadata: {
+                name: metadata.name,
+                value: metadata.value,
+                submitter: this.locSharedState.nodeApi.queries.getValidAccountId(metadata.submitter.address, metadata.submitter.type),
+            },
+            signer: parameters.signer,
+            callback: parameters.callback,
+        });
+        return await this.refresh() as OpenLoc;
+    }
+
+    override get legalOfficer(): LegalOfficerOpenRequestCommands {
+        return new LegalOfficerOpenRequestCommands({
+            locId: this.locId,
+            client: this.locSharedState.client,
+            request: this,
+        });
+    }
+}
+
+/**
+ * Encapsulated calls can be used only by a Logion Legal Officer.
+ */
+export class LegalOfficerOpenRequestCommands extends LegalOfficerEditableRequestCommands {
+
+    async acknowledgeFile(parameters: AckFileParams): Promise<OpenLoc> {
+        this.request.ensureCurrent();
+        const file = this.request.data().files.find(file => file.hash === parameters.hash && file.status === "PUBLISHED");
+        if(!file) {
+            throw new Error("File was not found or was not published yet");
+        }
+        await this.client.acknowledgeFile({
+            locId: this.locId,
+            hash: parameters.hash,
+            signer: parameters.signer,
+            callback: parameters.callback,
+        });
+        return await this.request.refresh() as OpenLoc;
+    }
+
+    async acknowledgeMetadata(parameters: AckMetadataParams): Promise<OpenLoc> {
+        this.request.ensureCurrent();
+        const metadata = this.request.data().metadata.find(metadata => metadata.name === parameters.name && metadata.status === "PUBLISHED");
+        if(!metadata) {
+            throw new Error("File was not found or was not published yet");
+        }
+        await this.client.acknowledgeMetadata({
+            locId: this.locId,
+            name: parameters.name,
+            signer: parameters.signer,
+            callback: parameters.callback,
+        });
+        return await this.request.refresh() as OpenLoc;
+    }
+
+    async close(parameters: BlockchainSubmissionParams): Promise<ClosedLoc | ClosedCollectionLoc> {
+        this.request.ensureCurrent();
+        const file = this.request.data().files.find(file => file.status !== "ACKNOWLEDGED");
+        if(file) {
+            throw new Error("All files have not been acknowledged yet");
+        }
+        const metadata = this.request.data().metadata.find(metadata => metadata.status !== "ACKNOWLEDGED");
+        if(metadata) {
+            throw new Error("All metadata have not been acknowledged yet");
+        }
+
+        const seal = this.request.data().seal;
+        await this.client.close({
+            ...parameters,
+            locId: this.locId,
+            seal,
+        });
+
+        const state = await this.request.refresh();
+        if(state.data().locType === "Collection") {
+            return state as ClosedCollectionLoc;
+        } else {
+            return state as ClosedLoc;
+        }
     }
 }
 

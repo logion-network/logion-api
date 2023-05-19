@@ -12,9 +12,12 @@ import {
     LocBatch,
     Adapters,
     TypesTokensRecord,
-    TypesTokensRecordFile
+    TypesTokensRecordFile,
+    File,
+    MetadataItem,
 } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
+import type { ISubmittableResult } from '@polkadot/types/types';
 import { AxiosInstance } from 'axios';
 
 import { UserIdentity, LegalOfficer, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -46,6 +49,8 @@ export interface SupportedAccountId {
     address: string;
 }
 
+export type ItemStatus = "DRAFT" | "REVIEW_PENDING" | "REVIEW_ACCEPTED" | "REVIEW_REJECTED" | "PUBLISHED" | "ACKNOWLEDGED";
+
 export interface FileInfo extends Partial<AddedOn> {
     hash: string;
     nature: string;
@@ -55,6 +60,7 @@ export interface FileInfo extends Partial<AddedOn> {
     contentType: string;
     fees?: Fees;
     storageFeePaidBy?: string;
+    status: ItemStatus;
 }
 
 /**
@@ -72,6 +78,8 @@ export interface LocMetadataItem extends Partial<AddedOn> {
     value: string;
     submitter: SupportedAccountId;
     fees?: Fees;
+    status: ItemStatus;
+    rejectReason?: string;
 }
 
 /**
@@ -226,7 +234,12 @@ export class ItemFileWithContent {
     }
 }
 
-export interface AddCollectionItemParams {
+export interface BlockchainSubmissionParams {
+    signer: Signer;
+    callback?: SignCallback;
+}
+
+export interface AddCollectionItemParams extends BlockchainSubmissionParams {
     itemId: string,
     itemDescription: string,
     itemFiles?: ItemFileWithContent[],
@@ -235,8 +248,6 @@ export interface AddCollectionItemParams {
     logionClassification?: LogionClassification,
     specificLicenses?: SpecificLicense[],
     creativeCommons?: CreativeCommons,
-    signer: Signer,
-    callback?: SignCallback,
 }
 
 export interface FetchLocRequestSpecification {
@@ -285,12 +296,10 @@ export interface VerifiedIssuerIdentity {
     selected?: boolean;
 }
 
-export interface AddTokensRecordParams {
+export interface AddTokensRecordParams extends  BlockchainSubmissionParams {
     recordId: string,
     description: string,
     files: ItemFileWithContent[],
-    signer: Signer,
-    callback?: SignCallback,
 }
 
 export interface GetTokensRecordDeliveriesRequest {
@@ -377,7 +386,8 @@ export class LocMultiClient {
             return response.data.requests;
         });
 
-        return aggregateArrays(multiResponse);
+        const requests = aggregateArrays<LocRequest>(multiResponse);
+        return requests.map(mockItemStatus);
     }
 
     async fetchAllForVerifiedIssuer(legalOfficers: LegalOfficerClass[]): Promise<LocRequest[]> {
@@ -405,7 +415,7 @@ export class LocMultiClient {
 
     static async getLoc(params: { api: LogionNodeApiClass, locId: UUID }): Promise<LegalOfficerCase> {
         return requireDefined(
-            await params.api.queries.getLegalOfficerCase(params.locId),
+            mockPublishedItems(params.locId, await params.api.queries.getLegalOfficerCase(params.locId)),
             () => new Error(`LOC not found on chain: ${ params.locId.toDecimalString() }`)
         );
     }
@@ -629,12 +639,117 @@ export abstract class LocClient {
     abstract checkTokensRecordDelivery(parameters: CheckTokensRecordDeliveryRequest): Promise<CollectionDelivery>;
 }
 
+function mockItemStatus(request: LocRequest): LocRequest {
+    return {
+        ...request,
+        files: request.files.map(file => mockFileStatus(request.id, file)),
+        metadata: request.metadata.map(metadata => mockMetadataStatus(request.id, metadata)),
+    };
+}
+
+function mockFileStatus(id: string, file: LocFile): LocFile {
+    const status = getFileStatus(id, file.hash);
+    return {
+        ...file,
+        ...status,
+    };
+}
+
+function getFileStatus(id: string, hash: string): { status: ItemStatus, rejectReason?: string } {
+    return id in fileStatusMock && hash in fileStatusMock[id] ? fileStatusMock[id][hash] : { status: "DRAFT" as ItemStatus };
+}
+
+function setMockFileStatus(id: string, hash: string | undefined, status: ItemStatus, rejectReason?: string) {
+    fileStatusMock[id] ||= {};
+    if(hash) {
+        fileStatusMock[id][hash] = { status, rejectReason };
+    } else {
+        Object.keys(fileStatusMock[id]).forEach(key => fileStatusMock[id][key] = { status, rejectReason });
+    }
+}
+
+function removeMockFileStatus(id: string, hash: string) {
+    if(id in fileStatusMock) {
+        delete fileStatusMock[id][hash];
+    }
+}
+
+/**
+ * To be removed once implemented by backend
+ */
+const fileStatusMock: Record<string, Record<string, { status: ItemStatus, rejectReason?: string }>> = {};
+
+function mockMetadataStatus(id: string, metadata: LocMetadataItem): LocMetadataItem {
+    const status = getMetadataStatus(id, metadata.name);
+    return {
+        ...metadata,
+        ...status,
+    };
+}
+
+function getMetadataStatus(id: string, name: string): { status: ItemStatus, rejectReason?: string } {
+    return id in metadataStatusMock && name in metadataStatusMock[id] ? metadataStatusMock[id][name] : { status: "DRAFT" as ItemStatus };
+}
+
+/**
+ * To be removed once implemented by backend
+ */
+const metadataStatusMock: Record<string, Record<string, { status: ItemStatus, rejectReason?: string }>> = {};
+
+function setMockMetadataStatus(id: string, name: string | undefined, status: ItemStatus, rejectReason?: string) {
+    metadataStatusMock[id] ||= {};
+    if(name) {
+        metadataStatusMock[id][name] = { status, rejectReason };
+    } else {
+        Object.keys(metadataStatusMock[id]).forEach(key => metadataStatusMock[id][key] = { status, rejectReason });
+    }
+}
+
+function removeMockMetadataStatus(id: string, name: string) {
+    if(id in metadataStatusMock) {
+        delete metadataStatusMock[id][name];
+    }
+}
+
+function removeNotAcknowledgedItems(request: LocRequest): LocRequest {
+    if(!request.files || request.files.length === 0) {
+        return {
+            ...request,
+            files: request.files.map(file => mockFileStatus(request.id, file)).filter(file => file.status === "ACKNOWLEDGED"),
+            metadata: request.metadata.map(metadata => mockMetadataStatus(request.id, metadata)).filter(metadata => metadata.status === "ACKNOWLEDGED"),
+        };
+    } else {
+        return request;
+    }
+}
+
+export function mockPublishedItems(id: UUID, loc: LegalOfficerCase | undefined): LegalOfficerCase | undefined {
+    if(!loc) {
+        return undefined;
+    }
+    return {
+        ...loc,
+        files: publishedFilesMock[id.toString()] || [],
+        metadata: publishedMetadataMock[id.toString()] || [],
+    };
+}
+
+/**
+ * To be removed once implemented by pallet
+ */
+const publishedFilesMock: Record<string, File[]> = {};
+
+/**
+ * To be removed once implemented by pallet
+ */
+const publishedMetadataMock: Record<string, MetadataItem[]> = {};
+
 export class PublicLocClient extends LocClient {
 
     override async getLocRequest(parameters: FetchParameters): Promise<LocRequest> {
         const { locId } = parameters;
         const response = await this.backend().get(`/api/loc-request/${ locId.toString() }/public`);
-        return response.data;
+        return removeNotAcknowledgedItems(response.data);
     }
 
     override async getDeliveries(parameters: GetDeliveriesRequest): Promise<ItemDeliveries> {
@@ -698,7 +813,7 @@ export class AuthenticatedLocClient extends LocClient {
     async createLocRequest(request: CreateLocRequest): Promise<LocRequest> {
         try {
             const response = await this.backend().post(`/api/loc-request`, request);
-            return response.data;
+            return mockItemStatus(response.data);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -710,14 +825,14 @@ export class AuthenticatedLocClient extends LocClient {
             locId: locId.toString(),
             itemId
         });
-        return response.data;
+        return mockItemStatus(response.data);
     }
 
     override async getLocRequest(parameters: FetchParameters): Promise<LocRequest> {
         try {
             const { locId } = parameters;
             const response = await this.backend().get(`/api/loc-request/${ locId.toString() }`);
-            return response.data;
+            return mockItemStatus(response.data);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -727,6 +842,7 @@ export class AuthenticatedLocClient extends LocClient {
         try {
             const { name, value, locId } = parameters;
             await this.backend().post(`/api/loc-request/${ locId.toString() }/metadata`, { name, value });
+            setMockMetadataStatus(locId.toString(), parameters.name, "DRAFT");
         } catch(e) {
             throw newBackendError(e);
         }
@@ -735,7 +851,8 @@ export class AuthenticatedLocClient extends LocClient {
     async deleteMetadata(parameters: DeleteMetadataParams & FetchParameters): Promise<void> {
         try {
             const { name, locId } = parameters;
-            await this.backend().delete(`/api/loc-request/${ locId.toString() }/metadata/${ encodeURIComponent(name) }`)
+            await this.backend().delete(`/api/loc-request/${ locId.toString() }/metadata/${ encodeURIComponent(name) }`);
+            removeMockMetadataStatus(locId.toString(), parameters.name);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -757,6 +874,7 @@ export class AuthenticatedLocClient extends LocClient {
                 formData,
                 { headers: { "Content-Type": "multipart/form-data" } }
             );
+            setMockFileStatus(locId.toString(), parameters.file.contentHash, "DRAFT");
         } catch(e) {
             throw newBackendError(e);
         }
@@ -765,7 +883,8 @@ export class AuthenticatedLocClient extends LocClient {
     async deleteFile(parameters: DeleteFileParams & FetchParameters): Promise<void> {
         try {
             const { hash, locId } = parameters;
-            await this.backend().delete(`/api/loc-request/${ locId.toString() }/files/${ hash }`)
+            await this.backend().delete(`/api/loc-request/${ locId.toString() }/files/${ hash }`);
+            removeMockFileStatus(locId.toString(), parameters.hash);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -920,6 +1039,8 @@ export class AuthenticatedLocClient extends LocClient {
     async submit(locId: UUID) {
         try {
             await this.backend().post(`/api/loc-request/${ locId }/submit`);
+            setMockMetadataStatus(locId.toString(), undefined, "REVIEW_PENDING");
+            setMockFileStatus(locId.toString(), undefined, "REVIEW_PENDING");
         } catch(e) {
             throw newBackendError(e);
         }
@@ -936,6 +1057,8 @@ export class AuthenticatedLocClient extends LocClient {
     async rework(locId: UUID) {
         try {
             await this.backend().post(`/api/loc-request/${ locId }/rework`);
+            setMockMetadataStatus(locId.toString(), undefined, "DRAFT");
+            setMockFileStatus(locId.toString(), undefined, "DRAFT");
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1082,6 +1205,297 @@ export class AuthenticatedLocClient extends LocClient {
     override async checkTokensRecordDelivery(parameters: CheckTokensRecordDeliveryRequest): Promise<CollectionDelivery> {
         return checkTokensRecordDelivery(this.backend(), parameters);
     }
+
+    async requestFileReview(parameters: { locId: UUID, hash: string }): Promise<void> {
+        try {
+            const { locId, hash } = parameters;
+
+            fileStatusMock[locId.toString()] ||= {};
+            const currentStatus = getFileStatus(locId.toString(), hash);
+            if(currentStatus.status !== "DRAFT") {
+                throw new Error(`Unexpected status ${currentStatus}`);
+            }
+            setMockFileStatus(locId.toString(), hash, "REVIEW_PENDING");
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    async reviewFile(parameters: { locId: UUID } & ReviewFileParams): Promise<void> {
+        try {
+            const { locId, hash, decision } = parameters;
+
+            const currentStatus = getFileStatus(locId.toString(), hash);
+            if(currentStatus.status !== "REVIEW_PENDING") {
+                throw new Error(`Unexpected status ${currentStatus}`);
+            }
+            setMockFileStatus(locId.toString(), hash, decision === "ACCEPT" ? "REVIEW_ACCEPTED" : "REVIEW_REJECTED", parameters.rejectReason);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    async publishFile(parameters: PublishFileParams): Promise<void> {
+        const currentStatus = getFileStatus(parameters.locId.toString(), parameters.file.hash);
+        if(currentStatus.status !== "REVIEW_ACCEPTED") {
+            throw new Error(`Unexpected status ${currentStatus}`);
+        }
+        setMockFileStatus(parameters.locId.toString(), parameters.file.hash, "PUBLISHED");
+
+        publishedFilesMock[parameters.locId.toString()] ||= [];
+        publishedFilesMock[parameters.locId.toString()].push(parameters.file);
+
+        if(parameters.callback) {
+            parameters.callback({
+                isFinalized: true,
+                status: {
+                    isFinalized: true,
+                    asFinalized: {
+
+                    }
+                }
+            } as unknown as ISubmittableResult);
+        }
+    }
+
+    async acknowledgeFile(parameters: { locId: UUID } & AckFileParams): Promise<void> {
+        const currentStatus = getFileStatus(parameters.locId.toString(), parameters.hash);
+        if(currentStatus.status !== "PUBLISHED") {
+            throw new Error(`Unexpected status ${currentStatus}`);
+        }
+        setMockFileStatus(parameters.locId.toString(), parameters.hash, "ACKNOWLEDGED");
+
+        if(parameters.callback) {
+            parameters.callback({
+                isFinalized: true,
+                status: {
+                    isFinalized: true,
+                    asFinalized: {
+
+                    }
+                }
+            } as unknown as ISubmittableResult);
+        }
+    }
+
+    async requestMetadataReview(parameters: { locId: UUID, name: string }): Promise<void> {
+        try {
+            const { locId, name } = parameters;
+
+            const currentStatus = getMetadataStatus(locId.toString(), name);
+            if(currentStatus.status !== "DRAFT") {
+                throw new Error(`Unexpected status ${currentStatus}`);
+            }
+            setMockMetadataStatus(parameters.locId.toString(), name, "REVIEW_PENDING");
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    async reviewMetadata(parameters: { locId: UUID } & ReviewMetadataParams): Promise<void> {
+        try {
+            const { locId, name, decision } = parameters;
+
+            const currentStatus = getMetadataStatus(locId.toString(), name);
+            if(currentStatus.status !== "REVIEW_PENDING") {
+                throw new Error(`Unexpected status ${currentStatus}`);
+            }
+            setMockMetadataStatus(parameters.locId.toString(), name, decision === "ACCEPT" ? "REVIEW_ACCEPTED" : "REVIEW_REJECTED", parameters.rejectReason);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    async publishMetadata(parameters: PublishMetadataParams): Promise<void> {
+        const currentStatus = getMetadataStatus(parameters.locId.toString(), parameters.metadata.name);
+        if(currentStatus.status !== "REVIEW_ACCEPTED") {
+            throw new Error(`Unexpected status ${currentStatus}`);
+        }
+        setMockMetadataStatus(parameters.locId.toString(), parameters.metadata.name, "PUBLISHED");
+
+        publishedMetadataMock[parameters.locId.toString()] ||= [];
+        publishedMetadataMock[parameters.locId.toString()].push(parameters.metadata);
+
+        if(parameters.callback) {
+            parameters.callback({
+                isFinalized: true,
+                status: {
+                    isFinalized: true,
+                    asFinalized: {
+
+                    }
+                }
+            } as unknown as ISubmittableResult);
+        }
+    }
+
+    async acknowledgeMetadata(parameters: { locId: UUID } & AckMetadataParams): Promise<void> {
+        const currentStatus = getMetadataStatus(parameters.locId.toString(), parameters.name);
+        if(currentStatus.status !== "PUBLISHED") {
+            throw new Error(`Unexpected status ${currentStatus}`);
+        }
+        setMockMetadataStatus(parameters.locId.toString(), parameters.name, "ACKNOWLEDGED");
+
+        if(parameters.callback) {
+            parameters.callback({
+                isFinalized: true,
+                status: {
+                    isFinalized: true,
+                    asFinalized: {
+
+                    }
+                }
+            } as unknown as ISubmittableResult);
+        }
+    }
+
+    async rejectLoc(args: {
+        locId: UUID,
+        reason: string,
+    }): Promise<void> {
+        const axios = this.backend();
+        try {
+            await axios.post(`/api/loc-request/${ args.locId.toString() }/reject`, { reason: args.reason });
+            setMockMetadataStatus(args.locId.toString(), undefined, "REVIEW_REJECTED");
+            setMockFileStatus(args.locId.toString(), undefined, "REVIEW_REJECTED");
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    async acceptTransactionLoc(parameters: { locId: UUID, requester: SupportedAccountId } & BlockchainSubmissionParams): Promise<void> {
+        const submittable = this.nodeApi.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
+            this.nodeApi.adapters.toLocId(parameters.locId),
+            parameters.requester.address,
+        );
+        await this.acceptLoc({
+            ...parameters,
+            submittable,
+        });
+    }
+
+    private async acceptLoc(args: {
+        locId: UUID,
+        signer: Signer,
+        submittable: SubmittableExtrinsic,
+        callback?: SignCallback | undefined,
+    }): Promise<void> {
+        await args.signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable: args.submittable,
+            callback: args.callback,
+        });
+
+        const axios = this.backend();
+        try {
+            await axios.post(`/api/loc-request/${ args.locId.toString() }/accept`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    async acceptIdentityLoc(parameters: { locId: UUID, requester: SupportedAccountId, sponsorshipId?: UUID } & BlockchainSubmissionParams): Promise<void> {
+        let submittable: SubmittableExtrinsic;
+        if(parameters.requester.type === "Polkadot") {
+            submittable = this.nodeApi.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
+                this.nodeApi.adapters.toLocId(parameters.locId),
+                parameters.requester.address,
+            );
+        } else {
+            if(!parameters.sponsorshipId) {
+                throw new Error("Other Identity LOCs can only be created with a sponsorship");
+            }
+
+            const otherAccountId = this.nodeApi.queries.getValidAccountId(parameters.requester.address, parameters.requester.type).toOtherAccountId();
+            submittable = this.nodeApi.polkadot.tx.logionLoc.createOtherIdentityLoc(
+                this.nodeApi.adapters.toLocId(parameters.locId),
+                this.nodeApi.adapters.toPalletLogionLocOtherAccountId(otherAccountId),
+                this.nodeApi.adapters.toSponsorshipId(parameters.sponsorshipId),
+            );
+        }
+        await this.acceptLoc({
+            ...parameters,
+            submittable,
+        });
+    }
+
+    async acceptCollectionLoc(parameters: { locId: UUID, requester: SupportedAccountId } & AcceptCollectionLocParams): Promise<void> {
+        const submittable = this.nodeApi.polkadot.tx.logionLoc.createCollectionLoc(
+            this.nodeApi.adapters.toLocId(parameters.locId),
+            parameters.requester.address,
+            parameters.collectionLastBlockSubmission || null,
+            parameters.collectionMaxSize || null,
+            parameters.collectionCanUpload,
+        );
+        await this.acceptLoc({
+            ...parameters,
+            submittable,
+        });
+    }
+
+    async close(parameters: { locId: UUID, seal?: string } & BlockchainSubmissionParams): Promise<void> {
+        let submittable: SubmittableExtrinsic;
+        if(parameters.seal) {
+            submittable = this.nodeApi.polkadot.tx.logionLoc.closeAndSeal(
+                this.nodeApi.adapters.toLocId(parameters.locId),
+                parameters.seal,
+            );
+        } else {
+            submittable = this.nodeApi.polkadot.tx.logionLoc.close(
+                this.nodeApi.adapters.toLocId(parameters.locId),
+            );
+        }
+
+        await parameters.signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable,
+            callback: parameters.callback,
+        });
+
+        try {
+            await this.backend().post(`/api/loc-request/${ parameters.locId.toString() }/close`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+}
+
+export interface ReviewFileParams {
+    hash: string;
+    decision: ReviewResult;
+    rejectReason?: string;
+}
+
+export type ReviewResult = "ACCEPT" | "REJECT";
+
+export interface PublishFileParams extends BlockchainSubmissionParams {
+    locId: UUID;
+    file: File;
+}
+
+export interface AckFileParams extends BlockchainSubmissionParams {
+    hash: string;
+}
+
+export interface ReviewMetadataParams {
+    name: string;
+    decision: ReviewResult;
+    rejectReason?: string;
+}
+
+export interface PublishMetadataParams extends BlockchainSubmissionParams {
+    locId: UUID;
+    metadata: MetadataItem;
+}
+
+export interface AckMetadataParams extends BlockchainSubmissionParams {
+    name: string;
+}
+
+export interface AcceptCollectionLocParams extends BlockchainSubmissionParams {
+    collectionLastBlockSubmission?: bigint;
+    collectionMaxSize?: number;
+    collectionCanUpload: boolean;
 }
 
 export const EMPTY_LOC_ISSUERS: LocVerifiedIssuers = {

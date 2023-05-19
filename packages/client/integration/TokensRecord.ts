@@ -1,8 +1,8 @@
-import { ClosedCollectionLoc, HashOrContent, hashString, ItemFileWithContent, LocRequestState, MimeType } from "../src/index.js";
-import { initRequesterBalance, LegalOfficerWorker, NEW_ADDRESS, State, TEST_LOGION_CLIENT_CONFIG, ISSUER_ADDRESS } from "./Utils.js";
+import { ClosedCollectionLoc, HashOrContent, hashString, ItemFileWithContent, LocRequestState, MimeType, PendingRequest } from "../src/index.js";
+import { initRequesterBalance, LegalOfficerWorker, State, TEST_LOGION_CLIENT_CONFIG, ISSUER_ADDRESS } from "./Utils.js";
 
 export async function tokensRecords(state: State) {
-    const { alice, newAccount, issuerAccount } = state;
+    const { client, alice, aliceAccount, newAccount, issuerAccount, signer } = state;
     const legalOfficer = new LegalOfficerWorker(alice, state);
 
     const userClient = state.client.withCurrentAddress(newAccount);
@@ -12,9 +12,12 @@ export async function tokensRecords(state: State) {
         draft: false,
     });
     const collectionLocId = collectionLoc.locId;
-    await legalOfficer.openCollectionLoc(collectionLocId, NEW_ADDRESS, false);
+    const aliceClient = client.withCurrentAddress(aliceAccount);
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, locTypes: ["Collection"], statuses: ["REQUESTED"] } });
+    let alicePendingRequest = aliceLocs.findById(collectionLocId) as PendingRequest;
+    let aliceOpenLoc = await alicePendingRequest.legalOfficer.acceptCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
     await legalOfficer.selectIssuer(collectionLocId, ISSUER_ADDRESS, true);
-    await legalOfficer.closeLoc(collectionLocId);
+    await aliceOpenLoc.legalOfficer.close({ signer });
 
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, ISSUER_ADDRESS);
 

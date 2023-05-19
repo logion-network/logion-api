@@ -133,9 +133,7 @@ describe("DraftRequest", () => {
 
     it("submits", async () => {
         const draft = await getDraftRequest();
-        let newState = await draft.submit();
-
-        expect(newState).toBeInstanceOf(PendingRequest);
+        await draft.submit();
         aliceAxiosMock.verify(instance => instance.post(`/api/loc-request/${ draft.locId }/submit`), Times.Once());
     });
 

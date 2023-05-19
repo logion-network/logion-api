@@ -1,6 +1,5 @@
-import { buildApiClass, UUID, Currency, Numbers, ValidAccountId, OtherAccountId } from "@logion/node-api";
+import { buildApiClass, UUID, Currency, Numbers, ValidAccountId } from "@logion/node-api";
 import { Keyring } from "@polkadot/api";
-import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import FormData from "form-data";
 
 import {
@@ -9,17 +8,15 @@ import {
     SignAndSendStrategy,
     Signer,
     LogionClientConfig,
-    AxiosFactory,
     ISubmittableResult,
-    LegalOfficer,
     LogionClient,
     DefaultSignAndSendStrategy,
     LegalOfficerClass,
+    PendingRequest,
+    OpenLoc,
 } from "../src/index.js";
 import { ALICE, BOB, CHARLIE } from "../test/Utils.js";
 import { requireDefined } from "../src/assertions.js";
-import { newBackendError } from "../src/Error.js";
-
 
 export const ALICE_SECRET_SEED = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a";
 export const BOB_SECRET_SEED = "0x398f0c28f98885e046333d4a41c19cee4c37368a9832c6502f6cfd182e2aef89";
@@ -136,106 +133,35 @@ export async function tearDown(state: State) {
 
 export class LegalOfficerWorker {
 
-    legalOfficer: LegalOfficer;
+    legalOfficer: LegalOfficerClass;
     state: State;
 
-    constructor(legalOfficer: LegalOfficer, state: State) {
+    constructor(legalOfficer: LegalOfficerClass, state: State) {
         this.legalOfficer = legalOfficer;
         this.state = state;
     }
 
-    async createValidTermsAndConditionsLoc(id: UUID, requesterAccountId: string): Promise<void> {
-        return this.openAndCloseTransactionLoc(id, requesterAccountId);
-    }
-
-    async createValidIdentityLoc(id: UUID, requesterAccountId: string): Promise<void> {
-        const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        const submittable = api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(api.adapters.toLocId(id), requesterAccountId);
-        await this.openLoc(id, submittable);
+    async openAndClose(id: UUID): Promise<void> {
+        await this.openLoc(id);
         await this.closeLoc(id);
     }
 
-    async openAndCloseTransactionLoc(id: UUID, requesterAccountId: string): Promise<void> {
-        await this.openTransactionLoc(id, requesterAccountId);
-        await this.closeLoc(id);
-    }
-
-    async openTransactionLoc(id: UUID, requesterAccountId: string) {
-        const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        const submittable = api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(api.adapters.toLocId(id), requesterAccountId);
-        await this.openLoc(id, submittable);
-    }
-
-    private async openLoc(id: UUID, submittable: SubmittableExtrinsic) {
-        await this.state.signer.signAndSend({
-            signerId: this.legalOfficer.address,
-            submittable,
-        });
-        const axios = await this.buildLegalOfficerAxios();
-        try {
-            await axios.post(`/api/loc-request/${ id.toString() }/accept`);
-        } catch(e) {
-            throw newBackendError(e);
-        }
-    }
-
-    async buildLegalOfficerAxios() {
-        const { client, signer } = this.state;
-        const legalOfficerAccount = client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot");
-        const authenticatedClient = await client.authenticate([ legalOfficerAccount ], signer);
-        const token = authenticatedClient.tokens.get(legalOfficerAccount)!;
-        const axiosFactory = new AxiosFactory();
-        return axiosFactory.buildAxiosInstance(this.legalOfficer.node, token.value);
-    }
-
-    async createOtherIdentityLoc(id: UUID, requesterAccountId: OtherAccountId, sponsorshipId: UUID) {
-        const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        const submittable = api.polkadot.tx.logionLoc.createOtherIdentityLoc(
-            api.adapters.toLocId(id),
-            api.adapters.toPalletLogionLocOtherAccountId(requesterAccountId),
-            api.adapters.toSponsorshipId(sponsorshipId),
-        );
-        await this.openLoc(id, submittable);
-        await this.closeLoc(id);
-    }
-
-    async rejectPendingLoc(id: UUID) {
-        const axios = await this.buildLegalOfficerAxios();
-        try {
-            await axios.post(`/api/loc-request/${ id.toString() }/reject`, {reason: "Because."});
-        } catch(e) {
-            throw newBackendError(e);
-        }
-    }
-
-    async openCollectionLoc(id: UUID, requesterAccountId: string, withUpload: boolean) {
-        const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        await this.state.signer.signAndSend({
-            signerId: this.legalOfficer.address,
-            submittable: api.polkadot.tx.logionLoc.createCollectionLoc(api.adapters.toLocId(id), requesterAccountId, null, "100", withUpload)
-        });
-
-        const axios = await this.buildLegalOfficerAxios();
-        try {
-            await axios.post(`/api/loc-request/${ id.toString() }/accept`);
-        } catch(e) {
-            throw newBackendError(e);
-        }
+    async openLoc(id: UUID) {
+        const legalOfficerClient = this.state.client.withCurrentAddress(this.state.client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot"));
+        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REQUESTED", "OPEN"] }});
+        const loc = locsState.findById(id) as PendingRequest;
+        await loc.legalOfficer.accept({ signer: this.state.signer });
     }
 
     async closeLoc(id: UUID) {
-        const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        await this.state.signer.signAndSend({
-            signerId: this.legalOfficer.address,
-            submittable: api.polkadot.tx.logionLoc.close(api.adapters.toLocId(id))
-        });
+        const legalOfficerClient = this.state.client.withCurrentAddress(this.state.client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot"));
+        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REQUESTED", "OPEN"] }});
+        const loc = locsState.findById(id) as OpenLoc;
+        await loc.legalOfficer.close({ signer: this.state.signer });
+    }
 
-        const axios = await this.buildLegalOfficerAxios();
-        try {
-            await axios.post(`/api/loc-request/${ id.toString() }/close`);
-        } catch(e) {
-            throw newBackendError(e);
-        }
+    async buildLegalOfficerAxios() {
+        return this.legalOfficer.buildAxiosToNode();
     }
 
     async nominateVerifiedIssuer(issuerAddress: string, identityLocId: UUID) {
