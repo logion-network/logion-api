@@ -921,22 +921,21 @@ export class LegalOfficerPendingRequestCommands {
 
     async accept(args: BlockchainSubmissionParams): Promise<OpenLoc> {
         this.request.ensureCurrent();
-        const requester = this.request.data().requesterAddress;
+        const requesterAccount = this.request.data().requesterAddress;
+        const requesterLoc = this.request.data().requesterLocId;
         const sponsorshipId = this.request.data().sponsorshipId;
-        if(!requester) {
-            throw new Error("Can only accept LOC with polkadot requester");
-        }
         const locType = this.request.data().locType;
         if(locType === "Transaction") {
             await this.client.acceptTransactionLoc({
                 locId: this.locId,
-                requester,
+                requesterAccount,
+                requesterLoc,
                 ...args,
             });
         } else if(locType === "Identity") {
             await this.client.acceptIdentityLoc({
                 locId: this.locId,
-                requester,
+                requesterAccount,
                 sponsorshipId,
                 ...args,
             });
