@@ -1256,6 +1256,22 @@ export class AuthenticatedLocClient extends LocClient {
                 }
             } as unknown as ISubmittableResult);
         }
+
+        // const submittable = api.polkadot.tx.logionLoc.addFile(
+        //     api.adapters.toLocId(data.id),
+        //     api.adapters.toLocFile({
+        //         hash,
+        //         nature,
+        //         size,
+        //         submitter,
+        //     }),
+        // );
+        // await signer.signAndSend({
+        //     signerId: data.ownerAddress,
+        //     submittable,
+        //     callback
+        // });
+        // await axios.put(`/api/loc-request/${ data.id.toString() }/files/${ hash }/confirm`);
     }
 
     async acknowledgeFile(parameters: { locId: UUID } & AckFileParams): Promise<void> {
@@ -1327,6 +1343,18 @@ export class AuthenticatedLocClient extends LocClient {
                 }
             } as unknown as ISubmittableResult);
         }
+
+        // const submittable = api.polkadot.tx.logionLoc.addMetadata(
+        //     api.adapters.toLocId(data.id),
+        //     api.adapters.toPalletLogionLocMetadataItem(item),
+        // );
+        // await signer.signAndSend({
+        //     signerId: data.ownerAddress,
+        //     submittable,
+        //     callback
+        // });
+    
+        // await axios.put(`/api/loc-request/${ data.id.toString() }/metadata/${ encodeURIComponent(item.name) }/confirm`);
     }
 
     async acknowledgeMetadata(parameters: { locId: UUID } & AckMetadataParams): Promise<void> {
@@ -1363,11 +1391,21 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async acceptTransactionLoc(parameters: { locId: UUID, requester: SupportedAccountId } & BlockchainSubmissionParams): Promise<void> {
-        const submittable = this.nodeApi.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
-            this.nodeApi.adapters.toLocId(parameters.locId),
-            parameters.requester.address,
-        );
+    async acceptTransactionLoc(parameters: { locId: UUID, requesterAccount?: SupportedAccountId, requesterLoc?: UUID } & BlockchainSubmissionParams): Promise<void> {
+        let submittable: SubmittableExtrinsic;
+        if(parameters.requesterAccount) {
+            submittable = this.nodeApi.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
+                this.nodeApi.adapters.toLocId(parameters.locId),
+                parameters.requesterAccount.address,
+            );
+        } else if(parameters.requesterLoc) {
+            submittable = this.nodeApi.polkadot.tx.logionLoc.createLogionTransactionLoc(
+                this.nodeApi.adapters.toLocId(parameters.locId),
+                this.nodeApi.adapters.toNonCompactLocId(parameters.requesterLoc),
+            );
+        } else {
+            throw new Error("No requester provided");
+        }
         await this.acceptLoc({
             ...parameters,
             submittable,
@@ -1394,23 +1432,29 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async acceptIdentityLoc(parameters: { locId: UUID, requester: SupportedAccountId, sponsorshipId?: UUID } & BlockchainSubmissionParams): Promise<void> {
+    async acceptIdentityLoc(parameters: { locId: UUID, requesterAccount?: SupportedAccountId, sponsorshipId?: UUID } & BlockchainSubmissionParams): Promise<void> {
         let submittable: SubmittableExtrinsic;
-        if(parameters.requester.type === "Polkadot") {
-            submittable = this.nodeApi.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
-                this.nodeApi.adapters.toLocId(parameters.locId),
-                parameters.requester.address,
-            );
-        } else {
-            if(!parameters.sponsorshipId) {
-                throw new Error("Other Identity LOCs can only be created with a sponsorship");
+        if(parameters.requesterAccount) {
+            if(parameters.requesterAccount.type === "Polkadot") {
+                submittable = this.nodeApi.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
+                    this.nodeApi.adapters.toLocId(parameters.locId),
+                    parameters.requesterAccount.address,
+                );
+            } else {
+                if(!parameters.sponsorshipId) {
+                    throw new Error("Other Identity LOCs can only be created with a sponsorship");
+                }
+    
+                const otherAccountId = this.nodeApi.queries.getValidAccountId(parameters.requesterAccount.address, parameters.requesterAccount.type).toOtherAccountId();
+                submittable = this.nodeApi.polkadot.tx.logionLoc.createOtherIdentityLoc(
+                    this.nodeApi.adapters.toLocId(parameters.locId),
+                    this.nodeApi.adapters.toPalletLogionLocOtherAccountId(otherAccountId),
+                    this.nodeApi.adapters.toSponsorshipId(parameters.sponsorshipId),
+                );
             }
-
-            const otherAccountId = this.nodeApi.queries.getValidAccountId(parameters.requester.address, parameters.requester.type).toOtherAccountId();
-            submittable = this.nodeApi.polkadot.tx.logionLoc.createOtherIdentityLoc(
+        } else {
+            submittable = this.nodeApi.polkadot.tx.logionLoc.createLogionIdentityLoc(
                 this.nodeApi.adapters.toLocId(parameters.locId),
-                this.nodeApi.adapters.toPalletLogionLocOtherAccountId(otherAccountId),
-                this.nodeApi.adapters.toSponsorshipId(parameters.sponsorshipId),
             );
         }
         await this.acceptLoc({
