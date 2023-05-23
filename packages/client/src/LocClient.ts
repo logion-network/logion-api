@@ -35,6 +35,7 @@ import { validateToken, ItemTokenWithRestrictedType, TokenType } from "./Token.j
 import { TermsAndConditionsElement, newTermsAndConditions, LogionClassification, SpecificLicense, CreativeCommons } from "./license/index.js";
 import { CollectionDelivery, ItemDeliveries } from './Deliveries.js';
 import { Fees } from './Fees.js';
+import { DateTime } from 'luxon';
 
 export interface AddedOn {
     addedOn: string;
@@ -652,6 +653,7 @@ function mockFileStatus(id: string, file: LocFile): LocFile {
     return {
         ...file,
         ...status,
+        addedOn: status.status === "PUBLISHED" ? DateTime.now().toISO() : undefined,
     };
 }
 
@@ -684,6 +686,7 @@ function mockMetadataStatus(id: string, metadata: LocMetadataItem): LocMetadataI
     return {
         ...metadata,
         ...status,
+        addedOn: status.status === "PUBLISHED" ? DateTime.now().toISO() : undefined,
     };
 }
 
@@ -1213,7 +1216,7 @@ export class AuthenticatedLocClient extends LocClient {
             fileStatusMock[locId.toString()] ||= {};
             const currentStatus = getFileStatus(locId.toString(), hash);
             if(currentStatus.status !== "DRAFT") {
-                throw new Error(`Unexpected status ${currentStatus}`);
+                throw new Error(`Unexpected status ${currentStatus.status}`);
             }
             setMockFileStatus(locId.toString(), hash, "REVIEW_PENDING");
         } catch(e) {
@@ -1227,7 +1230,7 @@ export class AuthenticatedLocClient extends LocClient {
 
             const currentStatus = getFileStatus(locId.toString(), hash);
             if(currentStatus.status !== "REVIEW_PENDING") {
-                throw new Error(`Unexpected status ${currentStatus}`);
+                throw new Error(`Unexpected status ${currentStatus.status}`);
             }
             setMockFileStatus(locId.toString(), hash, decision === "ACCEPT" ? "REVIEW_ACCEPTED" : "REVIEW_REJECTED", parameters.rejectReason);
         } catch(e) {
@@ -1238,7 +1241,7 @@ export class AuthenticatedLocClient extends LocClient {
     async publishFile(parameters: PublishFileParams): Promise<void> {
         const currentStatus = getFileStatus(parameters.locId.toString(), parameters.file.hash);
         if(currentStatus.status !== "REVIEW_ACCEPTED") {
-            throw new Error(`Unexpected status ${currentStatus}`);
+            throw new Error(`Unexpected status ${currentStatus.status}`);
         }
         setMockFileStatus(parameters.locId.toString(), parameters.file.hash, "PUBLISHED");
 
@@ -1277,7 +1280,7 @@ export class AuthenticatedLocClient extends LocClient {
     async acknowledgeFile(parameters: { locId: UUID } & AckFileParams): Promise<void> {
         const currentStatus = getFileStatus(parameters.locId.toString(), parameters.hash);
         if(currentStatus.status !== "PUBLISHED") {
-            throw new Error(`Unexpected status ${currentStatus}`);
+            throw new Error(`Unexpected status ${currentStatus.status}`);
         }
         setMockFileStatus(parameters.locId.toString(), parameters.hash, "ACKNOWLEDGED");
 
@@ -1300,7 +1303,7 @@ export class AuthenticatedLocClient extends LocClient {
 
             const currentStatus = getMetadataStatus(locId.toString(), name);
             if(currentStatus.status !== "DRAFT") {
-                throw new Error(`Unexpected status ${currentStatus}`);
+                throw new Error(`Unexpected status ${currentStatus.status}`);
             }
             setMockMetadataStatus(parameters.locId.toString(), name, "REVIEW_PENDING");
         } catch(e) {
@@ -1314,7 +1317,7 @@ export class AuthenticatedLocClient extends LocClient {
 
             const currentStatus = getMetadataStatus(locId.toString(), name);
             if(currentStatus.status !== "REVIEW_PENDING") {
-                throw new Error(`Unexpected status ${currentStatus}`);
+                throw new Error(`Unexpected status ${currentStatus.status}`);
             }
             setMockMetadataStatus(parameters.locId.toString(), name, decision === "ACCEPT" ? "REVIEW_ACCEPTED" : "REVIEW_REJECTED", parameters.rejectReason);
         } catch(e) {
@@ -1325,7 +1328,7 @@ export class AuthenticatedLocClient extends LocClient {
     async publishMetadata(parameters: PublishMetadataParams): Promise<void> {
         const currentStatus = getMetadataStatus(parameters.locId.toString(), parameters.metadata.name);
         if(currentStatus.status !== "REVIEW_ACCEPTED") {
-            throw new Error(`Unexpected status ${currentStatus}`);
+            throw new Error(`Unexpected status ${currentStatus.status}`);
         }
         setMockMetadataStatus(parameters.locId.toString(), parameters.metadata.name, "PUBLISHED");
 
@@ -1360,7 +1363,7 @@ export class AuthenticatedLocClient extends LocClient {
     async acknowledgeMetadata(parameters: { locId: UUID } & AckMetadataParams): Promise<void> {
         const currentStatus = getMetadataStatus(parameters.locId.toString(), parameters.name);
         if(currentStatus.status !== "PUBLISHED") {
-            throw new Error(`Unexpected status ${currentStatus}`);
+            throw new Error(`Unexpected status ${currentStatus.status}`);
         }
         setMockMetadataStatus(parameters.locId.toString(), parameters.name, "ACKNOWLEDGED");
 
