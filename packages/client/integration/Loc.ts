@@ -14,7 +14,9 @@ import {
     CreativeCommons,
     DraftRequest,
     RejectedRequest,
-    ClosedLoc
+    ClosedLoc,
+    waitFor,
+    OnchainLocState
 } from "../src/index.js";
 
 import { State, TEST_LOGION_CLIENT_CONFIG, initRequesterBalance, LegalOfficerWorker } from "./Utils.js";
@@ -106,6 +108,10 @@ export async function requestTransactionLoc(state: State) {
 
     aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewFile({ hash, decision: "ACCEPT" }) as OpenLoc;
     expect(aliceOpenLoc.data().files[0].status).toBe("REVIEW_ACCEPTED");
+    await waitFor<OnchainLocState>({
+        producer: async state => state ? await state.refresh() : aliceOpenLoc,
+        predicate: state => state.data().files[0].reviewedOn !== undefined,
+    });
 
     openLoc = await openLoc.refresh() as OpenLoc;
     openLoc = await openLoc.publishFile({ hash, signer });
@@ -123,6 +129,10 @@ export async function requestTransactionLoc(state: State) {
     aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewMetadata({ name: metadataName, decision: "REJECT", rejectReason: "Because" }) as OpenLoc;
     expect(aliceOpenLoc.data().metadata[0].status).toBe("REVIEW_REJECTED");
     expect(aliceOpenLoc.data().metadata[0].rejectReason).toBe("Because");
+    await waitFor<OnchainLocState>({
+        producer: async state => state ? await state.refresh() : aliceOpenLoc,
+        predicate: state => state.data().metadata[0].reviewedOn !== undefined,
+    });
     openLoc = await openLoc.refresh() as OpenLoc;
     openLoc = await openLoc.deleteMetadata({ name: metadataName }) as OpenLoc;
     openLoc = await openLoc.addMetadata({
