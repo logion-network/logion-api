@@ -653,7 +653,7 @@ function mockFileStatus(id: string, file: LocFile): LocFile {
     return {
         ...file,
         ...status,
-        addedOn: status.status === "PUBLISHED" ? DateTime.now().toISO() : undefined,
+        addedOn: status.status === "PUBLISHED" || status.status === "ACKNOWLEDGED" ? DateTime.now().toISO() : undefined,
     };
 }
 
@@ -686,7 +686,7 @@ function mockMetadataStatus(id: string, metadata: LocMetadataItem): LocMetadataI
     return {
         ...metadata,
         ...status,
-        addedOn: status.status === "PUBLISHED" ? DateTime.now().toISO() : undefined,
+        addedOn: status.status === "PUBLISHED" || status.status === "ACKNOWLEDGED" ? DateTime.now().toISO() : undefined,
     };
 }
 
