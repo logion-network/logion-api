@@ -1070,7 +1070,7 @@ export class LegalOfficerOpenRequestCommands extends LegalOfficerEditableRequest
         this.request.ensureCurrent();
         const metadata = this.request.data().metadata.find(metadata => metadata.name === parameters.name && metadata.status === "PUBLISHED");
         if(!metadata) {
-            throw new Error("File was not found or was not published yet");
+            throw new Error("Data was not found or was not published yet");
         }
         await this.client.acknowledgeMetadata({
             locId: this.locId,
