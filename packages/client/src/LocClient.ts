@@ -62,6 +62,7 @@ export interface FileInfo extends Partial<AddedOn> {
     fees?: Fees;
     storageFeePaidBy?: string;
     status: ItemStatus;
+    reviewedOn?: string;
 }
 
 /**
@@ -81,6 +82,7 @@ export interface LocMetadataItem extends Partial<AddedOn> {
     fees?: Fees;
     status: ItemStatus;
     rejectReason?: string;
+    reviewedOn?: string;
 }
 
 /**
@@ -654,6 +656,7 @@ function mockFileStatus(id: string, file: LocFile): LocFile {
         ...file,
         ...status,
         addedOn: status.status === "PUBLISHED" || status.status === "ACKNOWLEDGED" ? DateTime.now().toISO() : undefined,
+        reviewedOn: status.status === "REVIEW_ACCEPTED" || status.status === "REVIEW_REJECTED" || status.status === "PUBLISHED" || status.status === "ACKNOWLEDGED" ? DateTime.now().toISO() : undefined,
     };
 }
 
@@ -687,6 +690,7 @@ function mockMetadataStatus(id: string, metadata: LocMetadataItem): LocMetadataI
         ...metadata,
         ...status,
         addedOn: status.status === "PUBLISHED" || status.status === "ACKNOWLEDGED" ? DateTime.now().toISO() : undefined,
+        reviewedOn: status.status === "REVIEW_ACCEPTED" || status.status === "REVIEW_REJECTED" || status.status === "PUBLISHED" || status.status === "ACKNOWLEDGED" ? DateTime.now().toISO() : undefined,
     };
 }
 
