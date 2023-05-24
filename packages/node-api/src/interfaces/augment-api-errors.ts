@@ -303,9 +303,17 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       InvalidIdentityLoc: AugmentedError<ApiType>;
       /**
-       * Submitter must be either LOC owner, either LOC requester (only when requester is a Polkadot account)
+       * Submitter is not consistent with caller
        **/
       InvalidSubmitter: AugmentedError<ApiType>;
+      /**
+       * Target Item (Metadata or File) is already acknowledged
+       **/
+      ItemAlreadyAcknowledged: AugmentedError<ApiType>;
+      /**
+       * Target Item (Metadata or File) could not be found in LOC
+       **/
+      ItemNotFound: AugmentedError<ApiType>;
       /**
        * Occurs when trying to link to a non-existent LOC
        **/

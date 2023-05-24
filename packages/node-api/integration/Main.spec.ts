@@ -1,7 +1,19 @@
 import { transferTokens, failedTransfer } from "./Balances.js";
-import { addCollectionItemTest, closeCollectionLocTest, createCollectionLocLimitedInSizeTest } from "./CollectionLoc.js";
+import {
+    addCollectionItemTest,
+    closeCollectionLocTest,
+    createCollectionLocLimitedInSizeTest
+} from "./CollectionLoc.js";
 import { addGuardian } from "./LoAuthorityList.js";
-import { addFileToTransactionLocTest, addMetadataToTransactionLocTest, createTransactionLocTest } from "./TransactionLoc.js";
+import {
+    createTransactionLocTest,
+    addMetadataToTransactionLocTestAsLLO,
+    addMetadataToTransactionLocTestAsRequester,
+    acknowledgeMetadata,
+    addFileToTransactionLocTestAsLLO,
+    addFileToTransactionLocTestAsRequester,
+    acknowledgeFile
+} from "./TransactionLoc.js";
 import { createVote } from "./Vote.js";
 import { verifiedIssuers } from "./VerifiedIssuers.js";
 import { fees } from "./Fees.js";
@@ -15,8 +27,14 @@ describe("Logion Node API", () => {
     it("fails transferring more logion tokens than available", failedTransfer);
 
     it("creates transaction LOCs", createTransactionLocTest);
-    it("adds metadata to transaction LOC", addMetadataToTransactionLocTest);
-    it("adds file to transaction LOC", addFileToTransactionLocTest);
+
+    it("adds metadata to transaction LOC (LLO)", addMetadataToTransactionLocTestAsLLO);
+    it("adds metadata to transaction LOC (Requester)", addMetadataToTransactionLocTestAsRequester);
+    it("acknowledges metadata (LLO)", acknowledgeMetadata)
+
+    it("adds file to transaction LOC (LLO)", addFileToTransactionLocTestAsLLO);
+    it("adds file to transaction LOC (Requester)", addFileToTransactionLocTestAsRequester);
+    it("acknowledges file (LLO)", acknowledgeFile)
 
     it("creates collection LOC limited in size", createCollectionLocLimitedInSizeTest);
     it("closes collection LOC", closeCollectionLocTest);

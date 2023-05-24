@@ -7,7 +7,7 @@ export async function verifiedIssuers() {
     const issuerIdentityLocId = new UUID();
     const collectionLocId = new UUID();
     await signAndSendBatch(alice, [
-        api.polkadot.tx.balances.transfer(ISSUER, Currency.toCanonicalAmount(Currency.nLgnt(1n))),
+        api.polkadot.tx.balances.transfer(ISSUER, Currency.toCanonicalAmount(Currency.nLgnt(200n))),
         api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(issuerIdentityLocId.toDecimalString(), ISSUER),
         api.polkadot.tx.logionLoc.close(issuerIdentityLocId.toDecimalString()),
         api.polkadot.tx.logionLoc.nominateIssuer(ISSUER, issuerIdentityLocId.toDecimalString()),

@@ -3,14 +3,14 @@ import { Call, FunctionMetadataLatest } from "@polkadot/types/interfaces";
 import {
     FrameSystemAccountInfo,
     PalletLoAuthorityListLegalOfficerData,
-    PalletLogionLocFile,
+    PalletLogionLocFileParams,
     PalletLogionLocLegalOfficerCase,
     PalletLogionLocCollectionItem,
     PalletLogionLocTokensRecordFile,
     PalletLogionLocTokensRecord,
     PalletLogionLocOtherAccountId,
     PalletLogionLocSupportedAccountId,
-    PalletLogionLocMetadataItem,
+    PalletLogionLocMetadataItemParams,
     PalletLogionLocSponsorship,
 } from '@polkadot/types/lookup';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
@@ -20,7 +20,7 @@ import { CallBase, AnyTuple, AnyJson } from "@polkadot/types-codec/types";
 import { DispatchError } from '@polkadot/types/interfaces/system/types';
 import {
     TypesAccountData,
-    File,
+    FileParams,
     LegalOfficerCase,
     LocType,
     TypesJsonObject,
@@ -36,9 +36,11 @@ import {
     ValidAccountId,
     AnyAccountId,
     OtherAccountId,
-    MetadataItem,
+    MetadataItemParams,
     Sponsorship,
-    AccountId, AccountType, HostData
+    AccountId,
+    AccountType,
+    HostData,
 } from "./Types.js";
 import { UUID } from "./UUID.js";
 import { stringToHex, stringToU8a, u8aToHex } from "@polkadot/util";
@@ -53,8 +55,8 @@ export class Adapters {
 
     private readonly api: ApiPromise;
 
-    toPalletLogionLocFile(file: File): PalletLogionLocFile {
-        return this.api.createType("PalletLogionLocFile", {
+    toPalletLogionLocFile(file: FileParams): PalletLogionLocFileParams {
+        return this.api.createType("PalletLogionLocFileParams", {
             hash_: file.hash,
             nature: file.nature,
             submitter: this.toPalletLogionLocSupportedAccountId(file.submitter),
@@ -93,12 +95,14 @@ export class Adapters {
                 name: rawItem.name.toUtf8(),
                 value: rawItem.value.toUtf8(),
                 submitter: this.fromPalletLogionLocSupportedAccountId(rawItem.submitter),
+                acknowledged: rawItem.acknowledged.isTrue,
             })),
             files: rawLoc.files.toArray().map(rawFile => ({
                 hash: rawFile.hash_.toHex(),
                 nature: rawFile.nature.toUtf8(),
                 submitter: this.fromPalletLogionLocSupportedAccountId(rawFile.submitter),
                 size: rawFile.size_.toBigInt(),
+                acknowledged: rawFile.acknowledged.isTrue,
             })),
             links: rawLoc.links.toArray().map(rawLink => ({
                 id: UUID.fromDecimalStringOrThrow(rawLink.id.toString()),
@@ -293,15 +297,6 @@ export class Adapters {
         return UUID.fromDecimalStringOrThrow(locId.toString());
     }
 
-    toLocFile(file: File): PalletLogionLocFile {
-        return this.api.createType("PalletLogionLocFile", {
-            hash_: file.hash,
-            nature: file.nature,
-            submitter: this.toPalletLogionLocSupportedAccountId(file.submitter),
-            size_: file.size,
-        });
-    }
-
     toPalletLogionLocSupportedAccountId(accountId: ValidAccountId): PalletLogionLocSupportedAccountId {
         if(accountId.type === "Polkadot") {
             return this.api.createType("PalletLogionLocSupportedAccountId", { Polkadot: accountId.address });
@@ -326,8 +321,8 @@ export class Adapters {
         }
     }
 
-    toPalletLogionLocMetadataItem(item: MetadataItem): PalletLogionLocMetadataItem {
-        return this.api.createType("PalletLogionLocMetadataItem", {
+    toPalletLogionLocMetadataItem(item: MetadataItemParams): PalletLogionLocMetadataItemParams {
+        return this.api.createType("PalletLogionLocMetadataItemParams", {
             name: stringToHex(item.name),
             value: stringToHex(item.value),
             submitter: this.toPalletLogionLocSupportedAccountId(item.submitter),

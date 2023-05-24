@@ -9,17 +9,25 @@ export interface TypesAccountData {
     total: string,
 }
 
-export interface MetadataItem {
+export interface MetadataItemParams {
     name: string;
     value: string;
     submitter: ValidAccountId;
 }
 
-export interface File {
+export interface MetadataItem extends MetadataItemParams {
+    acknowledged: boolean;
+}
+
+export interface FileParams {
     hash: string;
     nature: string;
     submitter: ValidAccountId;
     size: bigint;
+}
+
+export interface File extends FileParams {
+    acknowledged: boolean;
 }
 
 export interface Link {
