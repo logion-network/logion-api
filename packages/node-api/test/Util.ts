@@ -1,5 +1,6 @@
 import type { Codec } from '@polkadot/types-codec/types';
 import { AnyAccountId, ValidAccountId } from '../src/index.js';
+import { bool } from "@polkadot/types-codec";
 
 export function createdPolkadotType(content: object): any {
     return jasmine.arrayContaining([jasmine.objectContaining(content)]);
@@ -19,3 +20,10 @@ export function mockValidAccountId(address: string): ValidAccountId {
 }
 
 export const POLKADOT_API_CREATE_TYPE = (_type: string, ...args: any[]) => args;
+
+export function mockBool(value: boolean): bool {
+    return ({
+        isTrue: value,
+        isFalse: !value,
+    }) as bool;
+}

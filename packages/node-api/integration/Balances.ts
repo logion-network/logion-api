@@ -7,7 +7,7 @@ export async function transferTokens() {
 
     const transferExtrinsic = api.polkadot.tx.balances.transfer(
         REQUESTER,
-        Currency.toCanonicalAmount(Currency.nLgnt(1n))
+        Currency.toCanonicalAmount(Currency.nLgnt(20000n))
     );
     const result = await signAndSend(alice, transferExtrinsic);
 
@@ -20,8 +20,8 @@ export async function transferTokens() {
 
     const balances = await api.queries.getCoinBalances(REQUESTER);
     const logionTokenBalance = balances.find(balance => balance.coin.id === 'lgnt');
-    expect(logionTokenBalance?.available.coefficient.toNumber()).toBe(1);
-    expect(logionTokenBalance?.available.prefix.tenExponent).toBe(0);
+    expect(logionTokenBalance?.available.coefficient.toNumber()).toBe(20);
+    expect(logionTokenBalance?.available.prefix.tenExponent).toBe(3);
 }
 
 export async function failedTransfer() {

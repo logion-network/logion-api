@@ -1,6 +1,6 @@
 import { ApiPromise } from "@polkadot/api";
 import { CollectionItem, LegalOfficerCase, LogionNodeApiClass, Numbers, UUID } from "../src/index.js";
-import { POLKADOT_API_CREATE_TYPE, mockValidAccountId } from "./Util.js";
+import { POLKADOT_API_CREATE_TYPE, mockValidAccountId, mockBool } from "./Util.js";
 import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
 
 describe("Queries", () => {
@@ -170,7 +170,8 @@ function mockPolkadotApiForLogionLoc() {
                                     asPolkadot: {
                                         toString: () => item.submitter.address
                                     }
-                                }
+                                },
+                                acknowledged: mockBool(item.acknowledged),
                             }))
                         },
                         files: {
@@ -190,6 +191,7 @@ function mockPolkadotApiForLogionLoc() {
                                 size_: {
                                     toBigInt: () => file.size
                                 },
+                                acknowledged: mockBool(file.acknowledged),
                             }))
                         },
                         links: {
@@ -202,10 +204,7 @@ function mockPolkadotApiForLogionLoc() {
                                 }
                             }))
                         },
-                        closed: {
-                            isTrue: DEFAULT_LOC.closed,
-                            isFalse: !DEFAULT_LOC.closed,
-                        },
+                        closed: mockBool(DEFAULT_LOC.closed),
                         locType: {
                             isTransaction: DEFAULT_LOC.locType === 'Transaction',
                             isIdentity: DEFAULT_LOC.locType === 'Identity',
@@ -223,10 +222,7 @@ function mockPolkadotApiForLogionLoc() {
                         collectionMaxSize: {
                             isSome: false
                         },
-                        collectionCanUpload: {
-                            isTrue: DEFAULT_LOC.collectionCanUpload,
-                            isFalse: !DEFAULT_LOC.collectionCanUpload,
-                        },
+                        collectionCanUpload: mockBool(DEFAULT_LOC.collectionCanUpload),
                         seal: {
                             isSome: DEFAULT_LOC.seal !== undefined,
                             unwrap: () => ({
@@ -249,10 +245,7 @@ function mockPolkadotApiForLogionLoc() {
                             hash_: { toHex: () => item.hash },
                             size_: { toBigInt: () => item.size },
                         })),
-                        restrictedDelivery: {
-                            isTrue: DEFAULT_ITEM.restrictedDelivery,
-                            isFalse: !DEFAULT_ITEM.restrictedDelivery,
-                        },
+                        restrictedDelivery: mockBool(DEFAULT_ITEM.restrictedDelivery),
                         termsAndConditions: DEFAULT_ITEM.termsAndConditions.map(tc => ({
                             tcType: { toUtf8: () => tc.tcType },
                             tcLocId: { toString: () => tc.tcLocId.toDecimalString() },
@@ -274,6 +267,7 @@ export const DEFAULT_LOC: LegalOfficerCase = {
             name: "meta_name",
             value: "meta_value",
             submitter: mockValidAccountId("owner"),
+            acknowledged: true,
         }
     ],
     files: [
@@ -282,6 +276,7 @@ export const DEFAULT_LOC: LegalOfficerCase = {
             nature: "file-nature",
             submitter: mockValidAccountId("owner"),
             size: BigInt(128000),
+            acknowledged: true,
         }
     ],
     links: [

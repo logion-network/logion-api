@@ -37,7 +37,7 @@ export class FeesEstimator {
         size: bigint,
         origin: string,
     }): Promise<Fees> {
-        const submittable = this.api.tx.logionLoc.addFile(Adapters.toLocId(args.locId), this.adapters.toLocFile(args));
+        const submittable = this.api.tx.logionLoc.addFile(Adapters.toLocId(args.locId), this.adapters.toPalletLogionLocFile(args));
         const inclusionFee = await this.estimateInclusionFee(args.origin, submittable);
         const storageFee = await this.estimateStorageFee({
             numOfEntries: 1n,

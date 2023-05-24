@@ -48,10 +48,16 @@ export default {
             seal: "Option<Hash>",
             sponsorship_id: "Option<SponsorshipId>",
         },
-        MetadataItem: {
+        MetadataItemParams: {
             name: "Vec<u8>",
             value: "Vec<u8>",
             submitter: "SupportedAccountId"
+        },
+        MetadataItem: {
+            name: "Vec<u8>",
+            value: "Vec<u8>",
+            submitter: "SupportedAccountId",
+            acknowledged: "bool"
         },
         LocType: {
             _enum: [
@@ -64,10 +70,16 @@ export default {
             id: "LocId",
             nature: "Vec<u8>",
         },
-        File: {
+        FileParams: {
             hash: "Hash",
             nature: "Vec<u8>",
             submitter: "SupportedAccountId"
+        },
+        File: {
+            hash: "Hash",
+            nature: "Vec<u8>",
+            submitter: "SupportedAccountId",
+            acknowledged: "bool"
         },
         LocVoidInfo: {
             replacer: "Option<LocId>"

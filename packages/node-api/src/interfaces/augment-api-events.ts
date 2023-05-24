@@ -201,6 +201,10 @@ declare module '@polkadot/api-base/types/events' {
        **/
       ItemAdded: AugmentedEvent<ApiType, [u128, H256]>;
       /**
+       * Issued when Legal Fee is withdrawn. [payerAccountId, beneficiaryAccountId, legalFee]
+       **/
+      LegalFeeWithdrawn: AugmentedEvent<ApiType, [AccountId32, AccountId32, u128]>;
+      /**
        * Issued when LOC is closed. [locId]
        **/
       LocClosed: AugmentedEvent<ApiType, [u128]>;

@@ -30,7 +30,7 @@ export async function adapts() {
     const hash = "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2";
     const nature = "file-nature";
     const size = BigInt(128000);
-    const palletFile = api.adapters.toLocFile({
+    const palletFile = api.adapters.toPalletLogionLocFile({
         hash,
         nature,
         size,
