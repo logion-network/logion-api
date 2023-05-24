@@ -85,6 +85,7 @@ export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType
                 nature: "Some nature",
                 submitter: requester,
                 size: 128n,
+                acknowledged: status === "CLOSED",
             }
         ],
         links: [],

@@ -36,6 +36,7 @@ import { TermsAndConditionsElement, newTermsAndConditions, LogionClassification,
 import { CollectionDelivery, ItemDeliveries } from './Deliveries.js';
 import { Fees } from './Fees.js';
 import { DateTime } from 'luxon';
+import { FileParams, MetadataItemParams } from "@logion/node-api/dist/types/Types";
 
 export interface AddedOn {
     addedOn: string;
@@ -1250,7 +1251,10 @@ export class AuthenticatedLocClient extends LocClient {
         setMockFileStatus(parameters.locId.toString(), parameters.file.hash, "PUBLISHED");
 
         publishedFilesMock[parameters.locId.toString()] ||= [];
-        publishedFilesMock[parameters.locId.toString()].push(parameters.file);
+        publishedFilesMock[parameters.locId.toString()].push({
+            ...parameters.file,
+            acknowledged: false
+        });
 
         if(parameters.callback) {
             parameters.callback({
@@ -1337,7 +1341,10 @@ export class AuthenticatedLocClient extends LocClient {
         setMockMetadataStatus(parameters.locId.toString(), parameters.metadata.name, "PUBLISHED");
 
         publishedMetadataMock[parameters.locId.toString()] ||= [];
-        publishedMetadataMock[parameters.locId.toString()].push(parameters.metadata);
+        publishedMetadataMock[parameters.locId.toString()].push({
+            ...parameters.metadata,
+            acknowledged: false
+        });
 
         if(parameters.callback) {
             parameters.callback({
@@ -1521,7 +1528,7 @@ export type ReviewResult = "ACCEPT" | "REJECT";
 
 export interface PublishFileParams extends BlockchainSubmissionParams {
     locId: UUID;
-    file: File;
+    file: FileParams;
 }
 
 export interface AckFileParams extends BlockchainSubmissionParams {
@@ -1536,7 +1543,7 @@ export interface ReviewMetadataParams {
 
 export interface PublishMetadataParams extends BlockchainSubmissionParams {
     locId: UUID;
-    metadata: MetadataItem;
+    metadata: MetadataItemParams;
 }
 
 export interface AckMetadataParams extends BlockchainSubmissionParams {
