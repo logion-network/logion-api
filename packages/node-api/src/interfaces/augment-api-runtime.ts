@@ -5,6 +5,7 @@
 // this is required to allow for ambient/previous definitions
 import '@polkadot/api-base/types/calls';
 
+import type { LocType } from '@logion/node-api/dist/interfaces/default';
 import type { ApiTypes, AugmentedCall, DecoratedCallBase } from '@polkadot/api-base/types';
 import type { Bytes, Null, Option, Vec, u32 } from '@polkadot/types-codec';
 import type { AnyNumber, ITuple } from '@polkadot/types-codec/types';
@@ -101,6 +102,10 @@ declare module '@polkadot/api-base/types/calls' {
        * Query expected fees for submitting given files
        **/
       queryFileStorageFee: AugmentedCall<ApiType, (numOfEntries: u32 | AnyNumber | Uint8Array, totSize: u32 | AnyNumber | Uint8Array) => Observable<Balance>>;
+      /**
+       * 
+       **/
+      queryLegalFee: AugmentedCall<ApiType, (locType: LocType | 'Transaction' | 'Identity' | 'Collection' | number | Uint8Array) => Observable<Balance>>;
       /**
        * Generic call
        **/

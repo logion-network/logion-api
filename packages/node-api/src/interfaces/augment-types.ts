@@ -5,7 +5,7 @@
 // this is required to allow for ambient/previous definitions
 import '@polkadot/types/types/registry';
 
-import type { Ballot, BallotStatus, CollectionItem, CollectionItemFile, CollectionItemId, CollectionItemToken, CollectionSize, File, HostData, LegalOfficerCaseOf, LegalOfficerCaseSummary, LegalOfficerData, LoAuthorityListStorageVersion, LocId, LocLink, LocType, LocVoidInfo, LogionVote, MetadataItem, OtherAccountId, Requester, Sponsorship, SponsorshipId, StorageVersion, SupportedAccountId, TermsAndConditionsElement, TokensRecord, TokensRecordFile, UnboundedTokensRecordFile, UnboundedTokensRecordFileOf, VerifiedIssuer, VoteApproved, VoteClosed, VoteId } from '@logion/node-api/dist/interfaces/default';
+import type { Ballot, BallotStatus, CollectionItem, CollectionItemFile, CollectionItemId, CollectionItemToken, CollectionSize, File, FileParams, HostData, LegalOfficerCaseOf, LegalOfficerCaseSummary, LegalOfficerData, LoAuthorityListStorageVersion, LocId, LocLink, LocType, LocVoidInfo, LogionVote, MetadataItem, MetadataItemParams, OtherAccountId, Requester, Sponsorship, SponsorshipId, StorageVersion, SupportedAccountId, TermsAndConditionsElement, TokensRecord, TokensRecordFile, UnboundedTokensRecordFile, UnboundedTokensRecordFileOf, VerifiedIssuer, VoteApproved, VoteClosed, VoteId } from '@logion/node-api/dist/interfaces/default';
 import type { AccountId, AccountId20, AccountId32, AccountId33, AccountIdOf, AccountIndex, Address, AssetId, Balance, BalanceOf, Block, BlockNumber, BlockNumberFor, BlockNumberOf, Call, CallHash, CallHashOf, ChangesTrieConfiguration, ChangesTrieSignal, CodecHash, Consensus, ConsensusEngineId, CrateVersion, Digest, DigestItem, EncodedJustification, ExtrinsicsWeight, Fixed128, Fixed64, FixedI128, FixedI64, FixedU128, FixedU64, H1024, H128, H160, H2048, H256, H32, H512, H64, Hash, Header, HeaderPartial, I32F32, Index, IndicesLookupSource, Justification, Justifications, KeyTypeId, KeyValue, LockIdentifier, LookupSource, LookupTarget, ModuleId, Moment, MultiAddress, MultiSigner, OpaqueCall, Origin, OriginCaller, PalletId, PalletVersion, PalletsOrigin, Pays, PerU16, Perbill, Percent, Permill, Perquintill, Phantom, PhantomData, PreRuntime, Releases, RuntimeCall, RuntimeDbWeight, RuntimeEvent, Seal, SealV0, SignedBlock, SignedBlockWithJustification, SignedBlockWithJustifications, Slot, SlotDuration, StorageData, StorageInfo, StorageProof, TransactionInfo, TransactionLongevity, TransactionPriority, TransactionStorageProof, TransactionTag, U32F32, ValidatorId, ValidatorIdOf, Weight, WeightMultiplier, WeightV0, WeightV1, WeightV2 } from '@logion/node-api/dist/interfaces/runtime';
 import type { BeefyKey, FullIdentification, IdentificationTuple, Keys, MembershipProof, SessionIndex, SessionKeys1, SessionKeys10, SessionKeys10B, SessionKeys2, SessionKeys3, SessionKeys4, SessionKeys5, SessionKeys6, SessionKeys6B, SessionKeys7, SessionKeys7B, SessionKeys8, SessionKeys8B, SessionKeys9, SessionKeys9B, ValidatorCount } from '@logion/node-api/dist/interfaces/session';
 import type { Data, StorageKey } from '@polkadot/types';
@@ -484,6 +484,7 @@ declare module '@polkadot/types/types/registry' {
     F64: F64;
     FeeDetails: FeeDetails;
     File: File;
+    FileParams: FileParams;
     Fixed128: Fixed128;
     Fixed64: Fixed64;
     FixedI128: FixedI128;
@@ -662,6 +663,7 @@ declare module '@polkadot/types/types/registry' {
     MessagingStateSnapshotEgressEntry: MessagingStateSnapshotEgressEntry;
     MetadataAll: MetadataAll;
     MetadataItem: MetadataItem;
+    MetadataItemParams: MetadataItemParams;
     MetadataLatest: MetadataLatest;
     MetadataV10: MetadataV10;
     MetadataV11: MetadataV11;

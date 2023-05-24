@@ -80,6 +80,14 @@ export interface File extends Struct {
   readonly hash: Hash;
   readonly nature: Bytes;
   readonly submitter: SupportedAccountId;
+  readonly acknowledged: bool;
+}
+
+/** @name FileParams */
+export interface FileParams extends Struct {
+  readonly hash: Hash;
+  readonly nature: Bytes;
+  readonly submitter: SupportedAccountId;
 }
 
 /** @name HostData */
@@ -159,6 +167,14 @@ export interface LogionVote extends Struct {
 
 /** @name MetadataItem */
 export interface MetadataItem extends Struct {
+  readonly name: Bytes;
+  readonly value: Bytes;
+  readonly submitter: SupportedAccountId;
+  readonly acknowledged: bool;
+}
+
+/** @name MetadataItemParams */
+export interface MetadataItemParams extends Struct {
   readonly name: Bytes;
   readonly value: Bytes;
   readonly submitter: SupportedAccountId;

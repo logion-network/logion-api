@@ -2,20 +2,22 @@ import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types.js";
 import { UUID } from "./UUID.js";
 import { Adapters } from "./Adapters.js";
-import { ValidAccountId } from "./Types.js";
+import { ValidAccountId, LocType } from "./Types.js";
 
 export class Fees {
 
-    constructor(inclusionFee: bigint, storageFee?: bigint) {
+    constructor(inclusionFee: bigint, storageFee?: bigint, legalFee?: bigint) {
         this.inclusionFee = inclusionFee;
         this.storageFee = storageFee;
+        this.legalFee = legalFee;
     }
 
     readonly inclusionFee: bigint;
     readonly storageFee?: bigint;
+    readonly legalFee?: bigint;
 
     get totalFee(): bigint {
-        return this.inclusionFee + (this.storageFee || 0n);
+        return this.inclusionFee + (this.storageFee || 0n) + (this.legalFee || 0n);
     }
 }
 
@@ -58,11 +60,28 @@ export class FeesEstimator {
         return fee.toBigInt();
     }
 
-    async estimateWithoutStorage(args: {
+    async estimateLegalFee(params: { locType: LocType }): Promise<bigint> {
+        const { locType } = params;
+        const fee = await this.api.call.feesApi.queryLegalFee(locType);
+        return fee.toBigInt();
+    }
+
+    async estimateWithoutStorage(params: {
         origin: string,
         submittable: SubmittableExtrinsic,
     }): Promise<Fees> {
-        const inclusionFee = await this.estimateInclusionFee(args.origin, args.submittable);
+        const inclusionFee = await this.estimateInclusionFee(params.origin, params.submittable);
         return new Fees(inclusionFee);
+    }
+
+    async estimateCreateLoc(params: {
+        origin: string,
+        submittable: SubmittableExtrinsic,
+        locType: LocType,
+    }): Promise<Fees> {
+        const { locType } = params;
+        const inclusionFee = await this.estimateInclusionFee(params.origin, params.submittable);
+        const legalFee = await this.estimateLegalFee({ locType });
+        return new Fees(inclusionFee, undefined, legalFee);
     }
 }

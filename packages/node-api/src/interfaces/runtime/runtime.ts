@@ -15,7 +15,15 @@ export const runtime: DefinitionsCall = {
                         type: "u32",
                     }],
                     type: "Balance",
-                }
+                },
+                query_legal_fee: {
+                    description: "",
+                    params: [{
+                        name: "locType",
+                        type: "LocType",
+                    }],
+                    type: "Balance",
+                },
             },
             version: 1
         }

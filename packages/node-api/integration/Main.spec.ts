@@ -16,7 +16,7 @@ import {
 } from "./TransactionLoc.js";
 import { createVote } from "./Vote.js";
 import { verifiedIssuers } from "./VerifiedIssuers.js";
-import { fees } from "./Fees.js";
+import { storageFees, legalFees } from "./Fees.js";
 import { adapts } from "./Adapters.js";
 
 describe("Logion Node API", () => {
@@ -46,6 +46,8 @@ describe("Logion Node API", () => {
 
     it("supports verified issuers", verifiedIssuers);
 
-    it("queries file storage fees", fees);
+    it("queries file storage fees", storageFees);
+    it("queries file storage fees", legalFees);
+
     it("adapts", adapts);
 });
