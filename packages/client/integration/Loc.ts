@@ -150,8 +150,6 @@ export async function requestTransactionLoc(state: State) {
     }) as OpenLoc;
     expect(aliceOpenLoc.data().metadata[0].status).toBe("ACKNOWLEDGED");
 
-    console.log(aliceOpenLoc.data());
-
     // Close LOC
     const closedLoc = await aliceOpenLoc.legalOfficer.close({ signer });
     expect(closedLoc).toBeInstanceOf(ClosedLoc);
