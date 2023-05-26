@@ -202,6 +202,12 @@ export default {
             sponsored_account: "SupportedAccountId",
             legal_officer: "AccountId",
             loc_id: "Option<LocId>",
+        },
+        Beneficiary: {
+            _enum: {
+                Treasury: null,
+                LegalOfficer: "AccountId",
+            }
         }
     }
 };
