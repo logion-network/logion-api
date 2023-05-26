@@ -61,6 +61,7 @@ describe("Balance", () => {
             id: "t1",
             to: ALICE.address,
             transferDirection: "Sent",
+            type: "EXTRINSIC",
         }
         const t2: Transaction = {
             ...transactionBase(300000),
@@ -68,6 +69,7 @@ describe("Balance", () => {
             from: BOB.address,
             to: REQUESTER_ADDRESS.address,
             transferDirection: "Received",
+            type: "EXTRINSIC",
         }
         const transactions: Transaction[] = [ t1, t2 ]
 
