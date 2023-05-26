@@ -26,8 +26,6 @@ export async function requestTransactionLoc(state: State) {
     const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
 
-    const legalOfficer = new LegalOfficerWorker(alice, state);
-
     // Create DRAFT LOC with metadata
     let draftRequest = await locsState.requestTransactionLoc({
         legalOfficer: client.getLegalOfficer(alice.address),
@@ -151,6 +149,8 @@ export async function requestTransactionLoc(state: State) {
         signer,
     }) as OpenLoc;
     expect(aliceOpenLoc.data().metadata[0].status).toBe("ACKNOWLEDGED");
+
+    console.log(aliceOpenLoc.data());
 
     // Close LOC
     const closedLoc = await aliceOpenLoc.legalOfficer.close({ signer });
@@ -358,6 +358,8 @@ export async function identityLoc(state: State) {
     const legalOfficer = new LegalOfficerWorker(alice, state);
     const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
+
+    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, newAccount.address);
 
     const pendingRequest = await locsState.requestIdentityLoc({
         legalOfficer: client.getLegalOfficer(alice.address),

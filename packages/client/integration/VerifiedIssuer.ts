@@ -1,5 +1,5 @@
 import { ClosedLoc, EditableRequest, HashOrContent, LocRequestState } from "../src/index.js";
-import { LegalOfficerWorker, State, ISSUER_ADDRESS } from "./Utils.js";
+import { LegalOfficerWorker, State, ISSUER_ADDRESS, initRequesterBalance, TEST_LOGION_CLIENT_CONFIG } from "./Utils.js";
 
 export async function verifiedIssuer(state: State) {
     const { alice, issuerAccount, newAccount } = state;
@@ -7,6 +7,7 @@ export async function verifiedIssuer(state: State) {
 
     const issuerClient = state.client.withCurrentAddress(issuerAccount);
 
+    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, ISSUER_ADDRESS);
     let issuerLocsState = await issuerClient.locsState();
     const pendingRequest = await issuerLocsState.requestIdentityLoc({
         legalOfficer: issuerClient.getLegalOfficer(alice.address),
