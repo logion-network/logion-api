@@ -12,6 +12,8 @@ interface FetchTransactionsSpecification {
 
 export type TransferDirection = "Sent" | "Received" | "None"
 
+export type TransactionType = "EXTRINSIC" | "VAULT_OUT" | "LEGAL_FEE" | "STORAGE_FEE" | "OTHER_FEES";
+
 export interface Transaction {
     id: string,
     from: string,
@@ -24,10 +26,10 @@ export interface Transaction {
     reserved: string,
     total: string,
     createdOn: string,
-    type: string,
+    type: TransactionType,
     transferDirection: TransferDirection,
     successful: boolean,
-    error?: TransactionError
+    error?: TransactionError,
 }
 
 export interface TransactionError {
@@ -87,7 +89,6 @@ export class TransactionClient {
 
         return {
             ...transaction,
-            type: `${transaction.pallet}.${transaction.method}`,
             transferDirection
         }
     }
