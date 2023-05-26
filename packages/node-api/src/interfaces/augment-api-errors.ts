@@ -239,6 +239,10 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       CannotAddRecord: AugmentedError<ApiType>;
       /**
+       * There is still at least one Unacknowledged Item (Metadata or File)
+       **/
+      CannotCloseUnacknowledged: AugmentedError<ApiType>;
+      /**
        * The sponsorship cannot be used for creating the new LOC
        **/
       CannotLinkToSponsorship: AugmentedError<ApiType>;

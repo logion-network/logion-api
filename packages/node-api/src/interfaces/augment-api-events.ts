@@ -10,7 +10,7 @@ import type { Bytes, Null, Option, Result, U8aFixed, Vec, bool, u128, u32, u64, 
 import type { ITuple } from '@polkadot/types-codec/types';
 import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, H256 } from '@polkadot/types/interfaces/runtime';
-import type { FrameSupportDispatchDispatchInfo, FrameSupportTokensMiscBalanceStatus, PalletLogionLocSupportedAccountId, PalletLogionVoteBallot, PalletMultisigTimepoint, SpConsensusGrandpaAppPublic, SpRuntimeDispatchError } from '@polkadot/types/lookup';
+import type { FrameSupportDispatchDispatchInfo, FrameSupportTokensMiscBalanceStatus, LogionSharedBeneficiary, PalletLogionLocSupportedAccountId, PalletLogionVoteBallot, PalletMultisigTimepoint, SpConsensusGrandpaAppPublic, SpRuntimeDispatchError } from '@polkadot/types/lookup';
 
 export type __AugmentedEvent<ApiType extends ApiTypes> = AugmentedEvent<ApiType>;
 
@@ -201,9 +201,9 @@ declare module '@polkadot/api-base/types/events' {
        **/
       ItemAdded: AugmentedEvent<ApiType, [u128, H256]>;
       /**
-       * Issued when Legal Fee is withdrawn. [payerAccountId, beneficiaryAccountId, legalFee]
+       * Issued when Legal Fee is withdrawn. [payerAccountId, beneficiary, legalFee]
        **/
-      LegalFeeWithdrawn: AugmentedEvent<ApiType, [AccountId32, AccountId32, u128]>;
+      LegalFeeWithdrawn: AugmentedEvent<ApiType, [AccountId32, LogionSharedBeneficiary, u128]>;
       /**
        * Issued when LOC is closed. [locId]
        **/

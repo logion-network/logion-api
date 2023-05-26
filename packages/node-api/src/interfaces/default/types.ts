@@ -46,6 +46,14 @@ export interface BallotStatus extends Enum {
   readonly type: 'NotVoted' | 'VotedYes' | 'VotedNo';
 }
 
+/** @name Beneficiary */
+export interface Beneficiary extends Enum {
+  readonly isTreasury: boolean;
+  readonly isLegalOfficer: boolean;
+  readonly asLegalOfficer: AccountId;
+  readonly type: 'Treasury' | 'LegalOfficer';
+}
+
 /** @name CollectionItem */
 export interface CollectionItem extends Struct {
   readonly description: Bytes;
