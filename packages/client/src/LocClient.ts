@@ -60,6 +60,7 @@ export interface FileInfo extends Partial<AddedOn> {
     fees?: Fees;
     storageFeePaidBy?: string;
     status: ItemStatus;
+    rejectReason?: string;
     reviewedOn?: string;
 }
 
