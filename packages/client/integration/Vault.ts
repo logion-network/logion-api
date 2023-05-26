@@ -39,7 +39,7 @@ export async function providesVault(state: State) {
     vaultState = await vaultState.refresh();
     balanceState = await balanceState.refresh();
 
-    checkCoinBalance(balanceState.balances[0], "3.01k");
+    checkCoinBalance(balanceState.balances[0], "22.67k");
     checkCoinBalance(vaultState.balances[0], "4.00");
 }
 

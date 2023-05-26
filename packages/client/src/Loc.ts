@@ -35,7 +35,6 @@ import {
     FileInfo,
     ReviewFileParams,
     BlockchainSubmissionParams,
-    mockPublishedItems,
     AckFileParams,
     ReviewMetadataParams,
     AckMetadataParams,
@@ -362,7 +361,7 @@ export class LocsState extends State {
             };
             const id = new UUID(locRequest.id);
             const legalOfficerCases = await locBatch.getLocs();
-            const legalOfficerCase = mockPublishedItems(id, legalOfficerCases[id.toDecimalString()]);
+            const legalOfficerCase = legalOfficerCases[id.toDecimalString()];
             const locIssuers = await client.getLocIssuers(locRequest, locBatch);
             if((locRequest.status === "OPEN" || locRequest.status === "CLOSED") && !legalOfficerCase) {
                 throw new Error("LOC expected");

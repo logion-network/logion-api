@@ -116,7 +116,7 @@ export async function setupInitialState(): Promise<State> {
 }
 
 export async function initRequesterBalance(config: LogionClientConfig, signer: Signer, requester: string): Promise<void> {
-    await transferTokens(config, signer, ALICE.address, requester, Currency.toCanonicalAmount(new Numbers.PrefixedNumber("10", Numbers.NONE)));
+    await transferTokens(config, signer, ALICE.address, requester, Currency.toCanonicalAmount(new Numbers.PrefixedNumber("10000", Numbers.NONE)));
 }
 
 async function transferTokens(config: LogionClientConfig, signer: Signer, source: string, destination: string, amount: bigint) {
