@@ -1,15 +1,15 @@
 import { UUID, MetadataItem, File } from "../src/index.js";
 import { ALICE, REQUESTER, setup, signAndSend } from "./Util.js";
-import { IKeyringPair, ISubmittableResult } from "@polkadot/types/types";
+import { IKeyringPair } from "@polkadot/types/types";
 
 export async function createTransactionLocTest() {
-    const { alice, api } = await setup();
+    const { requester, api } = await setup();
 
     const createLocExtrinsic = api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
         api.adapters.toLocId(TRANSACTION_LOC_ID),
-        REQUESTER,
+        ALICE,
     );
-    await signAndSend(alice, createLocExtrinsic);
+    await signAndSend(requester, createLocExtrinsic);
 
     const loc = await api.queries.getLegalOfficerCase(TRANSACTION_LOC_ID);
     expect(loc?.owner).toBe(ALICE);

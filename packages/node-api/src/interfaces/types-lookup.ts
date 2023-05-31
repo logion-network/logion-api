@@ -1408,7 +1408,7 @@ declare module '@polkadot/types/lookup' {
     readonly isCreatePolkadotIdentityLoc: boolean;
     readonly asCreatePolkadotIdentityLoc: {
       readonly locId: Compact<u128>;
-      readonly requesterAccountId: AccountId32;
+      readonly legalOfficer: AccountId32;
     } & Struct;
     readonly isCreateLogionIdentityLoc: boolean;
     readonly asCreateLogionIdentityLoc: {
@@ -1417,7 +1417,7 @@ declare module '@polkadot/types/lookup' {
     readonly isCreatePolkadotTransactionLoc: boolean;
     readonly asCreatePolkadotTransactionLoc: {
       readonly locId: Compact<u128>;
-      readonly requesterAccountId: AccountId32;
+      readonly legalOfficer: AccountId32;
     } & Struct;
     readonly isCreateLogionTransactionLoc: boolean;
     readonly asCreateLogionTransactionLoc: {
@@ -1427,7 +1427,7 @@ declare module '@polkadot/types/lookup' {
     readonly isCreateCollectionLoc: boolean;
     readonly asCreateCollectionLoc: {
       readonly locId: Compact<u128>;
-      readonly requesterAccountId: AccountId32;
+      readonly legalOfficer: AccountId32;
       readonly collectionLastBlockSubmission: Option<u32>;
       readonly collectionMaxSize: Option<u32>;
       readonly collectionCanUpload: bool;
