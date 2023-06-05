@@ -141,27 +141,25 @@ export class LegalOfficerWorker {
         this.state = state;
     }
 
-    async openAndClose(id: UUID): Promise<void> {
-        await this.openLoc(id);
-        await this.closeLoc(id);
+    async acceptLoc(id: UUID) {
+        const legalOfficerClient = this.state.client.withCurrentAddress(this.state.client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot"));
+        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
+        const loc = locsState.findById(id) as PendingRequest;
+        await loc.legalOfficer.accept();
     }
 
-    async openLoc(id: UUID) {
+    async acceptAndOpenLoc(id: UUID) {
         const legalOfficerClient = this.state.client.withCurrentAddress(this.state.client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot"));
-        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REQUESTED", "OPEN"] }});
+        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
         const loc = locsState.findById(id) as PendingRequest;
         await loc.legalOfficer.accept({ signer: this.state.signer });
     }
 
     async closeLoc(id: UUID) {
         const legalOfficerClient = this.state.client.withCurrentAddress(this.state.client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot"));
-        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REQUESTED", "OPEN"] }});
+        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
         const loc = locsState.findById(id) as OpenLoc;
         await loc.legalOfficer.close({ signer: this.state.signer });
-    }
-
-    async buildLegalOfficerAxios() {
-        return this.legalOfficer.buildAxiosToNode();
     }
 
     async nominateVerifiedIssuer(issuerAddress: string, identityLocId: UUID) {

@@ -31,7 +31,13 @@ import { newBackendError } from "./Error.js";
 import { HashOrContent } from "./Hash.js";
 import { MimeType } from "./Mime.js";
 import { validateToken, ItemTokenWithRestrictedType, TokenType } from "./Token.js";
-import { TermsAndConditionsElement, newTermsAndConditions, LogionClassification, SpecificLicense, CreativeCommons } from "./license/index.js";
+import {
+    TermsAndConditionsElement,
+    newTermsAndConditions,
+    LogionClassification,
+    SpecificLicense,
+    CreativeCommons
+} from "./license/index.js";
 import { CollectionDelivery, ItemDeliveries } from './Deliveries.js';
 import { Fees } from './Fees.js';
 
@@ -149,7 +155,7 @@ export interface IdenfyVerificationSession {
 
 export type IdenfySessionStatus = "APPROVED" | "DENIED" | "SUSPECTED" | "EXPIRED" | "PENDING";
 
-export type LocRequestStatus = "DRAFT" | "OPEN" | "REQUESTED" | "REJECTED" | "CLOSED";
+export type LocRequestStatus = "DRAFT" | "REVIEW_PENDING" | "REVIEW_REJECTED" | "REVIEW_ACCEPTED" | "OPEN" | "CLOSED";
 
 export interface FetchParameters {
     locId: UUID,
@@ -379,7 +385,7 @@ export class LocMultiClient {
         const defaultSpec: FetchLocRequestSpecification = {
             requesterAddress: this.currentAddress.address,
             locTypes: [ "Transaction", "Collection", "Identity" ],
-            statuses: [ "OPEN", "REQUESTED", "REJECTED", "CLOSED", "DRAFT" ]
+            statuses: [ "OPEN", "REVIEW_PENDING", "REVIEW_REJECTED", "CLOSED", "DRAFT" ]
         };
 
         const multiResponse = await httpClient.fetch(async axios => {
@@ -1219,39 +1225,42 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async acceptTransactionLoc(parameters: { locId: UUID, requesterAccount?: SupportedAccountId, requesterLoc?: UUID } & BlockchainSubmissionParams): Promise<void> {
-        let submittable: SubmittableExtrinsic;
-        if(parameters.requesterAccount) {
-            submittable = this.nodeApi.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
-                this.nodeApi.adapters.toLocId(parameters.locId),
-                parameters.requesterAccount.address,
+    async acceptTransactionLoc(parameters: { locId: UUID, requesterAccount?: SupportedAccountId, requesterLoc?: UUID } & Partial<BlockchainSubmissionParams>): Promise<void> {
+        const { locId, requesterAccount, requesterLoc, callback } = parameters;
+        if(requesterAccount) {
+            await this.acceptLoc({ locId })
+        } else if(requesterLoc) {
+            const signer = requireDefined(parameters.signer);
+            const submittable = this.nodeApi.polkadot.tx.logionLoc.createLogionTransactionLoc(
+                this.nodeApi.adapters.toLocId(locId),
+                this.nodeApi.adapters.toNonCompactLocId(requesterLoc),
             );
-        } else if(parameters.requesterLoc) {
-            submittable = this.nodeApi.polkadot.tx.logionLoc.createLogionTransactionLoc(
-                this.nodeApi.adapters.toLocId(parameters.locId),
-                this.nodeApi.adapters.toNonCompactLocId(parameters.requesterLoc),
-            );
+            await signer.signAndSend({
+                signerId: this.currentAddress.address,
+                submittable,
+                callback,
+            });
+            await this.acceptLoc({ locId })
         } else {
             throw new Error("No requester provided");
         }
-        await this.acceptLoc({
-            ...parameters,
-            submittable,
-        });
     }
 
-    private async acceptLoc(args: {
-        locId: UUID,
-        signer: Signer,
-        submittable: SubmittableExtrinsic,
-        callback?: SignCallback | undefined,
-    }): Promise<void> {
-        await args.signer.signAndSend({
+    async openTransactionLoc(parameters: { locId: UUID, legalOfficer: LegalOfficer } & BlockchainSubmissionParams ) {
+        const { locId, legalOfficer, signer, callback } = parameters
+        const submittable = this.nodeApi.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
+            this.nodeApi.adapters.toLocId(locId),
+            legalOfficer.address,
+        );
+        await signer.signAndSend({
             signerId: this.currentAddress.address,
-            submittable: args.submittable,
-            callback: args.callback,
+            submittable,
+            callback,
         });
+        await this.openLoc({ locId });
+    }
 
+    private async acceptLoc(args: { locId: UUID }) {
         const axios = this.backend();
         try {
             await axios.post(`/api/loc-request/${ args.locId.toString() }/accept`);
@@ -1260,49 +1269,85 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async acceptIdentityLoc(parameters: { locId: UUID, requesterAccount?: SupportedAccountId, sponsorshipId?: UUID } & BlockchainSubmissionParams): Promise<void> {
-        let submittable: SubmittableExtrinsic;
-        if(parameters.requesterAccount) {
-            if(parameters.requesterAccount.type === "Polkadot") {
-                submittable = this.nodeApi.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
-                    this.nodeApi.adapters.toLocId(parameters.locId),
-                    parameters.requesterAccount.address,
-                );
-            } else {
-                if(!parameters.sponsorshipId) {
-                    throw new Error("Other Identity LOCs can only be created with a sponsorship");
-                }
-    
-                const otherAccountId = this.nodeApi.queries.getValidAccountId(parameters.requesterAccount.address, parameters.requesterAccount.type).toOtherAccountId();
-                submittable = this.nodeApi.polkadot.tx.logionLoc.createOtherIdentityLoc(
-                    this.nodeApi.adapters.toLocId(parameters.locId),
-                    this.nodeApi.adapters.toPalletLogionLocOtherAccountId(otherAccountId),
-                    this.nodeApi.adapters.toSponsorshipId(parameters.sponsorshipId),
-                );
-            }
-        } else {
-            submittable = this.nodeApi.polkadot.tx.logionLoc.createLogionIdentityLoc(
-                this.nodeApi.adapters.toLocId(parameters.locId),
-            );
+    private async openLoc(args: { locId: UUID }) {
+        const axios = this.backend();
+        try {
+            await axios.post(`/api/loc-request/${ args.locId.toString() }/open`);
+        } catch(e) {
+            throw newBackendError(e);
         }
-        await this.acceptLoc({
-            ...parameters,
-            submittable,
-        });
     }
 
-    async acceptCollectionLoc(parameters: { locId: UUID, requester: SupportedAccountId } & AcceptCollectionLocParams): Promise<void> {
+    async acceptIdentityLoc(parameters: { locId: UUID, requesterAccount?: SupportedAccountId, sponsorshipId?: UUID } & Partial<BlockchainSubmissionParams>): Promise<void> {
+        const { locId, requesterAccount, sponsorshipId, callback } = parameters;
+        if(requesterAccount) {
+            if(requesterAccount.type === "Polkadot") {
+                await this.acceptLoc({ locId });
+            } else {
+                if(!sponsorshipId) {
+                    throw new Error("Other Identity LOCs can only be created with a sponsorship");
+                }
+                const signer = requireDefined(parameters.signer);
+                const otherAccountId = this.nodeApi.queries.getValidAccountId(requesterAccount.address, requesterAccount.type).toOtherAccountId();
+                const submittable = this.nodeApi.polkadot.tx.logionLoc.createOtherIdentityLoc(
+                    this.nodeApi.adapters.toLocId(locId),
+                    this.nodeApi.adapters.toPalletLogionLocOtherAccountId(otherAccountId),
+                    this.nodeApi.adapters.toSponsorshipId(sponsorshipId),
+                );
+                await signer.signAndSend({
+                    signerId: this.currentAddress.address,
+                    submittable,
+                    callback,
+                });
+                await this.acceptLoc({ locId });
+            }
+        } else {
+            const submittable = this.nodeApi.polkadot.tx.logionLoc.createLogionIdentityLoc(
+                this.nodeApi.adapters.toLocId(locId),
+            );
+            const signer = requireDefined(parameters.signer);
+            await signer.signAndSend({
+                signerId: this.currentAddress.address,
+                submittable,
+                callback,
+            });
+            await this.acceptLoc({ locId });
+        }
+    }
+
+    async openIdentityLoc(parameters: { locId: UUID, legalOfficer: LegalOfficer } & BlockchainSubmissionParams ) {
+        const { locId, legalOfficer, signer, callback } = parameters
+        const submittable = this.nodeApi.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
+            this.nodeApi.adapters.toLocId(locId),
+            legalOfficer.address,
+        );
+        await signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable,
+            callback,
+        });
+        await this.openLoc({ locId });
+    }
+
+    async acceptCollectionLoc(parameters: { locId: UUID }): Promise<void> {
+        await this.acceptLoc(parameters);
+    }
+
+    async openCollectionLoc(parameters: { locId: UUID, legalOfficer: LegalOfficer } & AcceptCollectionLocParams) {
+        const { locId, legalOfficer, signer, callback } = parameters
         const submittable = this.nodeApi.polkadot.tx.logionLoc.createCollectionLoc(
-            this.nodeApi.adapters.toLocId(parameters.locId),
-            parameters.requester.address,
+            this.nodeApi.adapters.toLocId(locId),
+            legalOfficer.address,
             parameters.collectionLastBlockSubmission || null,
             parameters.collectionMaxSize || null,
             parameters.collectionCanUpload,
         );
-        await this.acceptLoc({
-            ...parameters,
+        await signer.signAndSend({
+            signerId: this.currentAddress.address,
             submittable,
+            callback,
         });
+        await this.openLoc({ locId });
     }
 
     async close(parameters: { locId: UUID, seal?: string } & BlockchainSubmissionParams): Promise<void> {
