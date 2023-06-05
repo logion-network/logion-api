@@ -1,17 +1,30 @@
 @startuml
 hide empty description
+state "CancelledRequest" as CancelledRequest <<end>>
 state "Decision" as decision <<choice>>
-[*] --> PendingRequest: requestIdentityLoc\n(draft: false)
+state "PolkadotRequester" as polkadotRequester <<choice>>
+DraftRequest : DRAFT
+PendingRequest : REVIEW_PENDING
+OpenLoc : OPEN
+RejectedRequest : REVIEW_REJECTED
+ClosedLoc : CLOSED
+AcceptedRequest : REVIEW_ACCEPTED
+[*] -right-> PendingRequest: requestIdentityLoc\n(draft: false)
 [*] --> DraftRequest: requestIdentityLoc\n(draft: true)
 DraftRequest --> DraftRequest: addMetadata(),\n addFile(),\n deleteMetadata(),\n deleteFile(),\n
 DraftRequest --> PendingRequest: submit()
 PendingRequest --> decision
 decision --> RejectedRequest: LO rejects\n the Request
-decision --> OpenLoc: LO accepts\n the Request
+decision --> polkadotRequester: LO accepts\n the Request
+polkadotRequester --> OpenLoc: non-POLKADOT\n requester
+polkadotRequester --> AcceptedRequest: POLKADOT\n  requester
+AcceptedRequest --> OpenLoc: open()
 OpenLoc --> VoidedLOC: LO voids\n the LOC
 OpenLoc --> ClosedLoc: LO closes\n the LOC
 ClosedLoc --> VoidedLOC: LO voids\n the LOC
 VoidedLOC --> [*]
-OpenLoc --> OpenLoc: addMetadata(),\n addFile(),\n deleteMetadata(),\n deleteFile(),\n requestSof(),\n
-ClosedLoc --> ClosedLoc: requestSof(),\n
+OpenLoc --> OpenLoc: addMetadata(),\n addFile(),\n deleteMetadata(),\n deleteFile(),\n requestSof(),\n requestMetadataReview(),\n requestFileReview()\n
+ClosedLoc --> ClosedLoc: requestSof()
+RejectedRequest --> CancelledRequest: cancel()
+RejectedRequest --> DraftRequest: rework()
 @enduml
