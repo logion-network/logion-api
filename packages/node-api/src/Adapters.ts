@@ -353,7 +353,7 @@ export class Adapters {
             })),
             token: (token && token.isSome) ? {
                 type: token.unwrap().tokenType.toUtf8(),
-                id: token.unwrap().tokenId.toUtf8(),
+                id: token.unwrap().tokenId.toString(),
             } : undefined,
             restrictedDelivery: unwrappedResult.restrictedDelivery.isTrue,
             termsAndConditions: unwrappedResult.termsAndConditions.map(tc => ({

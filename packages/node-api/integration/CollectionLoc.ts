@@ -1,4 +1,4 @@
-import { UUID } from "../src/index.js";
+import { UUID, Adapters } from "../src/index.js";
 import { REQUESTER, setup, signAndSend } from "./Util.js";
 
 export async function createCollectionLocLimitedInSizeTest() {
@@ -44,12 +44,16 @@ export async function addCollectionItemTest() {
     await signAndSend(requester, addItem1Extrinsic);
 
     const item2Id = "0x95307d8ad3f1404a0633015b923753ac0734fec44043fe02120f9661072f05f3";
+    const tokenId = "0x900Edc98db53508e6742723988B872dD08CD09c2";
     const addItem2Extrinsic = api.polkadot.tx.logionLoc.addCollectionItem(
         api.adapters.toLocId(COLLECTION_LOC_ID),
         item2Id,
         "Item 2",
         [],
-        null,
+        Adapters.toCollectionItemToken({
+            id: tokenId,
+            type: "owner",
+        }),
         false,
     );
     await signAndSend(requester, addItem2Extrinsic);

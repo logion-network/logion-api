@@ -17,7 +17,7 @@ import {
 import { createVote } from "./Vote.js";
 import { verifiedIssuers } from "./VerifiedIssuers.js";
 import { storageFees, legalFees } from "./Fees.js";
-import { adapts } from "./Adapters.js";
+import { toPalletLogionLocOtherAccountId, toSponsorshipId, toPalletLogionLocMetadataItem, toPalletLogionLocFile } from "./Adapters.js";
 
 describe("Logion Node API", () => {
 
@@ -49,5 +49,8 @@ describe("Logion Node API", () => {
     it("queries file storage fees", storageFees);
     it("queries file storage fees", legalFees);
 
-    it("adapts", adapts);
+    it("adapts to PalletLogionLocOtherAccountId", toPalletLogionLocOtherAccountId);
+    it("adapts to SponsorshipId", toSponsorshipId);
+    it("adapts to PalletLogionLocMetadataItem", toPalletLogionLocMetadataItem);
+    it("adapts to PalletLogionLocFile", toPalletLogionLocFile);
 });
