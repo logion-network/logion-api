@@ -38,7 +38,7 @@ import {
     AckFileParams,
     ReviewMetadataParams,
     AckMetadataParams,
-    AcceptCollectionLocParams,
+    OpenCollectionLocParams,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -977,7 +977,7 @@ export class AcceptedRequest extends LocRequestState {
         return await this.refresh() as OpenLoc
     }
 
-    async openCollection(parameters: AcceptCollectionLocParams): Promise<OpenLoc> {
+    async openCollection(parameters: OpenCollectionLocParams): Promise<OpenLoc> {
         const requesterAddress = this.request.requesterAddress;
         if (requesterAddress === undefined || requesterAddress?.type !== "Polkadot") {
             throw Error("Only Polkadot requester can open Collection LOC");

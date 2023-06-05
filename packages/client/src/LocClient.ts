@@ -1333,7 +1333,7 @@ export class AuthenticatedLocClient extends LocClient {
         await this.acceptLoc(parameters);
     }
 
-    async openCollectionLoc(parameters: { locId: UUID, legalOfficer: LegalOfficer } & AcceptCollectionLocParams) {
+    async openCollectionLoc(parameters: { locId: UUID, legalOfficer: LegalOfficer } & OpenCollectionLocParams) {
         const { locId, legalOfficer, signer, callback } = parameters
         const submittable = this.nodeApi.polkadot.tx.logionLoc.createCollectionLoc(
             this.nodeApi.adapters.toLocId(locId),
@@ -1409,7 +1409,7 @@ export interface AckMetadataParams extends BlockchainSubmissionParams {
     name: string;
 }
 
-export interface AcceptCollectionLocParams extends BlockchainSubmissionParams {
+export interface OpenCollectionLocParams extends BlockchainSubmissionParams {
     collectionLastBlockSubmission?: bigint;
     collectionMaxSize?: number;
     collectionCanUpload: boolean;
