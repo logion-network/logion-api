@@ -58,14 +58,32 @@ export async function addCollectionItemTest() {
     );
     await signAndSend(requester, addItem2Extrinsic);
 
+    const item3Id = "0x9ab7b28cd982c19262caa8ed7d8e33c53600c5f733a4961307a33b33f2c5a54f";
+    const item3TokenId = "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb";
+    const addItem3Extrinsic = api.polkadot.tx.logionLoc.addCollectionItem(
+        api.adapters.toLocId(COLLECTION_LOC_ID),
+        item3Id,
+        "Item 3",
+        [],
+        Adapters.toCollectionItemToken({
+            id: item3TokenId,
+            type: "owner",
+        }),
+        false,
+    );
+    await signAndSend(requester, addItem3Extrinsic);
+
     const items = await api.queries.getCollectionItems(COLLECTION_LOC_ID);
-    expect(items.length).toBe(2);
+    expect(items.length).toBe(3);
 
     const item1 = await api.queries.getCollectionItem(COLLECTION_LOC_ID, item1Id);
     expect(item1?.id).toBe(item1Id);
 
     const item2 = await api.queries.getCollectionItem(COLLECTION_LOC_ID, item2Id);
     expect(item2?.id).toBe(item2Id);
+
+    const item3 = await api.queries.getCollectionItem(COLLECTION_LOC_ID, item3Id);
+    expect(item3?.id).toBe(item3Id);
 }
 
 const COLLECTION_LOC_ID = new UUID("3a07d3ae-a18d-43a4-8439-9c33532b7ff3");

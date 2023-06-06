@@ -342,6 +342,17 @@ export class Adapters {
     static fromPalletCollectionItem(itemId: string, unwrappedResult: PalletLogionLocCollectionItem): CollectionItem {
         const description = unwrappedResult.description.toUtf8();
         const token = unwrappedResult.token;
+        let tokenId: string | undefined;
+        if(token && token.isSome) {
+            try {
+                tokenId = token.unwrap().tokenId.toUtf8();
+            } catch(e) {
+                // This branch is needed for older hex token IDs (like Ethereum addresses)
+                // values that were submitted without being double-encoded,
+                // which resulted in invalid text encoding.
+                tokenId = token.unwrap().tokenId.toString();
+            }
+        }
         return {
             id: itemId,
             description,
@@ -351,9 +362,9 @@ export class Adapters {
                 hash: resultFile.hash_.toHex(),
                 size: resultFile.size_.toBigInt(),
             })),
-            token: (token && token.isSome) ? {
+            token: tokenId !== undefined ? {
                 type: token.unwrap().tokenType.toUtf8(),
-                id: token.unwrap().tokenId.toString(),
+                id: tokenId,
             } : undefined,
             restrictedDelivery: unwrappedResult.restrictedDelivery.isTrue,
             termsAndConditions: unwrappedResult.termsAndConditions.map(tc => ({
@@ -377,7 +388,7 @@ export class Adapters {
         if(itemToken) {
             return {
                 tokenType: itemToken.type,
-                tokenId: itemToken.id,
+                tokenId: stringToHex(itemToken.id),
             };
         } else {
             return null;

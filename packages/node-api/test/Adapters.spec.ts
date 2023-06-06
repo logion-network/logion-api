@@ -1,3 +1,4 @@
+import { stringToHex } from "@polkadot/util";
 import { Adapters, ItemFile, ItemToken, TermsAndConditionsElement, UUID } from "../src/index.js";
 
 describe("Adapters", () => {
@@ -28,7 +29,7 @@ describe("Adapters", () => {
             id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","token":"4391"}',
         };
         const adapted = Adapters.toCollectionItemToken(itemToken);
-        expect(adapted?.tokenId).toBe(itemToken.id);
+        expect(adapted?.tokenId).toBe(stringToHex(itemToken.id));
         expect(adapted?.tokenType).toBe(itemToken.type);
     });
 
