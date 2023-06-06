@@ -102,6 +102,7 @@ export interface FileParams extends Struct {
 export interface HostData extends Struct {
   readonly node_id: Option<OpaquePeerId>;
   readonly base_url: Option<Bytes>;
+  readonly region: Region;
 }
 
 /** @name LegalOfficerCaseOf */
@@ -196,6 +197,12 @@ export interface OtherAccountId extends Enum {
   readonly isEthereum: boolean;
   readonly asEthereum: H160;
   readonly type: 'Ethereum';
+}
+
+/** @name Region */
+export interface Region extends Enum {
+  readonly isEurope: boolean;
+  readonly type: 'Europe';
 }
 
 /** @name Requester */

@@ -306,4 +306,9 @@ export interface LegalOfficerData {
 export interface HostData {
     nodeId: string;
     baseUrl: string;
+    region: Region;
 }
+
+export type Region = "Europe";
+
+export const DEFAULT_REGION: Region = "Europe";
