@@ -180,6 +180,10 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       AlreadyExists: AugmentedError<ApiType>;
       /**
+       * LO cannot change region
+       **/
+      CannotChangeRegion: AugmentedError<ApiType>;
+      /**
        * Guest cannot update
        **/
       GuestCannotUpdate: AugmentedError<ApiType>;

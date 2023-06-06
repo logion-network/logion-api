@@ -4,7 +4,7 @@ import {
     closeCollectionLocTest,
     createCollectionLocLimitedInSizeTest
 } from "./CollectionLoc.js";
-import { addGuardian } from "./LoAuthorityList.js";
+import { addGuestLegalOfficer, updateHostLegalOfficer } from "./LoAuthorityList.js";
 import {
     createTransactionLocTest,
     addMetadataToTransactionLocTestAsLLO,
@@ -42,7 +42,8 @@ describe("Logion Node API", () => {
 
     it("creates a vote", createVote);
 
-    it("adds guest guardian", addGuardian);
+    it("adds guest legal offier", addGuestLegalOfficer);
+    it("updates host legal offier", updateHostLegalOfficer);
 
     it("supports verified issuers", verifiedIssuers);
 

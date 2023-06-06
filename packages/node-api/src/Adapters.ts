@@ -2,6 +2,7 @@ import { ApiPromise } from "@polkadot/api";
 import { Call, FunctionMetadataLatest } from "@polkadot/types/interfaces";
 import {
     FrameSystemAccountInfo,
+    LogionNodeRuntimeRegion,
     PalletLoAuthorityListLegalOfficerData,
     PalletLogionLocFileParams,
     PalletLogionLocLegalOfficerCase,
@@ -41,6 +42,8 @@ import {
     AccountId,
     AccountType,
     HostData,
+    Region,
+    DEFAULT_REGION,
 } from "./Types.js";
 import { UUID } from "./UUID.js";
 import { stringToHex, stringToU8a, u8aToHex } from "@polkadot/util";
@@ -485,7 +488,22 @@ export class Adapters {
             const urlBytes = stringToU8a(legalOfficerData.baseUrl);
             baseUrl = u8aToHex(urlBytes);
         }
-        return this.api.createType<PalletLoAuthorityListLegalOfficerData>("PalletLoAuthorityListLegalOfficerData", { Host: { nodeId, baseUrl } });
+
+        const region = this.toLogionNodeRuntimeRegion(legalOfficerData.region || DEFAULT_REGION);
+
+        return this.api.createType<PalletLoAuthorityListLegalOfficerData>("PalletLoAuthorityListLegalOfficerData", { Host: { nodeId, baseUrl, region } });
+    }
+
+    toLogionNodeRuntimeRegion(region: Region): LogionNodeRuntimeRegion {
+        return this.api.createType<LogionNodeRuntimeRegion>("LogionNodeRuntimeRegion", region);
+    }
+
+    fromLogionNodeRuntimeRegion(region: LogionNodeRuntimeRegion): Region {
+        if(region.isEurope) {
+            return "Europe";
+        } else {
+            throw new Error(`Unsupported region ${ region.toString() }`);
+        }
     }
 
     toHostData(legalOfficerData: PalletLoAuthorityListLegalOfficerData): Partial<HostData> {
