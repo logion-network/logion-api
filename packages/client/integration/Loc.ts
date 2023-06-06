@@ -16,7 +16,8 @@ import {
     RejectedRequest,
     ClosedLoc,
     waitFor,
-    OnchainLocState
+    OnchainLocState,
+    AcceptedRequest
 } from "../src/index.js";
 
 import { State, TEST_LOGION_CLIENT_CONFIG, initRequesterBalance, LegalOfficerWorker } from "./Utils.js";
@@ -54,13 +55,13 @@ export async function requestTransactionLoc(state: State) {
     expect(pendingRequest).toBeInstanceOf(PendingRequest);
     locsState = pendingRequest.locsState();
     expect(locsState.draftRequests['Transaction'].length).toBe(0);
-    checkData(locsState.pendingRequests["Transaction"][0].data(), "REQUESTED");
-    checkData(pendingRequest.data(), "REQUESTED");
+    checkData(locsState.pendingRequests["Transaction"][0].data(), "REVIEW_PENDING");
+    checkData(pendingRequest.data(), "REVIEW_PENDING");
     expect(pendingRequest.data().metadata[0].status).toBe("REVIEW_PENDING");
 
     // Rework rejected LOC
     const aliceClient = state.client.withCurrentAddress(aliceAccount);
-    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, statuses: [ "REQUESTED", "OPEN" ], locTypes: [ "Transaction" ] } });
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, statuses: [ "REVIEW_PENDING", "OPEN" ], locTypes: [ "Transaction" ] } });
     let alicePendingLoc = aliceLocs.findById(pendingRequest.data().id) as PendingRequest;
     let aliceRejectedLoc = await alicePendingLoc.legalOfficer.reject("Because.") as RejectedRequest;
     let rejectedRequest = await pendingRequest.refresh() as RejectedRequest;
@@ -73,8 +74,13 @@ export async function requestTransactionLoc(state: State) {
     pendingRequest = await draftRequest.submit();
 
     alicePendingLoc = await aliceRejectedLoc.refresh() as PendingRequest;
-    let aliceOpenLoc = await alicePendingLoc.legalOfficer.accept({ signer });
-    let openLoc = await pendingRequest.refresh() as OpenLoc;
+    let aliceAcceptedLoc = await alicePendingLoc.legalOfficer.accept({ signer }) as AcceptedRequest;
+    let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
+    expect(acceptedLoc).toBeInstanceOf(AcceptedRequest);
+
+    let openLoc = await acceptedLoc.open({ signer });
+    let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
+
     expect(openLoc).toBeInstanceOf(OpenLoc);
     expect(openLoc.data().metadata[0].status).toBe("REVIEW_PENDING");
 
@@ -176,15 +182,18 @@ export async function collectionLoc(state: State) {
     });
 
     locsState = pendingRequest.locsState();
-    expect(locsState.pendingRequests["Collection"][0].data().status).toBe("REQUESTED");
+    expect(locsState.pendingRequests["Collection"][0].data().status).toBe("REVIEW_PENDING");
 
     const locId = pendingRequest.locId;
     const aliceClient = client.withCurrentAddress(aliceAccount);
-    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, locTypes: ["Collection"], statuses: ["REQUESTED"] } });
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, locTypes: ["Collection"], statuses: ["REVIEW_PENDING"] } });
     let alicePendingRequest = aliceLocs.findById(locId) as PendingRequest;
-    let aliceOpenLoc = await alicePendingRequest.legalOfficer.acceptCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
+    let aliceAcceptedLoc = await alicePendingRequest.legalOfficer.accept();
 
-    let openLoc = await pendingRequest.refresh() as OpenLoc;
+    let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
+    let openLoc = await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
+    let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
+
     let aliceClosedLoc = await aliceOpenLoc.legalOfficer.close({ signer });
     expect(aliceClosedLoc).toBeInstanceOf(ClosedCollectionLoc);
 
@@ -229,16 +238,27 @@ export async function collectionLocWithUpload(state: State) {
         description: "This is the Logion Classification LOC",
         draft: false,
     });
-    locsState = logionClassificationLocRequest.locsState();
-    await legalOfficer.openAndClose(logionClassificationLocRequest.locId);
+    await legalOfficer.acceptLoc(logionClassificationLocRequest.locId);
+
+    const logionClassificationAcceptedRequest = await logionClassificationLocRequest.refresh() as AcceptedRequest;
+    const logionClassificationOpenLoc = await logionClassificationAcceptedRequest.open({ signer });
+
+    await legalOfficer.closeLoc(logionClassificationAcceptedRequest.locId);
+
+    locsState = logionClassificationOpenLoc.locsState();
     const creativeCommonsLocRequest = await locsState.requestTransactionLoc({
         legalOfficer: client.getLegalOfficer(alice.address),
         description: "This is the LOC acting usage of CreativeCommons on logion",
         draft: false,
     });
-    locsState = creativeCommonsLocRequest.locsState();
-    await legalOfficer.openAndClose(creativeCommonsLocRequest.locId);
+    await legalOfficer.acceptLoc(creativeCommonsLocRequest.locId);
 
+    const creativeCommonsAcceptedRequest = await creativeCommonsLocRequest.refresh() as AcceptedRequest;
+    const creativeCommonsOpenLoc = await creativeCommonsAcceptedRequest.open({ signer });
+
+    await legalOfficer.closeLoc(creativeCommonsAcceptedRequest.locId);
+
+    locsState = creativeCommonsOpenLoc.locsState();
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficer: client.getLegalOfficer(alice.address),
         description: "This is a Collection LOC with upload",
@@ -246,11 +266,14 @@ export async function collectionLocWithUpload(state: State) {
     });
 
     const aliceClient = client.withCurrentAddress(aliceAccount);
-    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, locTypes: ["Collection"], statuses: ["REQUESTED"] } });
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, locTypes: ["Collection"], statuses: ["REVIEW_PENDING"] } });
     let alicePendingRequest = aliceLocs.findById(pendingRequest.locId) as PendingRequest;
-    let aliceOpenLoc = await alicePendingRequest.legalOfficer.acceptCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
+    let aliceAcceptedLoc = await alicePendingRequest.legalOfficer.accept();
 
-    let openLoc = await pendingRequest.refresh() as OpenLoc;
+    let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
+    let openLoc = await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
+    let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
+
     await aliceOpenLoc.legalOfficer.close({ signer });
     let closedLoc = await openLoc.refresh() as ClosedCollectionLoc;
 
@@ -352,12 +375,12 @@ export async function collectionLocWithUpload(state: State) {
 
 export async function identityLoc(state: State) {
 
-    const { alice, newAccount } = state;
+    const { alice, newAccount, signer } = state;
     const legalOfficer = new LegalOfficerWorker(alice, state);
     const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
 
-    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, newAccount.address);
+    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, signer, newAccount.address);
 
     const pendingRequest = await locsState.requestIdentityLoc({
         legalOfficer: client.getLegalOfficer(alice.address),
@@ -376,16 +399,24 @@ export async function identityLoc(state: State) {
             country: "Wonderland"
         },
         draft: false,
-    });
+    }) as PendingRequest;
 
     locsState = pendingRequest.locsState();
-    expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REQUESTED");
+    expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REVIEW_PENDING");
 
-    await legalOfficer.openAndClose(pendingRequest.locId);
+    await legalOfficer.acceptLoc(pendingRequest.locId);
+
+    const acceptedRequest = await pendingRequest.refresh() as AcceptedRequest;
+    expect(acceptedRequest.data().status).toBe("REVIEW_ACCEPTED");
+
+    const openLoc = await acceptedRequest.open({ signer });
+    expect(openLoc.data().status).toBe("OPEN");
+
+    await legalOfficer.closeLoc(acceptedRequest.locId);
 }
 
 export async function otherIdentityLoc(state: State) {
-    const { alice, aliceAccount, ethereumAccount } = state;
+    const { alice, aliceAccount, ethereumAccount, signer } = state;
     const legalOfficer = new LegalOfficerWorker(alice, state);
 
     const sponsorshipId = new UUID();
@@ -421,7 +452,8 @@ export async function otherIdentityLoc(state: State) {
     });
 
     locsState = pendingRequest.locsState();
-    expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REQUESTED");
+    expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REVIEW_PENDING");
 
-    await legalOfficer.openAndClose(pendingRequest.locId);
+    await legalOfficer.acceptAndOpenLoc(pendingRequest.locId);
+    await legalOfficer.closeLoc(pendingRequest.locId);
 }

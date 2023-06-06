@@ -2,16 +2,24 @@ import { Currency, UUID, Adapters } from "../src/index.js";
 import { ALICE, ISSUER, REQUESTER, setup, signAndSend, signAndSendBatch } from "./Util.js";
 
 export async function verifiedIssuers() {
-    const { api, alice, issuer } = await setup();
+    const { api, alice, issuer, requester } = await setup();
 
     const issuerIdentityLocId = new UUID();
     const collectionLocId = new UUID();
-    await signAndSendBatch(alice, [
+    await signAndSend(alice,
         api.polkadot.tx.balances.transfer(ISSUER, Currency.toCanonicalAmount(Currency.nLgnt(200n))),
-        api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(issuerIdentityLocId.toDecimalString(), ISSUER),
+    );
+    await signAndSend(issuer,
+        api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(issuerIdentityLocId.toDecimalString(), ALICE),
+    );
+    await signAndSendBatch(alice, [
         api.polkadot.tx.logionLoc.close(issuerIdentityLocId.toDecimalString()),
         api.polkadot.tx.logionLoc.nominateIssuer(ISSUER, issuerIdentityLocId.toDecimalString()),
-        api.polkadot.tx.logionLoc.createCollectionLoc(collectionLocId.toDecimalString(), REQUESTER, null, 200, true),
+    ]);
+    await signAndSend(requester,
+        api.polkadot.tx.logionLoc.createCollectionLoc(collectionLocId.toDecimalString(), ALICE, null, 200, true),
+    );
+    await signAndSendBatch(alice, [
         api.polkadot.tx.logionLoc.setIssuerSelection(collectionLocId.toDecimalString(), ISSUER, true),
         api.polkadot.tx.logionLoc.addMetadata(collectionLocId.toDecimalString(), api.adapters.toPalletLogionLocMetadataItem({
             name: "Test",

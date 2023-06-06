@@ -1,4 +1,13 @@
-import { ClosedCollectionLoc, HashOrContent, hashString, ItemFileWithContent, LocRequestState, MimeType, PendingRequest } from "../src/index.js";
+import {
+    ClosedCollectionLoc,
+    HashOrContent,
+    hashString,
+    ItemFileWithContent,
+    LocRequestState,
+    MimeType,
+    PendingRequest,
+    AcceptedRequest, OpenLoc
+} from "../src/index.js";
 import { initRequesterBalance, LegalOfficerWorker, State, TEST_LOGION_CLIENT_CONFIG, ISSUER_ADDRESS } from "./Utils.js";
 
 export async function tokensRecords(state: State) {
@@ -13,20 +22,25 @@ export async function tokensRecords(state: State) {
     });
     const collectionLocId = collectionLoc.locId;
     const aliceClient = client.withCurrentAddress(aliceAccount);
-    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, locTypes: ["Collection"], statuses: ["REQUESTED"] } });
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, locTypes: ["Collection"], statuses: ["REVIEW_PENDING"] } });
     let alicePendingRequest = aliceLocs.findById(collectionLocId) as PendingRequest;
-    let aliceOpenLoc = await alicePendingRequest.legalOfficer.acceptCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
+    let aliceAcceptedLoc = await alicePendingRequest.legalOfficer.accept();
+
+    let acceptedLoc = await collectionLoc.refresh() as AcceptedRequest;
+    await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
+    let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
+
     await legalOfficer.selectIssuer(collectionLocId, ISSUER_ADDRESS, true);
     await aliceOpenLoc.legalOfficer.close({ signer });
 
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, ISSUER_ADDRESS);
 
     const issuerClient = state.client.withCurrentAddress(issuerAccount);
-    let closedcollectionLoc = (await issuerClient.locsState()).findById(collectionLocId) as ClosedCollectionLoc;
+    let closedCollectionLoc = (await issuerClient.locsState()).findById(collectionLocId) as ClosedCollectionLoc;
 
     const recordId = hashString("record-id");
     const recordDescription = "Some tokens record";
-    closedcollectionLoc = await closedcollectionLoc.addTokensRecord({
+    closedCollectionLoc = await closedCollectionLoc.addTokensRecord({
         recordId,
         description: recordDescription,
         files: [
@@ -39,11 +53,11 @@ export async function tokensRecords(state: State) {
         signer: state.signer,
     });
 
-    const record = await closedcollectionLoc.getTokensRecord({ recordId });
+    const record = await closedCollectionLoc.getTokensRecord({ recordId });
     expect(record?.id).toBe(recordId);
     expect(record?.description).toBe(recordDescription);
     expect(record?.files.length).toBe(1);
 
-    const records = await closedcollectionLoc.getTokensRecords();
+    const records = await closedCollectionLoc.getTokensRecords();
     expect(records.length).toBe(1);
 }

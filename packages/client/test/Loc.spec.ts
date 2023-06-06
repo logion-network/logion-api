@@ -460,13 +460,13 @@ const ALICE_DRAFT_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "DRAFT", "
 const ALICE_OPEN_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "OPEN", "Transaction");
 const ALICE_CLOSED_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED", "Transaction");
 const ALICE_CLOSED_COLLECTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED", "Collection");
-const ALICE_REQUESTED_SOF_REQUEST = buildLocRequest(ALICE.address, "REQUESTED", "Transaction");
-const ALICE_REJECTED_TRANSACTION_LOC_REQUEST = buildLocRequest(ALICE.address, "REJECTED", "Transaction");
+const ALICE_REQUESTED_SOF_REQUEST = buildLocRequest(ALICE.address, "REVIEW_PENDING", "Transaction");
+const ALICE_REJECTED_TRANSACTION_LOC_REQUEST = buildLocRequest(ALICE.address, "REVIEW_REJECTED", "Transaction");
 const ALICE_CLOSED_IDENTITY_LOC_WITH_VERIFIED_ISSUER = buildLocAndRequest(ALICE.address, "CLOSED", "Identity", undefined, ISSUER);
 const ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER = buildLocAndRequest(ALICE.address, "OPEN", "Transaction");
 const ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER = buildLocAndRequest(ALICE.address, "CLOSED", "Transaction");
 
-const BOB_REQUESTED_TRANSACTION_LOC_REQUEST = buildLocRequest(BOB.address, "REQUESTED", "Transaction");
+const BOB_REQUESTED_TRANSACTION_LOC_REQUEST = buildLocRequest(BOB.address, "REVIEW_PENDING", "Transaction");
 const BOB_OPEN_TRANSACTION_LOC = buildLocAndRequest(BOB.address, "OPEN", "Transaction");
 const BOB_VOID_TRANSACTION_LOC = buildLocAndRequest(BOB.address, "CLOSED", "Transaction", mockVoidInfo());
 const BOB_VOID_COLLECTION_LOC = buildLocAndRequest(BOB.address, "CLOSED", "Collection", mockVoidInfo());

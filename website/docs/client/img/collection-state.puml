@@ -1,17 +1,27 @@
 @startuml
 hide empty description
+state "CancelledRequest" as CancelledRequest <<end>>
 state "Decision" as decision <<choice>>
-[*] --> PendingRequest: requestCollectionLoc\n(draft: false)
+DraftRequest : DRAFT
+PendingRequest : REVIEW_PENDING
+OpenLoc : OPEN
+RejectedRequest : REVIEW_REJECTED
+ClosedCollectionLoc : CLOSED
+AcceptedRequest : REVIEW_ACCEPTED
+[*] -right-> PendingRequest: requestCollectionLoc\n(draft: false)
 [*] --> DraftRequest: requestCollectionLoc\n(draft: true)
 DraftRequest --> DraftRequest: addMetadata(),\n addFile(),\n deleteMetadata(),\n deleteFile(),\n
 DraftRequest --> PendingRequest: submit()
 PendingRequest --> decision
 decision --> RejectedRequest: LO rejects\n the Request
-decision --> OpenLoc: LO accepts\n the Request
+decision --> AcceptedRequest: LO accepts\n the Request
+AcceptedRequest --> OpenLoc: openCollection()
 OpenLoc --> VoidedCollectionLoc: LO voids\n the LOC
 OpenLoc --> ClosedCollectionLoc: LO closes\n the LOC
 ClosedCollectionLoc --> VoidedCollectionLoc: LO voids\n the LOC
 VoidedCollectionLoc --> [*]
 OpenLoc --> OpenLoc: addMetadata(),\n addFile(),\n deleteMetadata(),\n deleteFile(),\n requestSof(),\n getCollectionItem()
 ClosedCollectionLoc --> ClosedCollectionLoc: addCollectionItem(),\n uploadCollectionItemFile(),\n requestSof()
+RejectedRequest --> CancelledRequest: cancel()
+RejectedRequest --> DraftRequest: rework()
 @enduml

@@ -1,11 +1,11 @@
 import { AnyJson } from "@polkadot/types-codec/types/helpers.js";
 import { IKeyringPair } from "@polkadot/types/types/interfaces.js";
 import { Adapters, LogionNodeApiClass, UUID } from "../src/index.js";
-import { REQUESTER, setup, signAndSend } from "./Util.js";
+import { REQUESTER, setup, signAndSend, ALICE } from "./Util.js";
 
 export async function createVote() {
-    const { alice, api } = await setup();
-    const locId = await createClosedLoc({ alice, api });
+    const { alice, requester, api } = await setup();
+    const locId = await createClosedLoc({ alice, requester, api });
 
     const submittable = api.polkadot.tx.vote.createVoteForAllLegalOfficers(api.adapters.toLocId(locId));
     const result = await signAndSend(alice, submittable);
@@ -15,11 +15,11 @@ export async function createVote() {
     expect(eventData[0] as string).toBe("1");
 }
 
-async function createClosedLoc(args: { alice: IKeyringPair, api: LogionNodeApiClass}): Promise<UUID> {
-    const { alice, api } = args;
+async function createClosedLoc(args: { alice: IKeyringPair, requester: IKeyringPair, api: LogionNodeApiClass}): Promise<UUID> {
+    const { alice, requester, api } = args;
 
     const locId = new UUID();
-    await signAndSend(alice, api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(api.adapters.toLocId(locId), REQUESTER));
+    await signAndSend(requester, api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(api.adapters.toLocId(locId), ALICE));
     await signAndSend(alice, api.polkadot.tx.logionLoc.close(api.adapters.toLocId(locId)));
 
     return locId;

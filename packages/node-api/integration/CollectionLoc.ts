@@ -1,16 +1,16 @@
 import { UUID, Adapters } from "../src/index.js";
-import { REQUESTER, setup, signAndSend } from "./Util.js";
+import { setup, signAndSend, ALICE } from "./Util.js";
 
 export async function createCollectionLocLimitedInSizeTest() {
-    const { api, alice } = await setup();
+    const { api, requester } = await setup();
     const createExtrinsic = api.polkadot.tx.logionLoc.createCollectionLoc(
         api.adapters.toLocId(COLLECTION_LOC_ID),
-        REQUESTER,
+        ALICE,
         null,
         100,
         false
     );
-    await signAndSend(alice, createExtrinsic);
+    await signAndSend(requester, createExtrinsic);
     const loc = await api.queries.getLegalOfficerCase(COLLECTION_LOC_ID);
     expect(loc?.locType).toBe("Collection");
     expect(loc?.collectionMaxSize).toBe(100);

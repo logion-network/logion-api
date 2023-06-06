@@ -1301,14 +1301,14 @@ export default {
     _enum: {
       create_polkadot_identity_loc: {
         locId: 'Compact<u128>',
-        requesterAccountId: 'AccountId32',
+        legalOfficer: 'AccountId32',
       },
       create_logion_identity_loc: {
         locId: 'Compact<u128>',
       },
       create_polkadot_transaction_loc: {
         locId: 'Compact<u128>',
-        requesterAccountId: 'AccountId32',
+        legalOfficer: 'AccountId32',
       },
       create_logion_transaction_loc: {
         locId: 'Compact<u128>',
@@ -1316,7 +1316,7 @@ export default {
       },
       create_collection_loc: {
         locId: 'Compact<u128>',
-        requesterAccountId: 'AccountId32',
+        legalOfficer: 'AccountId32',
         collectionLastBlockSubmission: 'Option<u32>',
         collectionMaxSize: 'Option<u32>',
         collectionCanUpload: 'bool',

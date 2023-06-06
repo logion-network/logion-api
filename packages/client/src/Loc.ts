@@ -38,7 +38,7 @@ import {
     AckFileParams,
     ReviewMetadataParams,
     AckMetadataParams,
-    AcceptCollectionLocParams,
+    OpenCollectionLocParams,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -455,7 +455,7 @@ export interface CheckHashResult {
 
 export type AnyLocState = OffchainLocState | OnchainLocState;
 
-export type OffchainLocState = DraftRequest | PendingRequest | RejectedRequest;
+export type OffchainLocState = DraftRequest | PendingRequest | RejectedRequest | AcceptedRequest;
 
 export type OnchainLocState = OpenLoc | ClosedLoc | ClosedCollectionLoc | VoidedLoc | VoidedCollectionLoc;
 
@@ -489,9 +489,11 @@ export abstract class LocRequestState extends State {
         switch (request.status) {
             case "DRAFT":
                 return new DraftRequest(locSharedState, request, undefined, locIssuers)
-            case "REQUESTED":
+            case "REVIEW_PENDING":
                 return new PendingRequest(locSharedState, request, undefined, locIssuers)
-            case "REJECTED":
+            case "REVIEW_ACCEPTED":
+                return new AcceptedRequest(locSharedState, request, undefined, locIssuers)
+            case "REVIEW_REJECTED":
                 return new RejectedRequest(locSharedState, request, undefined, locIssuers)
             default:
                 return LocRequestState.refreshLoc(locSharedState, request, legalOfficerCase, locIssuers)
@@ -903,7 +905,7 @@ export class LegalOfficerPendingRequestCommands {
         this.request = args.request;
     }
 
-    private locId: UUID;
+    private readonly locId: UUID;
 
     private client: AuthenticatedLocClient;
 
@@ -918,7 +920,7 @@ export class LegalOfficerPendingRequestCommands {
         return await this.request.refresh() as RejectedRequest;
     }
 
-    async accept(args: BlockchainSubmissionParams): Promise<OpenLoc> {
+    async accept(args?: BlockchainSubmissionParams): Promise<AcceptedRequest | OpenLoc> {
         this.request.ensureCurrent();
         const requesterAccount = this.request.data().requesterAddress;
         const requesterLoc = this.request.data().requesterLocId;
@@ -939,28 +941,62 @@ export class LegalOfficerPendingRequestCommands {
                 ...args,
             });
         } else {
-            throw new Error(`Unsupported loc type ${ locType }`);
+            if(!requesterAccount) {
+                throw new Error("Can only accept LOC with polkadot requester");
+            }
+            await this.client.acceptCollectionLoc({
+                locId: this.locId
+            });
         }
-        return await this.request.refresh() as OpenLoc;
+        return await this.request.refresh() as AcceptedRequest | OpenLoc;
+    }
+}
+
+export class AcceptedRequest extends LocRequestState {
+
+    async open(parameters: BlockchainSubmissionParams): Promise<OpenLoc> {
+        const requesterAddress = this.request.requesterAddress;
+        if (requesterAddress === undefined || requesterAddress?.type !== "Polkadot") {
+            throw Error("Only Polkadot requester can open LOC");
+        }
+        if (this.request.locType === "Transaction") {
+            await this.locSharedState.client.openTransactionLoc({
+                locId: this.locId,
+                legalOfficer: this.owner,
+                ...parameters
+            })
+        } else if (this.request.locType === "Identity") {
+            await this.locSharedState.client.openIdentityLoc({
+                locId: this.locId,
+                legalOfficer: this.owner,
+                ...parameters
+            })
+        } else {
+            throw Error("Collection LOCs are opened with openCollection()");
+        }
+        return await this.refresh() as OpenLoc
     }
 
-    async acceptCollection(args: AcceptCollectionLocParams): Promise<OpenLoc> {
-        this.request.ensureCurrent();
-        const requester = this.request.data().requesterAddress;
-        if(!requester) {
-            throw new Error("Can only accept LOC with polkadot requester");
+    async openCollection(parameters: OpenCollectionLocParams): Promise<OpenLoc> {
+        const requesterAddress = this.request.requesterAddress;
+        if (requesterAddress === undefined || requesterAddress?.type !== "Polkadot") {
+            throw Error("Only Polkadot requester can open Collection LOC");
         }
-        const locType = this.request.data().locType;
-        if(locType === "Collection") {
-            await this.client.acceptCollectionLoc({
+
+        if (this.request.locType === "Collection") {
+            await this.locSharedState.client.openCollectionLoc({
                 locId: this.locId,
-                requester,
-                ...args,
-            });
+                legalOfficer: this.owner,
+                ...parameters
+            })
         } else {
-            throw new Error(`Unsupported loc type ${ locType }`);
+            throw Error("Other LOCs are opened with open()");
         }
-        return await this.request.refresh() as OpenLoc;
+        return await this.refresh() as OpenLoc;
+    }
+
+    withLocs(locsState: LocsState): AcceptedRequest {
+        return this._withLocs(locsState, AcceptedRequest);
     }
 }
 

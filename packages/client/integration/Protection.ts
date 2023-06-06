@@ -178,10 +178,10 @@ async function createAndCloseIdentityLoc(
     const api = await buildApiClass(config.rpcEndpoints);
     const identityLocId = new UUID();
     await signer.signAndSend({
-        signerId: legalOfficerAddress,
+        signerId: requesterAddress,
         submittable: api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
             api.adapters.toLocId(identityLocId),
-            requesterAddress
+            legalOfficerAddress
         )
     });
     await signer.signAndSend({
