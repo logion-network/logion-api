@@ -142,6 +142,11 @@ export class LocsState extends State {
         return this.withPredicate(this._locs, loc => loc instanceof RejectedRequest);
     }
 
+    get acceptedRequests(): Record<LocType, AcceptedRequest[]> {
+        this.ensureCurrent();
+        return this.withPredicate(this._locs, loc => loc instanceof AcceptedRequest);
+    }
+
     getLocRequestState(index: number): LocRequestState | undefined {
         const allLocs = Object.values(this._locs);
         if (index >= 0 && index < allLocs.length) {

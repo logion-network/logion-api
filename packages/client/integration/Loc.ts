@@ -77,6 +77,8 @@ export async function requestTransactionLoc(state: State) {
     let aliceAcceptedLoc = await alicePendingLoc.legalOfficer.accept({ signer }) as AcceptedRequest;
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
     expect(acceptedLoc).toBeInstanceOf(AcceptedRequest);
+    locsState = acceptedLoc.locsState();
+    checkData(locsState.acceptedRequests["Transaction"][0].data(), "REVIEW_ACCEPTED");
 
     let openLoc = await acceptedLoc.open({ signer });
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
@@ -191,6 +193,9 @@ export async function collectionLoc(state: State) {
     let aliceAcceptedLoc = await alicePendingRequest.legalOfficer.accept();
 
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
+    locsState = acceptedLoc.locsState();
+    expect(locsState.acceptedRequests["Collection"][0].data().status).toBe("REVIEW_ACCEPTED");
+
     let openLoc = await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
 
@@ -425,7 +430,7 @@ export async function otherIdentityLoc(state: State) {
         sponsorshipId,
         sponsoredAccount: ethereumAccount.toOtherAccountId(),
         legalOfficer: alice,
-        signer: state.signer,
+        signer,
     });
 
     const client = state.client.withCurrentAddress(ethereumAccount);
