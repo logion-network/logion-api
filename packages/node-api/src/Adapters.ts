@@ -520,7 +520,9 @@ export class Adapters {
             const urlBytes = legalOfficerData.asHost.baseUrl.unwrap();
             baseUrl = urlBytes.toUtf8();
         }
+
+        const region = this.fromLogionNodeRuntimeRegion(legalOfficerData.asHost.region);
     
-        return { baseUrl, nodeId };
+        return { baseUrl, nodeId, region };
     }
 }

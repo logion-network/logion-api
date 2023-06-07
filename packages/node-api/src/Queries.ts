@@ -1,5 +1,4 @@
 import { ApiPromise } from "@polkadot/api";
-import { LogionNodeRuntimeRegion } from '@polkadot/types/lookup';
 import { Adapters } from "./Adapters.js";
 import * as Currency from "./Currency.js";
 import * as Numbers from "./numbers.js";

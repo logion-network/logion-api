@@ -16,9 +16,11 @@ export async function addGuestLegalOfficer() {
 
 export async function updateHostLegalOfficer() {
     const { alice, api } = await setup();
+    const nodeId = "12D3KooWBmAwcd4PJNJvfV89HwE48nwkRmAgo8Vy3uQEyNNHBox2";
+    const region = "Europe";
     const data = api.adapters.toPalletLoAuthorityListLegalOfficerDataHost({
-        nodeId: "12D3KooWBmAwcd4PJNJvfV89HwE48nwkRmAgo8Vy3uQEyNNHBox2",
-        region: "Europe",
+        nodeId,
+        region,
     });
     const extrinsic = api.polkadot.tx.loAuthorityList.updateLegalOfficer(ALICE, data);
     const sudoExtrinsic = api.polkadot.tx.sudo.sudo(extrinsic);
@@ -29,7 +31,14 @@ export async function updateHostLegalOfficer() {
     expect(entry.isSome).toBe(true);
     const hostData = entry.unwrap().asHost;
     expect(hostData.region.isEurope).toBe(true);
-    expect(api.adapters.fromLogionNodeRuntimeRegion(hostData.region)).toBe("Europe");
+    expect(api.adapters.fromLogionNodeRuntimeRegion(hostData.region)).toBe(region);
+
+    const host = await api.queries.getLegalOfficerData(ALICE);
+    expect(host.isHost).toBe(true);
+    expect(host.guests?.length).toBe(0);
+    expect(host.hostAddress).toBeUndefined();
+    expect(host.hostData?.nodeId).toBe(nodeId);
+    expect(host.hostData?.region).toBe(region);
 }
 
 export async function getAvailableRegions() {
