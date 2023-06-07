@@ -1,6 +1,6 @@
 {
   "name": "@logion/client",
-  "version": "0.27.0-2",
+  "version": "0.27.0-3",
   "description": "logion SDK for client applications",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
@@ -9,7 +9,7 @@
     "build": "yarn lint && tsc -p tsconfig.app.json",
     "lint": "yarn eslint src/**",
     "test": "NODE_OPTIONS=--loader=ts-node/esm jasmine --config=jasmine.json",
-    "integration-test": "docker-compose up -d && ./scripts/integration_test_db_setup.sh && NODE_OPTIONS=--loader=ts-node/esm jasmine --config=jasmine-integration.json ; docker-compose down",
+    "integration-test": "docker-compose up -d && ./scripts/integration_test_db_setup.sh && node ./scripts/init_onchain_data.js && NODE_OPTIONS=--loader=ts-node/esm jasmine --config=jasmine-integration.json ; docker-compose down",
     "check-publish": "yarn build && yarn pack -n",
     "do-publish": "yarn build && yarn npm publish"
   },

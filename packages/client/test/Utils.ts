@@ -27,6 +27,7 @@ export const ALICE: LegalOfficer = {
     postalAddress: {} as LegalOfficerPostalAddress,
     userIdentity: {} as UserIdentity,
     nodeId: "12D3KooWBmAwcd4PJNJvfV89HwE48nwkRmAgo8Vy3uQEyNNHBox2",
+    region: "Europe",
 };
 
 export const BOB: LegalOfficer = {
@@ -38,6 +39,7 @@ export const BOB: LegalOfficer = {
     postalAddress: {} as LegalOfficerPostalAddress,
     userIdentity: {} as UserIdentity,
     nodeId: "12D3KooWQYV9dGMFoRzNStwpXztXaBUjtPqi6aU76ZgUriHhKust",
+    region: "Europe",
 };
 
 export const CHARLIE: LegalOfficer = {
@@ -49,6 +51,7 @@ export const CHARLIE: LegalOfficer = {
     postalAddress: {} as LegalOfficerPostalAddress,
     userIdentity: {} as UserIdentity,
     nodeId: "12D3KooWJvyP3VJYymTqG7eH4PM5rN4T2agk5cdNCfNymAqwqcvZ",
+    region: "Europe",
 };
 
 export const LEGAL_OFFICERS = [ ALICE, BOB, CHARLIE ];

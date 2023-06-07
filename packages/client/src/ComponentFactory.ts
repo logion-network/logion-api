@@ -16,7 +16,7 @@ export type UploadableData = File | Blob | Buffer | NodeJS.ReadableStream;
 
 export interface ComponentFactory {
     buildAxiosFactory: () => AxiosFactory;
-    buildDirectoryClient: (directoryEndpoint: string, axiosFactory: AxiosFactory, token?: string) => DirectoryClient;
+    buildDirectoryClient: (api: LogionNodeApiClass, directoryEndpoint: string, axiosFactory: AxiosFactory, token?: string) => DirectoryClient;
     buildAuthenticationClient: (api: LogionNodeApiClass, directoryEndpoint: string, legalOfficers: LegalOfficerClass[], axiosFactory: AxiosFactory) => AuthenticationClient;
     buildNetworkState(nodesUp: LegalOfficerEndpoint[], nodesDown: LegalOfficerEndpoint[]): NetworkState<LegalOfficerEndpoint>;
     buildNodeApi(rpcEndpoints: string[]): Promise<LogionNodeApiClass>;
@@ -25,7 +25,7 @@ export interface ComponentFactory {
 
 export const DefaultComponentFactory: ComponentFactory = {
     buildAxiosFactory: () => new AxiosFactory(),
-    buildDirectoryClient: (directoryEndpoint: string, axiosFactory: AxiosFactory, token?: string) => new DirectoryClient(directoryEndpoint, axiosFactory, token),
+    buildDirectoryClient: (api: LogionNodeApiClass, directoryEndpoint: string, axiosFactory: AxiosFactory, token?: string) => new DirectoryClient(api, directoryEndpoint, axiosFactory, token),
     buildAuthenticationClient: (api: LogionNodeApiClass, directoryEndpoint: string, legalOfficers: LegalOfficerClass[], axiosFactory: AxiosFactory) => new AuthenticationClient(api, directoryEndpoint, legalOfficers, axiosFactory),
     buildNetworkState: (nodesUp: LegalOfficerEndpoint[], nodesDown: LegalOfficerEndpoint[]) => new NetworkState(nodesUp, nodesDown),
     buildNodeApi: (rpcEndpoints: string[]) => buildApiClass(rpcEndpoints),

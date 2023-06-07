@@ -12,7 +12,7 @@ export async function transfers(state: State) {
     const aliceClient = client.withCurrentAddress(aliceAccount)
     let aliceState = await aliceClient.balanceState();
 
-    checkBalance(aliceState, "100.00k");
+    checkBalance(aliceState, "99.99k");
     expect(aliceState.transactions.length).toBe(0);
     aliceState = await aliceState.transfer({
         signer,
@@ -22,7 +22,7 @@ export async function transfers(state: State) {
     checkBalance(aliceState, "94.99k");
     aliceState = await waitFor({
         producer: async state => state ? await state.refresh() : aliceState,
-        predicate: state => state.transactions.length === 1,
+        predicate: state => state.transactions.length === 2,
     });
     expect(aliceState.transactions[0].fees.inclusion).toBeGreaterThan(0);
     expect(aliceState.transactions[0].fees.storage).toBeUndefined();

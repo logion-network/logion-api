@@ -1,3 +1,4 @@
+import { Region } from "@logion/node-api";
 import { AxiosInstance } from "axios";
 import { AxiosFactory } from "./AxiosFactory";
 
@@ -29,6 +30,7 @@ export interface LegalOfficer {
     name: string;
     logoUrl: string;
     nodeId: string;
+    region: Region;
 }
 
 export type Language = 'en' | 'fr';
@@ -55,6 +57,7 @@ export class LegalOfficerClass implements LegalOfficer {
         this.name = args.legalOfficer.name;
         this.logoUrl = args.legalOfficer.logoUrl;
         this.nodeId = args.legalOfficer.nodeId;
+        this.region = args.legalOfficer.region;
 
         this.axiosFactory = args.axiosFactory;
         this.token = args.token;
@@ -68,6 +71,7 @@ export class LegalOfficerClass implements LegalOfficer {
     readonly name: string;
     readonly logoUrl: string;
     readonly nodeId: string;
+    readonly region: Region;
 
     private axiosFactory: AxiosFactory;
     private token: string | undefined;

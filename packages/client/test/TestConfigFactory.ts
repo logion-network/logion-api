@@ -44,14 +44,14 @@ export class TestConfigFactory {
 
     setupDirectoryClientMock(config: LogionClientConfig): Mock<DirectoryClient> {
         const directoryClient = new Mock<DirectoryClient>();
-        this._componentFactory.setup(instance => instance.buildDirectoryClient(config.directoryEndpoint, It.IsAny()))
+        this._componentFactory.setup(instance => instance.buildDirectoryClient(It.IsAny(), config.directoryEndpoint, It.IsAny()))
             .returns(directoryClient.object());
         return directoryClient;
     }
 
     setupAuthenticatedDirectoryClientMock(config: LogionClientConfig, token: string): Mock<DirectoryClient> {
         const directoryClient = new Mock<DirectoryClient>();
-        this._componentFactory.setup(instance => instance.buildDirectoryClient(config.directoryEndpoint, It.IsAny(), token))
+        this._componentFactory.setup(instance => instance.buildDirectoryClient(It.IsAny(), config.directoryEndpoint, It.IsAny(), token))
             .returns(directoryClient.object());
         return directoryClient;
     }

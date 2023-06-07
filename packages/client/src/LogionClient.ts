@@ -27,6 +27,7 @@ export class LogionClient {
         const axiosFactory = componentFactory.buildAxiosFactory();
         const nodeApi = await componentFactory.buildNodeApi(config.rpcEndpoints);
         const directoryClient = componentFactory.buildDirectoryClient(
+            nodeApi,
             config.directoryEndpoint,
             axiosFactory
         );
@@ -146,12 +147,14 @@ export class LogionClient {
         let directoryClient: DirectoryClient;
         if(currentAddress !== undefined) {
             directoryClient = this.sharedState.componentFactory.buildDirectoryClient(
+                this.sharedState.nodeApi,
                 this.sharedState.config.directoryEndpoint,
                 this.sharedState.axiosFactory,
                 this.sharedState.tokens.get(currentAddress)?.value,
             );
         } else {
             directoryClient = this.sharedState.componentFactory.buildDirectoryClient(
+                this.sharedState.nodeApi,
                 this.sharedState.config.directoryEndpoint,
                 this.sharedState.axiosFactory,
             );
@@ -168,6 +171,7 @@ export class LogionClient {
     logout(): LogionClient {
         this.ensureConnected();
         const directoryClient = this.sharedState.componentFactory.buildDirectoryClient(
+            this.sharedState.nodeApi,
             this.sharedState.config.directoryEndpoint,
             this.sharedState.axiosFactory
         );
