@@ -74,6 +74,8 @@ describe("Logion SDK", () => {
     });
 
     afterAll(() => {
-        tearDown(state);
+        if(state) {
+            tearDown(state);
+        }
     })
 });

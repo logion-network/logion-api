@@ -146,12 +146,11 @@ describe("LogionClient", () => {
 
         testConfigFactory.setupDefaultAxiosInstanceFactory();
         testConfigFactory.setupDefaultNetworkState();
-        testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
+        const api = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
         const alice = buildValidPolkadotAccountId(ALICE.address);
         testConfigFactory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, tokens.get(alice)!.value);
         const bob = buildValidPolkadotAccountId(BOB.address);
         testConfigFactory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, tokens.get(bob)!.value);
-        testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
 
         const config = testConfigFactory.buildTestConfig(LOGION_CLIENT_CONFIG);
         const sharedState = await buildAuthenticatedSharedStateUsingTestConfig(config, alice, legalOfficers, tokens);
@@ -160,7 +159,7 @@ describe("LogionClient", () => {
         const bobClient = aliceClient.withCurrentAddress(bob);
 
         expect(bobClient.currentAddress).toBe(bob);
-        testConfigFactory.verifyComponentFactory(instance => instance.buildDirectoryClient(DIRECTORY_ENDPOINT, It.IsAny(), tokens.get(bob)!.value));
+        testConfigFactory.verifyComponentFactory(instance => instance.buildDirectoryClient(api.object(), DIRECTORY_ENDPOINT, It.IsAny(), tokens.get(bob)!.value));
     });
 
     it("logs out", async () => {
