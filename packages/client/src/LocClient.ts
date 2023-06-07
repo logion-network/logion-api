@@ -385,7 +385,7 @@ export class LocMultiClient {
         const defaultSpec: FetchLocRequestSpecification = {
             requesterAddress: this.currentAddress.address,
             locTypes: [ "Transaction", "Collection", "Identity" ],
-            statuses: [ "OPEN", "REVIEW_PENDING", "REVIEW_REJECTED", "CLOSED", "DRAFT" ]
+            statuses: [ "OPEN", "REVIEW_PENDING", "REVIEW_ACCEPTED", "REVIEW_REJECTED", "CLOSED", "DRAFT" ]
         };
 
         const multiResponse = await httpClient.fetch(async axios => {
@@ -1219,7 +1219,7 @@ export class AuthenticatedLocClient extends LocClient {
     }): Promise<void> {
         const axios = this.backend();
         try {
-            await axios.post(`/api/loc-request/${ args.locId.toString() }/reject`, { reason: args.reason });
+            await axios.post(`/api/loc-request/${ args.locId.toString() }/reject`, { rejectReason: args.reason });
         } catch(e) {
             throw newBackendError(e);
         }
