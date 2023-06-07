@@ -43,7 +43,6 @@ import {
     AccountType,
     HostData,
     Region,
-    DEFAULT_REGION,
 } from "./Types.js";
 import { UUID } from "./UUID.js";
 import { stringToHex, stringToU8a, u8aToHex } from "@polkadot/util";
@@ -489,7 +488,7 @@ export class Adapters {
             baseUrl = u8aToHex(urlBytes);
         }
 
-        const region = this.toLogionNodeRuntimeRegion(legalOfficerData.region || DEFAULT_REGION);
+        const region = legalOfficerData.region ? this.toLogionNodeRuntimeRegion(legalOfficerData.region) : this.fromLogionNodeRuntimeRegion(this.getDefaultLogionNodeRuntimeRegion());
 
         return this.api.createType<PalletLoAuthorityListLegalOfficerData>("PalletLoAuthorityListLegalOfficerData", { Host: { nodeId, baseUrl, region } });
     }
@@ -499,12 +498,15 @@ export class Adapters {
     }
 
     fromLogionNodeRuntimeRegion(region: LogionNodeRuntimeRegion): Region {
-        if(region.isEurope) {
-            return "Europe";
-        } else {
-            throw new Error(`Unsupported region ${ region.toString() }`);
-        }
+        return region.toString() as Region;
     }
+
+    getDefaultLogionNodeRuntimeRegion(): LogionNodeRuntimeRegion {
+        this.defaultRegion ||= this.api.createType<LogionNodeRuntimeRegion>("LogionNodeRuntimeRegion");
+        return this.defaultRegion;
+    }
+
+    private defaultRegion?: LogionNodeRuntimeRegion;
 
     toHostData(legalOfficerData: PalletLoAuthorityListLegalOfficerData): Partial<HostData> {
         let nodeId: string | undefined;

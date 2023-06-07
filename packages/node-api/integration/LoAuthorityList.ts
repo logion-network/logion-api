@@ -31,3 +31,10 @@ export async function updateHostLegalOfficer() {
     expect(hostData.region.isEurope).toBe(true);
     expect(api.adapters.fromLogionNodeRuntimeRegion(hostData.region)).toBe("Europe");
 }
+
+export async function getAvailableRegions() {
+    const { api } = await setup();
+    const defaultRegion = api.queries.getDefaultRegion();
+    const regions = api.queries.getAvailableRegions();
+    expect(regions).toContain(defaultRegion);
+}

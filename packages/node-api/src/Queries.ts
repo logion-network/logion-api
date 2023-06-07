@@ -1,4 +1,5 @@
 import { ApiPromise } from "@polkadot/api";
+import { LogionNodeRuntimeRegion } from '@polkadot/types/lookup';
 import { Adapters } from "./Adapters.js";
 import * as Currency from "./Currency.js";
 import * as Numbers from "./numbers.js";
@@ -12,7 +13,8 @@ import {
     ValidAccountId,
     Sponsorship,
     VerifiedIssuerType,
-    LegalOfficerData
+    LegalOfficerData,
+    Region
 } from "./Types.js";
 import { UUID } from "./UUID.js";
 
@@ -236,5 +238,21 @@ export class Queries {
             .filter(entry => entry[1].unwrap().isGuest)
             .filter(entry => entry[1].unwrap().asGuest.toString() === address)
             .map(entry => entry[0].args[0].toString());
+    }
+
+    getAvailableRegions(): Region[] {
+        this.availableRegions ||= this.computeAvailableRegions();
+        return this.availableRegions;
+    }
+
+    private availableRegions?: Region[];
+
+    private computeAvailableRegions(): Region[] {
+        const defaultRegion = this.adapters.getDefaultLogionNodeRuntimeRegion();
+        return defaultRegion.defKeys as Region[];
+    }
+
+    getDefaultRegion(): Region {
+        return this.adapters.fromLogionNodeRuntimeRegion(this.adapters.getDefaultLogionNodeRuntimeRegion());
     }
 }

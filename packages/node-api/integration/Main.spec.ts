@@ -4,7 +4,7 @@ import {
     closeCollectionLocTest,
     createCollectionLocLimitedInSizeTest
 } from "./CollectionLoc.js";
-import { addGuestLegalOfficer, updateHostLegalOfficer } from "./LoAuthorityList.js";
+import { addGuestLegalOfficer, getAvailableRegions, updateHostLegalOfficer } from "./LoAuthorityList.js";
 import {
     createTransactionLocTest,
     addMetadataToTransactionLocTestAsLLO,
@@ -44,6 +44,7 @@ describe("Logion Node API", () => {
 
     it("adds guest legal offier", addGuestLegalOfficer);
     it("updates host legal offier", updateHostLegalOfficer);
+    it("provides available regions", getAvailableRegions);
 
     it("supports verified issuers", verifiedIssuers);
 
