@@ -957,7 +957,26 @@ export class LegalOfficerPendingRequestCommands {
     }
 }
 
-export class AcceptedRequest extends LocRequestState {
+export class ReviewedRequest extends LocRequestState {
+
+    async cancel(): Promise<LocsState> {
+        this.ensureCurrent();
+        await this.locSharedState.client.cancel(this.locId);
+        this.discard(undefined);
+        return this.locSharedState.locsState.refreshWithout(this.locId);
+    }
+
+    async rework(): Promise<DraftRequest> {
+        await this.locSharedState.client.rework(this.locId);
+        return await super.refresh() as DraftRequest;
+    }
+
+    override withLocs(locsState: LocsState): RejectedRequest {
+        return this._withLocs(locsState, RejectedRequest);
+    }
+}
+
+export class AcceptedRequest extends ReviewedRequest {
 
     async open(parameters: BlockchainSubmissionParams): Promise<OpenLoc> {
         const requesterAddress = this.request.requesterAddress;
@@ -1005,19 +1024,7 @@ export class AcceptedRequest extends LocRequestState {
     }
 }
 
-export class RejectedRequest extends LocRequestState {
-
-    async cancel(): Promise<LocsState> {
-        this.ensureCurrent();
-        await this.locSharedState.client.cancel(this.locId);
-        this.discard(undefined);
-        return this.locSharedState.locsState.refreshWithout(this.locId);
-    }
-
-    async rework(): Promise<DraftRequest> {
-        await this.locSharedState.client.rework(this.locId);
-        return await super.refresh() as DraftRequest;
-    }
+export class RejectedRequest extends ReviewedRequest {
 
     override withLocs(locsState: LocsState): RejectedRequest {
         return this._withLocs(locsState, RejectedRequest);
