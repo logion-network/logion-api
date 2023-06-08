@@ -75,20 +75,34 @@ export class BalanceState extends State {
     private async _transfer(params: TransferParam): Promise<BalanceState> {
         const { signer, destination, amount, callback } = params;
 
+        const canonicalAmount = Currency.toCanonicalAmount(amount);
+
         let submittable: SubmittableExtrinsic;
         if(this.sharedState.isRecovery) {
-            submittable =  this.sharedState.nodeApi.polkadot.tx.recovery.asRecovered(
+            submittable = this.sharedState.nodeApi.polkadot.tx.recovery.asRecovered(
                 this.sharedState.recoveredAddress || "",
-                this.sharedState.nodeApi.polkadot.tx.balances.transfer(
+                this.sharedState.nodeApi.polkadot.tx.balances.transferKeepAlive(
                     destination,
-                    Currency.toCanonicalAmount(amount),
+                    canonicalAmount,
                 )
             );
+            await this.ensureFundsForFees(submittable);
+            const recoveredAccountData = await this.sharedState.nodeApi.queries.getAccountData(this.sharedState.recoveredAddress || "");
+            const transferable = BigInt(recoveredAccountData.available);
+            if(transferable < canonicalAmount) {
+                throw new Error("Insufficient balance");
+            }
         } else {
-            submittable = this.sharedState.nodeApi.polkadot.tx.balances.transfer(
+            submittable = this.sharedState.nodeApi.polkadot.tx.balances.transferKeepAlive(
                 destination,
-                Currency.toCanonicalAmount(amount),
+                canonicalAmount,
             );
+            const fees = await this.ensureFundsForFees(submittable);
+            const available = Currency.toCanonicalAmount(this.balances[0].available);
+            const transferable = available - fees;
+            if(transferable < canonicalAmount) {
+                throw new Error("Insufficient balance");
+            }
         }
 
         await signer.signAndSend({
@@ -98,6 +112,18 @@ export class BalanceState extends State {
         })
 
         return this._refresh();
+    }
+
+    private async ensureFundsForFees(submittable: SubmittableExtrinsic): Promise<bigint> {
+        const fees = await this.sharedState.nodeApi.fees.estimateWithoutStorage({
+            origin: this.sharedState.currentAddress?.address || "",
+            submittable,
+        });
+        const available = Currency.toCanonicalAmount(this.balances[0].available);
+        if(available < fees.totalFee) {
+            throw new Error("Not enough funds available to pay fees");
+        }
+        return fees.totalFee;
     }
 
     private async _refresh(): Promise<BalanceState> {

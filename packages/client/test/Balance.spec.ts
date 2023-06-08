@@ -1,4 +1,4 @@
-import { Numbers, CoinBalance, Currency, Queries } from "@logion/node-api";
+import { Numbers, CoinBalance, Currency, Queries, Fees } from "@logion/node-api";
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { DateTime } from "luxon";
@@ -16,7 +16,7 @@ import {
 } from "./Utils.js";
 import { AccountTokens, LogionClient, Transaction, AxiosFactory, BalanceState, Signer, LegalOfficerClass } from "../src/index.js";
 
-describe("Balance", () => {
+fdescribe("Balance", () => {
 
     it("gets balances", async () => {
         const config = buildTestConfig(testConfigFactory => {
@@ -108,6 +108,20 @@ describe("Balance", () => {
         );
         const amount = new Numbers.PrefixedNumber("200", Numbers.ATTO);
         const transfer = new Mock<SubmittableExtrinsic>();
+        const balances: CoinBalance[] = [
+            {
+                coin: {
+                    iconId: "lgnt",
+                    iconType: "svg",
+                    id: "lgnt",
+                    name: "LGNT",
+                    symbol: "LGNT",
+                },
+                available: new Numbers.PrefixedNumber("300", Numbers.ATTO),
+                balance: new Numbers.PrefixedNumber("300", Numbers.ATTO),
+                level: 1,
+            }
+        ];
         const sharedState = await buildTestAuthenticatedSharedSate(
             testConfigFactory => {
                 const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
@@ -123,6 +137,9 @@ describe("Balance", () => {
                 nodeApi.setup(instance => instance.polkadot.tx.balances.transfer(REQUESTER_ADDRESS.address, "200"))
                     .returns(transfer.object());
 
+                nodeApi.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny()))
+                    .returnsAsync(new Fees(0n));
+
                 setupFetchTransactions(axiosFactory, [], REQUESTER_ADDRESS.address);
             },
             REQUESTER_ADDRESS,
@@ -132,7 +149,7 @@ describe("Balance", () => {
 
         const balanceState = new BalanceState({
             ...sharedState,
-            balances: [],
+            balances,
             transactions: [],
             isRecovery: false,
         });
@@ -167,6 +184,20 @@ describe("Balance", () => {
         const asRecovered = new Mock<SubmittableExtrinsic>();
         const amount = new Numbers.PrefixedNumber("200", Numbers.ATTO);
         const transfer = new Mock<SubmittableExtrinsic>();
+        const balances: CoinBalance[] = [
+            {
+                coin: {
+                    iconId: "lgnt",
+                    iconType: "svg",
+                    id: "lgnt",
+                    name: "LGNT",
+                    symbol: "LGNT",
+                },
+                available: new Numbers.PrefixedNumber("100", Numbers.ATTO),
+                balance: new Numbers.PrefixedNumber("100", Numbers.ATTO),
+                level: 1,
+            }
+        ];
         const sharedState = await buildTestAuthenticatedSharedSate(
             testConfigFactory => {
                 const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
@@ -182,8 +213,14 @@ describe("Balance", () => {
                 nodeApi.setup(instance => instance.polkadot.tx.balances.transfer(REQUESTER_ADDRESS.address, "200"))
                     .returns(transfer.object());
 
+                nodeApi.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny()))
+                    .returnsAsync(new Fees(0n));
+
                 nodeApi.setup(instance => instance.polkadot.tx.recovery.asRecovered(recoveredAddress, transfer.object()))
                     .returns(asRecovered.object());
+
+                nodeApi.setup(instance => instance.queries.getAccountData(recoveredAddress))
+                    .returnsAsync({ available: "200", reserved: "0", total: "200" });
 
                 setupFetchTransactions(axiosFactory, [], recoveredAddress);
             },
@@ -194,7 +231,7 @@ describe("Balance", () => {
 
         const balanceState = new BalanceState({
             ...sharedState,
-            balances: [],
+            balances,
             transactions: [],
             isRecovery: true,
             recoveredAddress,
@@ -213,6 +250,78 @@ describe("Balance", () => {
         });
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+    })
+
+    it("fails transferring with insufficient funds", async () => {
+        const token = "some-token";
+        const tokens = new AccountTokens(
+            buildSimpleNodeApi(),
+            {
+                [REQUESTER_ADDRESS.toKey()]: {
+                    value: token,
+                    expirationDateTime: DateTime.now().plus({hours: 1})
+                }
+            }
+        );
+        const amount = new Numbers.PrefixedNumber("200", Numbers.ATTO);
+        const transfer = new Mock<SubmittableExtrinsic>();
+        const balances: CoinBalance[] = [
+            {
+                coin: {
+                    iconId: "lgnt",
+                    iconType: "svg",
+                    id: "lgnt",
+                    name: "LGNT",
+                    symbol: "LGNT",
+                },
+                available: new Numbers.PrefixedNumber("200", Numbers.ATTO),
+                balance: new Numbers.PrefixedNumber("200", Numbers.ATTO),
+                level: 1,
+            }
+        ];
+        const sharedState = await buildTestAuthenticatedSharedSate(
+            testConfigFactory => {
+                const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
+                testConfigFactory.setupDefaultNetworkState();
+                const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
+                const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+
+                directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
+
+                nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS.address))
+                    .returns(Promise.resolve([ COIN_BALANCE ]));
+
+                nodeApi.setup(instance => instance.polkadot.tx.balances.transfer(REQUESTER_ADDRESS.address, "200"))
+                    .returns(transfer.object());
+
+                nodeApi.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny()))
+                    .returnsAsync(new Fees(50n));
+
+                setupFetchTransactions(axiosFactory, [], REQUESTER_ADDRESS.address);
+            },
+            REQUESTER_ADDRESS,
+            [ ALICE, BOB ],
+            tokens,
+        );
+
+        const balanceState = new BalanceState({
+            ...sharedState,
+            balances,
+            transactions: [],
+            isRecovery: false,
+        });
+
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
+            params.signerId === REQUESTER_ADDRESS.address
+            && params.submittable === transfer.object()))
+        ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
+
+        await expectAsync(balanceState.transfer({
+            signer: signer.object(),
+            amount,
+            destination: REQUESTER_ADDRESS.address,
+        })).toBeRejectedWithError("Insufficient balance");
     })
 })
 

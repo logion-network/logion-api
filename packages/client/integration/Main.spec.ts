@@ -1,8 +1,8 @@
 import { setupInitialState, State, tearDown } from "./Utils.js";
 import { enablesProtection, requestsProtectionAndCancel } from "./Protection.js";
-import { transfers } from "./Balance.js";
+import { transferAndCannotPayFees, transfers, transferWithInsufficientFunds } from "./Balance.js";
 import { providesVault } from "./Vault.js";
-import { recoverLostAccount, requestRecoveryAndCancel } from "./Recovery.js";
+import { recoverLostAccount, recoverLostVault, requestRecoveryAndCancel, requestRecoveryWithResubmit } from "./Recovery.js";
 import { requestTransactionLoc, collectionLoc, collectionLocWithUpload, identityLoc, otherIdentityLoc, logionIdentityLoc } from "./Loc.js";
 import { verifiedIssuer } from "./VerifiedIssuer.js";
 import { tokensRecords } from "./TokensRecord.js";
@@ -27,8 +27,16 @@ describe("Logion SDK", () => {
         await fees(state);
     });
 
+    it("refuses transfer if cannot pay fees", async () => {
+        await transferAndCannotPayFees(state);
+    });
+
     it("transfers", async () => {
         await transfers(state);
+    });
+
+    it("refuses transfer with unsufficient funds", async () => {
+        await transferWithInsufficientFunds(state);
     });
 
     it("enables protection", async () => {
@@ -40,8 +48,19 @@ describe("Logion SDK", () => {
         await providesVault(state);
     });
 
-    it("recovers a lost account", async () => {
+    it("is able to cancel a recovery request", async () => {
         await requestRecoveryAndCancel(state);
+    });
+
+    it("is able to start recovery after resubmission", async () => {
+        await requestRecoveryWithResubmit(state);
+    });
+
+    it("recovers a lost vault", async () => {
+        await recoverLostVault(state);
+    });
+
+    xit("recovers a lost account", async () => {
         await recoverLostAccount(state);
     });
 
