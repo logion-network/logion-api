@@ -427,6 +427,90 @@ export class LocsState extends State {
         }
         return this.withPredicate(this._verifiedIssuerLocs, loc => loc instanceof ClosedLoc || loc instanceof ClosedCollectionLoc);
     }
+
+    get legalOfficer(): LegalOfficerLocsStateCommands {
+        return new LegalOfficerLocsStateCommands({
+            sharedState: this.sharedState,
+            locsState: this,
+        });
+    }
+}
+
+/**
+ * Encapsulated calls can be used only by a Logion Legal Officer.
+ */
+export class LegalOfficerLocsStateCommands {
+
+    constructor(args: {
+        sharedState: SharedState,
+        locsState: LocsState,
+    }) {
+        this.sharedState = args.sharedState;
+        this.locsState = args.locsState;
+    }
+
+    private sharedState: SharedState;
+
+    private locsState: LocsState;
+
+    async createLoc(params: OpenLocParams): Promise<OpenLoc> {
+        const { locType, description, userIdentity, userPostalAddress, company, template, signer, callback } = params;
+        const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === this.sharedState.currentAddress?.address);
+        if(!legalOfficer) {
+            throw new Error("Current user is not a Legal Officer");
+        }
+        const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
+
+        if(locType === "Transaction" && !params.requesterLocId) {
+            throw new Error("Cannot create Logion Transaction LOC without a requester");
+        }
+
+        const request = await client.createLocRequest({
+            ownerAddress: legalOfficer.address,
+            requesterIdentityLoc: params.requesterLocId ? params.requesterLocId.toString() : undefined,
+            description,
+            locType,
+            userIdentity,
+            userPostalAddress,
+            company,
+            template,
+        });
+
+        const locId = new UUID(request.id);
+        if (request.locType === "Transaction") {
+            if(params.requesterLocId) {
+                await client.openLogionTransactionLoc({
+                    locId,
+                    requesterLocId: params.requesterLocId,
+                    signer,
+                    callback,
+                });
+            } else {
+                throw new Error();
+            }
+        } else if (request.locType === "Identity") {
+            await client.openLogionIdentityLoc({
+                locId,
+                signer,
+                callback,
+            });
+        } else {
+            throw Error("Collection LOCs are opened by Polkadot requesters");
+        }
+
+        const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this.locsState };
+        return new OpenLoc(locSharedState, request, undefined, EMPTY_LOC_ISSUERS).veryNew();
+    }
+}
+
+export interface OpenLocParams extends BlockchainSubmissionParams {
+    description: string;
+    userIdentity?: UserIdentity;
+    userPostalAddress?: PostalAddress;
+    company?: string;
+    template?: string;
+    locType: "Identity" | "Transaction";
+    requesterLocId?: UUID;
 }
 
 export interface LocSharedState extends SharedState {
@@ -1032,6 +1116,11 @@ export class RejectedRequest extends ReviewedRequest {
 }
 
 export class OpenLoc extends EditableRequest {
+
+    veryNew(): OpenLoc {
+        const newLocsState = this.locsState().refreshWith(this);
+        return newLocsState.findById(this.locId) as OpenLoc;
+    }
 
     async requestSof(): Promise<PendingRequest> {
         return requestSof(this.locSharedState, this.locId);

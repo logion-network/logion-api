@@ -273,9 +273,11 @@ export interface CreateLocRequest {
     userIdentity?: UserIdentity;
     userPostalAddress?: PostalAddress;
     company?: string;
-    draft: boolean;
+    draft?: boolean;
     template?: string;
     sponsorshipId?: string;
+    requesterAddress?: SupportedAccountId;
+    requesterIdentityLoc?: string;
 }
 
 export interface CreateSofRequest {
@@ -1260,6 +1262,19 @@ export class AuthenticatedLocClient extends LocClient {
         await this.openLoc({ locId });
     }
 
+    async openLogionTransactionLoc(parameters: { locId: UUID, requesterLocId: UUID } & BlockchainSubmissionParams ) {
+        const { locId, requesterLocId, signer, callback } = parameters;
+        const submittable = this.nodeApi.polkadot.tx.logionLoc.createLogionTransactionLoc(
+            this.nodeApi.adapters.toLocId(locId),
+            this.nodeApi.adapters.toNonCompactLocId(requesterLocId),
+        );
+        await signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable,
+            callback,
+        });
+    }
+
     private async acceptLoc(args: { locId: UUID }) {
         const axios = this.backend();
         try {
@@ -1327,6 +1342,18 @@ export class AuthenticatedLocClient extends LocClient {
             callback,
         });
         await this.openLoc({ locId });
+    }
+
+    async openLogionIdentityLoc(parameters: { locId: UUID } & BlockchainSubmissionParams ) {
+        const { locId, signer, callback } = parameters
+        const submittable = this.nodeApi.polkadot.tx.logionLoc.createLogionIdentityLoc(
+            this.nodeApi.adapters.toLocId(locId),
+        );
+        await signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable,
+            callback,
+        });
     }
 
     async acceptCollectionLoc(parameters: { locId: UUID }): Promise<void> {
