@@ -462,3 +462,42 @@ export async function otherIdentityLoc(state: State) {
     await legalOfficer.acceptAndOpenLoc(pendingRequest.locId);
     await legalOfficer.closeLoc(pendingRequest.locId);
 }
+
+export async function logionIdentityLoc(state: State) {
+    const { aliceAccount, signer } = state;
+    const client = state.client.withCurrentAddress(aliceAccount);
+    let locsState = await client.locsState();
+
+    const openLogionIdentityLoc = await locsState.legalOfficer.createLoc({
+        description: "This is a Logion Identity LOC",
+        userIdentity: {
+            email: "john.doe@invalid.domain",
+            firstName: "John",
+            lastName: "Doe",
+            phoneNumber: "+1234",
+        },
+        userPostalAddress: {
+            line1: "Peace Street",
+            line2: "2nd floor",
+            postalCode: "10000",
+            city: "MyCity",
+            country: "Wonderland"
+        },
+        locType: "Identity",
+        signer,
+    }) as OpenLoc;
+    expect(openLogionIdentityLoc.data().status).toBe("OPEN");
+
+    const closedLogionIdentityLoc = await openLogionIdentityLoc.legalOfficer.close({ signer }) as ClosedLoc;
+    expect(closedLogionIdentityLoc.data().status).toBe("CLOSED");
+
+    const requesterLocId = closedLogionIdentityLoc.data().id;
+    locsState = closedLogionIdentityLoc.locsState();
+    const openLogionTransactionLoc = await locsState.legalOfficer.createLoc({
+        description: "This is a Logion Transaction LOC",
+        locType: "Transaction",
+        requesterLocId,
+        signer,
+    }) as OpenLoc;
+    expect(openLogionTransactionLoc.data().requesterLocId?.toString()).toBe(requesterLocId.toString());
+}
