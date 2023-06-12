@@ -453,7 +453,7 @@ export class LegalOfficerLocsStateCommands {
 
     private locsState: LocsState;
 
-    async createLoc(params: OpenLocParams): Promise<OpenLoc> {
+    async createLoc(params: OpenLocParams & BlockchainSubmissionParams): Promise<OpenLoc> {
         const { locType, description, userIdentity, userPostalAddress, company, template, signer, callback } = params;
         const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === this.sharedState.currentAddress?.address);
         if(!legalOfficer) {
@@ -503,7 +503,7 @@ export class LegalOfficerLocsStateCommands {
     }
 }
 
-export interface OpenLocParams extends BlockchainSubmissionParams {
+export interface OpenLocParams {
     description: string;
     userIdentity?: UserIdentity;
     userPostalAddress?: PostalAddress;
