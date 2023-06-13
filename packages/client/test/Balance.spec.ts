@@ -134,7 +134,7 @@ fdescribe("Balance", () => {
                 nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS.address))
                     .returns(Promise.resolve([ COIN_BALANCE ]));
 
-                nodeApi.setup(instance => instance.polkadot.tx.balances.transfer(REQUESTER_ADDRESS.address, "200"))
+                nodeApi.setup(instance => instance.polkadot.tx.balances.transferKeepAlive(REQUESTER_ADDRESS.address, "200"))
                     .returns(transfer.object());
 
                 nodeApi.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny()))
@@ -210,7 +210,7 @@ fdescribe("Balance", () => {
                 nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS.address))
                     .returns(Promise.resolve([ COIN_BALANCE ]));
 
-                nodeApi.setup(instance => instance.polkadot.tx.balances.transfer(REQUESTER_ADDRESS.address, "200"))
+                nodeApi.setup(instance => instance.polkadot.tx.balances.transferKeepAlive(REQUESTER_ADDRESS.address, "200"))
                     .returns(transfer.object());
 
                 nodeApi.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny()))
@@ -291,7 +291,7 @@ fdescribe("Balance", () => {
                 nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS.address))
                     .returns(Promise.resolve([ COIN_BALANCE ]));
 
-                nodeApi.setup(instance => instance.polkadot.tx.balances.transfer(REQUESTER_ADDRESS.address, "200"))
+                nodeApi.setup(instance => instance.polkadot.tx.balances.transferKeepAlive(REQUESTER_ADDRESS.address, "200"))
                     .returns(transfer.object());
 
                 nodeApi.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny()))
