@@ -16,7 +16,7 @@ import {
 } from "./Utils.js";
 import { AccountTokens, LogionClient, Transaction, AxiosFactory, BalanceState, Signer, LegalOfficerClass } from "../src/index.js";
 
-fdescribe("Balance", () => {
+describe("Balance", () => {
 
     it("gets balances", async () => {
         const config = buildTestConfig(testConfigFactory => {
