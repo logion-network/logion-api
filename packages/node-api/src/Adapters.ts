@@ -347,7 +347,7 @@ export class Adapters {
             return {
                 pallet: "unknown",
                 error: "Unknown",
-                details: "An unknown error occurred"
+                details: `An unknown error occurred: ${ dispatchError.type }`
             }
         }
     }
