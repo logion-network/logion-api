@@ -11,7 +11,7 @@ describe("UUID", () => {
     });
 
     it("can be created from bytes", () => {
-        const uuid = new UUID(uuidBytes as number[]);
+        const uuid = new UUID(uuidBytes);
         expect(uuid.toString()).toBe(uuidString);
     });
 
@@ -46,4 +46,12 @@ describe("UUID", () => {
         const uuid = UUID.fromDecimalString("something-wrong");
         expect(uuid).toBeUndefined();
     });
+
+    it("fromDecimalStringOrThrow accepts UUID producing a number with less than 16 bytes", () => {
+        const uuidString = "00c361e1-f029-4d82-9592-91946345ce7d";
+        const uuidObject = new UUID(uuidString);
+        const decimalUuid = "1014483181808745655871291974752783997";
+        expect(uuidObject.toDecimalString()).toBe(decimalUuid);
+        UUID.fromDecimalStringOrThrow(decimalUuid);
+    })
 });

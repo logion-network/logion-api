@@ -3,7 +3,7 @@ import BN from 'bn.js';
 
 export class UUID {
 
-    constructor(value?: string | Array<number>) {
+    constructor(value?: string | Array<number> | Uint8Array) {
         if (value === undefined) {
             this.bytes = parse(v4())
         } else if (typeof value === 'string') {
@@ -34,7 +34,7 @@ export class UUID {
         if (!/^\d+$/.test(value)) {
             throw new Error(`Unexpected format: ${value}`);
         }
-        const numbers = new BN(value, 10).toArray();
+        const numbers = new BN(value, 10).toArray(undefined, 16);
         return new UUID(numbers);
     }
 
