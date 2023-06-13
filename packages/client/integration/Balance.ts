@@ -58,3 +58,30 @@ export function checkCoinBalance(balance: CoinBalance, expectedValue: string) {
 export function formatBalance(balance: CoinBalance): string {
     return `${balance.balance.coefficient.toInteger()}.${balance.balance.coefficient.toFixedPrecisionDecimals(2)}${balance.balance.prefix.symbol}`;
 }
+
+export async function transferAndCannotPayFees(state: State) {
+    const { client, signer, requesterAccount } = state;
+
+    const requesterClient = client.withCurrentAddress(requesterAccount)
+    let balanceState = await requesterClient.balanceState();
+
+    await expectAsync(balanceState.transfer({
+        signer,
+        amount: new Numbers.PrefixedNumber("1", Numbers.NONE),
+        destination: ALICE.address,
+    })).toBeRejectedWithError("Not enough funds available to pay fees");
+}
+
+export async function transferWithInsufficientFunds(state: State) {
+    const { client, signer, aliceAccount } = state;
+
+    // Alice transfers to user.
+    const aliceClient = client.withCurrentAddress(aliceAccount)
+    let aliceState = await aliceClient.balanceState();
+
+    await expectAsync(aliceState.transfer({
+        signer,
+        amount: aliceState.balances[0].available.add(new Numbers.PrefixedNumber("1", Numbers.NONE)),
+        destination: REQUESTER_ADDRESS
+    })).toBeRejectedWithError("Insufficient balance");
+}

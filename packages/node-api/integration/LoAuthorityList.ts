@@ -35,7 +35,7 @@ export async function updateHostLegalOfficer() {
 
     const host = await api.queries.getLegalOfficerData(ALICE);
     expect(host.isHost).toBe(true);
-    expect(host.guests?.length).toBe(0);
+    expect(host.guests?.length).toBe(1);
     expect(host.hostAddress).toBeUndefined();
     expect(host.hostData?.nodeId).toBe(nodeId);
     expect(host.hostData?.region).toBe(region);

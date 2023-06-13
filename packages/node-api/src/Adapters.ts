@@ -47,6 +47,8 @@ import {
 import { UUID } from "./UUID.js";
 import { stringToHex, stringToU8a, u8aToHex } from "@polkadot/util";
 import { base58Decode, base58Encode } from "@polkadot/util-crypto";
+import { HexString } from "@polkadot/util/types.js";
+import { H256 } from "./interfaces/types.js";
 
 
 export class Adapters {
@@ -235,7 +237,11 @@ export class Adapters {
     }
 
     static getErrorMetadata(dispatchError: DispatchError): TypesErrorMetadata {
-        if (dispatchError && typeof dispatchError === 'object' && 'isModule' in dispatchError && dispatchError.isModule) {
+        // Source for non-module error descriptions:
+        //
+        // https://paritytech.github.io/substrate/master/frame_support/dispatch/enum.DispatchError.html
+
+        if (dispatchError && dispatchError.isModule) {
             const module = dispatchError.asModule;
             try {
                 const metaError = dispatchError.registry.findMetaError({
@@ -262,11 +268,87 @@ export class Adapters {
                     details: `Failed to find meta error: ${e}`
                 }
             }
-        }
-        return {
-            pallet: "unknown",
-            error: "Unknown",
-            details: "An unknown error occurred"
+        } else if (dispatchError && dispatchError.isArithmetic) {
+            const error = dispatchError.asArithmetic;
+            return {
+                pallet: "dispatch",
+                error: "Arithmetic",
+                details: error.toString(),
+            };
+        } else if (dispatchError && dispatchError.isBadOrigin) {
+            return {
+                pallet: "dispatch",
+                error: "BadOrigin",
+                details: "A bad origin.",
+            };
+        } else if (dispatchError && dispatchError.isCannotLookup) {
+            return {
+                pallet: "dispatch",
+                error: "CannotLookup",
+                details: "Failed to lookup some data.",
+            };
+        } else if (dispatchError && dispatchError.isConsumerRemaining) {
+            return {
+                pallet: "dispatch",
+                error: "ConsumerRemaining",
+                details: "At least one consumer is remaining so the account cannot be destroyed.",
+            };
+        } else if (dispatchError && dispatchError.isCorruption) {
+            return {
+                pallet: "dispatch",
+                error: "Corruption",
+                details: "The state is corrupt; this is generally not going to fix itself.",
+            };
+        } else if (dispatchError && dispatchError.isExhausted) {
+            return {
+                pallet: "dispatch",
+                error: "Exhausted",
+                details: "Resources exhausted, e.g. attempt to read/write data which is too large to manipulate.",
+            };
+        } else if (dispatchError && dispatchError.isNoProviders) {
+            return {
+                pallet: "dispatch",
+                error: "NoProviders",
+                details: "There are no providers so the account cannot be created.",
+            };
+        } else if (dispatchError && dispatchError.isOther) {
+            return {
+                pallet: "dispatch",
+                error: "Other",
+                details: "Some error occurred.",
+            };
+        } else if (dispatchError && dispatchError.isToken) {
+            const error = dispatchError.asToken;
+            return {
+                pallet: "dispatch",
+                error: "Token",
+                details: error.toString(),
+            };
+        } else if (dispatchError && dispatchError.isTooManyConsumers) {
+            return {
+                pallet: "dispatch",
+                error: "TooManyConsumers",
+                details: "There are too many consumers so the account cannot be created.",
+            };
+        } else if (dispatchError && dispatchError.isTransactional) {
+            const error = dispatchError.asTransactional;
+            return {
+                pallet: "dispatch",
+                error: "Transactional",
+                details: error.toString(),
+            };
+        } else if (dispatchError && dispatchError.isUnavailable) {
+            return {
+                pallet: "dispatch",
+                error: "Unavailable",
+                details: "Some resource (e.g. a preimage) is unavailable right now. This might fix itself later.",
+            };
+        } else {
+            return {
+                pallet: "unknown",
+                error: "Unknown",
+                details: `An unknown error occurred: ${ dispatchError.type }`
+            }
         }
     }
 
@@ -524,5 +606,9 @@ export class Adapters {
         const region = this.fromLogionNodeRuntimeRegion(legalOfficerData.asHost.region);
     
         return { baseUrl, nodeId, region };
+    }
+
+    toH256(data: HexString): H256 {
+        return this.api.createType<H256>("H256", data);
     }
 }

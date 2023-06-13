@@ -9,7 +9,8 @@ import {
     PendingRecovery,
     PendingProtection,
     RejectedProtection,
-    LogionClientConfig
+    LogionClientConfig,
+    ClaimedRecovery,
 } from "../src/index.js";
 import { acceptRequest, rejectRequest } from "./Protection.js";
 import { aliceAcceptsTransfer } from "./Vault.js";
@@ -30,7 +31,7 @@ export async function requestRecoveryAndCancel(state: State) {
     expect(cancelled).toBeInstanceOf(NoProtection);
 }
 
-export async function recoverLostAccount(state: State) {
+export async function requestRecoveryWithResubmit(state: State) {
     const { client, signer, alice, aliceAccount, charlie, charlieAccount } = state;
 
     const requested = await requestRecovery(state);
@@ -46,14 +47,19 @@ export async function recoverLostAccount(state: State) {
     await acceptRequestAndVouch(client.config, client, signer, alice, aliceAccount, REQUESTER_ADDRESS, NEW_ADDRESS);
     await acceptRequestAndVouch(client.config, client, signer, charlie, charlieAccount, REQUESTER_ADDRESS, NEW_ADDRESS);
 
-    const accepted = (await pending.refresh()) as AcceptedProtection;
-
     console.log("Activating")
+    const accepted = await pending.refresh() as AcceptedProtection;
     let pendingRecovery = await accepted.activate(signer) as PendingRecovery;
     pendingRecovery = await pendingRecovery.waitForFullyReady();
 
     console.log("Claiming")
-    const claimed = await pendingRecovery.claimRecovery(signer);
+    await pendingRecovery.claimRecovery(signer);
+}
+
+export async function recoverLostVault(state: State) {
+    const { signer, alice } = state;
+
+    const claimed = await getClaimedRecovery(state);
 
     console.log("Transfer from recovered vault")
     const newVault = await claimed.vaultState();
@@ -68,6 +74,20 @@ export async function recoverLostAccount(state: State) {
 
     console.log("Alice accepts transfer from recovered vault")
     await aliceAcceptsTransfer(state, pendingRequest, claimed);
+}
+
+async function getClaimedRecovery(state: State) {
+    const { client, newAccount } = state;
+    const authenticatedClient = client.withCurrentAddress(newAccount);
+    const accepted = await authenticatedClient.protectionState() as ClaimedRecovery;
+    expect(accepted).toBeInstanceOf(ClaimedRecovery);
+    return accepted;
+}
+
+export async function recoverLostAccount(state: State) {
+    const { signer } = state;
+
+    const claimed = await getClaimedRecovery(state);
 
     console.log("Transfer from recovered account")
     const recoveredBalance = await claimed.recoveredBalanceState();

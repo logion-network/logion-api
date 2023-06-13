@@ -1,4 +1,4 @@
-import { transferTokens, failedTransfer } from "./Balances.js";
+import { transferTokens } from "./Balances.js";
 import {
     addCollectionItemTest,
     closeCollectionLocTest,
@@ -18,13 +18,16 @@ import { createVote } from "./Vote.js";
 import { verifiedIssuers } from "./VerifiedIssuers.js";
 import { storageFees, legalFees } from "./Fees.js";
 import { toPalletLogionLocOtherAccountId, toSponsorshipId, toPalletLogionLocMetadataItem, toPalletLogionLocFile } from "./Adapters.js";
+import { badOriginError, moduleError } from "./Error.js";
 
 describe("Logion Node API", () => {
 
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 300000;
 
     it("transfers logion tokens", transferTokens);
-    it("fails transferring more logion tokens than available", failedTransfer);
+
+    it("handles properly bad origin error", badOriginError);
+    it("handles properly pallet error", moduleError);
 
     it("creates transaction LOCs", createTransactionLocTest);
 
