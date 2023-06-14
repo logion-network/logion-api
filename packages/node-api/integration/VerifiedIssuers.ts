@@ -1,5 +1,5 @@
 import { Currency, UUID, Adapters } from "../src/index.js";
-import { ALICE, ISSUER, REQUESTER, setup, signAndSend, signAndSendBatch } from "./Util.js";
+import { ALICE, ISSUER, setup, signAndSend, signAndSendBatch } from "./Util.js";
 
 export async function verifiedIssuers() {
     const { api, alice, issuer, requester } = await setup();
@@ -22,8 +22,8 @@ export async function verifiedIssuers() {
     await signAndSendBatch(alice, [
         api.polkadot.tx.logionLoc.setIssuerSelection(collectionLocId.toDecimalString(), ISSUER, true),
         api.polkadot.tx.logionLoc.addMetadata(collectionLocId.toDecimalString(), api.adapters.toPalletLogionLocMetadataItem({
-            name: "Test",
-            value: "Test",
+            name: "0x532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25", // "Test",
+            value: "0x532eaabd9574880dbf76b9b8cc00832c20a6ec113d682299550d7a6e0f345e25", // "Test",
             submitter: api.queries.getValidAccountId(ISSUER, "Polkadot"),
         })),
         api.polkadot.tx.logionLoc.close(collectionLocId.toDecimalString()),

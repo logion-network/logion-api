@@ -10,9 +10,12 @@ export interface TypesAccountData {
     total: string,
 }
 
+type HexNumber = string;
+export type Hash = `0x${ HexNumber }`;
+
 export interface MetadataItemParams {
-    name: string;
-    value: string;
+    name: Hash;
+    value: Hash;
     submitter: ValidAccountId;
 }
 
@@ -21,8 +24,8 @@ export interface MetadataItem extends MetadataItemParams {
 }
 
 export interface FileParams {
-    hash: string;
-    nature: string;
+    hash: Hash;
+    nature: Hash;
     submitter: ValidAccountId;
     size: bigint;
 }
@@ -33,7 +36,7 @@ export interface File extends FileParams {
 
 export interface Link {
     id: UUID;
-    nature: string;
+    nature: Hash;
 }
 
 export interface LegalOfficerCase {

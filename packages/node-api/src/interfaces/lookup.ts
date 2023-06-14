@@ -1459,7 +1459,7 @@ export default {
       },
       acknowledge_metadata: {
         locId: 'Compact<u128>',
-        name: 'Bytes',
+        name: 'H256',
       },
       acknowledge_file: {
         _alias: {
@@ -1471,11 +1471,11 @@ export default {
     }
   },
   /**
-   * Lookup158: pallet_logion_loc::MetadataItemParams<sp_core::crypto::AccountId32, primitive_types::H160>
+   * Lookup158: pallet_logion_loc::MetadataItemParams<sp_core::crypto::AccountId32, primitive_types::H160, primitive_types::H256>
    **/
   PalletLogionLocMetadataItemParams: {
-    name: 'Bytes',
-    value: 'Bytes',
+    name: 'H256',
+    value: 'H256',
     submitter: 'PalletLogionLocSupportedAccountId'
   },
   /**
@@ -1487,16 +1487,16 @@ export default {
       size_: 'size'
     },
     hash_: 'H256',
-    nature: 'Bytes',
+    nature: 'H256',
     submitter: 'PalletLogionLocSupportedAccountId',
     size_: 'u32'
   },
   /**
-   * Lookup160: pallet_logion_loc::LocLink<LocId>
+   * Lookup160: pallet_logion_loc::LocLink<LocId, primitive_types::H256>
    **/
   PalletLogionLocLocLink: {
     id: 'u128',
-    nature: 'Bytes'
+    nature: 'H256'
   },
   /**
    * Lookup162: pallet_logion_loc::CollectionItemFile<primitive_types::H256>
@@ -1751,11 +1751,11 @@ export default {
     }
   },
   /**
-   * Lookup200: pallet_logion_loc::MetadataItem<sp_core::crypto::AccountId32, primitive_types::H160>
+   * Lookup200: pallet_logion_loc::MetadataItem<sp_core::crypto::AccountId32, primitive_types::H160, primitive_types::H256>
    **/
   PalletLogionLocMetadataItem: {
-    name: 'Bytes',
-    value: 'Bytes',
+    name: 'H256',
+    value: 'H256',
     submitter: 'PalletLogionLocSupportedAccountId',
     acknowledged: 'bool'
   },
@@ -1768,7 +1768,7 @@ export default {
       size_: 'size'
     },
     hash_: 'H256',
-    nature: 'Bytes',
+    nature: 'H256',
     submitter: 'PalletLogionLocSupportedAccountId',
     size_: 'u32',
     acknowledged: 'bool'
@@ -1835,7 +1835,7 @@ export default {
    * Lookup223: pallet_logion_loc::pallet::StorageVersion
    **/
   PalletLogionLocStorageVersion: {
-    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize', 'V11EnableEthereumSubmitter', 'V12Sponsorship', 'V13AcknowledgeItems']
+    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize', 'V11EnableEthereumSubmitter', 'V12Sponsorship', 'V13AcknowledgeItems', 'V14HashLocPublicData']
   },
   /**
    * Lookup224: pallet_logion_loc::pallet::Error<T>

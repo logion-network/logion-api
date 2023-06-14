@@ -160,10 +160,10 @@ function mockPolkadotApiForLogionLoc() {
                         metadata: {
                             toArray: () => DEFAULT_LOC.metadata.map(item => ({
                                 name: {
-                                    toUtf8: () => item.name
+                                    toHex: () => item.name
                                 },
                                 value: {
-                                    toUtf8: () => item.value
+                                    toHex: () => item.value
                                 },
                                 submitter: {
                                     isPolkadot: true,
@@ -180,7 +180,7 @@ function mockPolkadotApiForLogionLoc() {
                                     toHex: () => file.hash
                                 },
                                 nature: {
-                                    toUtf8: () => file.nature
+                                    toHex: () => file.nature
                                 },
                                 submitter: {
                                     isPolkadot: true,
@@ -200,7 +200,7 @@ function mockPolkadotApiForLogionLoc() {
                                     toString: () => link.id.toDecimalString()
                                 },
                                 nature: {
-                                    toUtf8: () => link.nature
+                                    toHex: () => link.nature
                                 }
                             }))
                         },
@@ -264,8 +264,8 @@ export const DEFAULT_LOC: LegalOfficerCase = {
     requesterAddress: mockValidAccountId("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb"),
     metadata: [
         {
-            name: "meta_name",
-            value: "meta_value",
+            name: "0x5beec8d95ab31db54c7fa04b4ad9f8f803d0f3c02dc5f92f01315525b1e7a418", // "meta_name",
+            value: "0x4825b5bf0234ae4bb2f01eae996a4b96b0166ccf807ab4b555f035cb786d7300", // "meta_value",
             submitter: mockValidAccountId("owner"),
             acknowledged: true,
         }
@@ -273,7 +273,7 @@ export const DEFAULT_LOC: LegalOfficerCase = {
     files: [
         {
             hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
-            nature: "file-nature",
+            nature: "0x8d9661f02e30e4d9c0aa5542c4fe4b2e517ff0f42e0b3551cd79c7bc66005c28", // "file-nature",
             submitter: mockValidAccountId("owner"),
             size: BigInt(128000),
             acknowledged: true,
@@ -282,7 +282,7 @@ export const DEFAULT_LOC: LegalOfficerCase = {
     links: [
         {
             id: new UUID("90fcde7e-a255-404e-8b15-32963a4e64c0"),
-            nature: "file-nature"
+            nature: "0xd70a29488f030b5636f7e8ac37d2ac8cb910a04fdaf4e3e2b660b8171df354d0", // "link-nature"
         }
     ],
     closed: false,

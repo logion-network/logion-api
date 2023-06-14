@@ -1,4 +1,4 @@
-import { UUID } from "../src/index.js";
+import { UUID, MetadataItemParams } from "../src/index.js";
 import { setup } from "./Util.js";
 
 export async function toPalletLogionLocOtherAccountId() {
@@ -29,15 +29,15 @@ export async function toPalletLogionLocMetadataItem() {
     const validPolkadotAccountId = api.queries.getValidAccountId(polkadotAddress, "Polkadot");
 
     const submitter = validPolkadotAccountId;
-    const item = {
-        name: "a_name",
-        value: "a_value",
+    const item: MetadataItemParams = {
+        name: "0x6bccbb4801b2d1f5abb5b0f0540add342716edf347721911f7b12d00af715ec0", // "a_name",
+        value: "0xba3781303cb841808fee0d46e315d6f76367b1842d38c26d8946bc6456920498", // "a_value",
         submitter,
     };
     const palletItem = api.adapters.toPalletLogionLocMetadataItem(item);
 
-    expect(palletItem.name.toHex()).toBe("0x615f6e616d65");
-    expect(palletItem.value.toHex()).toBe("0x615f76616c7565");
+    expect(palletItem.name.toHex()).toBe(item.name);
+    expect(palletItem.value.toHex()).toBe(item.value);
     expect(palletItem.submitter.asPolkadot.toString()).toBe(polkadotAddress);
 }
 
@@ -50,7 +50,7 @@ export async function toPalletLogionLocFile() {
 
     const submitter = validPolkadotAccountId;
     const hash = "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2";
-    const nature = "file-nature";
+    const nature = "0x8d9661f02e30e4d9c0aa5542c4fe4b2e517ff0f42e0b3551cd79c7bc66005c28" // "file-nature";
     const size = BigInt(128000);
     const palletFile = api.adapters.toPalletLogionLocFile({
         hash,
@@ -59,7 +59,7 @@ export async function toPalletLogionLocFile() {
         submitter,
     });
     expect(palletFile.hash_.toHex()).toBe(hash);
-    expect(palletFile.nature.toUtf8()).toBe(nature);
+    expect(palletFile.nature.toHex()).toBe(nature);
     expect(palletFile.size_.toBigInt()).toBe(size);
     expect(palletFile.submitter.asPolkadot.toString()).toBe(polkadotAddress);
 }
