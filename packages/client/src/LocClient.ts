@@ -1,7 +1,6 @@
 import {
     LogionNodeApiClass,
     UUID,
-    Link,
     LocType,
     LegalOfficerCase,
     ItemFile,
@@ -14,7 +13,6 @@ import {
     TypesTokensRecord,
     TypesTokensRecordFile,
     FileParams,
-    MetadataItemParams,
 } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AxiosInstance } from 'axios';
@@ -28,7 +26,7 @@ import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays,
 import { Signer, SignCallback } from "./Signer.js";
 import { ComponentFactory } from "./ComponentFactory.js";
 import { newBackendError } from "./Error.js";
-import { HashOrContent } from "./Hash.js";
+import { HashOrContent, hashString } from "./Hash.js";
 import { MimeType } from "./Mime.js";
 import { validateToken, ItemTokenWithRestrictedType, TokenType } from "./Token.js";
 import {
@@ -40,6 +38,7 @@ import {
 } from "./license/index.js";
 import { CollectionDelivery, ItemDeliveries } from './Deliveries.js';
 import { Fees } from './Fees.js';
+import { Hash } from "./Hash";
 
 export interface AddedOn {
     addedOn: string;
@@ -57,7 +56,7 @@ export interface SupportedAccountId {
 export type ItemStatus = "DRAFT" | "REVIEW_PENDING" | "REVIEW_ACCEPTED" | "REVIEW_REJECTED" | "PUBLISHED" | "ACKNOWLEDGED";
 
 export interface FileInfo extends Partial<AddedOn> {
-    hash: string;
+    hash: Hash;
     nature: string;
     submitter: SupportedAccountId;
     name: string;
@@ -78,7 +77,7 @@ export interface LocFile extends FileInfo {
 }
 
 /**
- * Blockchain MetadataItem, extended with timestamp.
+ * Backend MetadataItem.
  */
 export interface LocMetadataItem extends Partial<AddedOn> {
     name: string;
@@ -91,10 +90,11 @@ export interface LocMetadataItem extends Partial<AddedOn> {
 }
 
 /**
- * Blockchain MetadataItem, extended with timestamp.
+ * Backend LocLink.
  */
-export interface LocLink extends Link, AddedOn {
-    target: string; // is redundant with inherited "id: UUID"
+export interface LocLink extends AddedOn {
+    target: string;
+    nature: string;
     fees?: Fees;
 }
 
@@ -1178,9 +1178,14 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async publishMetadata(parameters: PublishMetadataParams): Promise<void> {
+        const { name, value, submitter} = parameters.metadata;
         const submittable = this.nodeApi.polkadot.tx.logionLoc.addMetadata(
             this.nodeApi.adapters.toLocId(parameters.locId),
-            this.nodeApi.adapters.toPalletLogionLocMetadataItem(parameters.metadata),
+            this.nodeApi.adapters.toPalletLogionLocMetadataItem({
+                name: hashString(name),
+                value: hashString(value),
+                submitter,
+    }),
         );
 
         await parameters.signer.signAndSend({
@@ -1190,7 +1195,7 @@ export class AuthenticatedLocClient extends LocClient {
         });
     
         try {
-            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/metadata/${ encodeURIComponent(parameters.metadata.name) }/confirm`);
+            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/metadata/${ encodeURIComponent(name) }/confirm`);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1199,7 +1204,7 @@ export class AuthenticatedLocClient extends LocClient {
     async acknowledgeMetadata(parameters: { locId: UUID } & AckMetadataParams): Promise<void> {
         const submittable = this.nodeApi.polkadot.tx.logionLoc.acknowledgeMetadata(
             this.nodeApi.adapters.toLocId(parameters.locId),
-            parameters.name,
+            hashString(parameters.name),
         );
 
         await parameters.signer.signAndSend({
@@ -1418,7 +1423,7 @@ export interface PublishFileParams extends BlockchainSubmissionParams {
 }
 
 export interface AckFileParams extends BlockchainSubmissionParams {
-    hash: string;
+    hash: Hash;
 }
 
 export interface ReviewMetadataParams {
@@ -1429,7 +1434,11 @@ export interface ReviewMetadataParams {
 
 export interface PublishMetadataParams extends BlockchainSubmissionParams {
     locId: UUID;
-    metadata: MetadataItemParams;
+    metadata: {
+        name: string;
+        value: string;
+        submitter: ValidAccountId;
+    };
 }
 
 export interface AckMetadataParams extends BlockchainSubmissionParams {

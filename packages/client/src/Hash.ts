@@ -1,26 +1,29 @@
-import { Hash } from 'fast-sha256';
+import { Hash as Hasher } from 'fast-sha256';
 import { FileLike, UploadableData } from "./ComponentFactory.js";
+import { Hash } from "@logion/node-api";
 
-export function hashString(data: string): string {
-    const digest = new Hash();
+export { Hash };
+
+export function hashString(data: string): Hash {
+    const digest = new Hasher();
     const bytes = new TextEncoder().encode(data);
     digest.update(bytes);
     return digestToHex(digest);
 }
 
-function digestToHex(digest: Hash): string {
-    return '0x' + Buffer.from(digest.digest()).toString('hex');
+function digestToHex(digest: Hasher): Hash {
+    return `0x${ Buffer.from(digest.digest()).toString('hex') }`;
 }
 
 export interface HashAndSize {
-    hash: string;
+    hash: Hash;
     size: bigint;
 }
 
 export async function hashBlob(file: Blob): Promise<HashAndSize> {
     const unknownStream: any = file.stream(); // eslint-disable-line @typescript-eslint/no-explicit-any
     const reader = unknownStream.getReader();
-    const digest = new Hash();
+    const digest = new Hasher();
     let size = 0n;
     let chunk: {done: boolean, value: Buffer} = await reader.read();
     while(!chunk.done) {
@@ -34,15 +37,15 @@ export async function hashBlob(file: Blob): Promise<HashAndSize> {
     };
 }
 
-export function hashBuffer(buffer: Buffer): string {
-    const digest = new Hash();
+export function hashBuffer(buffer: Buffer): Hash {
+    const digest = new Hasher();
     digest.update(buffer);
     return digestToHex(digest);
 }
 
 export async function hashStream(stream: NodeJS.ReadableStream): Promise<HashAndSize> {
     return new Promise<HashAndSize>((resolve, reject) => {
-        const digest = new Hash();
+        const digest = new Hasher();
         let size = 0n;
         stream.on("data", data => {
             size = size + BigInt(data.length);
@@ -64,7 +67,7 @@ export function validHash(hash: string): boolean {
 
 export class HashOrContent {
 
-    static fromHash(hash: string): HashOrContent {
+    static fromHash(hash: Hash): HashOrContent {
         return new HashOrContent({ hash });
     }
 
@@ -78,7 +81,7 @@ export class HashOrContent {
         return content;
     }
 
-    constructor(parameters: { hash?: string, content?: FileLike }) {
+    constructor(parameters: { hash?: Hash, content?: FileLike }) {
         if(!parameters.hash && !parameters.content) {
             throw new Error("Either of hash or content must be defined");
         }
@@ -90,7 +93,7 @@ export class HashOrContent {
         this.finalized = parameters.content === undefined;
     }
 
-    private _hash?: string;
+    private _hash?: Hash;
 
     private _content?: FileLike;
 

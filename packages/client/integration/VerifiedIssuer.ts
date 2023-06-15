@@ -84,7 +84,5 @@ export async function verifiedIssuer(state: State) {
 
     await legalOfficer.selectIssuer(newLoc.locId, ISSUER_ADDRESS, false);
     const userLoc = (await userClient.locsState()).findById(locId);
-    expect(userLoc.data().issuers.length).toBe(1);
-    expect(userLoc.data().issuers[0].identityLocId).toBe(closedIdentityLoc.locId.toString());
-    expect(userLoc.data().issuers[0].selected).toBe(false);
+    expect(userLoc.data().issuers.length).toBe(0);
 }

@@ -1,4 +1,4 @@
-import { HashOrContent } from "../src/index.js";
+import { HashOrContent, Hash } from "../src/index.js";
 
 describe("HashOrContent", () => {
 
@@ -21,7 +21,7 @@ describe("HashOrContent", () => {
     });
 
     it("detects invalid hash (no prefix)", () => {
-        expect(() => HashOrContent.fromHash(INVALID_HASH_NO_PREFIX)).toThrow();
+        expect(() => HashOrContent.fromHash(INVALID_HASH_NO_PREFIX as Hash)).toThrow();
     });
 
     it("detects invalid hash (not hexa)", () => {
