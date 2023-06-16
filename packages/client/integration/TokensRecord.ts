@@ -30,7 +30,7 @@ export async function tokensRecords(state: State) {
     await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
 
-    await legalOfficer.selectIssuer(collectionLocId, ISSUER_ADDRESS, true);
+    await legalOfficer.selectIssuer(collectionLocId, ISSUER_ADDRESS);
     await aliceOpenLoc.legalOfficer.close({ signer });
 
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, ISSUER_ADDRESS);
