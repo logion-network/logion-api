@@ -82,7 +82,7 @@ export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType
         files: [
             {
                 hash: EXISTING_FILE_HASH,
-                nature: "Some nature",
+                nature: "0xf85455e7f9269c18b042ced52395324f78d482502049c80456581054fa9cb852", // "Some nature",
                 submitter: requester,
                 size: 128n,
                 acknowledged: status === "CLOSED",

@@ -2,7 +2,6 @@ import {
     ClosedLoc,
     EditableRequest,
     HashOrContent,
-    LocRequestState,
     AcceptedRequest,
     PendingRequest, OpenLoc
 } from "../src/index.js";
@@ -45,7 +44,7 @@ export async function verifiedIssuer(state: State) {
     await legalOfficer.nominateVerifiedIssuer(ISSUER_ADDRESS, closedIdentityLoc.locId);
 
     const userClient = state.client.withCurrentAddress(newAccount);
-    const userLocsState = await userClient.locsState();
+    let userLocsState = await userClient.locsState();
     let pendingLocRequest = await userLocsState.requestTransactionLoc({
         legalOfficer: userClient.getLegalOfficer(alice.address),
         description: "Some LOC with verified issuer",
@@ -55,13 +54,13 @@ export async function verifiedIssuer(state: State) {
     await legalOfficer.acceptLoc(locId);
 
     let acceptedLoc = await pendingLocRequest.refresh() as AcceptedRequest;
-    let newLoc = await acceptedLoc.open({ signer });
+    let openLoc = await acceptedLoc.open({ signer });
 
-    await legalOfficer.selectIssuer(locId, ISSUER_ADDRESS, true);
-    newLoc = await newLoc.refresh() as OpenLoc;
-    expect(newLoc.data().issuers.length).toBe(1);
-    expect(newLoc.data().issuers[0].identityLocId).toBe(closedIdentityLoc.locId.toString());
-    expect(newLoc.data().issuers[0].selected).toBe(true);
+    await legalOfficer.selectIssuer(locId, ISSUER_ADDRESS);
+    openLoc = await openLoc.refresh() as OpenLoc;
+    expect(openLoc.data().issuers.length).toBe(1);
+    expect(openLoc.data().issuers[0].identityLocId).toBe(closedIdentityLoc.locId.toString());
+    expect(openLoc.data().issuers[0].selected).toBe(true);
 
     issuerLocsState = await issuerClient.locsState();
     expect(issuerLocsState.openVerifiedIssuerLocs["Transaction"].length).toBe(1);
@@ -82,9 +81,8 @@ export async function verifiedIssuer(state: State) {
     });
     openIssuerLoc = await openIssuerLoc.deleteFile({ hash: file.contentHash });
 
-    await legalOfficer.selectIssuer(newLoc.locId, ISSUER_ADDRESS, false);
-    const userLoc = (await userClient.locsState()).findById(locId);
-    expect(userLoc.data().issuers.length).toBe(1);
-    expect(userLoc.data().issuers[0].identityLocId).toBe(closedIdentityLoc.locId.toString());
-    expect(userLoc.data().issuers[0].selected).toBe(false);
+    await legalOfficer.unselectIssuer(locId, ISSUER_ADDRESS);
+    userLocsState = await (await userClient.locsState()).refresh();
+    const userLoc = await userLocsState.findById(locId);
+    expect(userLoc.data().issuers.length).toBe(0);
 }

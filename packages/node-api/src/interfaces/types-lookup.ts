@@ -1606,7 +1606,7 @@ declare module '@polkadot/types/lookup' {
     readonly isAcknowledgeMetadata: boolean;
     readonly asAcknowledgeMetadata: {
       readonly locId: Compact<u128>;
-      readonly name: Bytes;
+      readonly name: H256;
     } & Struct;
     readonly isAcknowledgeFile: boolean;
     readonly asAcknowledgeFile: {
@@ -1618,15 +1618,15 @@ declare module '@polkadot/types/lookup' {
 
   /** @name PalletLogionLocMetadataItemParams (158) */
   interface PalletLogionLocMetadataItemParams extends Struct {
-    readonly name: Bytes;
-    readonly value: Bytes;
+    readonly name: H256;
+    readonly value: H256;
     readonly submitter: PalletLogionLocSupportedAccountId;
   }
 
   /** @name PalletLogionLocFileParams (159) */
   interface PalletLogionLocFileParams extends Struct {
     readonly hash_: H256;
-    readonly nature: Bytes;
+    readonly nature: H256;
     readonly submitter: PalletLogionLocSupportedAccountId;
     readonly size_: u32;
   }
@@ -1634,7 +1634,7 @@ declare module '@polkadot/types/lookup' {
   /** @name PalletLogionLocLocLink (160) */
   interface PalletLogionLocLocLink extends Struct {
     readonly id: u128;
-    readonly nature: Bytes;
+    readonly nature: H256;
   }
 
   /** @name PalletLogionLocCollectionItemFile (162) */
@@ -1945,8 +1945,8 @@ declare module '@polkadot/types/lookup' {
 
   /** @name PalletLogionLocMetadataItem (200) */
   interface PalletLogionLocMetadataItem extends Struct {
-    readonly name: Bytes;
-    readonly value: Bytes;
+    readonly name: H256;
+    readonly value: H256;
     readonly submitter: PalletLogionLocSupportedAccountId;
     readonly acknowledged: bool;
   }
@@ -1954,7 +1954,7 @@ declare module '@polkadot/types/lookup' {
   /** @name PalletLogionLocFile (202) */
   interface PalletLogionLocFile extends Struct {
     readonly hash_: H256;
-    readonly nature: Bytes;
+    readonly nature: H256;
     readonly submitter: PalletLogionLocSupportedAccountId;
     readonly size_: u32;
     readonly acknowledged: bool;
@@ -2025,7 +2025,8 @@ declare module '@polkadot/types/lookup' {
     readonly isV11EnableEthereumSubmitter: boolean;
     readonly isV12Sponsorship: boolean;
     readonly isV13AcknowledgeItems: boolean;
-    readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems';
+    readonly isV14HashLocPublicData: boolean;
+    readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData';
   }
 
   /** @name PalletLogionLocError (224) */

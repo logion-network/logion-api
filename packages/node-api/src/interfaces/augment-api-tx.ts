@@ -655,7 +655,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * Acknowledge a metadata item.
        **/
-      acknowledgeMetadata: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, name: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, Bytes]>;
+      acknowledgeMetadata: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, name: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256]>;
       /**
        * Adds an item to a collection
        **/

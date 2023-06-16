@@ -171,7 +171,15 @@ export class LegalOfficerWorker {
         });
     }
 
-    async selectIssuer(locId: UUID, issuerAddress: string, selected: boolean) {
+    async selectIssuer(locId: UUID, issuerAddress: string) {
+        await this.setIssuerSelection(locId, issuerAddress, true);
+    }
+
+    async unselectIssuer(locId: UUID, issuerAddress: string) {
+        await this.setIssuerSelection(locId, issuerAddress, false);
+    }
+
+    private async setIssuerSelection(locId: UUID, issuerAddress: string, selected: boolean) {
         const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
         const submittable = api.polkadot.tx.logionLoc.setIssuerSelection(api.adapters.toLocId(locId), issuerAddress, selected);
         await this.state.signer.signAndSend({

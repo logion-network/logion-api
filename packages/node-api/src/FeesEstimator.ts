@@ -2,7 +2,7 @@ import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types.js";
 import { UUID } from "./UUID.js";
 import { Adapters } from "./Adapters.js";
-import { ValidAccountId, LocType } from "./Types.js";
+import { ValidAccountId, LocType, Hash } from "./Types.js";
 
 export class Fees {
 
@@ -33,8 +33,8 @@ export class FeesEstimator {
 
     async estimateAddFile(args: {
         locId: UUID,
-        hash: string,
-        nature: string,
+        hash: Hash,
+        nature: Hash,
         submitter: ValidAccountId,
         size: bigint,
         origin: string,

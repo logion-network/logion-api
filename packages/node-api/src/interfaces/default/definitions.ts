@@ -49,13 +49,13 @@ export default {
             sponsorship_id: "Option<SponsorshipId>",
         },
         MetadataItemParams: {
-            name: "Vec<u8>",
-            value: "Vec<u8>",
+            name: "Hash",
+            value: "Hash",
             submitter: "SupportedAccountId"
         },
         MetadataItem: {
-            name: "Vec<u8>",
-            value: "Vec<u8>",
+            name: "Hash",
+            value: "Hash",
             submitter: "SupportedAccountId",
             acknowledged: "bool"
         },
@@ -68,16 +68,16 @@ export default {
         },
         LocLink: {
             id: "LocId",
-            nature: "Vec<u8>",
+            nature: "Hash",
         },
         FileParams: {
             hash: "Hash",
-            nature: "Vec<u8>",
+            nature: "Hash",
             submitter: "SupportedAccountId"
         },
         File: {
             hash: "Hash",
-            nature: "Vec<u8>",
+            nature: "Hash",
             submitter: "SupportedAccountId",
             acknowledged: "bool"
         },

@@ -29,7 +29,7 @@ describe("FeesEstimator", () => {
         const fees = await estimator.estimateAddFile({
             locId: new UUID(LOC_REQUEST_ID),
             hash: "0xf2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
-            nature: "Some nature",
+            nature: "0xf85455e7f9269c18b042ced52395324f78d482502049c80456581054fa9cb852", // "Some nature",
             submitter: mockValidAccountId(DEFAULT_LEGAL_OFFICER),
             size: BigInt(42),
             origin: DEFAULT_LEGAL_OFFICER,

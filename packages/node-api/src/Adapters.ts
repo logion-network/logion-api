@@ -96,21 +96,21 @@ export class Adapters {
             requesterAddress,
             requesterLocId: rawLoc.requester.isLoc ? UUID.fromDecimalString(rawLoc.requester.asLoc.toString()) : undefined,
             metadata: rawLoc.metadata.toArray().map(rawItem => ({
-                name: rawItem.name.toUtf8(),
-                value: rawItem.value.toUtf8(),
+                name: rawItem.name.toHex(),
+                value: rawItem.value.toHex(),
                 submitter: this.fromPalletLogionLocSupportedAccountId(rawItem.submitter),
                 acknowledged: rawItem.acknowledged.isTrue,
             })),
             files: rawLoc.files.toArray().map(rawFile => ({
                 hash: rawFile.hash_.toHex(),
-                nature: rawFile.nature.toUtf8(),
+                nature: rawFile.nature.toHex(),
                 submitter: this.fromPalletLogionLocSupportedAccountId(rawFile.submitter),
                 size: rawFile.size_.toBigInt(),
                 acknowledged: rawFile.acknowledged.isTrue,
             })),
             links: rawLoc.links.toArray().map(rawLink => ({
                 id: UUID.fromDecimalStringOrThrow(rawLink.id.toString()),
-                nature: rawLink.nature.toUtf8()
+                nature: rawLink.nature.toHex()
             })),
             closed: rawLoc.closed.isTrue,
             locType: rawLoc.locType.toString() as LocType,
@@ -407,8 +407,8 @@ export class Adapters {
 
     toPalletLogionLocMetadataItem(item: MetadataItemParams): PalletLogionLocMetadataItemParams {
         return this.api.createType("PalletLogionLocMetadataItemParams", {
-            name: stringToHex(item.name),
-            value: stringToHex(item.value),
+            name: item.name,
+            value: item.value,
             submitter: this.toPalletLogionLocSupportedAccountId(item.submitter),
         });
     }

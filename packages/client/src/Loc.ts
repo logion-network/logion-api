@@ -48,6 +48,7 @@ import { LogionClient } from "./LogionClient.js";
 import { TokensRecord as TokensRecordClass } from "./TokensRecord.js";
 import { downloadFile, TypedFile } from "./Http.js";
 import { requireDefined } from "./assertions.js";
+import { hashString, Hash } from "./Hash.js";
 
 export interface LocData extends LocVerifiedIssuers {
     id: UUID
@@ -736,12 +737,20 @@ export abstract class LocRequestState extends State {
     }
 
     private static mergeMetadata(api: LogionNodeApiClass, backendMetadataItem: LocMetadataItem, chainLoc?: LegalOfficerCase): MergedMetadataItem {
-        const chainMetadataItem = chainLoc ? chainLoc.metadata.find(item => item.name === backendMetadataItem.name) : undefined;
+        // TODO Improve backend-to-chain link
+        // With this implementation (i.e. hashing item name and comparing with chain hash), it's not possible to make difference between
+        // an unpublished item and an item whose name was changed on the backend, hence the following suggested improvement:
+        // Store "originalNameHash" on the backend and make it part the Primary Key instead of "name"
+        // and use it instead of calculated "nameHash"
+        const nameHash = hashString(backendMetadataItem.name);
+        const chainMetadataItem = chainLoc ? chainLoc.metadata.find(item => item.name === nameHash) : undefined;
         if(chainMetadataItem) {
             return {
                 ...backendMetadataItem,
                 ...chainMetadataItem,
                 published: true,
+                name: LocRequestState.validatedValue(backendMetadataItem.name, chainMetadataItem.name),
+                value: LocRequestState.validatedValue(backendMetadataItem.value, chainMetadataItem.value),
             };
         } else {
             return {
@@ -759,6 +768,7 @@ export abstract class LocRequestState extends State {
                 ...backendFile,
                 ...chainFile,
                 published: true,
+                nature: LocRequestState.validatedValue(backendFile.nature, chainFile.nature),
             };
         } else {
             return {
@@ -770,20 +780,26 @@ export abstract class LocRequestState extends State {
         }
     }
 
+    private static validatedValue(data: string, hash: Hash): string {
+        const calculatedHash = hashString(data);
+        if (calculatedHash === hash) {
+            return data;
+        }
+        return `(Deleted Value: ${ hash })`;
+    }
+
     private static mergeLink(backendLink: LocLink, chainLoc?: LegalOfficerCase): MergedLink {
         const chainLink = chainLoc ? chainLoc.links.find(link => link.id.toString() === backendLink.target) : undefined;
-        const targetLink = new UUID(backendLink.target);
         if(chainLink) {
             return {
                 ...backendLink,
                 ...chainLink,
-                id: targetLink,
                 published: true,
+                nature: LocRequestState.validatedValue(backendLink.nature, chainLink.nature),
             };
         } else {
             return {
                 ...backendLink,
-                id: targetLink,
                 published: false,
             }
         }
@@ -1134,7 +1150,7 @@ export class OpenLoc extends EditableRequest {
         return this._withLocs(locsState, OpenLoc);
     }
 
-    async publishFile(parameters: { hash: string } & BlockchainSubmissionParams): Promise<OpenLoc> {
+    async publishFile(parameters: { hash: Hash } & BlockchainSubmissionParams): Promise<OpenLoc> {
         const client = this.locSharedState.client;
         const file = this.request.files.find(file => file.hash === parameters.hash && file.status === "REVIEW_ACCEPTED");
         if(!file) {
@@ -1144,7 +1160,7 @@ export class OpenLoc extends EditableRequest {
             locId: this.locId,
             file: {
                 hash: file.hash,
-                nature: file.nature,
+                nature: hashString(file.nature),
                 size: BigInt(file.size),
                 submitter: this.locSharedState.nodeApi.queries.getValidAccountId(file.submitter.address, file.submitter.type),
             },
