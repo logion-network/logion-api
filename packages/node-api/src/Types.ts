@@ -3,6 +3,7 @@ import { AnyJson } from "@polkadot/types-codec/types";
 import { isHex } from "@polkadot/util";
 import { UUID } from "./UUID.js";
 import { ApiPromise } from "@polkadot/api";
+import { HexString } from "@polkadot/util/types";
 
 export interface TypesAccountData {
     available: string,
@@ -10,8 +11,7 @@ export interface TypesAccountData {
     total: string,
 }
 
-type HexNumber = string;
-export type Hash = `0x${ HexNumber }`;
+export type Hash = HexString;
 
 export interface MetadataItemParams {
     name: Hash;

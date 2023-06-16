@@ -178,11 +178,11 @@ export class Adapters {
         }
     }
     
-    static isHexString(anyJson: AnyJson): anyJson is string {
+    static isHexString(anyJson: AnyJson): anyJson is HexString {
         return typeof anyJson === "string" && anyJson.startsWith("0x");
     }
     
-    static asHexString(anyJson: AnyJson): string {
+    static asHexString(anyJson: AnyJson): HexString {
         if(Adapters.isHexString(anyJson)) {
             return anyJson;
         } else {
