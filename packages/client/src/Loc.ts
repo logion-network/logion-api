@@ -737,13 +737,7 @@ export abstract class LocRequestState extends State {
     }
 
     private static mergeMetadata(api: LogionNodeApiClass, backendMetadataItem: LocMetadataItem, chainLoc?: LegalOfficerCase): MergedMetadataItem {
-        // TODO Improve backend-to-chain link
-        // With this implementation (i.e. hashing item name and comparing with chain hash), it's not possible to make difference between
-        // an unpublished item and an item whose name was changed on the backend, hence the following suggested improvement:
-        // Store "originalNameHash" on the backend and make it part the Primary Key instead of "name"
-        // and use it instead of calculated "nameHash"
-        const nameHash = hashString(backendMetadataItem.name);
-        const chainMetadataItem = chainLoc ? chainLoc.metadata.find(item => item.name === nameHash) : undefined;
+        const chainMetadataItem = chainLoc ? chainLoc.metadata.find(item => item.name === backendMetadataItem.nameHash) : undefined;
         if(chainMetadataItem) {
             return {
                 ...backendMetadataItem,
@@ -866,11 +860,11 @@ export abstract class EditableRequest extends LocRequestState {
         return await this.refresh() as EditableRequest;
     }
 
-    async requestMetadataReview(name: string): Promise<EditableRequest> {
+    async requestMetadataReview(nameHash: Hash): Promise<EditableRequest> {
         const client = this.locSharedState.client;
         await client.requestMetadataReview({
             locId: this.locId,
-            name,
+            nameHash,
         });
         return await this.refresh() as EditableRequest;
     }
@@ -1170,9 +1164,9 @@ export class OpenLoc extends EditableRequest {
         return await this.refresh() as OpenLoc;
     }
 
-    async publishMetadata(parameters: { name: string } & BlockchainSubmissionParams): Promise<OpenLoc> {
+    async publishMetadata(parameters: { nameHash: string } & BlockchainSubmissionParams): Promise<OpenLoc> {
         const client = this.locSharedState.client;
-        const metadata = this.request.metadata.find(metadata => metadata.name === parameters.name && metadata.status === "REVIEW_ACCEPTED");
+        const metadata = this.request.metadata.find(metadata => metadata.nameHash === parameters.nameHash && metadata.status === "REVIEW_ACCEPTED");
         if(!metadata) {
             throw new Error("File was not found or was not reviewed and accepted by the LLO yet");
         }
@@ -1220,13 +1214,13 @@ export class LegalOfficerOpenRequestCommands extends LegalOfficerEditableRequest
 
     async acknowledgeMetadata(parameters: AckMetadataParams): Promise<OpenLoc> {
         this.request.ensureCurrent();
-        const metadata = this.request.data().metadata.find(metadata => metadata.name === parameters.name && metadata.status === "PUBLISHED");
+        const metadata = this.request.data().metadata.find(metadata => metadata.nameHash === parameters.nameHash && metadata.status === "PUBLISHED");
         if(!metadata) {
             throw new Error("Data was not found or was not published yet");
         }
         await this.client.acknowledgeMetadata({
             locId: this.locId,
-            name: parameters.name,
+            nameHash: parameters.nameHash,
             signer: parameters.signer,
             callback: parameters.callback,
         });

@@ -41,11 +41,13 @@ export async function requestTransactionLoc(state: State) {
     checkData(draftRequest.data(), "DRAFT");
 
     const metadataName = "Some name";
+    const nameHash = hashString(metadataName);
     draftRequest = await draftRequest.addMetadata({
         name: metadataName,
         value: "Some value"
     }) as DraftRequest;
     expect(draftRequest.data().metadata[0].name).toBe(metadataName);
+    expect(draftRequest.data().metadata[0].nameHash).toBe(nameHash);
     expect(draftRequest.data().metadata[0].value).toBe("Some value");
     expect(draftRequest.data().metadata[0].addedOn).toBeUndefined();
     expect(draftRequest.data().metadata[0].status).toBe("DRAFT");
@@ -132,7 +134,7 @@ export async function requestTransactionLoc(state: State) {
 
     // Continue with metadata
     aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
-    aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewMetadata({ name: metadataName, decision: "REJECT", rejectReason: "Because" }) as OpenLoc;
+    aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewMetadata({ nameHash, decision: "REJECT", rejectReason: "Because" }) as OpenLoc;
     expect(aliceOpenLoc.data().metadata[0].status).toBe("REVIEW_REJECTED");
     expect(aliceOpenLoc.data().metadata[0].rejectReason).toBe("Because");
     await waitFor<OnchainLocState>({
@@ -140,20 +142,20 @@ export async function requestTransactionLoc(state: State) {
         predicate: state => state.data().metadata[0].reviewedOn !== undefined,
     });
     openLoc = await openLoc.refresh() as OpenLoc;
-    openLoc = await openLoc.deleteMetadata({ name: metadataName }) as OpenLoc;
+    openLoc = await openLoc.deleteMetadata({ nameHash }) as OpenLoc;
     openLoc = await openLoc.addMetadata({
         name: metadataName,
         value: "Some value"
     }) as OpenLoc;
-    openLoc = await openLoc.requestMetadataReview(metadataName) as OpenLoc;
+    openLoc = await openLoc.requestMetadataReview(nameHash) as OpenLoc;
     aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
-    aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewMetadata({ name: metadataName, decision: "ACCEPT" }) as OpenLoc;
+    aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewMetadata({ nameHash, decision: "ACCEPT" }) as OpenLoc;
     openLoc = await openLoc.refresh() as OpenLoc;
-    openLoc = await openLoc.publishMetadata({ name: metadataName, signer });
+    openLoc = await openLoc.publishMetadata({ nameHash, signer });
     expect(openLoc.data().metadata[0].status).toBe("PUBLISHED");
     aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
     aliceOpenLoc = await aliceOpenLoc.legalOfficer.acknowledgeMetadata({
-        name: metadataName,
+        nameHash,
         signer,
     }) as OpenLoc;
     expect(aliceOpenLoc.data().metadata[0].status).toBe("ACKNOWLEDGED");

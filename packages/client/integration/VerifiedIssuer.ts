@@ -6,6 +6,7 @@ import {
     PendingRequest, OpenLoc
 } from "../src/index.js";
 import { LegalOfficerWorker, State, ISSUER_ADDRESS, initRequesterBalance, TEST_LOGION_CLIENT_CONFIG } from "./Utils.js";
+import { hashString } from "../src/Hash.js";
 
 export async function verifiedIssuer(state: State) {
     const { alice, issuerAccount, newAccount, signer } = state;
@@ -67,11 +68,12 @@ export async function verifiedIssuer(state: State) {
     let issuerLoc = issuerLocsState.findById(locId);
 
     let openIssuerLoc = await issuerLoc.refresh() as EditableRequest;
+    const dataName = "Verified issuer data name";
     openIssuerLoc = await openIssuerLoc.addMetadata({
-        name: "Verified issuer data name",
+        name: dataName,
         value: "Verified issuer data value"
     });
-    openIssuerLoc = await openIssuerLoc.deleteMetadata({ name: "Verified issuer data name" });
+    openIssuerLoc = await openIssuerLoc.deleteMetadata({ nameHash: hashString(dataName) });
 
     const file = HashOrContent.fromContent(Buffer.from("test"));
     openIssuerLoc = await openIssuerLoc.addFile({
