@@ -65,6 +65,8 @@ export function validHash(hash: string): boolean {
         && hash.slice(2).search(/[^0-9a-f]/) === -1;
 }
 
+const HASH_OF_EMPTY = hashString("");
+
 export class HashOrContent {
 
     static fromHash(hash: Hash): HashOrContent {
@@ -105,9 +107,9 @@ export class HashOrContent {
         return this._content !== undefined;
     }
 
-    get contentHash(): string {
+    get contentHash(): Hash {
         this.ensureFinalized();
-        return this._hash || "";
+        return this._hash || HASH_OF_EMPTY;
     }
 
     private ensureFinalized() {

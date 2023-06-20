@@ -81,7 +81,7 @@ export interface LocFile extends FileInfo {
  */
 export interface LocMetadataItem extends Partial<AddedOn> {
     name: string;
-    nameHash: string;
+    nameHash: Hash;
     value: string;
     submitter: SupportedAccountId;
     fees?: Fees;

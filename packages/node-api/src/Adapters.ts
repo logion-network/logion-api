@@ -43,6 +43,7 @@ import {
     AccountType,
     HostData,
     Region,
+    Hash,
 } from "./Types.js";
 import { UUID } from "./UUID.js";
 import { stringToHex, stringToU8a, u8aToHex } from "@polkadot/util";
@@ -415,11 +416,11 @@ export class Adapters {
 
     static toLocLink(link: {
         target: UUID;
-        nature: string;
-    }): { id?: string; nature?: string } {
+        nature: Hash;
+    }): { id?: string; nature?: Hash } {
         return {
             id: Adapters.toLocId(link.target),
-            nature: stringToHex(link.nature),
+            nature: link.nature,
         };
     }
 
