@@ -563,7 +563,8 @@ export default {
       StorageFeeWithdrawn: '(AccountId32,u128)',
       SponsorshipCreated: '(u128,AccountId32,PalletLogionLocSupportedAccountId)',
       SponsorshipWithdrawn: '(u128,AccountId32,PalletLogionLocSupportedAccountId)',
-      LegalFeeWithdrawn: '(AccountId32,LogionSharedBeneficiary,u128)'
+      LegalFeeWithdrawn: '(AccountId32,LogionSharedBeneficiary,u128)',
+      CertificateFeeWithdrawn: '(AccountId32,u128)'
     }
   },
   /**
@@ -1416,6 +1417,8 @@ export default {
         itemFiles: 'Vec<PalletLogionLocCollectionItemFile>',
         itemToken: 'Option<PalletLogionLocCollectionItemToken>',
         restrictedDelivery: 'bool',
+        termsAndConditions: 'Vec<PalletLogionLocTermsAndConditionsElement>',
+        tokenIssuance: 'u64',
       },
       add_collection_item_with_terms_and_conditions: {
         collectionLocId: 'Compact<u128>',
@@ -1786,14 +1789,15 @@ export default {
     replacer: 'Option<u128>'
   },
   /**
-   * Lookup211: pallet_logion_loc::CollectionItem<primitive_types::H256, LocId>
+   * Lookup211: pallet_logion_loc::CollectionItem<primitive_types::H256, LocId, TokenIssuance>
    **/
   PalletLogionLocCollectionItem: {
     description: 'Bytes',
     files: 'Vec<PalletLogionLocCollectionItemFile>',
     token: 'Option<PalletLogionLocCollectionItemToken>',
     restrictedDelivery: 'bool',
-    termsAndConditions: 'Vec<PalletLogionLocTermsAndConditionsElement>'
+    termsAndConditions: 'Vec<PalletLogionLocTermsAndConditionsElement>',
+    tokenIssuance: 'u64'
   },
   /**
    * Lookup212: pallet_logion_loc::TokensRecord<bounded_collections::bounded_vec::BoundedVec<T, S>, bounded_collections::bounded_vec::BoundedVec<pallet_logion_loc::TokensRecordFile<primitive_types::H256, bounded_collections::bounded_vec::BoundedVec<T, S>, bounded_collections::bounded_vec::BoundedVec<T, S>>, S>, sp_core::crypto::AccountId32>
@@ -1835,13 +1839,13 @@ export default {
    * Lookup223: pallet_logion_loc::pallet::StorageVersion
    **/
   PalletLogionLocStorageVersion: {
-    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize', 'V11EnableEthereumSubmitter', 'V12Sponsorship', 'V13AcknowledgeItems', 'V14HashLocPublicData']
+    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize', 'V11EnableEthereumSubmitter', 'V12Sponsorship', 'V13AcknowledgeItems', 'V14HashLocPublicData', 'V15AddTokenIssuance']
   },
   /**
    * Lookup224: pallet_logion_loc::pallet::Error<T>
    **/
   PalletLogionLocError: {
-    _enum: ['AlreadyExists', 'NotFound', 'Unauthorized', 'CannotMutate', 'AlreadyClosed', 'LinkedLocNotFound', 'ReplacerLocNotFound', 'AlreadyVoid', 'ReplacerLocAlreadyVoid', 'ReplacerLocAlreadyReplacing', 'CannotMutateVoid', 'UnexpectedRequester', 'ReplacerLocWrongType', 'InvalidSubmitter', 'CollectionHasNoLimit', 'WrongCollectionLoc', 'CollectionItemAlreadyExists', 'CollectionItemTooMuchData', 'CollectionLimitsReached', 'MetadataItemInvalid', 'FileInvalid', 'LocLinkInvalid', 'CannotUpload', 'MustUpload', 'DuplicateFile', 'MissingToken', 'MissingFiles', 'TermsAndConditionsLocNotFound', 'TermsAndConditionsLocNotClosed', 'TermsAndConditionsLocVoid', 'DuplicateLocFile', 'DuplicateLocMetadata', 'DuplicateLocLink', 'TokensRecordTooMuchData', 'TokensRecordAlreadyExists', 'CannotAddRecord', 'InvalidIdentityLoc', 'AlreadyNominated', 'NotNominated', 'CannotSubmit', 'InsufficientFunds', 'AlreadyUsed', 'CannotLinkToSponsorship', 'ItemNotFound', 'ItemAlreadyAcknowledged', 'CannotCloseUnacknowledged']
+    _enum: ['AlreadyExists', 'NotFound', 'Unauthorized', 'CannotMutate', 'AlreadyClosed', 'LinkedLocNotFound', 'ReplacerLocNotFound', 'AlreadyVoid', 'ReplacerLocAlreadyVoid', 'ReplacerLocAlreadyReplacing', 'CannotMutateVoid', 'UnexpectedRequester', 'ReplacerLocWrongType', 'InvalidSubmitter', 'CollectionHasNoLimit', 'WrongCollectionLoc', 'CollectionItemAlreadyExists', 'CollectionItemTooMuchData', 'CollectionLimitsReached', 'MetadataItemInvalid', 'FileInvalid', 'LocLinkInvalid', 'CannotUpload', 'MustUpload', 'DuplicateFile', 'MissingToken', 'MissingFiles', 'TermsAndConditionsLocNotFound', 'TermsAndConditionsLocNotClosed', 'TermsAndConditionsLocVoid', 'DuplicateLocFile', 'DuplicateLocMetadata', 'DuplicateLocLink', 'TokensRecordTooMuchData', 'TokensRecordAlreadyExists', 'CannotAddRecord', 'InvalidIdentityLoc', 'AlreadyNominated', 'NotNominated', 'CannotSubmit', 'InsufficientFunds', 'AlreadyUsed', 'CannotLinkToSponsorship', 'ItemNotFound', 'ItemAlreadyAcknowledged', 'CannotCloseUnacknowledged', 'BadTokenIssuance']
   },
   /**
    * Lookup225: pallet_verified_recovery::pallet::Error<T>

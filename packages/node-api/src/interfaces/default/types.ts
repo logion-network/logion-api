@@ -61,6 +61,7 @@ export interface CollectionItem extends Struct {
   readonly token: Option<CollectionItemToken>;
   readonly restricted_delivery: bool;
   readonly terms_and_conditions: Vec<TermsAndConditionsElement>;
+  readonly token_issuance: TokenIssuance;
 }
 
 /** @name CollectionItemFile */
@@ -143,7 +144,8 @@ export interface LoAuthorityListStorageVersion extends Enum {
   readonly isV1: boolean;
   readonly isV2AddOnchainSettings: boolean;
   readonly isV3GuestLegalOfficers: boolean;
-  readonly type: 'V1' | 'V2AddOnchainSettings' | 'V3GuestLegalOfficers';
+  readonly isV4Region: boolean;
+  readonly type: 'V1' | 'V2AddOnchainSettings' | 'V3GuestLegalOfficers' | 'V4Region';
 }
 
 /** @name LocId */
@@ -239,7 +241,13 @@ export interface StorageVersion extends Enum {
   readonly isV7ItemToken: boolean;
   readonly isV8AddSeal: boolean;
   readonly isV9TermsAndConditions: boolean;
-  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions';
+  readonly isV10AddLocFileSize: boolean;
+  readonly isV11EnableEthereumSubmitter: boolean;
+  readonly isV12Sponsorship: boolean;
+  readonly isV13AcknowledgeItems: boolean;
+  readonly isV14HashLocPublicData: boolean;
+  readonly isV15AddTokenIssuance: boolean;
+  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance';
 }
 
 /** @name SupportedAccountId */
@@ -261,6 +269,9 @@ export interface TermsAndConditionsElement extends Struct {
   readonly tcLoc: LocId;
   readonly details: Bytes;
 }
+
+/** @name TokenIssuance */
+export interface TokenIssuance extends u64 {}
 
 /** @name TokensRecord */
 export interface TokensRecord extends Struct {

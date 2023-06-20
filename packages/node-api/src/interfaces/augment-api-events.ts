@@ -241,6 +241,10 @@ declare module '@polkadot/api-base/types/events' {
     };
     logionLoc: {
       /**
+       * Issued when Certificate Fee is withdrawn. [payerAccountId, fee]
+       **/
+      CertificateFeeWithdrawn: AugmentedEvent<ApiType, [AccountId32, u128]>;
+      /**
        * Issued when an item was added to a collection. [locId, collectionItemId]
        **/
       ItemAdded: AugmentedEvent<ApiType, [u128, H256]>;

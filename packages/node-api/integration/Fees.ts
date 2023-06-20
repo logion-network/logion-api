@@ -20,3 +20,8 @@ export async function legalFees() {
     expect(collectionLocFee).toEqual(Currency.toCanonicalAmount(Currency.nLgnt(2000n)));
 }
 
+export async function certificateFees() {
+    const { api } = await setup();
+    const certificateFee = await api.fees.estimateCertificateFee({ tokenIssuance: 1000n });
+    expect(certificateFee).toEqual(Currency.toCanonicalAmount(Currency.nLgnt(4n)));
+}

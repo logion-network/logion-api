@@ -246,6 +246,10 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       AlreadyVoid: AugmentedError<ApiType>;
       /**
+       * Invalid token issuance
+       **/
+      BadTokenIssuance: AugmentedError<ApiType>;
+      /**
        * The token record cannot be added because either the collection is in a wrong state
        * or the submitter is not an issuer or the requester
        **/

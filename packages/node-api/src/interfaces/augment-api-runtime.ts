@@ -5,7 +5,7 @@
 // this is required to allow for ambient/previous definitions
 import '@polkadot/api-base/types/calls';
 
-import type { LocType } from '@logion/node-api/dist/interfaces/default';
+import type { LocType, TokenIssuance } from '@logion/node-api/dist/interfaces/default';
 import type { ApiTypes, AugmentedCall, DecoratedCallBase } from '@polkadot/api-base/types';
 import type { Bytes, Null, Option, Vec, u32 } from '@polkadot/types-codec';
 import type { AnyNumber, ITuple } from '@polkadot/types-codec/types';
@@ -99,11 +99,15 @@ declare module '@polkadot/api-base/types/calls' {
     /** 0x7ff059ebefccd53c/1 */
     feesApi: {
       /**
+       * Query expected certificate fees for creating a Collection Item
+       **/
+      queryCertificateFee: AugmentedCall<ApiType, (tokenIssuance: TokenIssuance | AnyNumber | Uint8Array) => Observable<Balance>>;
+      /**
        * Query expected fees for submitting given files
        **/
       queryFileStorageFee: AugmentedCall<ApiType, (numOfEntries: u32 | AnyNumber | Uint8Array, totSize: u32 | AnyNumber | Uint8Array) => Observable<Balance>>;
       /**
-       * 
+       * Query expected legal fees for creating a LOC
        **/
       queryLegalFee: AugmentedCall<ApiType, (locType: LocType | 'Transaction' | 'Identity' | 'Collection' | number | Uint8Array) => Observable<Balance>>;
       /**

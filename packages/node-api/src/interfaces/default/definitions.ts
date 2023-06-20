@@ -95,6 +95,12 @@ export default {
                 "V7ItemToken",
                 "V8AddSeal",
                 "V9TermsAndConditions",
+                "V10AddLocFileSize",
+                "V11EnableEthereumSubmitter",
+                "V12Sponsorship",
+                "V13AcknowledgeItems",
+                "V14HashLocPublicData",
+                "V15AddTokenIssuance",
             ]
         },
         Requester: {
@@ -113,7 +119,9 @@ export default {
             token: "Option<CollectionItemToken>",
             restricted_delivery: "bool",
             terms_and_conditions: "Vec<TermsAndConditionsElement<LocId>>",
+            token_issuance: "TokenIssuance",
         },
+        TokenIssuance: "u64",
         CollectionItemFile: {
             name: "Vec<u8>",
             content_type: "Vec<u8>",
@@ -144,7 +152,8 @@ export default {
             "_enum": [
                 "V1",
                 "V2AddOnchainSettings",
-                "V3GuestLegalOfficers"
+                "V3GuestLegalOfficers",
+                "V4Region",
             ]
         },
         TermsAndConditionsElement: {
