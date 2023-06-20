@@ -632,7 +632,9 @@ declare module '@polkadot/types/lookup' {
     readonly asSponsorshipWithdrawn: ITuple<[u128, AccountId32, PalletLogionLocSupportedAccountId]>;
     readonly isLegalFeeWithdrawn: boolean;
     readonly asLegalFeeWithdrawn: ITuple<[AccountId32, LogionSharedBeneficiary, u128]>;
-    readonly type: 'LocCreated' | 'LocClosed' | 'LocVoid' | 'ItemAdded' | 'StorageFeeWithdrawn' | 'SponsorshipCreated' | 'SponsorshipWithdrawn' | 'LegalFeeWithdrawn';
+    readonly isCertificateFeeWithdrawn: boolean;
+    readonly asCertificateFeeWithdrawn: ITuple<[AccountId32, u128]>;
+    readonly type: 'LocCreated' | 'LocClosed' | 'LocVoid' | 'ItemAdded' | 'StorageFeeWithdrawn' | 'SponsorshipCreated' | 'SponsorshipWithdrawn' | 'LegalFeeWithdrawn' | 'CertificateFeeWithdrawn';
   }
 
   /** @name PalletLogionLocSupportedAccountId (56) */
@@ -1549,6 +1551,8 @@ declare module '@polkadot/types/lookup' {
       readonly itemFiles: Vec<PalletLogionLocCollectionItemFile>;
       readonly itemToken: Option<PalletLogionLocCollectionItemToken>;
       readonly restrictedDelivery: bool;
+      readonly termsAndConditions: Vec<PalletLogionLocTermsAndConditionsElement>;
+      readonly tokenIssuance: u64;
     } & Struct;
     readonly isAddCollectionItemWithTermsAndConditions: boolean;
     readonly asAddCollectionItemWithTermsAndConditions: {
@@ -1980,6 +1984,7 @@ declare module '@polkadot/types/lookup' {
     readonly token: Option<PalletLogionLocCollectionItemToken>;
     readonly restrictedDelivery: bool;
     readonly termsAndConditions: Vec<PalletLogionLocTermsAndConditionsElement>;
+    readonly tokenIssuance: u64;
   }
 
   /** @name PalletLogionLocTokensRecord (212) */
@@ -2026,7 +2031,8 @@ declare module '@polkadot/types/lookup' {
     readonly isV12Sponsorship: boolean;
     readonly isV13AcknowledgeItems: boolean;
     readonly isV14HashLocPublicData: boolean;
-    readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData';
+    readonly isV15AddTokenIssuance: boolean;
+    readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance';
   }
 
   /** @name PalletLogionLocError (224) */
@@ -2077,7 +2083,8 @@ declare module '@polkadot/types/lookup' {
     readonly isItemNotFound: boolean;
     readonly isItemAlreadyAcknowledged: boolean;
     readonly isCannotCloseUnacknowledged: boolean;
-    readonly type: 'AlreadyExists' | 'NotFound' | 'Unauthorized' | 'CannotMutate' | 'AlreadyClosed' | 'LinkedLocNotFound' | 'ReplacerLocNotFound' | 'AlreadyVoid' | 'ReplacerLocAlreadyVoid' | 'ReplacerLocAlreadyReplacing' | 'CannotMutateVoid' | 'UnexpectedRequester' | 'ReplacerLocWrongType' | 'InvalidSubmitter' | 'CollectionHasNoLimit' | 'WrongCollectionLoc' | 'CollectionItemAlreadyExists' | 'CollectionItemTooMuchData' | 'CollectionLimitsReached' | 'MetadataItemInvalid' | 'FileInvalid' | 'LocLinkInvalid' | 'CannotUpload' | 'MustUpload' | 'DuplicateFile' | 'MissingToken' | 'MissingFiles' | 'TermsAndConditionsLocNotFound' | 'TermsAndConditionsLocNotClosed' | 'TermsAndConditionsLocVoid' | 'DuplicateLocFile' | 'DuplicateLocMetadata' | 'DuplicateLocLink' | 'TokensRecordTooMuchData' | 'TokensRecordAlreadyExists' | 'CannotAddRecord' | 'InvalidIdentityLoc' | 'AlreadyNominated' | 'NotNominated' | 'CannotSubmit' | 'InsufficientFunds' | 'AlreadyUsed' | 'CannotLinkToSponsorship' | 'ItemNotFound' | 'ItemAlreadyAcknowledged' | 'CannotCloseUnacknowledged';
+    readonly isBadTokenIssuance: boolean;
+    readonly type: 'AlreadyExists' | 'NotFound' | 'Unauthorized' | 'CannotMutate' | 'AlreadyClosed' | 'LinkedLocNotFound' | 'ReplacerLocNotFound' | 'AlreadyVoid' | 'ReplacerLocAlreadyVoid' | 'ReplacerLocAlreadyReplacing' | 'CannotMutateVoid' | 'UnexpectedRequester' | 'ReplacerLocWrongType' | 'InvalidSubmitter' | 'CollectionHasNoLimit' | 'WrongCollectionLoc' | 'CollectionItemAlreadyExists' | 'CollectionItemTooMuchData' | 'CollectionLimitsReached' | 'MetadataItemInvalid' | 'FileInvalid' | 'LocLinkInvalid' | 'CannotUpload' | 'MustUpload' | 'DuplicateFile' | 'MissingToken' | 'MissingFiles' | 'TermsAndConditionsLocNotFound' | 'TermsAndConditionsLocNotClosed' | 'TermsAndConditionsLocVoid' | 'DuplicateLocFile' | 'DuplicateLocMetadata' | 'DuplicateLocLink' | 'TokensRecordTooMuchData' | 'TokensRecordAlreadyExists' | 'CannotAddRecord' | 'InvalidIdentityLoc' | 'AlreadyNominated' | 'NotNominated' | 'CannotSubmit' | 'InsufficientFunds' | 'AlreadyUsed' | 'CannotLinkToSponsorship' | 'ItemNotFound' | 'ItemAlreadyAcknowledged' | 'CannotCloseUnacknowledged' | 'BadTokenIssuance';
   }
 
   /** @name PalletVerifiedRecoveryError (225) */

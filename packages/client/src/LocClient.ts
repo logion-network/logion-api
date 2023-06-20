@@ -257,6 +257,7 @@ export interface AddCollectionItemParams extends BlockchainSubmissionParams {
     logionClassification?: LogionClassification,
     specificLicenses?: SpecificLicense[],
     creativeCommons?: CreativeCommons,
+    tokenIssuance?: bigint,
 }
 
 export interface FetchLocRequestSpecification {
@@ -799,7 +800,8 @@ export class AuthenticatedLocClient extends LocClient {
             locId,
             itemFiles,
             itemToken,
-            restrictedDelivery
+            restrictedDelivery,
+            tokenIssuance,
         } = parameters;
 
         const booleanRestrictedDelivery = restrictedDelivery !== undefined ? restrictedDelivery : false;
@@ -826,6 +828,10 @@ export class AuthenticatedLocClient extends LocClient {
 
         if(itemToken) {
             this.validTokenOrThrow(itemToken);
+
+            if(tokenIssuance === undefined || tokenIssuance < 1n) {
+                throw new Error("Token issuance must be set and greater or equal to one");
+            }
         }
 
         const termsAndConditions: ChainTermsAndConditionsElement[] = [];
@@ -850,27 +856,16 @@ export class AuthenticatedLocClient extends LocClient {
             parameters.specificLicenses.forEach(addTC);
         }
 
-        let submittable: SubmittableExtrinsic;
-        if(termsAndConditions.length === 0) {
-            submittable = this.nodeApi.polkadot.tx.logionLoc.addCollectionItem(
-                this.nodeApi.adapters.toLocId(locId),
-                itemId,
-                itemDescription,
-                chainItemFiles.map(Adapters.toCollectionItemFile),
-                Adapters.toCollectionItemToken(itemToken),
-                booleanRestrictedDelivery,
-            );
-        } else {
-            submittable = this.nodeApi.polkadot.tx.logionLoc.addCollectionItemWithTermsAndConditions(
-                this.nodeApi.adapters.toLocId(locId),
-                itemId,
-                itemDescription,
-                chainItemFiles.map(Adapters.toCollectionItemFile),
-                Adapters.toCollectionItemToken(itemToken),
-                booleanRestrictedDelivery,
-                termsAndConditions.map(Adapters.toTermsAndConditionsElement),
-            );
-        }
+        const submittable = this.nodeApi.polkadot.tx.logionLoc.addCollectionItem(
+            this.nodeApi.adapters.toLocId(locId),
+            itemId,
+            itemDescription,
+            chainItemFiles.map(Adapters.toCollectionItemFile),
+            Adapters.toCollectionItemToken(itemToken),
+            booleanRestrictedDelivery,
+            termsAndConditions.map(Adapters.toTermsAndConditionsElement),
+            tokenIssuance || 0,
+        );
         await signer.signAndSend({
             signerId: this.currentAddress.address,
             submittable,

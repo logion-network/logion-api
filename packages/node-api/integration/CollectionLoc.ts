@@ -40,6 +40,8 @@ export async function addCollectionItemTest() {
         [],
         null,
         false,
+        [],
+        0
     );
     await signAndSend(requester, addItem1Extrinsic);
 
@@ -55,6 +57,8 @@ export async function addCollectionItemTest() {
             type: "owner",
         }),
         false,
+        [],
+        1
     );
     await signAndSend(requester, addItem2Extrinsic);
 
@@ -70,6 +74,8 @@ export async function addCollectionItemTest() {
             type: "owner",
         }),
         false,
+        [],
+        1
     );
     await signAndSend(requester, addItem3Extrinsic);
 

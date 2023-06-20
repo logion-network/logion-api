@@ -310,6 +310,7 @@ export async function collectionLocWithUpload(state: State) {
             transferredRights: [ "PER-PRIV", "REG", "TIME" ],
             expiration: "2025-01-01",
         }),
+        tokenIssuance: 1n,
     });
 
     const firstItem = await closedLoc.getCollectionItem({ itemId: firstItemId });

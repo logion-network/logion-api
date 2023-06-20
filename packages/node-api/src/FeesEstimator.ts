@@ -84,4 +84,10 @@ export class FeesEstimator {
         const legalFee = await this.estimateLegalFee({ locType });
         return new Fees(inclusionFee, undefined, legalFee);
     }
+
+    async estimateCertificateFee(params: { tokenIssuance: bigint }): Promise<bigint> {
+        const { tokenIssuance } = params;
+        const fee = await this.api.call.feesApi.queryCertificateFee(tokenIssuance);
+        return fee.toBigInt();
+    }
 }
