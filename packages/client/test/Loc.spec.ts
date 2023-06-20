@@ -33,7 +33,8 @@ import {
     LogionClient,
     SharedState,
     FormDataLike,
-    LegalOfficerClass
+    LegalOfficerClass,
+    hashString
 } from "../src/index.js";
 import {
     ALICE,
@@ -829,11 +830,12 @@ async function testAddFile(editable: EditableRequest) {
 }
 
 async function testDeleteMetadata(editable: EditableRequest) {
+    const nameHash = hashString("Test");
     let newState = await editable.deleteMetadata({
-        name: "Test",
+        nameHash,
     });
     expect(newState).toBeInstanceOf(EditableRequest);
-    aliceAxiosMock.verify(instance => instance.delete(`/api/loc-request/${ editable.locId }/metadata/Test`), Times.Once());
+    aliceAxiosMock.verify(instance => instance.delete(`/api/loc-request/${ editable.locId }/metadata/${ nameHash }`), Times.Once());
 }
 
 async function testDeleteFile(editable: EditableRequest) {

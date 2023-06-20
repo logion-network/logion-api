@@ -81,6 +81,7 @@ export interface LocFile extends FileInfo {
  */
 export interface LocMetadataItem extends Partial<AddedOn> {
     name: string;
+    nameHash: string;
     value: string;
     submitter: SupportedAccountId;
     fees?: Fees;
@@ -174,7 +175,7 @@ export interface AddMetadataParams {
 }
 
 export interface DeleteMetadataParams {
-    name: string,
+    nameHash: Hash,
 }
 
 export interface AddFileParams {
@@ -752,8 +753,8 @@ export class AuthenticatedLocClient extends LocClient {
 
     async deleteMetadata(parameters: DeleteMetadataParams & FetchParameters): Promise<void> {
         try {
-            const { name, locId } = parameters;
-            await this.backend().delete(`/api/loc-request/${ locId.toString() }/metadata/${ encodeURIComponent(name) }`);
+            const { nameHash, locId } = parameters;
+            await this.backend().delete(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash }`);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1158,10 +1159,10 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async requestMetadataReview(parameters: { locId: UUID, name: string }): Promise<void> {
-        const { locId, name } = parameters;
+    async requestMetadataReview(parameters: { locId: UUID, nameHash: Hash }): Promise<void> {
+        const { locId, nameHash } = parameters;
         try {
-            await this.backend().post(`/api/loc-request/${ locId.toString() }/metadata/${ encodeURIComponent(name) }/review-request`);
+            await this.backend().post(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash }/review-request`);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1169,9 +1170,9 @@ export class AuthenticatedLocClient extends LocClient {
 
     async reviewMetadata(parameters: { locId: UUID } & ReviewMetadataParams): Promise<void> {
         try {
-            const { locId, name, decision, rejectReason } = parameters;
+            const { locId, nameHash, decision, rejectReason } = parameters;
 
-            await this.backend().post(`/api/loc-request/${ locId.toString() }/metadata/${ encodeURIComponent(name) }/review`, { decision, rejectReason });
+            await this.backend().post(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash }/review`, { decision, rejectReason });
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1179,10 +1180,11 @@ export class AuthenticatedLocClient extends LocClient {
 
     async publishMetadata(parameters: PublishMetadataParams): Promise<void> {
         const { name, value, submitter} = parameters.metadata;
+        const nameHash = hashString(name);
         const submittable = this.nodeApi.polkadot.tx.logionLoc.addMetadata(
             this.nodeApi.adapters.toLocId(parameters.locId),
             this.nodeApi.adapters.toPalletLogionLocMetadataItem({
-                name: hashString(name),
+                name: nameHash,
                 value: hashString(value),
                 submitter,
     }),
@@ -1195,16 +1197,17 @@ export class AuthenticatedLocClient extends LocClient {
         });
     
         try {
-            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/metadata/${ encodeURIComponent(name) }/confirm`);
+            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/metadata/${ nameHash }/confirm`);
         } catch(e) {
             throw newBackendError(e);
         }
     }
 
     async acknowledgeMetadata(parameters: { locId: UUID } & AckMetadataParams): Promise<void> {
+        const { locId, nameHash } = parameters;
         const submittable = this.nodeApi.polkadot.tx.logionLoc.acknowledgeMetadata(
             this.nodeApi.adapters.toLocId(parameters.locId),
-            hashString(parameters.name),
+            parameters.nameHash,
         );
 
         await parameters.signer.signAndSend({
@@ -1214,7 +1217,7 @@ export class AuthenticatedLocClient extends LocClient {
         });
 
         try {
-            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/metadata/${ encodeURIComponent(parameters.name) }/confirm-acknowledged`);
+            await this.backend().put(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash }/confirm-acknowledged`);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1410,7 +1413,7 @@ export class AuthenticatedLocClient extends LocClient {
 }
 
 export interface ReviewFileParams {
-    hash: string;
+    hash: Hash;
     decision: ReviewResult;
     rejectReason?: string;
 }
@@ -1427,7 +1430,7 @@ export interface AckFileParams extends BlockchainSubmissionParams {
 }
 
 export interface ReviewMetadataParams {
-    name: string;
+    nameHash: Hash;
     decision: ReviewResult;
     rejectReason?: string;
 }
@@ -1442,7 +1445,7 @@ export interface PublishMetadataParams extends BlockchainSubmissionParams {
 }
 
 export interface AckMetadataParams extends BlockchainSubmissionParams {
-    name: string;
+    nameHash: Hash;
 }
 
 export interface OpenCollectionLocParams extends BlockchainSubmissionParams {
