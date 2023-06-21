@@ -43,7 +43,8 @@ describe("Token", () => {
         it("invalidates token with unexpected type", () => {
             testInvalid({
                 type: "ethereum_erc42" as TokenType,
-                id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","id":4391}'
+                id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","id":4391}',
+                issuance: 1n,
             }, "unsupported token type 'ethereum_erc42'");
         });
 
@@ -83,7 +84,8 @@ describe("Token", () => {
         it("validates valid owner token with Ethereum address", () => {
             testValid({
                 type: "owner",
-                id: '0xa6db31d1aee06a3ad7e4e56de3775e80d2f5ea84'
+                id: '0xa6db31d1aee06a3ad7e4e56de3775e80d2f5ea84',
+                issuance: 1n,
             });
         });
 
@@ -91,26 +93,30 @@ describe("Token", () => {
             testValid({
                 type: "owner",
                 id: "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb",
+                issuance: 1n,
             }, "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb");
         });
 
         it("invalidates owner token with non-hex ID", () => {
             testInvalid({
                 type: "owner",
-                id: 'some random string'
+                id: 'some random string',
+                issuance: 1n,
             }, "token ID must be a valid Ethereum or Polkadot address");
         });
 
         it("invalidates owner token with hex ID but wrong length", () => {
             testInvalid({
                 type: "owner",
-                id: '0xa6db31d1aee06a3ad7e4e56de3775e80d2f5ea8'
+                id: '0xa6db31d1aee06a3ad7e4e56de3775e80d2f5ea8',
+                issuance: 1n,
             }, "token ID must be a valid Ethereum or Polkadot address");
         });
 
         it("validates valid singular_kusama token", () => {
             testValid({
                 type: "singular_kusama",
+                issuance: 1n,
                 id: VALID_SINGULAR_KUSAMA_TOKEN_ID,
             });
         });
@@ -118,7 +124,8 @@ describe("Token", () => {
         it("invalidates singular_kusama token with invalid ID", () => {
             testInvalid({
                 type: "singular_kusama",
-                id: INVALID_SINGULAR_KUSAMA_TOKEN_ID
+                id: INVALID_SINGULAR_KUSAMA_TOKEN_ID,
+                issuance: 1n,
             }, "token ID must be a valid Singular Kusama ID");
         });
     });
@@ -135,7 +142,8 @@ describe("Token", () => {
 function testNonFungibleErcValidToken(type: TokenType) {
     testValid({
         type,
-        id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","id":"4391"}'
+        id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","id":"4391"}',
+        issuance: 1n,
     });
 }
 
@@ -149,7 +157,8 @@ function testValid(token: ItemTokenWithRestrictedType, polkadotAddress?: string)
 function testErcInvalidIdType(type: TokenType) {
     testInvalid({
         type,
-        id: 'some-non-json-id'
+        id: 'some-non-json-id',
+        issuance: 1n,
     }, "token ID is not a valid JSON object");
 }
 
@@ -164,28 +173,32 @@ function testInvalid(token: ItemTokenWithRestrictedType, message: string) {
 function testErcInvalidIdMisingId(type: TokenType) {
     testInvalid({
         type,
-        id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5"}'
+        id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5"}',
+        issuance: 1n,
     }, "token ID is missing the 'id' field");
 }
 
 function testErcInvalidIdMissingContract(type: TokenType) {
     testInvalid({
         type,
-        id: '{"id":"4391"}'
+        id: '{"id":"4391"}',
+        issuance: 1n,
     }, "token ID is missing the 'contract' field");
 }
 
 function testErcInvalidIdContractIsNotString(type: TokenType) {
     testInvalid({
         type,
-        id: '{"contract":12345,"id":"4391"}'
+        id: '{"contract":12345,"id":"4391"}',
+        issuance: 1n,
     }, "token ID's 'contract' field is not a string");
 }
 
 function testErcInvalidIdIdIsNotString(type: TokenType) {
     testInvalid({
         type,
-        id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","id":4391}'
+        id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","id":4391}',
+        issuance: 1n,
     }, "token ID's 'id' field is not a string");
 }
 
@@ -196,7 +209,8 @@ const INVALID_SINGULAR_KUSAMA_TOKEN_ID = "*15057162-acba02847598b67746-DSTEST1-L
 function testFungibleErcValidToken(type: TokenType) {
     testValid({
         type,
-        id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5"}'
+        id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5"}',
+        issuance: 1n,
     });
 }
 

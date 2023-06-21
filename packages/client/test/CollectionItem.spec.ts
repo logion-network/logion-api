@@ -89,6 +89,7 @@ function given(privileged: boolean, tc?: TermsAndConditionsElement[]): Collectio
         token: {
             type: "owner",
             id: "0x900edc98db53508e6742723988b872dd08cd09c2",
+            issuance: 1n,
         },
         restrictedDelivery: true,
         termsAndConditions: tc || [],

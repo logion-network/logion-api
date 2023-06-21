@@ -257,7 +257,6 @@ export interface AddCollectionItemParams extends BlockchainSubmissionParams {
     logionClassification?: LogionClassification,
     specificLicenses?: SpecificLicense[],
     creativeCommons?: CreativeCommons,
-    tokenIssuance?: bigint,
 }
 
 export interface FetchLocRequestSpecification {
@@ -532,6 +531,7 @@ export abstract class LocClient {
             token: onchainItem.token ? {
                 type: onchainItem.token.type as TokenType,
                 id: onchainItem.token.id,
+                issuance: onchainItem.token.issuance,
             } : undefined,
             restrictedDelivery: onchainItem.restrictedDelivery,
             termsAndConditions: newTermsAndConditions(onchainItem.termsAndConditions),
@@ -801,7 +801,6 @@ export class AuthenticatedLocClient extends LocClient {
             itemFiles,
             itemToken,
             restrictedDelivery,
-            tokenIssuance,
         } = parameters;
 
         const booleanRestrictedDelivery = restrictedDelivery !== undefined ? restrictedDelivery : false;
@@ -828,10 +827,6 @@ export class AuthenticatedLocClient extends LocClient {
 
         if(itemToken) {
             this.validTokenOrThrow(itemToken);
-
-            if(tokenIssuance === undefined || tokenIssuance < 1n) {
-                throw new Error("Token issuance must be set and greater or equal to one");
-            }
         }
 
         const termsAndConditions: ChainTermsAndConditionsElement[] = [];
@@ -864,7 +859,7 @@ export class AuthenticatedLocClient extends LocClient {
             Adapters.toCollectionItemToken(itemToken),
             booleanRestrictedDelivery,
             termsAndConditions.map(Adapters.toTermsAndConditionsElement),
-            tokenIssuance || 0,
+            itemToken?.issuance || 0,
         );
         await signer.signAndSend({
             signerId: this.currentAddress.address,
@@ -908,6 +903,9 @@ export class AuthenticatedLocClient extends LocClient {
             } else {
                 throw new Error(`Given token definition is invalid: ${result.error}`);
             }
+        }
+        if(itemToken.issuance < 1n) {
+            throw new Error("Token must have an issuance >= 1");
         }
     }
 

@@ -24,7 +24,7 @@ describe("Adapters", () => {
     });
 
     it("toCollectionItemToken", () => {
-        const itemToken: ItemToken = {
+        const itemToken = {
             type: "ethereum_erc721",
             id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","token":"4391"}',
         };

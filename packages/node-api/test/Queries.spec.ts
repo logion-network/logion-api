@@ -251,6 +251,7 @@ function mockPolkadotApiForLogionLoc() {
                             tcLocId: { toString: () => tc.tcLocId.toDecimalString() },
                             details: { toUtf8: () => tc.details },
                         })),
+                        tokenIssuance: { toBigInt: () => DEFAULT_ITEM.token?.issuance || 0n }
                     })
                 }),
             }

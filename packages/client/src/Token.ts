@@ -4,6 +4,7 @@ import { isHex } from "@polkadot/util";
 export interface ItemTokenWithRestrictedType {
     type: TokenType,
     id: string,
+    issuance: bigint;
 }
 
 export type TokenType =
