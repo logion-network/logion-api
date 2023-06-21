@@ -851,7 +851,7 @@ export abstract class EditableRequest extends LocRequestState {
         return await this.refresh() as EditableRequest
     }
 
-    async requestFileReview(hash: string): Promise<EditableRequest> {
+    async requestFileReview(hash: Hash): Promise<EditableRequest> {
         const client = this.locSharedState.client;
         await client.requestFileReview({
             locId: this.locId,

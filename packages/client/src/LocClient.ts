@@ -1095,7 +1095,7 @@ export class AuthenticatedLocClient extends LocClient {
         return checkTokensRecordDelivery(this.backend(), parameters);
     }
 
-    async requestFileReview(parameters: { locId: UUID, hash: string }): Promise<void> {
+    async requestFileReview(parameters: { locId: UUID, hash: Hash }): Promise<void> {
         const { locId, hash } = parameters;
         try {
             await this.backend().post(`/api/loc-request/${ locId.toString() }/files/${ hash }/review-request`);
