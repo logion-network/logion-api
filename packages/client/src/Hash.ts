@@ -1,12 +1,13 @@
 import { Hash as Hasher } from 'fast-sha256';
 import { FileLike, UploadableData } from "./ComponentFactory.js";
 import { Hash } from "@logion/node-api";
+import { stringToU8a } from '@polkadot/util';
 
 export { Hash };
 
 export function hashString(data: string): Hash {
     const digest = new Hasher();
-    const bytes = new TextEncoder().encode(data);
+    const bytes = stringToU8a(data);
     digest.update(bytes);
     return digestToHex(digest);
 }
