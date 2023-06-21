@@ -257,7 +257,6 @@ export interface AddCollectionItemParams extends BlockchainSubmissionParams {
     logionClassification?: LogionClassification,
     specificLicenses?: SpecificLicense[],
     creativeCommons?: CreativeCommons,
-    tokenIssuance?: bigint,
 }
 
 export interface FetchLocRequestSpecification {
@@ -802,7 +801,6 @@ export class AuthenticatedLocClient extends LocClient {
             itemFiles,
             itemToken,
             restrictedDelivery,
-            tokenIssuance,
         } = parameters;
 
         const booleanRestrictedDelivery = restrictedDelivery !== undefined ? restrictedDelivery : false;
@@ -829,10 +827,6 @@ export class AuthenticatedLocClient extends LocClient {
 
         if(itemToken) {
             this.validTokenOrThrow(itemToken);
-
-            if(tokenIssuance === undefined || tokenIssuance < 1n) {
-                throw new Error("Token issuance must be set and greater or equal to one");
-            }
         }
 
         const termsAndConditions: ChainTermsAndConditionsElement[] = [];
@@ -865,7 +859,7 @@ export class AuthenticatedLocClient extends LocClient {
             Adapters.toCollectionItemToken(itemToken),
             booleanRestrictedDelivery,
             termsAndConditions.map(Adapters.toTermsAndConditionsElement),
-            tokenIssuance || 0,
+            itemToken?.issuance || 0,
         );
         await signer.signAndSend({
             signerId: this.currentAddress.address,
