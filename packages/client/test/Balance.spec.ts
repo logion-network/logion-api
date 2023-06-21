@@ -138,7 +138,7 @@ describe("Balance", () => {
                     .returns(transfer.object());
 
                 nodeApi.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny()))
-                    .returnsAsync(new Fees(0n));
+                    .returnsAsync(new Fees({ inclusionFee: 0n }));
 
                 setupFetchTransactions(axiosFactory, [], REQUESTER_ADDRESS.address);
             },
@@ -214,7 +214,7 @@ describe("Balance", () => {
                     .returns(transfer.object());
 
                 nodeApi.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny()))
-                    .returnsAsync(new Fees(0n));
+                    .returnsAsync(new Fees({ inclusionFee: 0n }));
 
                 nodeApi.setup(instance => instance.polkadot.tx.recovery.asRecovered(recoveredAddress, transfer.object()))
                     .returns(asRecovered.object());
@@ -295,7 +295,7 @@ describe("Balance", () => {
                     .returns(transfer.object());
 
                 nodeApi.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny()))
-                    .returnsAsync(new Fees(50n));
+                    .returnsAsync(new Fees({ inclusionFee: 50n }));
 
                 setupFetchTransactions(axiosFactory, [], REQUESTER_ADDRESS.address);
             },

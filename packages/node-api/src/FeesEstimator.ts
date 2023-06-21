@@ -6,18 +6,29 @@ import { ValidAccountId, LocType, Hash } from "./Types.js";
 
 export class Fees {
 
-    constructor(inclusionFee: bigint, storageFee?: bigint, legalFee?: bigint) {
-        this.inclusionFee = inclusionFee;
-        this.storageFee = storageFee;
-        this.legalFee = legalFee;
+    constructor(params: {
+        inclusionFee: bigint,
+        storageFee?: bigint,
+        legalFee?: bigint,
+        certificateFee?: bigint
+    }) {
+        this.inclusionFee = params.inclusionFee;
+        this.storageFee = params.storageFee;
+        this.legalFee = params.legalFee;
+        this.certificateFee = params.certificateFee;
     }
 
     readonly inclusionFee: bigint;
     readonly storageFee?: bigint;
     readonly legalFee?: bigint;
+    readonly certificateFee?: bigint;
 
     get totalFee(): bigint {
-        return this.inclusionFee + (this.storageFee || 0n) + (this.legalFee || 0n);
+        return this.inclusionFee
+            + (this.storageFee || 0n)
+            + (this.legalFee || 0n)
+            + (this.certificateFee || 0n)
+        ;
     }
 }
 
@@ -45,7 +56,7 @@ export class FeesEstimator {
             numOfEntries: 1n,
             totSize: args.size,
         });
-        return new Fees(inclusionFee, storageFee);
+        return new Fees({ inclusionFee, storageFee });
     }
 
     private async estimateInclusionFee(origin: string, submittable: SubmittableExtrinsic): Promise<bigint> {
@@ -71,7 +82,7 @@ export class FeesEstimator {
         submittable: SubmittableExtrinsic,
     }): Promise<Fees> {
         const inclusionFee = await this.estimateInclusionFee(params.origin, params.submittable);
-        return new Fees(inclusionFee);
+        return new Fees({ inclusionFee });
     }
 
     async estimateCreateLoc(params: {
@@ -82,7 +93,7 @@ export class FeesEstimator {
         const { locType } = params;
         const inclusionFee = await this.estimateInclusionFee(params.origin, params.submittable);
         const legalFee = await this.estimateLegalFee({ locType });
-        return new Fees(inclusionFee, undefined, legalFee);
+        return new Fees({ inclusionFee, legalFee });
     }
 
     async estimateCertificateFee(params: { tokenIssuance: bigint }): Promise<bigint> {
