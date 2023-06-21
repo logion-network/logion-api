@@ -34,7 +34,7 @@ import {
     SharedState,
     FormDataLike,
     LegalOfficerClass,
-    hashString
+    hashString,
 } from "../src/index.js";
 import {
     ALICE,
@@ -61,7 +61,8 @@ import {
     buildLocAndRequest,
     ISSUER,
     mockLocBatchFactory,
-    mockGetLegalOfficerCase
+    mockGetLegalOfficerCase,
+    EXISTING_LINK_TARGET
 } from "./LocUtils.js";
 
 describe("LocsState", () => {
@@ -131,6 +132,8 @@ describe("DraftRequest", () => {
     it("adds file", async () => testAddFile(await getDraftRequest()));
     it("deletes metadata", async () => testDeleteMetadata(await getDraftRequest()));
     it("deletes file", async () => testDeleteFile(await getDraftRequest()));
+    it("adds link", async () => testAddLink(await getDraftRequest()));
+    it("deletes link", async () => testDeleteLink(await getDraftRequest()));
 
     it("submits", async () => {
         const draft = await getDraftRequest();
@@ -181,6 +184,8 @@ describe("OpenLoc", () => {
     it("adds file", async () => testAddFile(await getOpenLoc()));
     it("deletes metadata", async () => testDeleteMetadata(await getOpenLoc()));
     it("deletes file", async () => testDeleteFile(await getOpenLoc()));
+    it("adds link", async () => testAddLink(await getOpenLoc()));
+    it("deletes link", async () => testDeleteLink(await getOpenLoc()));
 
     it("requests Statement of Facts (SoF)", async () => {
         const openLoc = await getOpenLoc();
@@ -206,6 +211,49 @@ describe("OpenLoc", () => {
         const openLoc = await getOpenLoc();
         const data = openLoc.data();
         expectDataToMatch(data, ALICE_OPEN_TRANSACTION_LOC.request);
+    });
+
+    it("publishes link", async () => {
+        const openLoc = await getOpenLoc();
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+        await openLoc.legalOfficer.publishLink({
+            target: EXISTING_LINK_TARGET,
+            signer: signer.object(),
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addLink(It.IsAny(), It.IsAny()), Times.Once());
+    });
+
+    it("can be voided", async () => {
+        const openLoc = await getOpenLoc();
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+        await openLoc.legalOfficer.voidLoc({
+            reason: "Because",
+            signer: signer.object(),
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.makeVoid(It.IsAny()), Times.Once());
+    });
+
+    it("can be voided and replaced", async () => {
+        const openLoc = await getOpenLoc();
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+        await openLoc.legalOfficer.voidLoc({
+            reason: "Because",
+            signer: signer.object(),
+            replacer: new UUID(),
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.makeVoidAndReplace(It.IsAny(), It.IsAny()), Times.Once());
     });
 });
 
@@ -235,6 +283,35 @@ describe("ClosedLoc", () => {
         const closedLoc = await getClosedTransactionLoc();
         const data = closedLoc.data();
         expectDataToMatch(data, ALICE_CLOSED_TRANSACTION_LOC.request);
+    });
+
+    it("can be voided", async () => {
+        const openLoc = await getClosedTransactionLoc();
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+        await openLoc.legalOfficer.voidLoc({
+            reason: "Because",
+            signer: signer.object(),
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.makeVoid(It.IsAny()), Times.Once());
+    });
+
+    it("can be voided and replaced", async () => {
+        const openLoc = await getClosedTransactionLoc();
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+        await openLoc.legalOfficer.voidLoc({
+            reason: "Because",
+            signer: signer.object(),
+            replacer: new UUID(),
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.makeVoidAndReplace(It.IsAny(), It.IsAny()), Times.Once());
     });
 });
 
@@ -390,6 +467,35 @@ describe("ClosedCollectionLoc", () => {
             ),
             Times.Once(),
         );
+    });
+
+    it("can be voided", async () => {
+        const openLoc = await getClosedCollectionLoc();
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+        await openLoc.legalOfficer.voidLoc({
+            reason: "Because",
+            signer: signer.object(),
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.makeVoid(It.IsAny()), Times.Once());
+    });
+
+    it("can be voided and replaced", async () => {
+        const openLoc = await getClosedCollectionLoc();
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+        await openLoc.legalOfficer.voidLoc({
+            reason: "Because",
+            signer: signer.object(),
+            replacer: new UUID(),
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.makeVoidAndReplace(It.IsAny(), It.IsAny()), Times.Once());
     });
 });
 
@@ -708,6 +814,15 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
                 ITEM_DESCRIPTION,
                 It.IsAny(),
             )).returns(addTokensRecordExtrinsic.object());
+
+            const makeVoidExtrinsic = new Mock<SubmittableExtrinsic>();
+            nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.makeVoid(It.IsAny())).returns(makeVoidExtrinsic.object());
+
+            const makeVoidAndReplaceExtrinsic = new Mock<SubmittableExtrinsic>();
+            nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.makeVoidAndReplace(It.IsAny(), It.IsAny())).returns(makeVoidAndReplaceExtrinsic.object());
+
+            const addLinkExtrinsic = new Mock<SubmittableExtrinsic>();
+            nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.addLink(It.IsAny(), It.IsAny())).returns(addLinkExtrinsic.object());
         },
         currentAddress,
         legalOfficers,
@@ -837,4 +952,27 @@ async function testDeleteFile(editable: EditableRequest) {
     aliceAxiosMock.verify(instance => instance.delete(
         `/api/loc-request/${ editable.locId }/files/0x7bae16861c48edb6376401922729c4e3faaa5e203615b3ba6814ba4e85fb434c`
     ), Times.Once());
+}
+
+async function testAddLink(editable: EditableRequest) {
+    const target = new UUID();
+    const nature = "Some nature";
+
+    await editable.legalOfficer.addLink({
+        target,
+        nature,
+    });
+
+    aliceAxiosMock.verify(instance => instance.post(
+            `/api/loc-request/${ editable.locId }/links`,
+            It.Is((params: any) => params.target === target.toString() && params.nature === "Some nature"),
+        ),
+        Times.Once(),
+    );
+}
+
+async function testDeleteLink(editable: EditableRequest) {
+    const target = new UUID();
+    await editable.legalOfficer.deleteLink({ target });
+    aliceAxiosMock.verify(instance => instance.delete(`/api/loc-request/${ editable.locId }/links/${ target.toString() }`), Times.Once());
 }
