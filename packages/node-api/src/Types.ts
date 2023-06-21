@@ -81,9 +81,13 @@ export interface ItemFile {
     hash: string;
 }
 
-export interface ItemToken {
+export interface ItemTokenWithoutIssuance {
     type: string;
     id: string;
+}
+
+export interface ItemToken extends ItemTokenWithoutIssuance {
+    issuance: bigint;
 }
 
 export interface TermsAndConditionsElement {

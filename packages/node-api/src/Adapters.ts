@@ -30,7 +30,7 @@ import {
     TypesEvent,
     CollectionItem,
     ItemFile,
-    ItemToken,
+    ItemTokenWithoutIssuance,
     TermsAndConditionsElement,
     TypesTokensRecordFile,
     TypesTokensRecord,
@@ -448,8 +448,9 @@ export class Adapters {
                 size: resultFile.size_.toBigInt(),
             })),
             token: tokenId !== undefined ? {
-                type: token.unwrap().tokenType.toUtf8(),
                 id: tokenId,
+                type: token.unwrap().tokenType.toUtf8(),
+                issuance: unwrappedResult.tokenIssuance.toBigInt(),
             } : undefined,
             restrictedDelivery: unwrappedResult.restrictedDelivery.isTrue,
             termsAndConditions: unwrappedResult.termsAndConditions.map(tc => ({
@@ -469,7 +470,7 @@ export class Adapters {
         };
     }
 
-    static toCollectionItemToken(itemToken?: ItemToken): { tokenType?: string; tokenId?: string } | null {
+    static toCollectionItemToken(itemToken?: ItemTokenWithoutIssuance): { tokenType: string; tokenId: string } | null {
         if(itemToken) {
             return {
                 tokenType: itemToken.type,

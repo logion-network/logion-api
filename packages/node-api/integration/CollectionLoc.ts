@@ -84,12 +84,15 @@ export async function addCollectionItemTest() {
 
     const item1 = await api.queries.getCollectionItem(COLLECTION_LOC_ID, item1Id);
     expect(item1?.id).toBe(item1Id);
+    expect(item1?.token).toBeUndefined();
 
     const item2 = await api.queries.getCollectionItem(COLLECTION_LOC_ID, item2Id);
     expect(item2?.id).toBe(item2Id);
+    expect(item2?.token?.issuance).toBe(1n);
 
     const item3 = await api.queries.getCollectionItem(COLLECTION_LOC_ID, item3Id);
     expect(item3?.id).toBe(item3Id);
+    expect(item3?.token?.issuance).toBe(1n);
 }
 
 const COLLECTION_LOC_ID = new UUID("3a07d3ae-a18d-43a4-8439-9c33532b7ff3");

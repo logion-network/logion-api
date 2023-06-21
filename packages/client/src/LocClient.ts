@@ -532,6 +532,7 @@ export abstract class LocClient {
             token: onchainItem.token ? {
                 type: onchainItem.token.type as TokenType,
                 id: onchainItem.token.id,
+                issuance: onchainItem.token.issuance,
             } : undefined,
             restrictedDelivery: onchainItem.restrictedDelivery,
             termsAndConditions: newTermsAndConditions(onchainItem.termsAndConditions),
@@ -908,6 +909,9 @@ export class AuthenticatedLocClient extends LocClient {
             } else {
                 throw new Error(`Given token definition is invalid: ${result.error}`);
             }
+        }
+        if(itemToken.issuance < 1n) {
+            throw new Error("Token must have an issuance >= 1");
         }
     }
 

@@ -291,6 +291,7 @@ export async function collectionLocWithUpload(state: State) {
     const firstItemToken: ItemTokenWithRestrictedType = {
         type: "owner",
         id: newAccount.address,
+        issuance: 1n,
     };
     closedLoc = await closedLoc.addCollectionItem({
         itemId: firstItemId,
