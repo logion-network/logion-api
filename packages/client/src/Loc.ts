@@ -963,23 +963,6 @@ export class LegalOfficerEditableRequestCommands {
         })
         return await this.request.refresh() as EditableRequest
     }
-
-    async publishLink(parameters: { target: UUID } & BlockchainSubmissionParams): Promise<EditableRequest> {
-        const link = this.request.data().links.find(link => link.target === parameters.target.toString());
-        if(!link) {
-            throw new Error("Link was not found");
-        }
-        await this.client.publishLink({
-            locId: this.locId,
-            link: {
-                id: parameters.target,
-                nature: hashString(link.nature),
-            },
-            signer: parameters.signer,
-            callback: parameters.callback,
-        });
-        return await this.request.refresh() as EditableRequest;
-    }
 }
 
 export interface IdenfyVerificationCreation {
@@ -1275,6 +1258,23 @@ export class LegalOfficerOpenRequestCommands extends LegalOfficerEditableRequest
 
     private legalOfficerNonVoidedCommands: LegalOfficerNonVoidedCommands;
 
+    async publishLink(parameters: { target: UUID } & BlockchainSubmissionParams): Promise<OpenLoc> {
+        const link = this.request.data().links.find(link => link.target === parameters.target.toString());
+        if(!link) {
+            throw new Error("Link was not found");
+        }
+        await this.client.publishLink({
+            locId: this.locId,
+            link: {
+                id: parameters.target,
+                nature: hashString(link.nature),
+            },
+            signer: parameters.signer,
+            callback: parameters.callback,
+        });
+        return await this.request.refresh() as OpenLoc;
+    }
+
     async acknowledgeFile(parameters: AckFileParams): Promise<OpenLoc> {
         this.request.ensureCurrent();
         const file = this.request.data().files.find(file => file.hash === parameters.hash && file.status === "PUBLISHED");
@@ -1329,24 +1329,6 @@ export class LegalOfficerOpenRequestCommands extends LegalOfficerEditableRequest
         } else {
             return state as ClosedLoc;
         }
-    }
-
-    async publishLink(parameters: { target: UUID } & BlockchainSubmissionParams): Promise<OpenLoc> {
-        this.request.ensureCurrent();
-        const link = this.request.data().links.find(link => link.target === parameters.target.toString());
-        if(!link) {
-            throw new Error("File was not found or was not reviewed and accepted by the LLO yet");
-        }
-        await this.client.publishLink({
-            locId: this.locId,
-            link: {
-                id: parameters.target,
-                nature: hashString(link.nature),
-            },
-            signer: parameters.signer,
-            callback: parameters.callback,
-        });
-        return await this.request.refresh() as OpenLoc;
     }
 
     async voidLoc(params: VoidParams): Promise<VoidedLoc | VoidedCollectionLoc> {
