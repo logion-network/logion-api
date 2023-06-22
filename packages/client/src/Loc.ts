@@ -42,6 +42,8 @@ import {
     AddLinkParams,
     DeleteLinkParams,
     VoidParams,
+    VerifiedIssuer,
+    VerifiedIssuerIdentity,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -816,10 +818,7 @@ export abstract class LocRequestState extends State {
     }
 }
 
-/**
- * Encapsulated calls can be used only by a Logion Legal Officer.
- */
-export class LegalOfficerNonVoidedCommands {
+export abstract class LegalOfficerLocRequestCommands {
 
     constructor(args: {
         locId: UUID,
@@ -836,14 +835,6 @@ export class LegalOfficerNonVoidedCommands {
     protected client: AuthenticatedLocClient;
 
     protected request: LocRequestState;
-
-    async voidLoc(params: VoidParams): Promise<VoidedLoc | VoidedCollectionLoc> {
-        await this.client.voidLoc({
-            ...params,
-            locId: this.locId,
-        });
-        return await this.request.refresh() as (VoidedLoc | VoidedCollectionLoc);
-    }
 }
 
 export abstract class EditableRequest extends LocRequestState {
@@ -914,23 +905,7 @@ export abstract class EditableRequest extends LocRequestState {
 /**
  * Encapsulated calls can be used only by a Logion Legal Officer.
  */
-export class LegalOfficerEditableRequestCommands {
-
-    constructor(args: {
-        locId: UUID,
-        client: AuthenticatedLocClient,
-        request: EditableRequest,
-    }) {
-        this.locId = args.locId;
-        this.client = args.client;
-        this.request = args.request;
-    }
-
-    protected locId: UUID;
-
-    protected client: AuthenticatedLocClient;
-
-    protected request: EditableRequest;
+export class LegalOfficerEditableRequestCommands extends LegalOfficerLocRequestCommands {
 
     async reviewFile(params: ReviewFileParams): Promise<EditableRequest> {
         await this.client.reviewFile({
@@ -1244,7 +1219,9 @@ export class OpenLoc extends EditableRequest {
 /**
  * Encapsulated calls can be used only by a Logion Legal Officer.
  */
-export class LegalOfficerOpenRequestCommands extends LegalOfficerEditableRequestCommands {
+export class LegalOfficerOpenRequestCommands
+extends LegalOfficerEditableRequestCommands
+implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCommands<OpenLoc> {
 
     constructor(args: {
         locId: UUID,
@@ -1253,10 +1230,13 @@ export class LegalOfficerOpenRequestCommands extends LegalOfficerEditableRequest
     }) {
         super(args);
 
-        this.legalOfficerNonVoidedCommands = new LegalOfficerNonVoidedCommands(args);
+        this.legalOfficerNonVoidedCommands = new LegalOfficerNonVoidedCommandsImpl(args);
+        this.legalOfficerLocWithSelectableIssuersCommands = new LegalOfficerLocWithSelectableIssuersCommandsImpl(args);
     }
 
     private legalOfficerNonVoidedCommands: LegalOfficerNonVoidedCommands;
+
+    private legalOfficerLocWithSelectableIssuersCommands: LegalOfficerLocWithSelectableIssuersCommands<OpenLoc>;
 
     async publishLink(parameters: { target: UUID } & BlockchainSubmissionParams): Promise<OpenLoc> {
         const link = this.request.data().links.find(link => link.target === parameters.target.toString());
@@ -1334,6 +1314,102 @@ export class LegalOfficerOpenRequestCommands extends LegalOfficerEditableRequest
     async voidLoc(params: VoidParams): Promise<VoidedLoc | VoidedCollectionLoc> {
         return this.legalOfficerNonVoidedCommands.voidLoc(params);
     }
+
+    async getVerifiedIssuers(): Promise<VerifiedIssuerWithSelect[]> {
+        return this.legalOfficerLocWithSelectableIssuersCommands.getVerifiedIssuers();
+    }
+
+    async selectIssuer(params: SelectUnselectIssuerParams): Promise<OpenLoc> {
+        return this.legalOfficerLocWithSelectableIssuersCommands.selectIssuer(params);
+    }
+
+    async unselectIssuer(params: SelectUnselectIssuerParams): Promise<OpenLoc> {
+        return this.legalOfficerLocWithSelectableIssuersCommands.unselectIssuer(params);
+    }
+}
+
+export interface LegalOfficerNonVoidedCommands {
+    voidLoc(params: VoidParams): Promise<VoidedLoc | VoidedCollectionLoc>;
+}
+
+export class LegalOfficerNonVoidedCommandsImpl extends LegalOfficerLocRequestCommands implements LegalOfficerNonVoidedCommands {
+
+    async voidLoc(params: VoidParams): Promise<VoidedLoc | VoidedCollectionLoc> {
+        await this.client.voidLoc({
+            ...params,
+            locId: this.locId,
+        });
+        return await this.request.refresh() as (VoidedLoc | VoidedCollectionLoc);
+    }
+}
+
+export interface LegalOfficerLocWithSelectableIssuersCommands<T extends LocRequestState> {
+    getVerifiedIssuers(): Promise<VerifiedIssuerWithSelect[]>;
+    selectIssuer(params: SelectUnselectIssuerParams): Promise<T>;
+    unselectIssuer(params: SelectUnselectIssuerParams): Promise<T>;
+}
+
+export class LegalOfficerLocWithSelectableIssuersCommandsImpl<T extends LocRequestState>
+extends LegalOfficerLocRequestCommands
+implements LegalOfficerLocWithSelectableIssuersCommands<T> {
+
+    async getVerifiedIssuers(): Promise<VerifiedIssuerWithSelect[]> {
+        const allVerifiedIssuers = await this.client.getLegalOfficerVerifiedIssuers();
+        const locData = this.request.data();
+        const selectedIssuers = locData.issuers;
+    
+        return allVerifiedIssuers
+            .filter(issuer => issuer.address !== locData.requesterAddress?.address)
+            .map(issuer => {
+                const selected = selectedIssuers.find(selectedIssuer => selectedIssuer.address === issuer.address);
+                if(selected && selected.firstName && selected.lastName) {
+                    return {
+                        firstName: selected.firstName,
+                        lastName: selected.lastName,
+                        identityLocId: selected.identityLocId,
+                        address: selected.address,
+                        selected: true,
+                    };
+                } else {
+                    return {
+                        firstName: issuer.identity.firstName,
+                        lastName: issuer.identity.lastName,
+                        identityLocId: issuer.identityLocId,
+                        address: issuer.address,
+                        selected: selected !== undefined,
+                    };
+                }
+            })
+            .sort((issuer1, issuer2) => issuer1.lastName.localeCompare(issuer2.lastName));
+    }
+
+    async selectIssuer(params: SelectUnselectIssuerParams): Promise<T> {
+        return this.setIssuerSelection({
+            ...params,
+            selected: true,
+        });
+    }
+
+    private async setIssuerSelection(params: { issuer: string, selected: boolean } & BlockchainSubmissionParams): Promise<T> {
+        await this.client.setIssuerSelection({
+            ...params,
+            locId: this.request.data().id,
+        });
+        return await this.request.refresh() as T;
+    }
+
+    async unselectIssuer(params: SelectUnselectIssuerParams): Promise<T> {
+        return this.setIssuerSelection({
+            ...params,
+            selected: false,
+        });
+    }
+}
+
+export type VerifiedIssuerWithSelect = VerifiedIssuer & { selected: boolean };
+
+export interface SelectUnselectIssuerParams extends BlockchainSubmissionParams {
+    issuer: string;
 }
 
 export class ClosedLoc extends LocRequestState {
@@ -1350,12 +1426,52 @@ export class ClosedLoc extends LocRequestState {
         return this._withLocs(locsState, ClosedLoc);
     }
 
-    get legalOfficer(): LegalOfficerNonVoidedCommands {
-        return new LegalOfficerNonVoidedCommands({
+    get legalOfficer(): LegalOfficerClosedLocCommands {
+        return new LegalOfficerClosedLocCommands({
             locId: this.locId,
             client: this.locSharedState.client,
             request: this,
         });
+    }
+}
+
+export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommandsImpl {
+
+    async nominateIssuer(params: BlockchainSubmissionParams): Promise<ClosedLoc> {
+        const data = this.request.data();
+        if(data.locType !== "Identity") {
+            throw new Error("Not an Identity LOC");
+        }
+
+        if(!data.requesterAddress || data.requesterAddress.type !== "Polkadot") {
+            throw new Error("Identity LOC has no Polkadot requester");
+        }
+    
+        await this.client.nominateIssuer({
+            ...params,
+            locId: data.id,
+            requester: data.requesterAddress.address,
+        });
+    
+        return await this.request.refresh() as ClosedLoc;
+    }
+
+    async dismissIssuer(params: BlockchainSubmissionParams): Promise<ClosedLoc> {
+        const data = this.request.data();
+        if(data.locType !== "Identity") {
+            throw new Error("Not an Identity LOC");
+        }
+
+        if(!data.requesterAddress || data.requesterAddress.type !== "Polkadot") {
+            throw new Error("Identity LOC has no Polkadot requester");
+        }
+    
+        await this.client.dismissIssuer({
+            ...params,
+            requester: data.requesterAddress.address,
+        });
+    
+        return await this.request.refresh() as ClosedLoc;
     }
 }
 
@@ -1542,12 +1658,41 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
         return this._withLocs(locsState, ClosedCollectionLoc);
     }
 
-    get legalOfficer(): LegalOfficerNonVoidedCommands {
-        return new LegalOfficerNonVoidedCommands({
+    get legalOfficer(): LegalOfficerClosedCollectionLocCommands {
+        return new LegalOfficerClosedCollectionLocCommands({
             locId: this.locId,
             client: this.locSharedState.client,
             request: this,
         });
+    }
+}
+
+export class LegalOfficerClosedCollectionLocCommands
+extends LegalOfficerNonVoidedCommandsImpl
+implements LegalOfficerLocWithSelectableIssuersCommands<ClosedCollectionLoc> {
+
+    constructor(args: {
+        locId: UUID,
+        client: AuthenticatedLocClient,
+        request: ClosedCollectionLoc,
+    }) {
+        super(args);
+
+        this.legalOfficerLocWithSelectableIssuersCommands = new LegalOfficerLocWithSelectableIssuersCommandsImpl(args);
+    }
+
+    private legalOfficerLocWithSelectableIssuersCommands: LegalOfficerLocWithSelectableIssuersCommands<ClosedCollectionLoc>;
+
+    async getVerifiedIssuers(): Promise<VerifiedIssuerWithSelect[]> {
+        return this.legalOfficerLocWithSelectableIssuersCommands.getVerifiedIssuers();
+    }
+
+    async selectIssuer(params: SelectUnselectIssuerParams): Promise<ClosedCollectionLoc> {
+        return this.legalOfficerLocWithSelectableIssuersCommands.selectIssuer(params);
+    }
+
+    async unselectIssuer(params: SelectUnselectIssuerParams): Promise<ClosedCollectionLoc> {
+        return this.legalOfficerLocWithSelectableIssuersCommands.unselectIssuer(params);
     }
 }
 

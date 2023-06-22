@@ -1480,6 +1480,51 @@ export class AuthenticatedLocClient extends LocClient {
             throw newBackendError(e);
         }
     }
+
+    async nominateIssuer(parameters: { locId: UUID, requester: string } & BlockchainSubmissionParams) {
+        const submittable = this.nodeApi.polkadot.tx.logionLoc.nominateIssuer(
+            parameters.requester,
+            this.nodeApi.adapters.toLocId(parameters.locId),
+        );
+        await parameters.signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable,
+            callback: parameters.callback,
+        });
+    }
+
+    async dismissIssuer(parameters: { requester: string } & BlockchainSubmissionParams) {
+        const submittable = this.nodeApi.polkadot.tx.logionLoc.dismissIssuer(
+            parameters.requester,
+        );
+        await parameters.signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable,
+            callback: parameters.callback,
+        });
+    }
+
+    async getLegalOfficerVerifiedIssuers(): Promise<VerifiedIssuerIdentity[]> {
+        try {
+            const response = await this.backend().get("/api/issuers-identity");
+            return response.data.issuers;
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    async setIssuerSelection(params: SetIssuerSelectionParams) {
+        const submittable = this.nodeApi.polkadot.tx.logionLoc.setIssuerSelection(
+            this.nodeApi.adapters.toLocId(params.locId),
+            params.issuer,
+            params.selected,
+        );
+        await params.signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable,
+            callback: params.callback,
+        });
+    }
 }
 
 export interface ReviewFileParams {
@@ -1536,4 +1581,10 @@ export interface PublishLinkParams extends BlockchainSubmissionParams {
 
 export interface VoidParams extends BlockchainSubmissionParams, VoidInfo {
     reason: string;
+}
+
+export interface SetIssuerSelectionParams extends BlockchainSubmissionParams {
+    locId: UUID;
+    issuer: string;
+    selected: boolean;
 }

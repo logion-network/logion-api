@@ -255,6 +255,9 @@ describe("OpenLoc", () => {
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
         nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.makeVoidAndReplace(It.IsAny(), It.IsAny()), Times.Once());
     });
+
+    it("selects issuer", async () => testSelectIssuer(await getOpenLoc()));
+    it("unselects issuer", async () => testUnselectIssuer(await getOpenLoc()));
 });
 
 describe("ClosedLoc", () => {
@@ -312,6 +315,32 @@ describe("ClosedLoc", () => {
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
         nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.makeVoidAndReplace(It.IsAny(), It.IsAny()), Times.Once());
+    });
+
+    it("can nominate issuer", async () => {
+        const closedLoc = await getClosedIdentityLoc();
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+        await closedLoc.legalOfficer.nominateIssuer({
+            signer: signer.object(),
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.nominateIssuer(It.IsAny(), It.IsAny()), Times.Once());
+    });
+
+    it("can dismiss issuer", async () => {
+        const closedLoc = await getClosedIdentityLoc();
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+        await closedLoc.legalOfficer.dismissIssuer({
+            signer: signer.object(),
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.dismissIssuer(It.IsAny()), Times.Once());
     });
 });
 
@@ -497,6 +526,9 @@ describe("ClosedCollectionLoc", () => {
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
         nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.makeVoidAndReplace(It.IsAny(), It.IsAny()), Times.Once());
     });
+
+    it("selects issuer", async () => testSelectIssuer(await getClosedCollectionLoc()));
+    it("unselects issuer", async () => testUnselectIssuer(await getClosedCollectionLoc()));
 });
 
 describe("VoidedLoc", () => {
@@ -823,6 +855,15 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
 
             const addLinkExtrinsic = new Mock<SubmittableExtrinsic>();
             nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.addLink(It.IsAny(), It.IsAny())).returns(addLinkExtrinsic.object());
+
+            const setIssuerSelectionExtrinsic = new Mock<SubmittableExtrinsic>();
+            nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.setIssuerSelection(It.IsAny(), It.IsAny(), It.IsAny())).returns(setIssuerSelectionExtrinsic.object());
+
+            const nominateIssuerExtrinsic = new Mock<SubmittableExtrinsic>();
+            nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.nominateIssuer(It.IsAny(), It.IsAny())).returns(nominateIssuerExtrinsic.object());
+
+            const dismissIssuerExtrinsic = new Mock<SubmittableExtrinsic>();
+            nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.dismissIssuer(It.IsAny())).returns(dismissIssuerExtrinsic.object());
         },
         currentAddress,
         legalOfficers,
@@ -876,6 +917,12 @@ async function getClosedCollectionLoc() {
     const sharedState = await buildSharedState();
     const locs = await LocsState.getInitialLocsState(sharedState, client.object());
     return locs.closedLocs.Collection[0] as ClosedCollectionLoc;
+}
+
+async function getClosedIdentityLoc() {
+    const sharedState = await buildSharedState();
+    const locs = await LocsState.getInitialLocsState(sharedState, client.object());
+    return locs.closedLocs.Identity[0] as ClosedLoc;
 }
 
 async function getVoidedTransactionLoc() {
@@ -975,4 +1022,30 @@ async function testDeleteLink(editable: EditableRequest) {
     const target = new UUID();
     await editable.legalOfficer.deleteLink({ target });
     aliceAxiosMock.verify(instance => instance.delete(`/api/loc-request/${ editable.locId }/links/${ target.toString() }`), Times.Once());
+}
+
+async function testSelectIssuer(state: OpenLoc | ClosedCollectionLoc) {
+    const signer = new Mock<Signer>();
+    signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+    await state.legalOfficer.selectIssuer({
+        issuer: ISSUER.address,
+        signer: signer.object(),
+    });
+
+    signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+    nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.setIssuerSelection(It.IsAny(), ISSUER.address, true), Times.Once());
+}
+
+async function testUnselectIssuer(state: OpenLoc | ClosedCollectionLoc) {
+    const signer = new Mock<Signer>();
+    signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+    await state.legalOfficer.unselectIssuer({
+        issuer: ISSUER.address,
+        signer: signer.object(),
+    });
+
+    signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+    nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.setIssuerSelection(It.IsAny(), ISSUER.address, false), Times.Once());
 }
