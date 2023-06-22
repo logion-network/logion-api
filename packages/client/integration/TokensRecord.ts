@@ -8,11 +8,10 @@ import {
     PendingRequest,
     AcceptedRequest, OpenLoc
 } from "../src/index.js";
-import { initRequesterBalance, LegalOfficerWorker, State, TEST_LOGION_CLIENT_CONFIG, ISSUER_ADDRESS } from "./Utils.js";
+import { initRequesterBalance, State, TEST_LOGION_CLIENT_CONFIG, ISSUER_ADDRESS } from "./Utils.js";
 
 export async function tokensRecords(state: State) {
     const { client, alice, aliceAccount, newAccount, issuerAccount, signer } = state;
-    const legalOfficer = new LegalOfficerWorker(alice, state);
 
     const userClient = state.client.withCurrentAddress(newAccount);
     let collectionLoc: LocRequestState = await (await userClient.locsState()).requestCollectionLoc({
@@ -30,7 +29,7 @@ export async function tokensRecords(state: State) {
     await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
 
-    await legalOfficer.selectIssuer(collectionLocId, ISSUER_ADDRESS);
+    aliceOpenLoc = await aliceOpenLoc.legalOfficer.selectIssuer({ issuer: ISSUER_ADDRESS, signer });
     await aliceOpenLoc.legalOfficer.close({ signer });
 
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, ISSUER_ADDRESS);

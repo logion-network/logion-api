@@ -10,7 +10,6 @@ import {
     LogionClientConfig,
     ISubmittableResult,
     LogionClient,
-    DefaultSignAndSendStrategy,
     LegalOfficerClass,
     PendingRequest,
     OpenLoc,
@@ -160,32 +159,5 @@ export class LegalOfficerWorker {
         const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
         const loc = locsState.findById(id) as OpenLoc;
         await loc.legalOfficer.close({ signer: this.state.signer });
-    }
-
-    async nominateVerifiedIssuer(issuerAddress: string, identityLocId: UUID) {
-        const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        const submittable = api.polkadot.tx.logionLoc.nominateIssuer(issuerAddress, identityLocId.toDecimalString());
-        await this.state.signer.signAndSend({
-            signerId: this.legalOfficer.address,
-            submittable,
-        });
-    }
-
-    async selectIssuer(locId: UUID, issuerAddress: string) {
-        await this.setIssuerSelection(locId, issuerAddress, true);
-    }
-
-    async unselectIssuer(locId: UUID, issuerAddress: string) {
-        await this.setIssuerSelection(locId, issuerAddress, false);
-    }
-
-    private async setIssuerSelection(locId: UUID, issuerAddress: string, selected: boolean) {
-        const api = await buildApiClass(TEST_LOGION_CLIENT_CONFIG.rpcEndpoints);
-        const submittable = api.polkadot.tx.logionLoc.setIssuerSelection(api.adapters.toLocId(locId), issuerAddress, selected);
-        await this.state.signer.signAndSend({
-            signerId: this.legalOfficer.address,
-            submittable,
-            strategy: new DefaultSignAndSendStrategy(),
-        });
     }
 }
