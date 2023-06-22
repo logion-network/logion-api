@@ -784,7 +784,7 @@ export abstract class LocRequestState extends State {
         if (calculatedHash === hash) {
             return data;
         }
-        return `(Deleted Value: ${ hash })`;
+        return `Deleted data - related hash: ${ hash })`;
     }
 
     private static mergeLink(backendLink: LocLink, chainLoc?: LegalOfficerCase): MergedLink {
