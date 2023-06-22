@@ -39,6 +39,9 @@ import {
     ReviewMetadataParams,
     AckMetadataParams,
     OpenCollectionLocParams,
+    AddLinkParams,
+    DeleteLinkParams,
+    VoidParams,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -813,6 +816,36 @@ export abstract class LocRequestState extends State {
     }
 }
 
+/**
+ * Encapsulated calls can be used only by a Logion Legal Officer.
+ */
+export class LegalOfficerNonVoidedCommands {
+
+    constructor(args: {
+        locId: UUID,
+        client: AuthenticatedLocClient,
+        request: LocRequestState,
+    }) {
+        this.locId = args.locId;
+        this.client = args.client;
+        this.request = args.request;
+    }
+
+    protected locId: UUID;
+
+    protected client: AuthenticatedLocClient;
+
+    protected request: LocRequestState;
+
+    async voidLoc(params: VoidParams): Promise<VoidedLoc | VoidedCollectionLoc> {
+        await this.client.voidLoc({
+            ...params,
+            locId: this.locId,
+        });
+        return await this.request.refresh() as (VoidedLoc | VoidedCollectionLoc);
+    }
+}
+
 export abstract class EditableRequest extends LocRequestState {
 
     async addMetadata(params: AddMetadataParams): Promise<EditableRequest> {
@@ -913,6 +946,22 @@ export class LegalOfficerEditableRequestCommands {
             locId: this.locId,
         });
         return await this.request.refresh() as EditableRequest;
+    }
+
+    async addLink(params: AddLinkParams): Promise<EditableRequest> {
+        await this.client.addLink({
+            locId: this.locId,
+            ...params
+        });
+        return await this.request.refresh() as EditableRequest;
+    }
+
+    async deleteLink(params: DeleteLinkParams): Promise<EditableRequest> {
+        await this.client.deleteLink({
+            locId: this.locId,
+            ...params
+        })
+        return await this.request.refresh() as EditableRequest
     }
 }
 
@@ -1197,6 +1246,35 @@ export class OpenLoc extends EditableRequest {
  */
 export class LegalOfficerOpenRequestCommands extends LegalOfficerEditableRequestCommands {
 
+    constructor(args: {
+        locId: UUID,
+        client: AuthenticatedLocClient,
+        request: EditableRequest,
+    }) {
+        super(args);
+
+        this.legalOfficerNonVoidedCommands = new LegalOfficerNonVoidedCommands(args);
+    }
+
+    private legalOfficerNonVoidedCommands: LegalOfficerNonVoidedCommands;
+
+    async publishLink(parameters: { target: UUID } & BlockchainSubmissionParams): Promise<OpenLoc> {
+        const link = this.request.data().links.find(link => link.target === parameters.target.toString());
+        if(!link) {
+            throw new Error("Link was not found");
+        }
+        await this.client.publishLink({
+            locId: this.locId,
+            link: {
+                id: parameters.target,
+                nature: hashString(link.nature),
+            },
+            signer: parameters.signer,
+            callback: parameters.callback,
+        });
+        return await this.request.refresh() as OpenLoc;
+    }
+
     async acknowledgeFile(parameters: AckFileParams): Promise<OpenLoc> {
         this.request.ensureCurrent();
         const file = this.request.data().files.find(file => file.hash === parameters.hash && file.status === "PUBLISHED");
@@ -1252,6 +1330,10 @@ export class LegalOfficerOpenRequestCommands extends LegalOfficerEditableRequest
             return state as ClosedLoc;
         }
     }
+
+    async voidLoc(params: VoidParams): Promise<VoidedLoc | VoidedCollectionLoc> {
+        return this.legalOfficerNonVoidedCommands.voidLoc(params);
+    }
 }
 
 export class ClosedLoc extends LocRequestState {
@@ -1266,6 +1348,14 @@ export class ClosedLoc extends LocRequestState {
 
     override withLocs(locsState: LocsState): ClosedLoc {
         return this._withLocs(locsState, ClosedLoc);
+    }
+
+    get legalOfficer(): LegalOfficerNonVoidedCommands {
+        return new LegalOfficerNonVoidedCommands({
+            locId: this.locId,
+            client: this.locSharedState.client,
+            request: this,
+        });
     }
 }
 
@@ -1450,6 +1540,14 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
 
     override withLocs(locsState: LocsState): ClosedCollectionLoc {
         return this._withLocs(locsState, ClosedCollectionLoc);
+    }
+
+    get legalOfficer(): LegalOfficerNonVoidedCommands {
+        return new LegalOfficerNonVoidedCommands({
+            locId: this.locId,
+            client: this.locSharedState.client,
+            request: this,
+        });
     }
 }
 

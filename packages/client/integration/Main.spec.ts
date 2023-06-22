@@ -8,6 +8,7 @@ import { verifiedIssuer } from "./VerifiedIssuer.js";
 import { tokensRecords } from "./TokensRecord.js";
 import { fees } from "./Fees.js";
 import { backendConfig } from "./LegalOfficer.js";
+import { voidTransactionLoc } from "./Void.js";
 
 describe("Logion SDK", () => {
 
@@ -94,6 +95,10 @@ describe("Logion SDK", () => {
 
     it("provides Tokens Records", async () => {
         await tokensRecords(state);
+    });
+
+    it("voids a Transaction LOC", async () => {
+        await voidTransactionLoc(state);
     });
 
     afterAll(() => {

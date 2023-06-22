@@ -10,7 +10,7 @@ import { Bytes, u32 } from "@polkadot/types-codec";
 import { DateTime } from "luxon";
 import { Mock } from "moq.ts";
 
-import { LocFile, LocRequest, LocRequestStatus, OffchainCollectionItem, UploadableItemFile } from "../src/index.js";
+import { LocFile, LocLink, LocRequest, LocRequestStatus, OffchainCollectionItem, UploadableItemFile } from "../src/index.js";
 import {
     mockCodecWithToHex,
     mockCodecWithToString,
@@ -43,6 +43,14 @@ export const EXISTING_ITEM_FILE: UploadableItemFile = {
     uploaded: false,
 }
 
+export const EXISTING_LINK_TARGET = new UUID();
+
+export const EXISTING_LINK: LocLink = {
+    target: EXISTING_LINK_TARGET.toString(),
+    nature: "Some nature",
+    addedOn: DateTime.now().toISO(),
+};
+
 export type LocAndRequest = {
     request: LocRequest,
     loc: LegalOfficerCase
@@ -61,7 +69,7 @@ export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, 
         createdOn: DateTime.now().toISO(),
         description: `Some ${status} ${locType} LOC owned by ${ownerAddress}`,
         files: [ EXISTING_FILE ],
-        links: [],
+        links: [ EXISTING_LINK ],
         metadata: [],
         requesterAddress: requester,
         ownerAddress,

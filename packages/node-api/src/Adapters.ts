@@ -13,6 +13,7 @@ import {
     PalletLogionLocSupportedAccountId,
     PalletLogionLocMetadataItemParams,
     PalletLogionLocSponsorship,
+    PalletLogionLocLocLink,
 } from '@polkadot/types/lookup';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { ISubmittableResult } from "@polkadot/types/types";
@@ -44,6 +45,7 @@ import {
     HostData,
     Region,
     Hash,
+    Link,
 } from "./Types.js";
 import { UUID } from "./UUID.js";
 import { stringToHex, stringToU8a, u8aToHex } from "@polkadot/util";
@@ -612,5 +614,12 @@ export class Adapters {
 
     toH256(data: HexString): H256 {
         return this.api.createType<H256>("H256", data);
+    }
+
+    toPalletLogionLocLocLink(link: Link): PalletLogionLocLocLink {
+        return this.api.createType("PalletLogionLocLocLink", {
+            id: this.toNonCompactU128Uuid(link.id),
+            nature: this.toH256(link.nature),
+        });
     }
 }

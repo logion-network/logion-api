@@ -13,6 +13,8 @@ import {
     TypesTokensRecord,
     TypesTokensRecordFile,
     FileParams,
+    Link,
+    VoidInfo,
 } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AxiosInstance } from 'axios';
@@ -186,6 +188,15 @@ export interface AddFileParams {
 
 export interface DeleteFileParams {
     hash: string
+}
+
+export interface AddLinkParams {
+    target: UUID;
+    nature: string;
+}
+
+export interface DeleteLinkParams {
+    target: UUID;
 }
 
 export class ItemFileWithContent {
@@ -791,6 +802,24 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
+    async addLink(parameters: AddLinkParams & FetchParameters): Promise<void> {
+        const { target, nature, locId } = parameters;
+        try {
+            await this.backend().post(`/api/loc-request/${ locId.toString() }/links`, { target: target.toString(), nature });
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    async deleteLink(parameters: DeleteLinkParams & FetchParameters): Promise<void> {
+        try {
+            const { target, locId } = parameters;
+            await this.backend().delete(`/api/loc-request/${ locId.toString() }/links/${ target.toString() }`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
     async addCollectionItem(parameters: AddCollectionItemParams & FetchParameters): Promise<void> {
         const {
             itemId,
@@ -1216,6 +1245,25 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
+    async publishLink(parameters: PublishLinkParams): Promise<void> {
+        const submittable = this.nodeApi.polkadot.tx.logionLoc.addLink(
+            this.nodeApi.adapters.toLocId(parameters.locId),
+            this.nodeApi.adapters.toPalletLogionLocLocLink(parameters.link),
+        );
+
+        await parameters.signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable,
+            callback: parameters.callback,
+        });
+
+        try {
+            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/links/${ parameters.link.id.toString() }/confirm`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
     async rejectLoc(args: {
         locId: UUID,
         reason: string,
@@ -1403,6 +1451,35 @@ export class AuthenticatedLocClient extends LocClient {
             throw newBackendError(e);
         }
     }
+
+    async voidLoc(parameters: { locId: UUID } & VoidParams): Promise<void> {
+        const { locId, replacer, reason, signer, callback } = parameters;
+
+        let submittable;
+        if(replacer) {
+            submittable = this.nodeApi.polkadot.tx.logionLoc.makeVoidAndReplace(
+                this.nodeApi.adapters.toLocId(locId),
+                this.nodeApi.adapters.toLocId(replacer),
+            );
+        } else {
+            submittable = this.nodeApi.polkadot.tx.logionLoc.makeVoid(
+                this.nodeApi.adapters.toLocId(locId),
+            );
+        }
+        await signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable,
+            callback
+        });
+
+        try {
+            await this.backend().post(`/api/loc-request/${ locId.toString() }/void`, {
+                reason
+            });
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
 }
 
 export interface ReviewFileParams {
@@ -1450,4 +1527,13 @@ export interface OpenCollectionLocParams extends BlockchainSubmissionParams {
 export const EMPTY_LOC_ISSUERS: LocVerifiedIssuers = {
     verifiedIssuer: false,
     issuers: [],
+}
+
+export interface PublishLinkParams extends BlockchainSubmissionParams {
+    locId: UUID;
+    link: Link;
+}
+
+export interface VoidParams extends BlockchainSubmissionParams, VoidInfo {
+    reason: string;
 }
