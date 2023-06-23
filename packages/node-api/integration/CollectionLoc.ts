@@ -41,7 +41,6 @@ export async function addCollectionItemTest() {
         null,
         false,
         [],
-        0
     );
     await signAndSend(requester, addItem1Extrinsic);
 
@@ -55,10 +54,10 @@ export async function addCollectionItemTest() {
         Adapters.toCollectionItemToken({
             id: tokenId,
             type: "owner",
+            issuance: 1n,
         }),
         false,
         [],
-        1
     );
     await signAndSend(requester, addItem2Extrinsic);
 
@@ -72,10 +71,10 @@ export async function addCollectionItemTest() {
         Adapters.toCollectionItemToken({
             id: item3TokenId,
             type: "owner",
+            issuance: 1n,
         }),
         false,
         [],
-        1
     );
     await signAndSend(requester, addItem3Extrinsic);
 

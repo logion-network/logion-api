@@ -888,7 +888,6 @@ export class AuthenticatedLocClient extends LocClient {
             Adapters.toCollectionItemToken(itemToken),
             booleanRestrictedDelivery,
             termsAndConditions.map(Adapters.toTermsAndConditionsElement),
-            itemToken?.issuance || 0,
         );
         await signer.signAndSend({
             signerId: this.currentAddress.address,

@@ -1552,7 +1552,6 @@ declare module '@polkadot/types/lookup' {
       readonly itemToken: Option<PalletLogionLocCollectionItemToken>;
       readonly restrictedDelivery: bool;
       readonly termsAndConditions: Vec<PalletLogionLocTermsAndConditionsElement>;
-      readonly tokenIssuance: u64;
     } & Struct;
     readonly isAddCollectionItemWithTermsAndConditions: boolean;
     readonly asAddCollectionItemWithTermsAndConditions: {
@@ -1653,6 +1652,7 @@ declare module '@polkadot/types/lookup' {
   interface PalletLogionLocCollectionItemToken extends Struct {
     readonly tokenType: Bytes;
     readonly tokenId: Bytes;
+    readonly tokenIssuance: u64;
   }
 
   /** @name PalletLogionLocTermsAndConditionsElement (166) */
@@ -1984,7 +1984,6 @@ declare module '@polkadot/types/lookup' {
     readonly token: Option<PalletLogionLocCollectionItemToken>;
     readonly restrictedDelivery: bool;
     readonly termsAndConditions: Vec<PalletLogionLocTermsAndConditionsElement>;
-    readonly tokenIssuance: u64;
   }
 
   /** @name PalletLogionLocTokensRecord (212) */
@@ -2032,7 +2031,8 @@ declare module '@polkadot/types/lookup' {
     readonly isV13AcknowledgeItems: boolean;
     readonly isV14HashLocPublicData: boolean;
     readonly isV15AddTokenIssuance: boolean;
-    readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance';
+    readonly isV16MoveTokenIssuance: boolean;
+    readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance' | 'V16MoveTokenIssuance';
   }
 
   /** @name PalletLogionLocError (224) */

@@ -38,7 +38,6 @@ export async function moduleError() {
         null,
         false,
         [],
-        0
     );
     await testError(requester, extrinsic, {
         pallet: "logionLoc",
