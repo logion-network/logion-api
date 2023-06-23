@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import { ApiPromise } from "@polkadot/api";
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { Option, Vec, bool } from "@polkadot/types-codec";
 import type { Codec } from '@polkadot/types-codec/types';
 
@@ -12,10 +13,12 @@ import {
     UserIdentity,
     LegalOfficerPostalAddress,
     SuccessfulSubmission,
-    LegalOfficerClass
+    LegalOfficerClass,
+    Signer,
+    SignParameters
 } from "../src/index.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
-import { It } from "moq.ts";
+import { It, Mock } from "moq.ts";
 import { AccountType, AnyAccountId, LogionNodeApiClass, UUID, ValidAccountId } from "@logion/node-api";
 
 export const ALICE: LegalOfficer = {
@@ -206,6 +209,14 @@ export function mockCodecWithToBigInt<T extends Codec & { toBigInt: () => bigint
     }) as T;
 }
 
+export function doBuildValidPolkadotAccountId(address: string): ValidAccountId {
+    const accountId = buildValidAccountId(address, "Polkadot");
+    if(!accountId) {
+        throw new Error();
+    }
+    return accountId;
+}
+
 export function buildValidPolkadotAccountId(address: string | undefined): ValidAccountId | undefined {
     return buildValidAccountId(address, "Polkadot");
 }
@@ -228,4 +239,16 @@ export function buildSimpleNodeApi(): LogionNodeApiClass {
 
 export function ItIsUuid(expected: UUID): UUID {
     return It.Is<UUID>(uuid => uuid.toString() === expected.toString());
+}
+
+export function mockSigner(args: {
+    signerId: string,
+    submittable: SubmittableExtrinsic,
+}): Mock<Signer> {
+    const signer = new Mock<Signer>();
+    signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params =>
+        params.signerId === args.signerId
+        && params.submittable === args.submittable))
+    ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
+    return signer;
 }

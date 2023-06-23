@@ -9,6 +9,7 @@ import { tokensRecords } from "./TokensRecord.js";
 import { fees } from "./Fees.js";
 import { backendConfig } from "./LegalOfficer.js";
 import { voidTransactionLoc } from "./Void.js";
+import { votingProcess } from "./Vote.js";
 
 describe("Logion SDK", () => {
 
@@ -99,6 +100,10 @@ describe("Logion SDK", () => {
 
     it("voids a Transaction LOC", async () => {
         await voidTransactionLoc(state);
+    });
+
+    it("provides vote", async () => {
+        await votingProcess(state);
     });
 
     afterAll(() => {

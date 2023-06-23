@@ -69,6 +69,14 @@ export class LogionClient {
         return this.sharedState.currentAddress;
     }
 
+    get authenticatedCurrentAddress(): ValidAccountId {
+        const address = this.currentAddress;
+        if(!address) {
+            throw new Error("Not authenticated");
+        }
+        return address;
+    }
+
     get tokens(): AccountTokens {
         return this.sharedState.tokens;
     }

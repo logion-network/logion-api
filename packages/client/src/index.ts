@@ -37,3 +37,4 @@ export * from './license/index.js';
 export * from './Deliveries.js';
 export * from './TokensRecord.js';
 export * from './Fees.js';
+export * from './Votes.js';
