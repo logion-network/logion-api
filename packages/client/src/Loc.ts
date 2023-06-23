@@ -43,7 +43,6 @@ import {
     DeleteLinkParams,
     VoidParams,
     VerifiedIssuer,
-    VerifiedIssuerIdentity,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
