@@ -13,7 +13,7 @@ export interface Fees {
     /** @description Certificate fee (if applicable) */
     certificate?: string;
     /** @description Total fee (inclusion + storage) */
-    total?: string;
+    total: string;
 }
 
 export function toFeesClass(fees: Fees | undefined): FeesClass | undefined {
