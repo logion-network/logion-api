@@ -119,7 +119,6 @@ export default {
             token: "Option<CollectionItemToken>",
             restricted_delivery: "bool",
             terms_and_conditions: "Vec<TermsAndConditionsElement<LocId>>",
-            token_issuance: "TokenIssuance",
         },
         TokenIssuance: "u64",
         CollectionItemFile: {
@@ -131,6 +130,7 @@ export default {
         CollectionItemToken: {
             token_type: "Vec<u8>",
 	        token_id: "Vec<u8>",
+            token_issuance: "TokenIssuance",
         },
         LegalOfficerData: {
             "_enum": {

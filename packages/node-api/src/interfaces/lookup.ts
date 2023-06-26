@@ -1418,7 +1418,6 @@ export default {
         itemToken: 'Option<PalletLogionLocCollectionItemToken>',
         restrictedDelivery: 'bool',
         termsAndConditions: 'Vec<PalletLogionLocTermsAndConditionsElement>',
-        tokenIssuance: 'u64',
       },
       add_collection_item_with_terms_and_conditions: {
         collectionLocId: 'Compact<u128>',
@@ -1515,11 +1514,12 @@ export default {
     hash_: 'H256'
   },
   /**
-   * Lookup164: pallet_logion_loc::CollectionItemToken
+   * Lookup164: pallet_logion_loc::CollectionItemToken<TokenIssuance>
    **/
   PalletLogionLocCollectionItemToken: {
     tokenType: 'Bytes',
-    tokenId: 'Bytes'
+    tokenId: 'Bytes',
+    tokenIssuance: 'u64'
   },
   /**
    * Lookup166: pallet_logion_loc::TermsAndConditionsElement<LocId>
@@ -1796,8 +1796,7 @@ export default {
     files: 'Vec<PalletLogionLocCollectionItemFile>',
     token: 'Option<PalletLogionLocCollectionItemToken>',
     restrictedDelivery: 'bool',
-    termsAndConditions: 'Vec<PalletLogionLocTermsAndConditionsElement>',
-    tokenIssuance: 'u64'
+    termsAndConditions: 'Vec<PalletLogionLocTermsAndConditionsElement>'
   },
   /**
    * Lookup212: pallet_logion_loc::TokensRecord<bounded_collections::bounded_vec::BoundedVec<T, S>, bounded_collections::bounded_vec::BoundedVec<pallet_logion_loc::TokensRecordFile<primitive_types::H256, bounded_collections::bounded_vec::BoundedVec<T, S>, bounded_collections::bounded_vec::BoundedVec<T, S>>, S>, sp_core::crypto::AccountId32>
@@ -1839,7 +1838,7 @@ export default {
    * Lookup223: pallet_logion_loc::pallet::StorageVersion
    **/
   PalletLogionLocStorageVersion: {
-    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize', 'V11EnableEthereumSubmitter', 'V12Sponsorship', 'V13AcknowledgeItems', 'V14HashLocPublicData', 'V15AddTokenIssuance']
+    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize', 'V11EnableEthereumSubmitter', 'V12Sponsorship', 'V13AcknowledgeItems', 'V14HashLocPublicData', 'V15AddTokenIssuance', 'V16MoveTokenIssuance']
   },
   /**
    * Lookup224: pallet_logion_loc::pallet::Error<T>

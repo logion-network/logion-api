@@ -24,13 +24,15 @@ describe("Adapters", () => {
     });
 
     it("toCollectionItemToken", () => {
-        const itemToken = {
+        const itemToken: ItemToken = {
             type: "ethereum_erc721",
             id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","token":"4391"}',
+            issuance: 100n,
         };
         const adapted = Adapters.toCollectionItemToken(itemToken);
         expect(adapted?.tokenId).toBe(stringToHex(itemToken.id));
         expect(adapted?.tokenType).toBe(itemToken.type);
+        expect(adapted?.tokenIssuance).toBe(itemToken.issuance);
     });
 
     it("toTermsAndConditionsElement", () => {

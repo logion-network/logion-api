@@ -357,7 +357,7 @@ describe("ClosedCollectionLoc", () => {
             signer: signer.object(),
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
-        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
     });
 
     it("adds collection item with Logion Classification", async () => {
@@ -373,7 +373,7 @@ describe("ClosedCollectionLoc", () => {
             specificLicenses: SPECIFIC_LICENSES,
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
-        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
     });
 
     it("adds collection item with Creative Commons", async () => {
@@ -389,7 +389,7 @@ describe("ClosedCollectionLoc", () => {
             creativeCommons: CREATIVE_COMMONS,
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
-        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
     });
 
     it("fails to add collection item with both Logion Classification and Creative Commons", async () => {
@@ -826,7 +826,6 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
                 null,
                 false,
                 It.IsAny(),
-                0
             )).returns(addCollectionItemExtrinsic.object());
 
             nodeApiMock.setup(instance => instance.queries.getCollectionItem(

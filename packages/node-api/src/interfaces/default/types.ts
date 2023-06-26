@@ -61,7 +61,6 @@ export interface CollectionItem extends Struct {
   readonly token: Option<CollectionItemToken>;
   readonly restricted_delivery: bool;
   readonly terms_and_conditions: Vec<TermsAndConditionsElement>;
-  readonly token_issuance: TokenIssuance;
 }
 
 /** @name CollectionItemFile */
@@ -79,6 +78,7 @@ export interface CollectionItemId extends Hash {}
 export interface CollectionItemToken extends Struct {
   readonly token_type: Bytes;
   readonly token_id: Bytes;
+  readonly token_issuance: TokenIssuance;
 }
 
 /** @name CollectionSize */
@@ -247,7 +247,8 @@ export interface StorageVersion extends Enum {
   readonly isV13AcknowledgeItems: boolean;
   readonly isV14HashLocPublicData: boolean;
   readonly isV15AddTokenIssuance: boolean;
-  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance';
+  readonly isV16MoveTokenIssuance: boolean;
+  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance' | 'V16MoveTokenIssuance';
 }
 
 /** @name SupportedAccountId */

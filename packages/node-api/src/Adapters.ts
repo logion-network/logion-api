@@ -31,7 +31,6 @@ import {
     TypesEvent,
     CollectionItem,
     ItemFile,
-    ItemTokenWithoutIssuance,
     TermsAndConditionsElement,
     TypesTokensRecordFile,
     TypesTokensRecord,
@@ -45,7 +44,7 @@ import {
     HostData,
     Region,
     Hash,
-    Link,
+    Link, ItemToken,
 } from "./Types.js";
 import { UUID } from "./UUID.js";
 import { stringToHex, stringToU8a, u8aToHex } from "@polkadot/util";
@@ -452,7 +451,7 @@ export class Adapters {
             token: tokenId !== undefined ? {
                 id: tokenId,
                 type: token.unwrap().tokenType.toUtf8(),
-                issuance: unwrappedResult.tokenIssuance.toBigInt(),
+                issuance: token.unwrap().tokenIssuance.toBigInt(),
             } : undefined,
             restrictedDelivery: unwrappedResult.restrictedDelivery.isTrue,
             termsAndConditions: unwrappedResult.termsAndConditions.map(tc => ({
@@ -472,11 +471,12 @@ export class Adapters {
         };
     }
 
-    static toCollectionItemToken(itemToken?: ItemTokenWithoutIssuance): { tokenType: string; tokenId: string } | null {
+    static toCollectionItemToken(itemToken?: ItemToken): { tokenType: string; tokenId: string; tokenIssuance: bigint } | null {
         if(itemToken) {
             return {
                 tokenType: itemToken.type,
                 tokenId: stringToHex(itemToken.id),
+                tokenIssuance: itemToken.issuance,
             };
         } else {
             return null;
