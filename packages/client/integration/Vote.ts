@@ -25,10 +25,10 @@ export async function votingProcess(state: State) {
     expect(bobLoc).toBeDefined();
     bobPendingVote = await bobPendingVote.castVote({ result: "No", signer });
 
-    const chalieClient = client.withCurrentAddress(charlieAccount);
-    const chalieVotes = await chalieClient.voter.getVotes();
-    let chaliePendingVote = chalieVotes.votes[0] as PendingVote;
-    await chaliePendingVote.castVote({ result: "No", signer });
+    const charlieClient = client.withCurrentAddress(charlieAccount);
+    const charlieVotes = await charlieClient.voter.getVotes();
+    let charliePendingVote = charlieVotes.votes[0] as PendingVote;
+    await charliePendingVote.castVote({ result: "No", signer });
 
     await waitFor<Votes>({
         predicate: votes => votes.votes.length === 1 && votes.votes[0].data.status === "REJECTED",
