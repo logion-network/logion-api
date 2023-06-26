@@ -837,6 +837,24 @@ export abstract class LegalOfficerLocRequestCommands {
     protected client: AuthenticatedLocClient;
 
     protected request: LocRequestState;
+
+    async setCollectionFileRestrictedDelivery(params: {
+        hash: string,
+        restrictedDelivery: boolean,
+    }): Promise<LocRequestState> {
+        const { hash, restrictedDelivery } = params;
+        if(this.request.data().locType !== "Collection") {
+            throw new Error("Restricted delivery is available for collection LOC files only");
+        }
+
+        await this.client.setCollectionFileRestrictedDelivery({
+            locId: this.request.locId,
+            hash,
+            restrictedDelivery,
+        });
+
+        return this.request.refresh();
+    }
 }
 
 export abstract class EditableRequest extends LocRequestState {

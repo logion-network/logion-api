@@ -1542,6 +1542,21 @@ export class AuthenticatedLocClient extends LocClient {
         const voteCreatedData = voteCreated.data as AnyJson[];
         return Adapters.asString(voteCreatedData[0]);
     }
+
+    async setCollectionFileRestrictedDelivery(params: {
+        locId: UUID,
+        hash: string,
+        restrictedDelivery: boolean,
+    }): Promise<void> {
+        const { locId, hash, restrictedDelivery } = params;
+        try {
+            await this.backend().put(`/api/collection/${ locId.toString() }/files/${ hash }`, {
+                restrictedDelivery
+            });
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
 }
 
 export interface ReviewFileParams {
