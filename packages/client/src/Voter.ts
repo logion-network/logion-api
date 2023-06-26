@@ -4,6 +4,7 @@ import { LocSharedState, LocsState, ReadOnlyLocState } from "./Loc.js";
 import { AuthenticatedLocClient, EMPTY_LOC_ISSUERS, LocMultiClient, LocRequest } from "./LocClient.js";
 import { LogionClient } from "./LogionClient.js";
 import { SharedState } from "./SharedClient.js";
+import { Votes } from "./Votes.js";
 
 export class VoterApi {
 
@@ -67,5 +68,9 @@ export class VoterApi {
             locRequest,
             client,
         }
+    }
+
+    async getVotes(): Promise<Votes> {
+        return Votes.fetch(this.logionClient);
     }
 }

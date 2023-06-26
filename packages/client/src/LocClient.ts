@@ -17,6 +17,7 @@ import {
     VoidInfo,
 } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
+import { AnyJson } from "@polkadot/types-codec/types";
 import { AxiosInstance } from 'axios';
 
 import { UserIdentity, LegalOfficer, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -1523,6 +1524,23 @@ export class AuthenticatedLocClient extends LocClient {
             submittable,
             callback: params.callback,
         });
+    }
+
+    async requestVote(params: { locId: UUID } & BlockchainSubmissionParams): Promise<string> {
+        const submittable = this.nodeApi.polkadot.tx.vote.createVoteForAllLegalOfficers(
+            this.nodeApi.adapters.toLocId(params.locId),
+        );
+        const result = await params.signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable,
+            callback: params.callback,
+        });
+        const voteCreated = result.events.find(event => event.name === "VoteCreated" && event.section === "vote");
+        if(!voteCreated) {
+            throw new Error("Unable to retrieve vote ID");
+        }
+        const voteCreatedData = voteCreated.data as AnyJson[];
+        return Adapters.asString(voteCreatedData[0]);
     }
 }
 

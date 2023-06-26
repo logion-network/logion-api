@@ -40,7 +40,7 @@ export class State {
      * if the state transition was successfully executed. It may be safer to
      * use `discardOnSuccess`.
      */
-    protected discard(next: State | undefined) {
+    discard(next: State | undefined) {
         this.ensureCurrent();
         this._discarded = true;
         this._nextState = next;
@@ -52,7 +52,7 @@ export class State {
      * @param action The state transition logic producing next state
      * @returns Next state if state transition logic execution did not throw
      */
-    protected async discardOnSuccess<T extends State>(action: () => Promise<T>): Promise<T> {
+    async discardOnSuccess<T extends State>(action: () => Promise<T>): Promise<T> {
         this.ensureCurrent();
         let next: T | undefined;
         try {
@@ -70,7 +70,7 @@ export class State {
      * @param action The state transition logic producing next state
      * @returns Next state if state transition logic execution did not throw
      */
-    protected syncDiscardOnSuccess<T extends State>(action: () => T): T {
+    syncDiscardOnSuccess<T extends State>(action: () => T): T {
         this.ensureCurrent();
         let next: T | undefined;
         try {
@@ -96,6 +96,15 @@ export class State {
             return next;
         } else {
             return this;
+        }
+    }
+
+    getCurrentStateOrThrow(): State {
+        const currentState = this.getCurrentState();
+        if(currentState) {
+            return currentState;
+        } else {
+            throw new Error("State was discarded without replacement");
         }
     }
 }

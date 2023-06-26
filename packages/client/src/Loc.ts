@@ -309,7 +309,8 @@ export class LocsState extends State {
     }
 
     async refresh(params?: FetchAllLocsParams): Promise<LocsState> {
-        return this.discardOnSuccess(() => this._refresh(params));
+        const current = this.getCurrentStateOrThrow() as LocsState; // Ensure no state discarded error
+        return current.discardOnSuccess(() => current._refresh(params));
     }
 
     private async _refresh(params?: FetchAllLocsParams): Promise<LocsState> {
@@ -618,12 +619,14 @@ export abstract class LocRequestState extends State {
     }
 
     async refresh(): Promise<LocRequestState> {
-        const client = this.locSharedState.client;
-        const request = await client.getLocRequest({ locId: this.locId });
-        const locIssuers = await client.getLocIssuers(request, this.locSharedState.nodeApi.batch.locs([ this.locId ]));
-        const newState = await LocRequestState.createFromRequest(this.locSharedState, request, locIssuers);
-        const newLocsState = this.locSharedState.locsState.refreshWith(newState); // Discards this state
-        return newLocsState.findById(this.locId);
+        const current = this.getCurrentStateOrThrow() as LocRequestState; // Ensure no state discarded error
+        const sharedState = current.locSharedState;
+        const client = sharedState.client;
+        const request = await client.getLocRequest({ locId: current.locId });
+        const locIssuers = await client.getLocIssuers(request, sharedState.nodeApi.batch.locs([ current.locId ]));
+        const newState = await LocRequestState.createFromRequest(sharedState, request, locIssuers);
+        const newLocsState = sharedState.locsState.refreshWith(newState); // Discards this state
+        return newLocsState.findById(current.locId);
     }
 
     locsState(): LocsState {
@@ -1471,6 +1474,18 @@ export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommands
         });
     
         return await this.request.refresh() as ClosedLoc;
+    }
+
+    async requestVote(params: BlockchainSubmissionParams): Promise<string> {
+        const data = this.request.data();
+        if(data.locType !== "Identity") {
+            throw new Error("Not an Identity LOC");
+        }
+
+        return this.client.requestVote({
+            ...params,
+            locId: data.id,
+        });
     }
 }
 
