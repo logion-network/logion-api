@@ -1,7 +1,7 @@
 {
-  "name": "@logion/crossmint",
-  "version": "0.1.19-1",
-  "description": "logion SDK for Crossmint",
+  "name": "@logion/multiversx",
+  "version": "0.1.0-4",
+  "description": "logion SDK for MultiversX",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
   "type": "module",
@@ -13,7 +13,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/logion-network/logion-api.git",
-    "directory": "packages/crossmint"
+    "directory": "packages/multiversx"
   },
   "keywords": [
     "logion"
@@ -21,8 +21,9 @@
   "author": "Logion Team",
   "license": "Apache-2.0",
   "dependencies": {
-    "@crossmint/connect": "^0.0.8",
-    "@logion/client": "workspace:^"
+    "@logion/client": "workspace:^",
+    "@multiversx/sdk-core": "^12.4.3",
+    "@multiversx/sdk-extension-provider": "^2.0.7"
   },
   "bugs": {
     "url": "https://github.com/logion-network/logion-api/issues"
@@ -46,6 +47,6 @@
   "stableVersion": "0.1.0",
   "typedoc": {
     "entryPoint": "./src/index.ts",
-    "displayName": "Crossmint"
+    "displayName": "MultiversX"
   }
 }

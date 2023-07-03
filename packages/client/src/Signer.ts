@@ -18,7 +18,7 @@ export interface SignRawParameters {
     attributes: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
-export type SignatureType = "POLKADOT" | "ETHEREUM" | "CROSSMINT_ETHEREUM";
+export type SignatureType = "POLKADOT" | "ETHEREUM" | "CROSSMINT_ETHEREUM" | "MULTIVERSX";
 
 export interface TypedSignature {
     signature: string

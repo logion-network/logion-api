@@ -1,4 +1,4 @@
-import { LogionNodeApiClass } from "@logion/node-api";
+import { LogionNodeApiClass, AnyAccountId } from "@logion/node-api";
 import { isHex } from "@polkadot/util";
 
 export interface ItemTokenWithRestrictedType {
@@ -22,9 +22,12 @@ export type TokenType =
     | 'polygon_erc20'
     | 'polygon_mumbai_erc20'
     | 'owner'
+    | 'multiversx_devnet_esdt'
+    | 'multiversx_testnet_esdt'
+    | 'multiversx_esdt'
     ;
 
-export type NetworkType = 'ETHEREUM' | 'POLKADOT';
+export type NetworkType = 'ETHEREUM' | 'POLKADOT' | 'MULTIVERSX';
 
 export function isTokenType(type: string): type is TokenType {
     return (
@@ -42,18 +45,24 @@ export function isTokenType(type: string): type is TokenType {
         || type === 'polygon_erc20'
         || type === 'polygon_mumbai_erc20'
         || type === 'owner'
+        || type === 'multiversx_devnet_esdt'
+        || type === 'multiversx_testnet_esdt'
+        || type === 'multiversx_esdt'
     );
 }
 
 export function isTokenCompatibleWith(type: TokenType, networkType: NetworkType): boolean {
+    if (type === 'owner') {
+        return true;
+    }
     if (networkType === 'ETHEREUM') {
         return type.startsWith("ethereum")
             || type.startsWith("goerli")
             || type.startsWith("polygon")
-            || type === "owner"
+    } else if (networkType === 'MULTIVERSX') {
+        return type.startsWith("multiversx")
     } else {
         return type === "singular_kusama"
-            || type === "owner"
     }
 }
 
@@ -87,16 +96,19 @@ export function validateToken(api: LogionNodeApiClass, itemToken: ItemTokenWithR
     } else if(itemToken.type.includes("erc20")) {
         return validateErcToken(itemToken).result;
     } else if(itemToken.type === "owner") {
-        if(isHex(itemToken.id, ETHEREUM_ADDRESS_LENGTH_IN_BITS) || api.queries.isValidAccountId(itemToken.id)) {
+        if (
+            isHex(itemToken.id, ETHEREUM_ADDRESS_LENGTH_IN_BITS) ||
+            AnyAccountId.isValidBech32Address(itemToken.id, "erd1") ||
+            api.queries.isValidAccountId(itemToken.id)) {
             return { valid: true };
         } else {
             return {
                 valid: false,
-                error: "token ID must be a valid Ethereum or Polkadot address",
+                error: "token ID must be a valid Ethereum, Polkadot or MultiversX address",
             }
         }
     } else if(itemToken.type === "singular_kusama") {
-        if(isSingularKusamaId(itemToken.id)) {
+        if (isSingularKusamaId(itemToken.id)) {
             return { valid: true };
         } else {
             return {
@@ -104,10 +116,19 @@ export function validateToken(api: LogionNodeApiClass, itemToken: ItemTokenWithR
                 error: "token ID must be a valid Singular Kusama ID",
             }
         }
+    } else if (itemToken.type.startsWith("multiversx")) {
+        if (isMultiversxESDTId(itemToken.id)) {
+            return { valid: true };
+        } else {
+            return {
+                valid: false,
+                error: "token ID must be a valid MultiversX ESDT ID",
+            }
+        }
     } else {
         return {
             valid: false,
-            error: `unsupported token type '${itemToken.type}'`,
+            error: `unsupported token type '${ itemToken.type }'`,
         }
     }
 }
@@ -157,4 +178,8 @@ export function validateErcToken(itemToken: ItemTokenWithRestrictedType): { resu
 
 export function isSingularKusamaId(tokenId: string): boolean {
     return /^[0-9a-zA-Z\-_]+$/.test(tokenId);
+}
+
+export function isMultiversxESDTId(tokenId: string): boolean {
+    return /^[0-9A-Z]+-[0-9a-f]{6}(-[0-9a-f]+)?$/.test(tokenId);
 }

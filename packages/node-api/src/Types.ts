@@ -143,7 +143,7 @@ export interface TypesRecoveryConfig {
     legalOfficers: string[];
 }
 
-export type AccountType = "Polkadot" | "Ethereum";
+export type AccountType = "Polkadot" | "Ethereum" | "Bech32";
 
 export const ETHEREUM_ADDRESS_LENGTH_IN_BITS = 20 * 8;
 
@@ -177,13 +177,15 @@ export class AnyAccountId implements AccountId {
     }
 
     validate(): string | undefined {
-        if(!["Polkadot", "Ethereum"].includes(this.type)) {
+        if(!["Polkadot", "Ethereum", "Bech32"].includes(this.type)) {
             return `Unsupported address type ${this.type}`;
         }
         if(this.type === "Ethereum" && !isHex(this.address, ETHEREUM_ADDRESS_LENGTH_IN_BITS)) {
             return `Wrong Ethereum address ${this.address}`;
         } else if(this.type === "Polkadot" && !this.isValidPolkadotAccountId()) {
             return `Wrong Polkadot address ${this.address}`;
+        } else if (this.type === "Bech32" && !this.isValidBech32Address()) {
+            return `Wrong Bech32 address ${this.address}`;
         } else {
             return undefined;
         }
@@ -196,6 +198,24 @@ export class AnyAccountId implements AccountId {
         } catch(e) {
             return false;
         }
+    }
+
+    static isValidBech32Address(address: string, prefix?: string): boolean {
+        if (prefix && !address.startsWith(prefix)) {
+            return false;
+        }
+        // TODO Improve by verifying the checksum
+        // @see https://github.com/sipa/bech32/blob/master/ref/javascript/bech32.js#L95
+        for (let p = 0; p < address.length; ++p) {
+            if (address.charCodeAt(p) < 33 || address.charCodeAt(p) > 126) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    isValidBech32Address(prefix?: string): boolean {
+        return AnyAccountId.isValidBech32Address(this.address, prefix);
     }
 
     toValidAccountId(): ValidAccountId {
@@ -211,6 +231,8 @@ export class AnyAccountId implements AccountId {
             return new AnyAccountId(api, key.substring(POLKADOT_PREFIX.length), "Polkadot");
         } else if(key.startsWith(ETHEREUM_PREFIX)) {
             return new AnyAccountId(api, key.substring(ETHEREUM_PREFIX.length), "Ethereum");
+        } else if(key.startsWith(BECH32_PREFIX)) {
+            return new AnyAccountId(api, key.substring(BECH32_PREFIX.length), "Bech32");
         } else {
             throw new Error("Unsupported key format");
         }
@@ -223,6 +245,7 @@ export class AnyAccountId implements AccountId {
 
 const POLKADOT_PREFIX = "Polkadot:";
 const ETHEREUM_PREFIX = "Ethereum:";
+const BECH32_PREFIX = "Bech32:";
 
 function accountIdToKey(accountId: AccountId): string {
     return `${accountId.type}:${accountId.address}`;

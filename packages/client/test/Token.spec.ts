@@ -30,9 +30,16 @@ const otherTypes: TokenType[] = [
     "singular_kusama"
 ];
 
+const esdtTypes: TokenType[] = [
+    "multiversx_devnet_esdt",
+    "multiversx_testnet_esdt",
+    "multiversx_esdt",
+]
+
 const allTypes: TokenType[] = [
     ...ercNonFungibleTypes,
     ...ercFungibleTypes,
+    ...esdtTypes,
     ...otherTypes,
 ];
 
@@ -51,7 +58,7 @@ describe("Token", () => {
         for (const type of ercNonFungibleTypes) {
             it(`validates valid ${ type } token`, () => testNonFungibleErcValidToken(type));
             it(`invalidates ${ type } token with non-JSON id`, () => testErcInvalidIdType(type));
-            it(`invalidates ${ type } token with missing id field`, () => testErcInvalidIdMisingId(type));
+            it(`invalidates ${ type } token with missing id field`, () => testErcInvalidIdMissingId(type));
             it(`invalidates ${ type } token with missing contract field`, () => testErcInvalidIdMissingContract(type));
             it(`invalidates ${ type } token with wrongly typed contract field`, () => testErcInvalidIdContractIsNotString(type));
             it(`invalidates ${ type } token with wrongly typed id field`, () => testErcInvalidIdIdIsNotString(type));
@@ -68,14 +75,16 @@ describe("Token", () => {
             it(`checks that ${ type } is NOT POLKADOT-compatible`, () => testIsTokenNotCompatibleWith(type, 'POLKADOT'))
         }
 
-        it(`checks that owner is both POLKADOT- and ETHEREUM-compatible`, () => {
+        it(`checks that owner is compatible with all network type`, () => {
             testIsTokenCompatibleWith('owner', 'POLKADOT');
             testIsTokenCompatibleWith('owner', 'ETHEREUM');
+            testIsTokenCompatibleWith('owner', 'MULTIVERSX');
         });
 
-        it(`checks that singular_kusama is NOT ETHEREUM-compatible`, () =>
-            testIsTokenNotCompatibleWith('singular_kusama', 'ETHEREUM')
-        );
+        it(`checks that singular_kusama is NOT ETHEREUM- and MULTIVERSX-compatible`, () => {
+            testIsTokenNotCompatibleWith('singular_kusama', 'ETHEREUM');
+            testIsTokenNotCompatibleWith('singular_kusama', 'MULTIVERSX');
+        });
 
         it(`checks that singular_kusama is POLKADOT-compatible`, () =>
             testIsTokenCompatibleWith('singular_kusama', 'POLKADOT')
@@ -94,7 +103,15 @@ describe("Token", () => {
                 type: "owner",
                 id: "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb",
                 issuance: 1n,
-            }, "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb");
+            });
+        });
+
+        it("validates valid owner token with MultiversX address", () => {
+            testValid({
+                type: "owner",
+                id: "erd1gram9hstfmfze9hcxeume8tspsed2gful2cr4ra6fefn7hl7lfeqm9ka0x",
+                issuance: 1n,
+            });
         });
 
         it("invalidates owner token with non-hex ID", () => {
@@ -102,7 +119,7 @@ describe("Token", () => {
                 type: "owner",
                 id: 'some random string',
                 issuance: 1n,
-            }, "token ID must be a valid Ethereum or Polkadot address");
+            }, "token ID must be a valid Ethereum, Polkadot or MultiversX address");
         });
 
         it("invalidates owner token with hex ID but wrong length", () => {
@@ -110,7 +127,7 @@ describe("Token", () => {
                 type: "owner",
                 id: '0xa6db31d1aee06a3ad7e4e56de3775e80d2f5ea8',
                 issuance: 1n,
-            }, "token ID must be a valid Ethereum or Polkadot address");
+            }, "token ID must be a valid Ethereum, Polkadot or MultiversX address");
         });
 
         it("validates valid singular_kusama token", () => {
@@ -128,6 +145,18 @@ describe("Token", () => {
                 issuance: 1n,
             }, "token ID must be a valid Singular Kusama ID");
         });
+
+        it("validates valid Multiversx tokens", () => {
+            const validESDTIds = [ VALID_MULTIVERSX_FT_ID, VALID_MULTIVERSX_SFT_ID, VALID_MULTIVERSX_NFT_ID ];
+            validESDTIds.forEach(validESDTId =>
+                testValid({
+                    type: "multiversx_esdt",
+                    issuance: 1n,
+                    id: validESDTId,
+                })
+            )
+        });
+
     });
 
     describe("isTokenType", () => {
@@ -147,8 +176,9 @@ function testNonFungibleErcValidToken(type: TokenType) {
     });
 }
 
-function testValid(token: ItemTokenWithRestrictedType, polkadotAddress?: string) {
+function testValid(token: ItemTokenWithRestrictedType) {
     const api = buildLogionNodeApiMock();
+    api.setup(instance => instance.queries.isValidAccountId).returns(() => token.id.startsWith("5"));
     const result = validateToken(api.object(), token);
     expect(result.valid).toBe(true);
     expect(result.error).not.toBeDefined();
@@ -170,7 +200,7 @@ function testInvalid(token: ItemTokenWithRestrictedType, message: string) {
     expect(result.error).toBe(message);
 }
 
-function testErcInvalidIdMisingId(type: TokenType) {
+function testErcInvalidIdMissingId(type: TokenType) {
     testInvalid({
         type,
         id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5"}',
@@ -205,6 +235,10 @@ function testErcInvalidIdIdIsNotString(type: TokenType) {
 const VALID_SINGULAR_KUSAMA_TOKEN_ID = "15057162-acba02847598b67746-DSTEST1-LUXEMBOURG_HOUSE-00000001";
 
 const INVALID_SINGULAR_KUSAMA_TOKEN_ID = "*15057162-acba02847598b67746-DSTEST1-LUXEMBOURG_HOUSE-00000001";
+
+const VALID_MULTIVERSX_FT_ID = "LR001-5c0eb8";
+const VALID_MULTIVERSX_SFT_ID = "LRCOLL001-e42371-01";
+const VALID_MULTIVERSX_NFT_ID = "LNFT001-1bc5a0-01";
 
 function testFungibleErcValidToken(type: TokenType) {
     testValid({
