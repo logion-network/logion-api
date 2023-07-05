@@ -101,6 +101,7 @@ export default {
                 "V13AcknowledgeItems",
                 "V14HashLocPublicData",
                 "V15AddTokenIssuance",
+                "V16MoveTokenIssuance",
             ]
         },
         Requester: {
