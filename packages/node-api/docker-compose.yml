@@ -7,4 +7,4 @@ services:
     environment:
       - CHAIN_SPEC=dev
       - NODE_KEY=c12b6d18942f5ee8528c8e2baf4e147b5c5c18710926ea492d09cbd9f6c9f82a
-      - CUSTOM_OPTIONS=--alice --ws-external
+      - CUSTOM_OPTIONS=--alice --rpc-external
