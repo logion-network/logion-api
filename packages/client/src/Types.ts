@@ -28,7 +28,6 @@ export interface LegalOfficer {
     additionalDetails: string;
     node: string;
     name: string;
-    logoUrl: string;
     nodeId: string;
     region: Region;
 }
@@ -55,7 +54,6 @@ export class LegalOfficerClass implements LegalOfficer {
         this.additionalDetails = args.legalOfficer.additionalDetails;
         this.node = args.legalOfficer.node;
         this.name = args.legalOfficer.name;
-        this.logoUrl = args.legalOfficer.logoUrl;
         this.nodeId = args.legalOfficer.nodeId;
         this.region = args.legalOfficer.region;
 
@@ -69,7 +67,6 @@ export class LegalOfficerClass implements LegalOfficer {
     readonly additionalDetails: string;
     readonly node: string;
     readonly name: string;
-    readonly logoUrl: string;
     readonly nodeId: string;
     readonly region: Region;
 
