@@ -12,7 +12,6 @@ export interface DirectoryLegalOfficer {
     postalAddress: LegalOfficerPostalAddress;
     address: string;
     additionalDetails: string;
-    logoUrl: string;
 }
 
 export class DirectoryClient {
