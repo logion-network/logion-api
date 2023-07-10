@@ -1,6 +1,6 @@
 {
   "name": "@logion/multiversx",
-  "version": "0.1.0-4",
+  "version": "0.1.0",
   "description": "logion SDK for MultiversX",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
