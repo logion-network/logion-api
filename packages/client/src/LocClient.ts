@@ -469,7 +469,35 @@ export interface OffchainCollectionItem {
     collectionLocId: string;
     itemId: string;
     addedOn: string;
-    files: string[];
+    description?: string;
+    files: OffchainCollectionItemFile[];
+    termsAndConditions: OffchainTermsAndConditionsElement[];
+    token?: OffchainCollectionItemToken;
+}
+
+export interface OffchainCollectionItemFile {
+    hash: string;
+    name?: string;
+    contentType?: string;
+    uploaded?: boolean;
+}
+
+export interface OffchainTermsAndConditionsElement {
+    type?: string;
+    details?: string;
+}
+
+export interface OffchainCollectionItemToken {
+    type?: string;
+    id?: string;
+}
+
+interface CreateOffchainCollectionItem {
+    itemId: string;
+    description: string;
+    files: OffchainCollectionItemFile[];
+    termsAndConditions: OffchainTermsAndConditionsElement[];
+    token?: OffchainCollectionItemToken;
 }
 
 export interface ClientTokensRecord {
@@ -484,7 +512,20 @@ export interface OffchainTokensRecord {
     collectionLocId: string;
     recordId: string;
     addedOn: string;
-    files: string[];
+    files: OffchainTokensRecordFile[];
+}
+
+interface CreateOffchainTokensRecord {
+    recordId: string;
+    description: string;
+    files: OffchainTokensRecordFile[];
+}
+
+export interface OffchainTokensRecordFile {
+    hash: string;
+    name?: string;
+    contentType?: string;
+    uploaded?: boolean;
 }
 
 export abstract class LocClient {
@@ -538,7 +579,7 @@ export abstract class LocClient {
             addedOn: offchainItem.addedOn,
             files: onchainItem.files.map(file => ({
                 ...file,
-                uploaded: offchainItem.files.includes(file.hash),
+                uploaded: offchainItem.files.find(offchainFile => offchainFile.hash === file.hash)?.uploaded || false,
             })),
             token: onchainItem.token ? {
                 type: onchainItem.token.type as TokenType,
@@ -613,7 +654,7 @@ export abstract class LocClient {
             files: onchainItem.files.map(file => ({
                 ...file,
                 size: BigInt(file.size),
-                uploaded: offchainItem.files.includes(file.hash),
+                uploaded: offchainItem.files.find(offchainFile => offchainFile.hash === file.hash)?.uploaded || false,
             })),
         }
     }
@@ -881,6 +922,24 @@ export class AuthenticatedLocClient extends LocClient {
             parameters.specificLicenses.forEach(addTC);
         }
 
+        await this.submitItemPublicData(locId, {
+            itemId,
+            files: itemFiles?.map(file => ({
+                name: file.name,
+                contentType: file.contentType.mimeType,
+                hash: file.hashOrContent.contentHash,
+            })) || [],
+            termsAndConditions: termsAndConditions.map(element => ({
+                type: element.tcType,
+                details: element.details,
+            })),
+            description: itemDescription,
+            token: itemToken ? {
+                id: itemToken.id,
+                type: itemToken.type,
+            } : undefined,
+        });
+
         const submittable = this.nodeApi.polkadot.tx.logionLoc.addCollectionItem(
             this.nodeApi.adapters.toLocId(locId),
             itemId,
@@ -890,11 +949,16 @@ export class AuthenticatedLocClient extends LocClient {
             booleanRestrictedDelivery,
             termsAndConditions.map(Adapters.toTermsAndConditionsElement),
         );
-        await signer.signAndSend({
-            signerId: this.currentAddress.address,
-            submittable,
-            callback
-        });
+        try {
+            await signer.signAndSend({
+                signerId: this.currentAddress.address,
+                submittable,
+                callback
+            });
+        } catch(e) {
+            await this.cancelItemPublicDataSubmission(locId, itemId);
+            throw e;
+        }
 
         if(itemFiles) {
             for(const file of itemFiles) {
@@ -902,6 +966,25 @@ export class AuthenticatedLocClient extends LocClient {
                     await this.uploadItemFile({ locId, itemId, file });
                 }
             }
+        }
+    }
+
+    private async submitItemPublicData(locId: UUID, item: CreateOffchainCollectionItem) {
+        try {
+            await this.backend().post(
+                `/api/collection/${ locId.toString() }/items`,
+                item
+            );
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    private async cancelItemPublicDataSubmission(locId: UUID, itemId: string) {
+        try {
+            await this.backend().delete(`/api/collection/${ locId.toString() }/items/${ itemId }`);
+        } catch(e) {
+            throw newBackendError(e);
         }
     }
 
@@ -1078,22 +1161,56 @@ export class AuthenticatedLocClient extends LocClient {
             });
         }
 
+        await this.submitRecordPublicData(locId, {
+            recordId,
+            files: files?.map(file => ({
+                name: file.name,
+                contentType: file.contentType.mimeType,
+                hash: file.hashOrContent.contentHash,
+            })) || [],
+            description,
+        });
+
         const submittable = this.nodeApi.polkadot.tx.logionLoc.addTokensRecord(
             this.nodeApi.adapters.toLocId(locId),
             recordId,
             description,
             this.nodeApi.adapters.newTokensRecordFileVec(chainItemFiles),
         );
-        await signer.signAndSend({
-            signerId: this.currentAddress.address,
-            submittable,
-            callback
-        });
+        try {
+            await signer.signAndSend({
+                signerId: this.currentAddress.address,
+                submittable,
+                callback
+            });
+        } catch(e) {
+            await this.cancelRecordPublicDataSubmission(locId, recordId);
+            throw e;
+        }
 
         for(const file of files) {
             if(file.hashOrContent.hasContent) {
                 await this.uploadTokensRecordFile({ locId, recordId, file });
             }
+        }
+    }
+
+    private async submitRecordPublicData(locId: UUID, record: CreateOffchainTokensRecord) {
+        try {
+            await this.backend().post(
+                `/api/records/${ locId.toString() }/record`,
+                record
+            );
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    private async cancelRecordPublicDataSubmission(locId: UUID, recordId: string) {
+        try {
+            await this.backend().delete(`/api/records/${ locId.toString() }/record/${ recordId }`);
+        } catch(e) {
+            throw newBackendError(e);
         }
     }
 
