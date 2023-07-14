@@ -157,6 +157,7 @@ export function buildOffchainCollectionItem(collectionLocId: string): OffchainCo
         itemId: EXISTING_ITEM_ID,
         addedOn: DateTime.now().toISO(),
         files: [],
+        termsAndConditions: [],
     });
 }
 
