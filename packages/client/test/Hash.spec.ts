@@ -1,4 +1,4 @@
-import { HashOrContent, Hash } from "../src/index.js";
+import { HashOrContent, Hash, HashString, hashString as hashStringFunction } from "../src/index.js";
 
 describe("HashOrContent", () => {
 
@@ -61,5 +61,30 @@ describe("HashOrContent", () => {
     it("does not finalize with mismatching hash and content", async () => {
         const content = new HashOrContent({ hash: TEST_HASH, content: Buffer.from("test2") });
         await expectAsync(content.finalize()).toBeRejected();
+    });
+});
+
+describe("HashString", () => {
+
+    it("produces valid instance given value only", () => {
+        const givenValue = "test";
+        const hashString = HashString.fromValue(givenValue);
+        expect(hashString.isValidValue()).toBe(true);
+        expect(hashString.value).toBe(givenValue);
+        expect(hashString.validValue()).toBe(givenValue);
+    });
+
+    it("is invalid with undefined value", () => {
+        const hashString = new HashString(hashStringFunction("test"));
+        expect(hashString.isValidValue()).toBe(false);
+        expect(hashString.value).toBeUndefined();
+        expect(() => hashString.validValue()).toThrowError();
+    });
+
+    it("is invalid with wrong value or hash", () => {
+        const hashString = new HashString(hashStringFunction("test"), "test2");
+        expect(hashString.isValidValue()).toBe(false);
+        expect(hashString.value).toBe("test2");
+        expect(() => hashString.validValue()).toThrowError();
     });
 });

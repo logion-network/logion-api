@@ -17,7 +17,8 @@ import {
     ClosedLoc,
     waitFor,
     OnchainLocState,
-    AcceptedRequest
+    AcceptedRequest,
+    HashString
 } from "../src/index.js";
 
 import { State, TEST_LOGION_CLIENT_CONFIG, initRequesterBalance, LegalOfficerWorker } from "./Utils.js";
@@ -217,7 +218,7 @@ export async function collectionLoc(state: State) {
 
     const item = await closedLoc.getCollectionItem({ itemId });
     expect(item!.id).toBe(itemId);
-    expect(item!.description).toBe(itemDescription);
+    expect(item!.description.validValue()).toBe(itemDescription);
     expect(item!.termsAndConditions.length).toEqual(0);
 
     const publicApi = state.client.public;
@@ -315,17 +316,17 @@ export async function collectionLocWithUpload(state: State) {
 
     const firstItem = await closedLoc.getCollectionItem({ itemId: firstItemId });
     expect(firstItem!.id).toBe(firstItemId);
-    expect(firstItem!.description).toBe(firstItemDescription);
+    expect(firstItem!.description.validValue()).toBe(firstItemDescription);
     expect(firstItem!.files).toEqual(jasmine.arrayContaining([
         jasmine.objectContaining({
-            name: "test.txt",
-            contentType: "text/plain",
+            name: HashString.fromValue("test.txt"),
+            contentType: HashString.fromValue("text/plain"),
             hash: firstFileHash,
             size: 4n,
             uploaded: true,
         })
     ]));
-    expect(firstItem!.token).toEqual(firstItemToken);
+    expect(firstItem!.token?.toItemTokenWithRestrictedType()).toEqual(firstItemToken);
     expect(firstItem!.restrictedDelivery).toBe(true);
     expect(await firstItem!.isAuthenticatedTokenOwner()).toBe(true);
 
@@ -379,6 +380,10 @@ export async function collectionLocWithUpload(state: State) {
 
     const items = await closedLoc.getCollectionItems();
     expect(items.length).toBe(2);
+    expect(items[0].files.length).toBe(1);
+    expect(items[0].termsAndConditions.length).toBe(1);
+    expect(items[1].files.length).toBe(1);
+    expect(items[1].termsAndConditions.length).toBe(1);
 }
 
 export async function identityLoc(state: State) {

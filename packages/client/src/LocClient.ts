@@ -29,7 +29,7 @@ import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays,
 import { Signer, SignCallback } from "./Signer.js";
 import { ComponentFactory } from "./ComponentFactory.js";
 import { newBackendError } from "./Error.js";
-import { HashOrContent, hashString } from "./Hash.js";
+import { HashOrContent, HashString, hashString } from "./Hash.js";
 import { MimeType } from "./Mime.js";
 import { validateToken, ItemTokenWithRestrictedType, TokenType } from "./Token.js";
 import {
@@ -37,7 +37,9 @@ import {
     newTermsAndConditions,
     LogionClassification,
     SpecificLicense,
-    CreativeCommons
+    CreativeCommons,
+    OffchainTermsAndConditionsElement,
+    MergedTermsAndConditionsElement
 } from "./license/index.js";
 import { CollectionDelivery, ItemDeliveries } from './Deliveries.js';
 import { Fees } from './Fees.js';
@@ -261,7 +263,7 @@ export interface BlockchainSubmissionParams {
 }
 
 export interface AddCollectionItemParams extends BlockchainSubmissionParams {
-    itemId: string,
+    itemId: Hash,
     itemDescription: string,
     itemFiles?: ItemFileWithContent[],
     itemToken?: ItemTokenWithRestrictedType,
@@ -320,7 +322,7 @@ export interface VerifiedIssuerIdentity {
 }
 
 export interface AddTokensRecordParams extends  BlockchainSubmissionParams {
-    recordId: string,
+    recordId: Hash,
     description: string,
     files: ItemFileWithContent[],
 }
@@ -453,15 +455,45 @@ export class LocMultiClient {
 
 export interface UploadableCollectionItem {
     id: string;
-    description: string;
+    description: HashString;
     addedOn: string;
     files: UploadableItemFile[];
-    token?: ItemTokenWithRestrictedType,
+    token?: ClientToken,
     restrictedDelivery: boolean;
-    termsAndConditions: TermsAndConditionsElement[],
+    termsAndConditions: MergedTermsAndConditionsElement[],
 }
 
-export interface UploadableItemFile extends ItemFile {
+export class ClientToken {
+
+    constructor(params: { type: HashString, id: HashString, issuance: bigint }) {
+        this.type = params.type;
+        this.id = params.id;
+        this.issuance = params.issuance;
+    }
+
+    readonly type: HashString;
+    readonly id: HashString;
+    readonly issuance: bigint;
+
+    toItemTokenWithRestrictedType(): ItemTokenWithRestrictedType {
+        const type = this.type.validValue();
+        const id = this.id.validValue();
+        return {
+            id,
+            type: type as TokenType,
+            issuance: this.issuance,
+        };
+    }    
+}
+
+export interface ClientItemFile {
+    name: HashString;
+    contentType: HashString;
+    size: bigint;
+    hash: Hash;
+}
+
+export interface UploadableItemFile extends ClientItemFile {
     uploaded: boolean;
 }
 
@@ -482,18 +514,13 @@ export interface OffchainCollectionItemFile {
     uploaded?: boolean;
 }
 
-export interface OffchainTermsAndConditionsElement {
-    type?: string;
-    details?: string;
-}
-
 export interface OffchainCollectionItemToken {
     type?: string;
     id?: string;
 }
 
 interface CreateOffchainCollectionItem {
-    itemId: string;
+    itemId: Hash;
     description: string;
     files: OffchainCollectionItemFile[];
     termsAndConditions: OffchainTermsAndConditionsElement[];
@@ -502,7 +529,7 @@ interface CreateOffchainCollectionItem {
 
 export interface ClientTokensRecord {
     id: string;
-    description: string;
+    description: HashString;
     addedOn: string;
     files: UploadableItemFile[];
     issuer: string;
@@ -511,12 +538,13 @@ export interface ClientTokensRecord {
 export interface OffchainTokensRecord {
     collectionLocId: string;
     recordId: string;
+    description: string;
     addedOn: string;
     files: OffchainTokensRecordFile[];
 }
 
 interface CreateOffchainTokensRecord {
-    recordId: string;
+    recordId: Hash;
     description: string;
     files: OffchainTokensRecordFile[];
 }
@@ -552,7 +580,7 @@ export abstract class LocClient {
         return this.legalOfficer.buildAxiosToNode();
     }
 
-    async getCollectionItem(parameters: { itemId: string } & FetchParameters): Promise<UploadableCollectionItem | undefined> {
+    async getCollectionItem(parameters: { itemId: Hash } & FetchParameters): Promise<UploadableCollectionItem | undefined> {
         const { locId, itemId } = parameters;
         const onchainItem = await this.nodeApi.queries.getCollectionItem(locId, itemId);
         if(!onchainItem) {
@@ -575,19 +603,22 @@ export abstract class LocClient {
     private mergeItems(onchainItem: CollectionItem, offchainItem: OffchainCollectionItem): UploadableCollectionItem {
         return {
             id: onchainItem.id,
-            description: onchainItem.description,
+            description: new HashString(onchainItem.description, offchainItem.description),
             addedOn: offchainItem.addedOn,
             files: onchainItem.files.map(file => ({
-                ...file,
+                hash: file.hash,
+                size: file.size,
+                name: new HashString(file.name, offchainItem.files.find(offchainFile => offchainFile.hash === file.hash)?.name),
+                contentType: new HashString(file.contentType, offchainItem.files.find(offchainFile => offchainFile.hash === file.hash)?.contentType),
                 uploaded: offchainItem.files.find(offchainFile => offchainFile.hash === file.hash)?.uploaded || false,
             })),
-            token: onchainItem.token ? {
-                type: onchainItem.token.type as TokenType,
-                id: onchainItem.token.id,
+            token: onchainItem.token ? new ClientToken({
+                type: new HashString(onchainItem.token.type, offchainItem.token?.type),
+                id: new HashString(onchainItem.token.id, offchainItem.token?.id),
                 issuance: onchainItem.token.issuance,
-            } : undefined,
+            }) : undefined,
             restrictedDelivery: onchainItem.restrictedDelivery,
-            termsAndConditions: newTermsAndConditions(onchainItem.termsAndConditions),
+            termsAndConditions: newTermsAndConditions(onchainItem.termsAndConditions, offchainItem.termsAndConditions),
         }
     }
 
@@ -648,11 +679,13 @@ export abstract class LocClient {
     private mergeRecords(onchainItem: TypesTokensRecord, offchainItem: OffchainTokensRecord): ClientTokensRecord {
         return {
             id: offchainItem.recordId,
-            description: onchainItem.description,
+            description: new HashString(onchainItem.description, offchainItem.description),
             addedOn: offchainItem.addedOn,
             issuer: onchainItem.submitter,
             files: onchainItem.files.map(file => ({
-                ...file,
+                hash: file.hash,
+                name: new HashString(file.name, offchainItem.files.find(offchainFile => offchainFile.hash === file.hash)?.name),
+                contentType: new HashString(file.contentType, offchainItem.files.find(offchainFile => offchainFile.hash === file.hash)?.contentType),
                 size: BigInt(file.size),
                 uploaded: offchainItem.files.find(offchainFile => offchainFile.hash === file.hash)?.uploaded || false,
             })),
@@ -883,8 +916,8 @@ export class AuthenticatedLocClient extends LocClient {
             }
             for(const itemFile of itemFiles) {
                 chainItemFiles.push({
-                    name: itemFile.name,
-                    contentType: itemFile.contentType.mimeType,
+                    name: hashString(itemFile.name),
+                    contentType: hashString(itemFile.contentType.mimeType),
                     hash: itemFile.hashOrContent.contentHash,
                     size: itemFile.size,
                 });
@@ -900,26 +933,16 @@ export class AuthenticatedLocClient extends LocClient {
             this.validTokenOrThrow(itemToken);
         }
 
-        const termsAndConditions: ChainTermsAndConditionsElement[] = [];
-
-        const addTC = (tc: TermsAndConditionsElement) => {
-            termsAndConditions.push({
-                tcType: tc.type,
-                tcLocId: tc.tcLocId,
-                details: tc.details,
-            })
-        };
-
+        const termsAndConditions: TermsAndConditionsElement[] = [];
         if (parameters.logionClassification && parameters.creativeCommons) {
             throw new Error("Logion Classification and Creative Commons are mutually exclusive.");
         } else if(parameters.logionClassification) {
-            addTC(parameters.logionClassification);
+            termsAndConditions.push(parameters.logionClassification);
         } else if (parameters.creativeCommons) {
-            addTC(parameters.creativeCommons);
+            termsAndConditions.push(parameters.creativeCommons);
         }
-
         if(parameters.specificLicenses) {
-            parameters.specificLicenses.forEach(addTC);
+            parameters.specificLicenses.forEach(specific => termsAndConditions.push(specific));
         }
 
         await this.submitItemPublicData(locId, {
@@ -930,7 +953,7 @@ export class AuthenticatedLocClient extends LocClient {
                 hash: file.hashOrContent.contentHash,
             })) || [],
             termsAndConditions: termsAndConditions.map(element => ({
-                type: element.tcType,
+                type: element.type,
                 details: element.details,
             })),
             description: itemDescription,
@@ -943,11 +966,19 @@ export class AuthenticatedLocClient extends LocClient {
         const submittable = this.nodeApi.polkadot.tx.logionLoc.addCollectionItem(
             this.nodeApi.adapters.toLocId(locId),
             itemId,
-            itemDescription,
+            hashString(itemDescription),
             chainItemFiles.map(Adapters.toCollectionItemFile),
-            Adapters.toCollectionItemToken(itemToken),
+            Adapters.toCollectionItemToken(itemToken ? {
+                id: hashString(itemToken.id),
+                type: hashString(itemToken.type),
+                issuance: itemToken.issuance,
+            } : undefined),
             booleanRestrictedDelivery,
-            termsAndConditions.map(Adapters.toTermsAndConditionsElement),
+            termsAndConditions.map(element => Adapters.toTermsAndConditionsElement({
+                tcType: hashString(element.type),
+                tcLocId: element.tcLocId,
+                details: hashString(element.details),
+            })),
         );
         try {
             await signer.signAndSend({
@@ -1154,8 +1185,8 @@ export class AuthenticatedLocClient extends LocClient {
         }
         for(const itemFile of files) {
             chainItemFiles.push({
-                name: itemFile.name,
-                contentType: itemFile.contentType.mimeType,
+                name: hashString(itemFile.name),
+                contentType: hashString(itemFile.contentType.mimeType),
                 hash: itemFile.hashOrContent.contentHash,
                 size: itemFile.size.toString(),
             });
@@ -1174,7 +1205,7 @@ export class AuthenticatedLocClient extends LocClient {
         const submittable = this.nodeApi.polkadot.tx.logionLoc.addTokensRecord(
             this.nodeApi.adapters.toLocId(locId),
             recordId,
-            description,
+            hashString(description),
             this.nodeApi.adapters.newTokensRecordFileVec(chainItemFiles),
         );
         try {

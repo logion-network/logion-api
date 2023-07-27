@@ -2,6 +2,7 @@ import { ApiPromise } from "@polkadot/api";
 import { CollectionItem, LegalOfficerCase, LogionNodeApiClass, Numbers, UUID } from "../src/index.js";
 import { POLKADOT_API_CREATE_TYPE, mockValidAccountId, mockBool } from "./Util.js";
 import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
+import { stringToHex } from "@polkadot/util";
 
 describe("Queries", () => {
 
@@ -238,18 +239,18 @@ function mockPolkadotApiForLogionLoc() {
                 collectionItemsMap: () => Promise.resolve({
                     isSome: true,
                     unwrap: () => ({
-                        description: { toUtf8: () =>  DEFAULT_ITEM.description },
+                        description: { toHex: () =>  DEFAULT_ITEM.description },
                         files: DEFAULT_ITEM.files.map(item => ({
-                            name: { toUtf8: () => item.name },
-                            contentType: { toUtf8: () => item.contentType },
+                            name: { toHex: () => item.name },
+                            contentType: { toHex: () => item.contentType },
                             hash_: { toHex: () => item.hash },
                             size_: { toBigInt: () => item.size },
                         })),
                         restrictedDelivery: mockBool(DEFAULT_ITEM.restrictedDelivery),
                         termsAndConditions: DEFAULT_ITEM.termsAndConditions.map(tc => ({
-                            tcType: { toUtf8: () => tc.tcType },
+                            tcType: { toHex: () => tc.tcType },
                             tcLocId: { toString: () => tc.tcLocId.toDecimalString() },
-                            details: { toUtf8: () => tc.details },
+                            details: { toHex: () => tc.details },
                         })),
                         tokenIssuance: { toBigInt: () => DEFAULT_ITEM.token?.issuance || 0n }
                     })
@@ -296,11 +297,11 @@ export const DEFAULT_LOC: LegalOfficerCase = {
 
 export const DEFAULT_ITEM: CollectionItem = {
     id: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
-    description: "Some description",
+    description: stringToHex("Some description"),
     files: [
         {
-            name: "artwork.png",
-            contentType: "image/png",
+            name: stringToHex("artwork.png"),
+            contentType: stringToHex("image/png"),
             size: BigInt(256000),
             hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
         }

@@ -102,6 +102,7 @@ export default {
                 "V14HashLocPublicData",
                 "V15AddTokenIssuance",
                 "V16MoveTokenIssuance",
+                "V17HashItemRecordPublicData",
             ]
         },
         Requester: {
@@ -115,22 +116,22 @@ export default {
         CollectionSize: "u32",
         CollectionItemId: "Hash",
         CollectionItem: {
-            description: "Vec<u8>",
-            files: "Vec<CollectionItemFile<Hash>>",
+            description: "Hash",
+            files: "Vec<CollectionItemFile>",
             token: "Option<CollectionItemToken>",
             restricted_delivery: "bool",
-            terms_and_conditions: "Vec<TermsAndConditionsElement<LocId>>",
+            terms_and_conditions: "Vec<TermsAndConditionsElement>",
         },
         TokenIssuance: "u64",
         CollectionItemFile: {
-            name: "Vec<u8>",
-            content_type: "Vec<u8>",
+            name: "Hash",
+            content_type: "Hash",
             fileSize: "u32",
             hash: "Hash",
         },
         CollectionItemToken: {
-            token_type: "Vec<u8>",
-	        token_id: "Vec<u8>",
+            token_type: "Hash",
+	        token_id: "Hash",
             token_issuance: "TokenIssuance",
         },
         LegalOfficerData: {
@@ -158,9 +159,9 @@ export default {
             ]
         },
         TermsAndConditionsElement: {
-            tcType: "Vec<u8>",
+            tcType: "Hash",
             tcLoc: "LocId",
-            details: "Vec<u8>",
+            details: "Hash",
         },
         LogionVote: {
             locId: "LocId",
@@ -185,18 +186,16 @@ export default {
             requester: "Option<AccountId>",
         },
         TokensRecord: {
-            description: "Vec<u8>",
+            description: "Hash",
             files: "Vec<TokensRecordFile>",
             submitter: "AccountId",
         },
         TokensRecordFile: {
-            name: "Vec<u8>",
-            contentType: "Vec<u8>",
+            name: "Hash",
+            contentType: "Hash",
             file_size: "u32",
             hash: "Hash"
         },
-        UnboundedTokensRecordFile: "TokensRecordFile",
-        UnboundedTokensRecordFileOf: "TokensRecordFile",
         VerifiedIssuer: {
             identityLoc: "LocId",
         },

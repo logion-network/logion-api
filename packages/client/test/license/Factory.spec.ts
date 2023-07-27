@@ -1,9 +1,11 @@
 import { UUID } from "@logion/node-api";
 import {
-    newTermsAndConditionsElement,
     LogionClassification,
     SpecificLicense,
-    CreativeCommons
+    CreativeCommons,
+    MergedTermsAndConditionsElement,
+    HashString,
+    TermsAndConditionsElement
 } from "../../src/index.js";
 
 describe("Factory", () => {
@@ -29,3 +31,11 @@ describe("Factory", () => {
     })
 
 })
+
+function newTermsAndConditionsElement(type: string, locId: UUID, details: string): TermsAndConditionsElement {
+    return new MergedTermsAndConditionsElement({
+        type: HashString.fromValue(type),
+        tcLocId: locId,
+        details: HashString.fromValue(details),
+    }).toTermsAndConditionsElement();
+}

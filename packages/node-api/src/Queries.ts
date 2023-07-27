@@ -13,9 +13,10 @@ import {
     Sponsorship,
     VerifiedIssuerType,
     LegalOfficerData,
-    Region
+    Region,
 } from "./Types.js";
 import { UUID } from "./UUID.js";
+import { Hash } from "./Hash.js";
 
 export interface Coin {
     id: string,
@@ -126,7 +127,7 @@ export class Queries {
         }
     }
 
-    async getCollectionItem(locId: UUID, itemId: string): Promise<CollectionItem | undefined> {
+    async getCollectionItem(locId: UUID, itemId: Hash): Promise<CollectionItem | undefined> {
         const result = await this.api.query.logionLoc.collectionItemsMap(Adapters.toLocId(locId), itemId);
         if(result.isSome) {
             return Adapters.fromPalletCollectionItem(itemId, result.unwrap());
@@ -137,7 +138,7 @@ export class Queries {
 
     async getCollectionItems(locId: UUID): Promise<CollectionItem[]> {
         const result = await this.api.query.logionLoc.collectionItemsMap.entries(Adapters.toLocId(locId));
-        return result.map(entry => Adapters.fromPalletCollectionItem(entry[0].args[1].toString(), entry[1].unwrap()));
+        return result.map(entry => Adapters.fromPalletCollectionItem(entry[0].args[1].toHex(), entry[1].unwrap()));
     }
 
     async getCollectionSize(locId: UUID): Promise<number | undefined> {

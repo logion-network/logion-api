@@ -6,11 +6,11 @@
 import '@polkadot/api-base/types/submittable';
 
 import type { ApiTypes, AugmentedSubmittable, SubmittableExtrinsic, SubmittableExtrinsicFunction } from '@polkadot/api-base/types';
-import type { Bytes, Compact, Option, Struct, U8aFixed, Vec, bool, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
+import type { Bytes, Compact, Option, U8aFixed, Vec, bool, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
 import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, Call, H256, MultiAddress } from '@polkadot/types/interfaces/runtime';
-import type { LogionNodeRuntimeOpaqueSessionKeys, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFileParams, PalletLogionLocLocLink, PalletLogionLocMetadataItemParams, PalletLogionLocOtherAccountId, PalletLogionLocSupportedAccountId, PalletLogionLocTermsAndConditionsElement, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
+import type { LogionNodeRuntimeOpaqueSessionKeys, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFileParams, PalletLogionLocLocLink, PalletLogionLocMetadataItemParams, PalletLogionLocOtherAccountId, PalletLogionLocSupportedAccountId, PalletLogionLocTermsAndConditionsElement, PalletLogionLocTokensRecordFile, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
 
 export type __AugmentedSubmittable = AugmentedSubmittable<() => unknown>;
 export type __SubmittableExtrinsic<ApiType extends ApiTypes> = SubmittableExtrinsic<ApiType>;
@@ -702,13 +702,13 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * Adds an item to a collection
        **/
-      addCollectionItem: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, itemId: H256 | string | Uint8Array, itemDescription: Bytes | string | Uint8Array, itemFiles: Vec<PalletLogionLocCollectionItemFile> | (PalletLogionLocCollectionItemFile | { name?: any; contentType?: any; size_?: any; hash_?: any } | string | Uint8Array)[], itemToken: Option<PalletLogionLocCollectionItemToken> | null | Uint8Array | PalletLogionLocCollectionItemToken | { tokenType?: any; tokenId?: any; tokenIssuance?: any } | string, restrictedDelivery: bool | boolean | Uint8Array, termsAndConditions: Vec<PalletLogionLocTermsAndConditionsElement> | (PalletLogionLocTermsAndConditionsElement | { tcType?: any; tcLoc?: any; details?: any } | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, Bytes, Vec<PalletLogionLocCollectionItemFile>, Option<PalletLogionLocCollectionItemToken>, bool, Vec<PalletLogionLocTermsAndConditionsElement>]>;
+      addCollectionItem: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, itemId: H256 | string | Uint8Array, itemDescription: H256 | string | Uint8Array, itemFiles: Vec<PalletLogionLocCollectionItemFile> | (PalletLogionLocCollectionItemFile | { name?: any; contentType?: any; size_?: any; hash_?: any } | string | Uint8Array)[], itemToken: Option<PalletLogionLocCollectionItemToken> | null | Uint8Array | PalletLogionLocCollectionItemToken | { tokenType?: any; tokenId?: any; tokenIssuance?: any } | string, restrictedDelivery: bool | boolean | Uint8Array, termsAndConditions: Vec<PalletLogionLocTermsAndConditionsElement> | (PalletLogionLocTermsAndConditionsElement | { tcType?: any; tcLoc?: any; details?: any } | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, H256, Vec<PalletLogionLocCollectionItemFile>, Option<PalletLogionLocCollectionItemToken>, bool, Vec<PalletLogionLocTermsAndConditionsElement>]>;
       /**
        * Adds an item with terms and conditions to a collection
        * 
        * DEPRECATED - this extrinsic will be removed in a future release, use add_collection_item instead
        **/
-      addCollectionItemWithTermsAndConditions: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, itemId: H256 | string | Uint8Array, itemDescription: Bytes | string | Uint8Array, itemFiles: Vec<PalletLogionLocCollectionItemFile> | (PalletLogionLocCollectionItemFile | { name?: any; contentType?: any; size_?: any; hash_?: any } | string | Uint8Array)[], itemToken: Option<PalletLogionLocCollectionItemToken> | null | Uint8Array | PalletLogionLocCollectionItemToken | { tokenType?: any; tokenId?: any; tokenIssuance?: any } | string, restrictedDelivery: bool | boolean | Uint8Array, termsAndConditions: Vec<PalletLogionLocTermsAndConditionsElement> | (PalletLogionLocTermsAndConditionsElement | { tcType?: any; tcLoc?: any; details?: any } | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, Bytes, Vec<PalletLogionLocCollectionItemFile>, Option<PalletLogionLocCollectionItemToken>, bool, Vec<PalletLogionLocTermsAndConditionsElement>]>;
+      addCollectionItemWithTermsAndConditions: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, itemId: H256 | string | Uint8Array, itemDescription: H256 | string | Uint8Array, itemFiles: Vec<PalletLogionLocCollectionItemFile> | (PalletLogionLocCollectionItemFile | { name?: any; contentType?: any; size_?: any; hash_?: any } | string | Uint8Array)[], itemToken: Option<PalletLogionLocCollectionItemToken> | null | Uint8Array | PalletLogionLocCollectionItemToken | { tokenType?: any; tokenId?: any; tokenIssuance?: any } | string, restrictedDelivery: bool | boolean | Uint8Array, termsAndConditions: Vec<PalletLogionLocTermsAndConditionsElement> | (PalletLogionLocTermsAndConditionsElement | { tcType?: any; tcLoc?: any; details?: any } | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, H256, Vec<PalletLogionLocCollectionItemFile>, Option<PalletLogionLocCollectionItemToken>, bool, Vec<PalletLogionLocTermsAndConditionsElement>]>;
       /**
        * Add file to LOC
        **/
@@ -724,17 +724,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * Add token record
        **/
-      addTokensRecord: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, recordId: H256 | string | Uint8Array, description: Bytes | string | Uint8Array, files: Vec<{
-    readonly name: Bytes;
-    readonly contentType: Bytes;
-    readonly size_: u32;
-    readonly hash_: H256;
-  } & Struct>) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, Bytes, Vec<{
-    readonly name: Bytes;
-    readonly contentType: Bytes;
-    readonly size_: u32;
-    readonly hash_: H256;
-  } & Struct>]>;
+      addTokensRecord: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, recordId: H256 | string | Uint8Array, description: H256 | string | Uint8Array, files: Vec<PalletLogionLocTokensRecordFile> | (PalletLogionLocTokensRecordFile | { name?: any; contentType?: any; size_?: any; hash_?: any } | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, H256, Vec<PalletLogionLocTokensRecordFile>]>;
       /**
        * Close LOC.
        **/

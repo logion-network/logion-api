@@ -9,3 +9,4 @@ export * from "./Types.js";
 export * from "./UUID.js";
 export * from "./VaultClass.js";
 export * from "./LocBatch.js";
+export * from "./Hash.js";

@@ -56,7 +56,7 @@ export interface Beneficiary extends Enum {
 
 /** @name CollectionItem */
 export interface CollectionItem extends Struct {
-  readonly description: Bytes;
+  readonly description: Hash;
   readonly files: Vec<CollectionItemFile>;
   readonly token: Option<CollectionItemToken>;
   readonly restricted_delivery: bool;
@@ -65,8 +65,8 @@ export interface CollectionItem extends Struct {
 
 /** @name CollectionItemFile */
 export interface CollectionItemFile extends Struct {
-  readonly name: Bytes;
-  readonly content_type: Bytes;
+  readonly name: Hash;
+  readonly content_type: Hash;
   readonly fileSize: u32;
   readonly hash: Hash;
 }
@@ -76,8 +76,8 @@ export interface CollectionItemId extends Hash {}
 
 /** @name CollectionItemToken */
 export interface CollectionItemToken extends Struct {
-  readonly token_type: Bytes;
-  readonly token_id: Bytes;
+  readonly token_type: Hash;
+  readonly token_id: Hash;
   readonly token_issuance: TokenIssuance;
 }
 
@@ -248,7 +248,8 @@ export interface StorageVersion extends Enum {
   readonly isV14HashLocPublicData: boolean;
   readonly isV15AddTokenIssuance: boolean;
   readonly isV16MoveTokenIssuance: boolean;
-  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance' | 'V16MoveTokenIssuance';
+  readonly isV17HashItemRecordPublicData: boolean;
+  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance' | 'V16MoveTokenIssuance' | 'V17HashItemRecordPublicData';
 }
 
 /** @name SupportedAccountId */
@@ -266,9 +267,9 @@ export interface TAssetBalance extends u128 {}
 
 /** @name TermsAndConditionsElement */
 export interface TermsAndConditionsElement extends Struct {
-  readonly tcType: Bytes;
+  readonly tcType: Hash;
   readonly tcLoc: LocId;
-  readonly details: Bytes;
+  readonly details: Hash;
 }
 
 /** @name TokenIssuance */
@@ -276,24 +277,18 @@ export interface TokenIssuance extends u64 {}
 
 /** @name TokensRecord */
 export interface TokensRecord extends Struct {
-  readonly description: Bytes;
+  readonly description: Hash;
   readonly files: Vec<TokensRecordFile>;
   readonly submitter: AccountId;
 }
 
 /** @name TokensRecordFile */
 export interface TokensRecordFile extends Struct {
-  readonly name: Bytes;
-  readonly contentType: Bytes;
+  readonly name: Hash;
+  readonly contentType: Hash;
   readonly file_size: u32;
   readonly hash: Hash;
 }
-
-/** @name UnboundedTokensRecordFile */
-export interface UnboundedTokensRecordFile extends TokensRecordFile {}
-
-/** @name UnboundedTokensRecordFileOf */
-export interface UnboundedTokensRecordFileOf extends TokensRecordFile {}
 
 /** @name VerifiedIssuer */
 export interface VerifiedIssuer extends Struct {

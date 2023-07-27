@@ -1,4 +1,4 @@
-import { UUID, Adapters } from "../src/index.js";
+import { UUID, Adapters, hashString } from "../src/index.js";
 import { setup, signAndSend, ALICE } from "./Util.js";
 
 export async function createCollectionLocLimitedInSizeTest() {
@@ -36,7 +36,7 @@ export async function addCollectionItemTest() {
     const addItem1Extrinsic = api.polkadot.tx.logionLoc.addCollectionItem(
         api.adapters.toLocId(COLLECTION_LOC_ID),
         item1Id,
-        "Item 1",
+        hashString("Item 1"),
         [],
         null,
         false,
@@ -45,15 +45,15 @@ export async function addCollectionItemTest() {
     await signAndSend(requester, addItem1Extrinsic);
 
     const item2Id = "0x95307d8ad3f1404a0633015b923753ac0734fec44043fe02120f9661072f05f3";
-    const tokenId = "0x900Edc98db53508e6742723988B872dD08CD09c2";
+    const tokenId = hashString("0x900Edc98db53508e6742723988B872dD08CD09c2");
     const addItem2Extrinsic = api.polkadot.tx.logionLoc.addCollectionItem(
         api.adapters.toLocId(COLLECTION_LOC_ID),
         item2Id,
-        "Item 2",
+        hashString("Item 2"),
         [],
         Adapters.toCollectionItemToken({
             id: tokenId,
-            type: "owner",
+            type: hashString("owner"),
             issuance: 1n,
         }),
         false,
@@ -62,15 +62,15 @@ export async function addCollectionItemTest() {
     await signAndSend(requester, addItem2Extrinsic);
 
     const item3Id = "0x9ab7b28cd982c19262caa8ed7d8e33c53600c5f733a4961307a33b33f2c5a54f";
-    const item3TokenId = "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb";
+    const item3TokenId = hashString("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb");
     const addItem3Extrinsic = api.polkadot.tx.logionLoc.addCollectionItem(
         api.adapters.toLocId(COLLECTION_LOC_ID),
         item3Id,
-        "Item 3",
+        hashString("Item 3"),
         [],
         Adapters.toCollectionItemToken({
             id: item3TokenId,
-            type: "owner",
+            type: hashString("owner"),
             issuance: 1n,
         }),
         false,

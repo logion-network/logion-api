@@ -1,4 +1,4 @@
-import { LegalOfficerCase, UUID, FeesEstimator } from "@logion/node-api";
+import { LegalOfficerCase, UUID, FeesEstimator, Hash } from "@logion/node-api";
 
 import { CollectionItem } from "./CollectionItem.js";
 import { CheckCertifiedCopyResult, CheckResultType } from "./Deliveries.js";
@@ -62,7 +62,7 @@ export class PublicApi {
         }
     }
 
-    async findCollectionLocItemById(params: { locId: UUID, itemId: string }): Promise<CollectionItem | undefined> {
+    async findCollectionLocItemById(params: { locId: UUID, itemId: Hash }): Promise<CollectionItem | undefined> {
         const locAndClient = await this.getLocAndClient(params);
         if(!locAndClient) {
             return undefined;
@@ -110,7 +110,7 @@ export class PublicLoc {
         return this._data;
     }
 
-    async checkHash(hash: string, itemId?: string): Promise<CheckHashResult> {
+    async checkHash(hash: Hash, itemId?: Hash): Promise<CheckHashResult> {
         const result = LocRequestState.checkHash(this._data, hash);
         let collectionItem = undefined;
         let collectionItemFile = undefined;

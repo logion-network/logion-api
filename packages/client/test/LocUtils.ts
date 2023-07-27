@@ -1,4 +1,4 @@
-import { CollectionItem, LegalOfficerCase, LocBatch, LocType, UUID, ValidAccountId, VerifiedIssuerType, VoidInfo } from "@logion/node-api";
+import { CollectionItem, LegalOfficerCase, LocBatch, LocType, UUID, ValidAccountId, VerifiedIssuerType, VoidInfo, hashString } from "@logion/node-api";
 import {
     PalletLogionLocRequester,
     PalletLogionLocLocType,
@@ -10,7 +10,7 @@ import { Bytes, u32 } from "@polkadot/types-codec";
 import { DateTime } from "luxon";
 import { Mock } from "moq.ts";
 
-import { LocFile, LocLink, LocRequest, LocRequestStatus, OffchainCollectionItem, UploadableItemFile } from "../src/index.js";
+import { HashString, LocFile, LocLink, LocRequest, LocRequestStatus, OffchainCollectionItem, UploadableItemFile } from "../src/index.js";
 import {
     mockCodecWithToHex,
     mockCodecWithToString,
@@ -36,9 +36,9 @@ export const EXISTING_FILE: LocFile = {
 export const EXISTING_ITEM_FILE_HASH = "0x8443d95fceccd27c0ca8d8c8d6c443ddc787afc234620a5548baf8c7b46aa277";
 
 export const EXISTING_ITEM_FILE: UploadableItemFile = {
-    name: "existing-item-file.txt",
+    name: HashString.fromValue("existing-item-file.txt"),
     hash: EXISTING_ITEM_FILE_HASH,
-    contentType: "text/plain",
+    contentType: HashString.fromValue("text/plain"),
     size: 0n,
     uploaded: false,
 }
@@ -142,7 +142,7 @@ export const ITEM_DESCRIPTION = "Some item description";
 export function buildCollectionItem(): CollectionItem {
     return {
         id: EXISTING_ITEM_ID,
-        description: ITEM_DESCRIPTION,
+        description: hashString(ITEM_DESCRIPTION),
         files: [],
         restrictedDelivery: false,
         termsAndConditions: [],

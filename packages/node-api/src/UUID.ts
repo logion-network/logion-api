@@ -1,5 +1,6 @@
 import { v4, parse, stringify, validate } from 'uuid';
 import BN from 'bn.js';
+import { HexString } from '@polkadot/util/types';
 
 export class UUID {
 
@@ -44,8 +45,8 @@ export class UUID {
         return stringify(this.bytes);
     }
 
-    toHexString(): string {
-        return "0x" + this.toString().replace(/-/g, "");
+    toHexString(): HexString {
+        return `0x${ this.toString().replace(/-/g, "") }`;
     }
 
     toDecimalString(): string {

@@ -1,5 +1,5 @@
-import { stringToHex } from "@polkadot/util";
 import { Adapters, ItemFile, ItemToken, TermsAndConditionsElement, UUID } from "../src/index.js";
+import { hashString } from "../src/Hash.js";
 
 describe("Adapters", () => {
 
@@ -11,8 +11,8 @@ describe("Adapters", () => {
 
     it("toCollectionItemFile", () => {
         const itemFile: ItemFile = {
-            name: "artwork.png",
-            contentType: "image/png",
+            name: hashString("artwork.png"),
+            contentType: hashString("image/png"),
             size: BigInt(256000),
             hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
         };
@@ -25,21 +25,21 @@ describe("Adapters", () => {
 
     it("toCollectionItemToken", () => {
         const itemToken: ItemToken = {
-            type: "ethereum_erc721",
-            id: '{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","token":"4391"}',
+            type: hashString("ethereum_erc721"),
+            id: hashString('{"contract":"0x765df6da33c1ec1f83be42db171d7ee334a46df5","token":"4391"}'),
             issuance: 100n,
         };
         const adapted = Adapters.toCollectionItemToken(itemToken);
-        expect(adapted?.tokenId).toBe(stringToHex(itemToken.id));
+        expect(adapted?.tokenId).toBe(itemToken.id);
         expect(adapted?.tokenType).toBe(itemToken.type);
         expect(adapted?.tokenIssuance).toBe(itemToken.issuance);
     });
 
     it("toTermsAndConditionsElement", () => {
         const termsAndConditions: TermsAndConditionsElement = {
-            tcType: "Logion",
+            tcType: hashString("Logion"),
             tcLocId: new UUID(),
-            details: "ITEM-A, ITEM-B, ITEM-C"
+            details: hashString("ITEM-A, ITEM-B, ITEM-C"),
         };
         const adapted = Adapters.toTermsAndConditionsElement(termsAndConditions);
         expect(adapted.tcType).toBe(termsAndConditions.tcType);
