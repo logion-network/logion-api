@@ -1,4 +1,4 @@
-import { UUID } from "@logion/node-api";
+import { Hash, UUID } from "@logion/node-api";
 
 import { ClientToken, LocClient, UploadableCollectionItem, UploadableItemFile } from "./LocClient.js";
 import { LogionClassification, SpecificLicense, CreativeCommons, MergedTermsAndConditionsElement } from "./license/index.js";
@@ -61,7 +61,7 @@ export class CollectionItem implements UploadableCollectionItem {
         return this._locId;
     }
 
-    get id(): string {
+    get id(): Hash {
         return this.clientItem.id;
     }
 

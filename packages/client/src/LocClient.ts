@@ -453,7 +453,7 @@ export class LocMultiClient {
 }
 
 export interface UploadableCollectionItem {
-    id: string;
+    id: Hash;
     description: HashString;
     addedOn: string;
     files: UploadableItemFile[];
@@ -473,6 +473,10 @@ export class ClientToken {
     readonly type: HashString;
     readonly id: HashString;
     readonly issuance: bigint;
+
+    isValidItemTokenWithRestrictedType() {
+        return this.type.isValidValue() && this.id.isValidValue();
+    }
 
     toItemTokenWithRestrictedType(): ItemTokenWithRestrictedType {
         const type = this.type.validValue();
