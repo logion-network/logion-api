@@ -5,7 +5,6 @@ import {
     LegalOfficerCase,
     ItemFile,
     CollectionItem,
-    TermsAndConditionsElement as ChainTermsAndConditionsElement,
     ValidAccountId,
     AccountType,
     LocBatch,
