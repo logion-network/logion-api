@@ -8,7 +8,10 @@ import {
     GetDeliveriesRequest,
     LocClient,
     UploadableCollectionItem,
-    TermsAndConditionsElement
+    TermsAndConditionsElement,
+    HashString,
+    MergedTermsAndConditionsElement,
+    ClientToken
 } from "../src/index.js";
 
 const locId = new UUID("eff6da24-1364-4594-965a-3b31f1e1df25");
@@ -72,25 +75,25 @@ describe("CollectionItem checkHash", () => {
     })
 });
 
-function given(privileged: boolean, tc?: TermsAndConditionsElement[]): CollectionItem {
+function given(privileged: boolean, tc?: MergedTermsAndConditionsElement[]): CollectionItem {
     const clientItem: UploadableCollectionItem = {
         id: collectionItemId,
-        description: "Some description",
+        description: HashString.fromValue("Some description"),
         addedOn: "2022-08-31T13:29:00.000Z",
         files: [
             {
                 hash: originalHash,
-                contentType: "text/plain",
-                name: "test.txt",
+                contentType: HashString.fromValue("text/plain"),
+                name: HashString.fromValue("test.txt"),
                 size: BigInt(4),
                 uploaded: true,
             }
         ],
-        token: {
-            type: "owner",
-            id: "0x900edc98db53508e6742723988b872dd08cd09c2",
+        token: new ClientToken({
+            type: HashString.fromValue("owner"),
+            id: HashString.fromValue("0x900edc98db53508e6742723988b872dd08cd09c2"),
             issuance: 1n,
-        },
+        }),
         restrictedDelivery: true,
         termsAndConditions: tc || [],
     };

@@ -3,6 +3,7 @@ import { UUID } from "@logion/node-api";
 import { LocClient, ClientTokensRecord, UploadableItemFile } from "./LocClient.js";
 import { CheckHashResult } from "./Loc.js";
 import { CheckCertifiedCopyResult, CheckResultType } from "./Deliveries.js";
+import { HashString } from "./Hash.js";
 
 export class TokensRecord implements ClientTokensRecord {
 
@@ -30,7 +31,7 @@ export class TokensRecord implements ClientTokensRecord {
         return this.record.id;
     }
 
-    get description(): string {
+    get description(): HashString {
         return this.record.description;
     }
 

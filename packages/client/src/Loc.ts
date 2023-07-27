@@ -3,7 +3,6 @@ import {
     LegalOfficerCase,
     LocType,
     VoidInfo,
-    ItemFile,
     ValidAccountId,
     LogionNodeApiClass,
     LocBatch,
@@ -43,6 +42,7 @@ import {
     DeleteLinkParams,
     VoidParams,
     VerifiedIssuer,
+    UploadableItemFile,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -544,8 +544,8 @@ export interface CheckHashResult {
     file?: MergedFile;
     metadataItem?: MergedMetadataItem;
     collectionItem?: CollectionItemClass;
-    collectionItemFile?: ItemFile;
-    recordFile?: ItemFile;
+    collectionItemFile?: UploadableItemFile;
+    recordFile?: UploadableItemFile;
 }
 
 export type AnyLocState = OffchainLocState | OnchainLocState;
@@ -1507,7 +1507,7 @@ export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommands
     }
 }
 
-export async function getCollectionItem(parameters: { locClient: LocClient, locId: UUID, itemId: string }): Promise<CollectionItemClass | undefined> {
+export async function getCollectionItem(parameters: { locClient: LocClient, locId: UUID, itemId: Hash }): Promise<CollectionItemClass | undefined> {
     const { locId, itemId, locClient } = parameters;
         const clientItem = await locClient.getCollectionItem({
             locId,
@@ -1524,7 +1524,7 @@ export async function getCollectionItem(parameters: { locClient: LocClient, locI
         }
 }
 
-export async function getTokensRecord(parameters: { locClient: LocClient, locId: UUID, recordId: string }): Promise<TokensRecordClass | undefined> {
+export async function getTokensRecord(parameters: { locClient: LocClient, locId: UUID, recordId: Hash }): Promise<TokensRecordClass | undefined> {
     const { locId, recordId, locClient } = parameters;
         const tokensRecord = await locClient.getTokensRecord({
             locId,
@@ -1556,7 +1556,7 @@ export async function getTokensRecords(parameters: { locClient: LocClient } & Ge
 
 abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
 
-    async getCollectionItem(parameters: { itemId: string }): Promise<CollectionItemClass | undefined> {
+    async getCollectionItem(parameters: { itemId: Hash }): Promise<CollectionItemClass | undefined> {
         this.ensureCurrent();
         return getCollectionItem({
             locClient: this.locSharedState.client,
@@ -1577,7 +1577,7 @@ abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
         }));
     }
 
-    override async checkHash(hash: string): Promise<CheckHashResult> {
+    override async checkHash(hash: Hash): Promise<CheckHashResult> {
         this.ensureCurrent();
         const result = await super.checkHash(hash);
         const collectionItem = await this.getCollectionItem({ itemId: hash });
@@ -1595,7 +1595,7 @@ abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
         })
     }
 
-    async getTokensRecord(parameters: { recordId: string }): Promise<TokensRecordClass | undefined> {
+    async getTokensRecord(parameters: { recordId: Hash }): Promise<TokensRecordClass | undefined> {
         this.ensureCurrent();
         return getTokensRecord({
             locClient: this.locSharedState.client,

@@ -43,14 +43,15 @@ import {
     AccountType,
     HostData,
     Region,
-    Hash,
-    Link, ItemToken,
+    Link,
+    ItemToken,
 } from "./Types.js";
 import { UUID } from "./UUID.js";
-import { stringToHex, stringToU8a, u8aToHex } from "@polkadot/util";
+import { stringToU8a, u8aToHex } from "@polkadot/util";
 import { base58Decode, base58Encode } from "@polkadot/util-crypto";
 import { HexString } from "@polkadot/util/types.js";
 import { H256 } from "./interfaces/types.js";
+import { Hash } from "./Hash.js";
 
 
 export class Adapters {
@@ -425,44 +426,37 @@ export class Adapters {
         };
     }
 
-    static fromPalletCollectionItem(itemId: string, unwrappedResult: PalletLogionLocCollectionItem): CollectionItem {
-        const description = unwrappedResult.description.toUtf8();
+    static fromPalletCollectionItem(itemId: Hash, unwrappedResult: PalletLogionLocCollectionItem): CollectionItem {
+        const description = unwrappedResult.description.toHex();
         const token = unwrappedResult.token;
-        let tokenId: string | undefined;
+        let tokenId: Hash | undefined;
         if(token && token.isSome) {
-            try {
-                tokenId = token.unwrap().tokenId.toUtf8();
-            } catch(e) {
-                // This branch is needed for older hex token IDs (like Ethereum addresses)
-                // values that were submitted without being double-encoded,
-                // which resulted in invalid text encoding.
-                tokenId = token.unwrap().tokenId.toString();
-            }
+            tokenId = token.unwrap().tokenId.toHex();
         }
         return {
             id: itemId,
             description,
             files: unwrappedResult.files.map(resultFile => ({
-                name: resultFile.name.toUtf8(),
-                contentType: resultFile.contentType.toUtf8(),
+                name: resultFile.name.toHex(),
+                contentType: resultFile.contentType.toHex(),
                 hash: resultFile.hash_.toHex(),
                 size: resultFile.size_.toBigInt(),
             })),
             token: tokenId !== undefined ? {
                 id: tokenId,
-                type: token.unwrap().tokenType.toUtf8(),
+                type: token.unwrap().tokenType.toHex(),
                 issuance: token.unwrap().tokenIssuance.toBigInt(),
             } : undefined,
             restrictedDelivery: unwrappedResult.restrictedDelivery.isTrue,
             termsAndConditions: unwrappedResult.termsAndConditions.map(tc => ({
-                tcType: tc.tcType.toUtf8(),
+                tcType: tc.tcType.toHex(),
                 tcLocId: UUID.fromDecimalStringOrThrow(tc.tcLoc.toString()),
-                details: tc.details.toUtf8(),
+                details: tc.details.toHex(),
             })),
         };
     }
 
-    static toCollectionItemFile(itemFile: ItemFile): { name: string; contentType: string; size_: bigint; hash_: string } {
+    static toCollectionItemFile(itemFile: ItemFile): { name: Hash; contentType: Hash; size_: bigint; hash_: Hash } {
         return {
             name: itemFile.name,
             contentType: itemFile.contentType,
@@ -471,11 +465,11 @@ export class Adapters {
         };
     }
 
-    static toCollectionItemToken(itemToken?: ItemToken): { tokenType: string; tokenId: string; tokenIssuance: bigint } | null {
+    static toCollectionItemToken(itemToken?: ItemToken): { tokenType: Hash; tokenId: Hash; tokenIssuance: bigint } | null {
         if(itemToken) {
             return {
                 tokenType: itemToken.type,
-                tokenId: stringToHex(itemToken.id),
+                tokenId: itemToken.id,
                 tokenIssuance: itemToken.issuance,
             };
         } else {
@@ -483,7 +477,7 @@ export class Adapters {
         }
     }
 
-    static toTermsAndConditionsElement(tc: TermsAndConditionsElement): { tcType?: string; tcLoc?: string; details?: string } {
+    static toTermsAndConditionsElement(tc: TermsAndConditionsElement): { tcType?: Hash; tcLoc?: string; details?: Hash } {
         return {
             tcType: tc.tcType,
             tcLoc: Adapters.toLocId(tc.tcLocId),
@@ -493,8 +487,8 @@ export class Adapters {
 
     toPalletLogionLocTokensRecordFile(file: TypesTokensRecordFile): PalletLogionLocTokensRecordFile {
         return this.api.createType("PalletLogionLocTokensRecordFile", {
-            name: this.api.createType("Bytes", file.name),
-            contentType: this.api.createType("Bytes", file.contentType),
+            name: this.api.createType("Hash", file.name),
+            contentType: this.api.createType("Hash", file.contentType),
             size_: this.api.createType("u32", file.size),
             hash_: this.api.createType("Hash", file.hash),
         });
@@ -506,10 +500,10 @@ export class Adapters {
 
     static toTokensRecord(substrateObject: PalletLogionLocTokensRecord): TypesTokensRecord {
         return {
-            description: substrateObject.description.toUtf8(),
+            description: substrateObject.description.toHex(),
             files: substrateObject.files.map(file => ({
-                name: file.name.toUtf8(),
-                contentType: file.contentType.toUtf8(),
+                name: file.name.toHex(),
+                contentType: file.contentType.toHex(),
                 size: file.size_.toString(),
                 hash: file.hash_.toHex(),
             })),

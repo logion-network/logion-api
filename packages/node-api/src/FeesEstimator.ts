@@ -2,7 +2,8 @@ import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types.js";
 import { UUID } from "./UUID.js";
 import { Adapters } from "./Adapters.js";
-import { ValidAccountId, LocType, Hash } from "./Types.js";
+import { ValidAccountId, LocType } from "./Types.js";
+import { Hash } from "./Hash.js";
 
 export class Fees {
 

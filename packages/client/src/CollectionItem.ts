@@ -1,11 +1,11 @@
 import { UUID } from "@logion/node-api";
 
-import { LocClient, UploadableCollectionItem, UploadableItemFile } from "./LocClient.js";
-import { ItemTokenWithRestrictedType } from "./Token.js";
-import { LogionClassification, SpecificLicense, TermsAndConditionsElement, CreativeCommons } from "./license/index.js";
+import { ClientToken, LocClient, UploadableCollectionItem, UploadableItemFile } from "./LocClient.js";
+import { LogionClassification, SpecificLicense, CreativeCommons, MergedTermsAndConditionsElement } from "./license/index.js";
 import { CheckHashResult } from "./Loc.js";
 import { checkCertifiedCopy, CheckCertifiedCopyResult } from "./Deliveries.js";
 import { downloadFile, TypedFile } from "./Http.js";
+import { HashString } from "./Hash.js";
 
 export class CollectionItem implements UploadableCollectionItem {
 
@@ -18,7 +18,11 @@ export class CollectionItem implements UploadableCollectionItem {
         this.locClient = args.locClient;
         this.clientItem = args.clientItem;
 
-        const logionClassifications = args.clientItem.termsAndConditions
+        const validTermsAndConditions = args.clientItem.termsAndConditions
+            .filter(element => element.type.isValidValue() && element.details.isValidValue())
+            .map(element => element.toTermsAndConditionsElement());
+
+        const logionClassifications = validTermsAndConditions
             .filter(element => element.type === "logion_classification")
             .map(element => element as LogionClassification);
         if(logionClassifications.length > 0) {
@@ -27,7 +31,7 @@ export class CollectionItem implements UploadableCollectionItem {
             throw new Error("Terms and conditions must include at most one logion classification element");
         }
 
-        const creativeCommons = args.clientItem.termsAndConditions
+        const creativeCommons = validTermsAndConditions
             .filter(element => element.type === "CC4.0")
             .map(element => element as CreativeCommons);
         if(creativeCommons.length > 0) {
@@ -36,7 +40,7 @@ export class CollectionItem implements UploadableCollectionItem {
             throw new Error("Terms and conditions must include at most one Creative Commons element");
         }
 
-        this._specificLicenses = args.clientItem.termsAndConditions
+        this._specificLicenses = validTermsAndConditions
             .filter(element => element.type === "specific_license")
             .map(element => element as SpecificLicense);
     }
@@ -61,7 +65,7 @@ export class CollectionItem implements UploadableCollectionItem {
         return this.clientItem.id;
     }
 
-    get description(): string {
+    get description(): HashString {
         return this.clientItem.description;
     }
 
@@ -73,7 +77,7 @@ export class CollectionItem implements UploadableCollectionItem {
         return this.clientItem.files;
     }
 
-    get token(): ItemTokenWithRestrictedType | undefined {
+    get token(): ClientToken | undefined {
         return this.clientItem.token;
     }
 
@@ -81,7 +85,7 @@ export class CollectionItem implements UploadableCollectionItem {
         return this.clientItem.restrictedDelivery;
     }
 
-    get termsAndConditions(): TermsAndConditionsElement[] {
+    get termsAndConditions(): MergedTermsAndConditionsElement[] {
         return this.clientItem.termsAndConditions;
     }
 

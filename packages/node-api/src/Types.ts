@@ -3,15 +3,13 @@ import { AnyJson } from "@polkadot/types-codec/types";
 import { isHex } from "@polkadot/util";
 import { UUID } from "./UUID.js";
 import { ApiPromise } from "@polkadot/api";
-import { HexString } from "@polkadot/util/types";
+import { Hash } from './Hash.js';
 
 export interface TypesAccountData {
     available: string,
     reserved: string,
     total: string,
 }
-
-export type Hash = HexString;
 
 export interface MetadataItemParams {
     name: Hash;
@@ -66,8 +64,8 @@ export interface VoidInfo {
 }
 
 export interface CollectionItem {
-    id: string,
-    description: string,
+    id: Hash,
+    description: Hash,
     files: ItemFile[],
     token?: ItemToken,
     restrictedDelivery: boolean,
@@ -75,15 +73,15 @@ export interface CollectionItem {
 }
 
 export interface ItemFile {
-    name: string;
-    contentType: string;
+    name: Hash;
+    contentType: Hash;
     size: bigint;
-    hash: string;
+    hash: Hash;
 }
 
 export interface ItemTokenWithoutIssuance {
-    type: string;
-    id: string;
+    type: Hash;
+    id: Hash;
 }
 
 export interface ItemToken extends ItemTokenWithoutIssuance {
@@ -91,9 +89,9 @@ export interface ItemToken extends ItemTokenWithoutIssuance {
 }
 
 export interface TermsAndConditionsElement {
-    tcType: string;
+    tcType: Hash;
     tcLocId: UUID;
-    details: string;
+    details: Hash;
 }
 
 export function isLogionIdentityLoc(loc: LegalOfficerCase): boolean {
@@ -127,14 +125,14 @@ export interface TypesErrorMetadata {
 }
 
 export interface TypesTokensRecordFile {
-    name: string;
-    contentType: string;
+    name: Hash;
+    contentType: Hash;
     size: string;
-    hash: string;
+    hash: Hash;
 }
 
 export interface TypesTokensRecord {
-    description: string;
+    description: Hash;
     files: TypesTokensRecordFile[];
     submitter: string;
 }

@@ -1,20 +1,8 @@
 import { Hash as Hasher } from 'fast-sha256';
 import { FileLike, UploadableData } from "./ComponentFactory.js";
-import { Hash } from "@logion/node-api";
-import { stringToU8a } from '@polkadot/util';
+import { Hash, hashString, digestToHex } from "@logion/node-api";
 
-export { Hash };
-
-export function hashString(data: string): Hash {
-    const digest = new Hasher();
-    const bytes = stringToU8a(data);
-    digest.update(bytes);
-    return digestToHex(digest);
-}
-
-function digestToHex(digest: Hasher): Hash {
-    return `0x${ Buffer.from(digest.digest()).toString('hex') }`;
-}
+export { Hash, hashString };
 
 export interface HashAndSize {
     hash: Hash;
@@ -197,4 +185,35 @@ function isBuffer(obj: any): boolean { // eslint-disable-line @typescript-eslint
 async function buildStream(path: string): Promise<NodeJS.ReadableStream> {
     const fs = await import('fs');
     return fs.createReadStream(path);
+}
+
+export class HashString {
+
+    static fromValue(value: string): HashString {
+        return new HashString(hashString(value), value);
+    }
+
+    constructor(hash: Hash, value?: string) {
+        this.hash = hash;
+        this.value = value;
+    }
+
+    readonly hash: Hash;
+    readonly value?: string;
+
+    private static isValidValue(hash: Hash, value?: string): value is string {
+        return value !== undefined && hashString(value) === hash;
+    }
+
+    isValidValue(): boolean {
+        return HashString.isValidValue(this.hash, this.value);
+    }
+
+    validValue(): string {
+        if(HashString.isValidValue(this.hash, this.value)) {
+            return this.value;
+        } else {
+            throw new Error("Invalid value");
+        }
+    }
 }

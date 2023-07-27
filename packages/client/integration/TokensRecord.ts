@@ -54,7 +54,7 @@ export async function tokensRecords(state: State) {
 
     const record = await closedCollectionLoc.getTokensRecord({ recordId });
     expect(record?.id).toBe(recordId);
-    expect(record?.description).toBe(recordDescription);
+    expect(record?.description.validValue()).toBe(recordDescription);
     expect(record?.files.length).toBe(1);
 
     const records = await closedCollectionLoc.getTokensRecords();

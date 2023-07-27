@@ -1,4 +1,4 @@
-import { Currency, UUID, Adapters } from "../src/index.js";
+import { Currency, UUID, Adapters, hashString } from "../src/index.js";
 import { ALICE, ISSUER, setup, signAndSend, signAndSendBatch } from "./Util.js";
 
 export async function verifiedIssuers() {
@@ -40,9 +40,9 @@ export async function verifiedIssuers() {
     expect(collectionVerifiedIssuers[collectionLocId.toDecimalString()][0].identityLocId.toString()).toBe(issuerIdentityLocId.toString());
 
     const recordId = "0x5b2ef8140cfcf72237f2182b9f5eb05eb643a26f9a823e5e804d5543976a4fb9";
-    const recordDescription = "Some description";
-    const recordFileName = "File name";
-    const recordFileContentType = "text/plain";
+    const recordDescription = hashString("Some description");
+    const recordFileName = hashString("File name");
+    const recordFileContentType = hashString("text/plain");
     const recordFileSize = "5";
     const recordFileHash = "0x7d6fd7774f0d87624da6dcf16d0d3d104c3191e771fbe2f39c86aed4b2bf1a0f";
     await signAndSend(issuer, api.polkadot.tx.logionLoc.addTokensRecord(

@@ -11,6 +11,7 @@ import {
     SharedState,
     PublicApi,
     PublicLoc,
+    HashString,
 } from "../src/index.js";
 import {
     ALICE,
@@ -100,7 +101,7 @@ describe("PublicLoc", () => {
             && args.locId.toString() === locId.toString()
         ))).returnsAsync({
             addedOn: OFFCHAIN_COLLECTION_ITEM.addedOn,
-            description: ITEM_DESCRIPTION,
+            description: HashString.fromValue(ITEM_DESCRIPTION),
             files: [],
             id: EXISTING_ITEM_ID,
             restrictedDelivery: false,
@@ -132,7 +133,7 @@ describe("PublicLoc", () => {
             && args.locId.toString() === locId.toString()
         ))).returnsAsync({
             addedOn: OFFCHAIN_COLLECTION_ITEM.addedOn,
-            description: ITEM_DESCRIPTION,
+            description: HashString.fromValue(ITEM_DESCRIPTION),
             files: [ EXISTING_ITEM_FILE ],
             id: EXISTING_ITEM_ID,
             restrictedDelivery: false,

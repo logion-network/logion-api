@@ -1,6 +1,6 @@
 {
   "name": "@logion/node-api",
-  "version": "0.17.1",
+  "version": "0.18.0-1",
   "description": "logion API",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
