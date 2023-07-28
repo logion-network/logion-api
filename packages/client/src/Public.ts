@@ -144,7 +144,7 @@ export class PublicLoc {
         return this._data.locType !== 'Identity' && this._data.requesterLocId !== null && this._data.requesterLocId !== undefined;
     }
 
-    async checkCertifiedCopy(hash: string): Promise<CheckCertifiedCopyResult> {
+    async checkCertifiedCopy(hash: Hash): Promise<CheckCertifiedCopyResult> {
         try {
             const delivery = await this.client.checkDelivery({
                 locId: this._data.id,

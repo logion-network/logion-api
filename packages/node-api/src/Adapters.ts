@@ -64,8 +64,8 @@ export class Adapters {
 
     toPalletLogionLocFile(file: FileParams): PalletLogionLocFileParams {
         return this.api.createType("PalletLogionLocFileParams", {
-            hash_: file.hash,
-            nature: file.nature,
+            hash_: this.toH256(file.hash),
+            nature: this.toH256(file.nature),
             submitter: this.toPalletLogionLocSupportedAccountId(file.submitter),
             size_: file.size,
         });
@@ -99,21 +99,21 @@ export class Adapters {
             requesterAddress,
             requesterLocId: rawLoc.requester.isLoc ? UUID.fromDecimalString(rawLoc.requester.asLoc.toString()) : undefined,
             metadata: rawLoc.metadata.toArray().map(rawItem => ({
-                name: rawItem.name.toHex(),
-                value: rawItem.value.toHex(),
+                name: Hash.fromHex(rawItem.name.toHex()),
+                value: Hash.fromHex(rawItem.value.toHex()),
                 submitter: this.fromPalletLogionLocSupportedAccountId(rawItem.submitter),
                 acknowledged: rawItem.acknowledged.isTrue,
             })),
             files: rawLoc.files.toArray().map(rawFile => ({
-                hash: rawFile.hash_.toHex(),
-                nature: rawFile.nature.toHex(),
+                hash: Hash.fromHex(rawFile.hash_.toHex()),
+                nature: Hash.fromHex(rawFile.nature.toHex()),
                 submitter: this.fromPalletLogionLocSupportedAccountId(rawFile.submitter),
                 size: rawFile.size_.toBigInt(),
                 acknowledged: rawFile.acknowledged.isTrue,
             })),
             links: rawLoc.links.toArray().map(rawLink => ({
                 id: UUID.fromDecimalStringOrThrow(rawLink.id.toString()),
-                nature: rawLink.nature.toHex()
+                nature: Hash.fromHex(rawLink.nature.toHex()),
             })),
             closed: rawLoc.closed.isTrue,
             locType: rawLoc.locType.toString() as LocType,
@@ -410,8 +410,8 @@ export class Adapters {
 
     toPalletLogionLocMetadataItem(item: MetadataItemParams): PalletLogionLocMetadataItemParams {
         return this.api.createType("PalletLogionLocMetadataItemParams", {
-            name: item.name,
-            value: item.value,
+            name: this.toH256(item.name),
+            value: this.toH256(item.value),
             submitter: this.toPalletLogionLocSupportedAccountId(item.submitter),
         });
     }
@@ -427,49 +427,49 @@ export class Adapters {
     }
 
     static fromPalletCollectionItem(itemId: Hash, unwrappedResult: PalletLogionLocCollectionItem): CollectionItem {
-        const description = unwrappedResult.description.toHex();
+        const description = Hash.fromHex(unwrappedResult.description.toHex());
         const token = unwrappedResult.token;
         let tokenId: Hash | undefined;
         if(token && token.isSome) {
-            tokenId = token.unwrap().tokenId.toHex();
+            tokenId = Hash.fromHex(token.unwrap().tokenId.toHex());
         }
         return {
             id: itemId,
             description,
             files: unwrappedResult.files.map(resultFile => ({
-                name: resultFile.name.toHex(),
-                contentType: resultFile.contentType.toHex(),
-                hash: resultFile.hash_.toHex(),
+                name: Hash.fromHex(resultFile.name.toHex()),
+                contentType: Hash.fromHex(resultFile.contentType.toHex()),
+                hash: Hash.fromHex(resultFile.hash_.toHex()),
                 size: resultFile.size_.toBigInt(),
             })),
             token: tokenId !== undefined ? {
                 id: tokenId,
-                type: token.unwrap().tokenType.toHex(),
+                type: Hash.fromHex(token.unwrap().tokenType.toHex()),
                 issuance: token.unwrap().tokenIssuance.toBigInt(),
             } : undefined,
             restrictedDelivery: unwrappedResult.restrictedDelivery.isTrue,
             termsAndConditions: unwrappedResult.termsAndConditions.map(tc => ({
-                tcType: tc.tcType.toHex(),
+                tcType: Hash.fromHex(tc.tcType.toHex()),
                 tcLocId: UUID.fromDecimalStringOrThrow(tc.tcLoc.toString()),
-                details: tc.details.toHex(),
+                details: Hash.fromHex(tc.details.toHex()),
             })),
         };
     }
 
-    static toCollectionItemFile(itemFile: ItemFile): { name: Hash; contentType: Hash; size_: bigint; hash_: Hash } {
+    toCollectionItemFile(itemFile: ItemFile): { name: H256; contentType: H256; size_: bigint; hash_: H256 } {
         return {
-            name: itemFile.name,
-            contentType: itemFile.contentType,
+            name: this.toH256(itemFile.name),
+            contentType: this.toH256(itemFile.contentType),
             size_: itemFile.size,
-            hash_: itemFile.hash,
+            hash_: this.toH256(itemFile.hash),
         };
     }
 
-    static toCollectionItemToken(itemToken?: ItemToken): { tokenType: Hash; tokenId: Hash; tokenIssuance: bigint } | null {
+    toCollectionItemToken(itemToken?: ItemToken): { tokenType: H256; tokenId: H256; tokenIssuance: bigint } | null {
         if(itemToken) {
             return {
-                tokenType: itemToken.type,
-                tokenId: itemToken.id,
+                tokenType: this.toH256(itemToken.type),
+                tokenId: this.toH256(itemToken.id),
                 tokenIssuance: itemToken.issuance,
             };
         } else {
@@ -477,20 +477,20 @@ export class Adapters {
         }
     }
 
-    static toTermsAndConditionsElement(tc: TermsAndConditionsElement): { tcType?: Hash; tcLoc?: string; details?: Hash } {
+    toTermsAndConditionsElement(tc: TermsAndConditionsElement): { tcType: H256; tcLoc: string; details: H256 } {
         return {
-            tcType: tc.tcType,
+            tcType: this.toH256(tc.tcType),
             tcLoc: Adapters.toLocId(tc.tcLocId),
-            details: tc.details,
+            details: this.toH256(tc.details),
         };
     }
 
     toPalletLogionLocTokensRecordFile(file: TypesTokensRecordFile): PalletLogionLocTokensRecordFile {
         return this.api.createType("PalletLogionLocTokensRecordFile", {
-            name: this.api.createType("Hash", file.name),
-            contentType: this.api.createType("Hash", file.contentType),
+            name: this.toH256(file.name),
+            contentType: this.toH256(file.contentType),
             size_: this.api.createType("u32", file.size),
-            hash_: this.api.createType("Hash", file.hash),
+            hash_: this.toH256(file.hash),
         });
     }
 
@@ -500,12 +500,12 @@ export class Adapters {
 
     static toTokensRecord(substrateObject: PalletLogionLocTokensRecord): TypesTokensRecord {
         return {
-            description: substrateObject.description.toHex(),
+            description: Hash.fromHex(substrateObject.description.toHex()),
             files: substrateObject.files.map(file => ({
-                name: file.name.toHex(),
-                contentType: file.contentType.toHex(),
+                name: Hash.fromHex(file.name.toHex()),
+                contentType: Hash.fromHex(file.contentType.toHex()),
                 size: file.size_.toString(),
-                hash: file.hash_.toHex(),
+                hash: Hash.fromHex(file.hash_.toHex()),
             })),
             submitter: substrateObject.submitter.toString(),
         };
@@ -606,8 +606,8 @@ export class Adapters {
         return { baseUrl, nodeId, region };
     }
 
-    toH256(data: HexString): H256 {
-        return this.api.createType<H256>("H256", data);
+    toH256(data: Hash): H256 {
+        return this.api.createType<H256>("H256", data.bytes);
     }
 
     toPalletLogionLocLocLink(link: Link): PalletLogionLocLocLink {

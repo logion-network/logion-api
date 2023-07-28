@@ -23,7 +23,7 @@ import {
     buildValidPolkadotAccountId,
     buildSimpleNodeApi
 } from './Utils.js';
-import { LogionNodeApiClass } from '@logion/node-api';
+import { Hash, LogionNodeApiClass } from '@logion/node-api';
 
 describe("LogionClient", () => {
 
@@ -188,7 +188,7 @@ describe("ItemFileWithContent", () => {
         const item = new ItemFileWithContent({
             name: "test.txt",
             contentType: MimeType.from("text/plain"),
-            hashOrContent: HashOrContent.fromHash("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"),
+            hashOrContent: HashOrContent.fromHash(Hash.fromHex("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08")),
             size: 4n,
         });
         expect(item.name).toBe("test.txt");
@@ -232,7 +232,7 @@ describe("ItemFileWithContent", () => {
         expect(() => new ItemFileWithContent({
             name: "test.txt",
             contentType: MimeType.from("text/plain"),
-            hashOrContent: HashOrContent.fromHash("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"),
+            hashOrContent: HashOrContent.fromHash(Hash.fromHex("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08")),
         })).toThrow();
     });
 });

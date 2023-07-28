@@ -6,7 +6,9 @@ import {
     ValidAccountId,
     LogionNodeApiClass,
     LocBatch,
+    Hash,
 } from "@logion/node-api";
+import { HexString } from "@polkadot/util/types";
 
 import {
     LocRequest,
@@ -31,7 +33,6 @@ import {
     EMPTY_LOC_ISSUERS,
     AddTokensRecordParams,
     GetTokensRecordsRequest,
-    FileInfo,
     ReviewFileParams,
     BlockchainSubmissionParams,
     AckFileParams,
@@ -43,6 +44,8 @@ import {
     VoidParams,
     VerifiedIssuer,
     UploadableItemFile,
+    ItemStatus,
+    AddedOn,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -52,7 +55,7 @@ import { LogionClient } from "./LogionClient.js";
 import { TokensRecord as TokensRecordClass } from "./TokensRecord.js";
 import { downloadFile, TypedFile } from "./Http.js";
 import { requireDefined } from "./assertions.js";
-import { hashString, Hash } from "./Hash.js";
+import { Fees } from "./Fees.js";
 
 export interface LocData extends LocVerifiedIssuers {
     id: UUID
@@ -89,12 +92,29 @@ export interface LocData extends LocVerifiedIssuers {
 export interface MergedLink extends LocLink, Published {
 }
 
-export interface MergedFile extends FileInfo, Published {
+export interface MergedFile extends Partial<AddedOn>, Published {
+    hash: Hash;
+    nature: string;
+    name: string;
+    restrictedDelivery: boolean;
+    contentType: string;
+    fees?: Fees;
+    storageFeePaidBy?: string;
+    status: ItemStatus;
+    rejectReason?: string;
+    reviewedOn?: string;
     submitter: ValidAccountId;
     size: bigint;
 }
 
-export interface MergedMetadataItem extends LocMetadataItem, Published {
+export interface MergedMetadataItem extends Partial<AddedOn>, Published {
+    name: string;
+    nameHash: Hash;
+    value: string;
+    fees?: Fees;
+    status: ItemStatus;
+    rejectReason?: string;
+    reviewedOn?: string;
     submitter: ValidAccountId;
 }
 
@@ -537,7 +557,7 @@ export interface CreateLocRequestParams {
 }
 
 export interface CreateSofRequestParams {
-    itemId: string;
+    itemId: Hash;
 }
 
 export interface CheckHashResult {
@@ -668,22 +688,22 @@ export abstract class LocRequestState extends State {
         return loc.locType !== 'Identity' && (loc.requesterLocId !== undefined && loc.requesterLocId !== null);
     }
 
-    async checkHash(hash: string): Promise<CheckHashResult> {
+    async checkHash(hash: Hash): Promise<CheckHashResult> {
         this.ensureCurrent();
         return LocRequestState.checkHash(this.data(), hash);
     }
 
-    static checkHash(loc: LocData, hash: string): CheckHashResult {
+    static checkHash(loc: LocData, hash: Hash): CheckHashResult {
         const result: CheckHashResult = {};
 
         for (const file of loc.files) {
-            if (file.hash === hash) {
+            if (file.hash.equalTo(hash)) {
                 result.file = file;
             }
         }
 
         for (const item of loc.metadata) {
-            if (item.value === hash) {
+            if (item.value === hash.toHex()) {
                 result.metadataItem = item;
             }
         }
@@ -744,11 +764,12 @@ export abstract class LocRequestState extends State {
     }
 
     private static mergeMetadata(api: LogionNodeApiClass, backendMetadataItem: LocMetadataItem, chainLoc?: LegalOfficerCase): MergedMetadataItem {
-        const chainMetadataItem = chainLoc ? chainLoc.metadata.find(item => item.name === backendMetadataItem.nameHash) : undefined;
+        const chainMetadataItem = chainLoc ? chainLoc.metadata.find(item => item.name.toHex() === backendMetadataItem.nameHash) : undefined;
         if(chainMetadataItem) {
             return {
                 ...backendMetadataItem,
                 ...chainMetadataItem,
+                nameHash: Hash.fromHex(chainMetadataItem.name.toHex()),
                 published: true,
                 name: LocRequestState.validatedValue(backendMetadataItem.name, chainMetadataItem.name),
                 value: LocRequestState.validatedValue(backendMetadataItem.value, chainMetadataItem.value),
@@ -756,6 +777,7 @@ export abstract class LocRequestState extends State {
         } else {
             return {
                 ...backendMetadataItem,
+                nameHash: Hash.fromHex(backendMetadataItem.nameHash as HexString),
                 submitter: api.queries.getValidAccountId(backendMetadataItem.submitter.address, backendMetadataItem.submitter.type),
                 published: false,
             };
@@ -763,7 +785,7 @@ export abstract class LocRequestState extends State {
     }
 
     private static mergeFile(api: LogionNodeApiClass, backendFile: LocFile, chainLoc?: LegalOfficerCase): MergedFile {
-        const chainFile = chainLoc ? chainLoc.files.find(item => item.hash === backendFile.hash) : undefined;
+        const chainFile = chainLoc ? chainLoc.files.find(item => item.hash.toHex() === backendFile.hash) : undefined;
         if(chainFile) {
             return {
                 ...backendFile,
@@ -774,6 +796,7 @@ export abstract class LocRequestState extends State {
         } else {
             return {
                 ...backendFile,
+                hash: Hash.fromHex(backendFile.hash as HexString),
                 submitter: api.queries.getValidAccountId(backendFile.submitter.address, backendFile.submitter.type),
                 size: BigInt(backendFile.size),
                 published: false,
@@ -782,7 +805,7 @@ export abstract class LocRequestState extends State {
     }
 
     private static validatedValue(data: string, hash: Hash): string {
-        const calculatedHash = hashString(data);
+        const calculatedHash = Hash.of(data);
         if (calculatedHash === hash) {
             return data;
         }
@@ -839,7 +862,7 @@ export abstract class LegalOfficerLocRequestCommands {
     protected request: LocRequestState;
 
     async setCollectionFileRestrictedDelivery(params: {
-        hash: string,
+        hash: Hash,
         restrictedDelivery: boolean,
     }): Promise<LocRequestState> {
         const { hash, restrictedDelivery } = params;
@@ -1190,15 +1213,15 @@ export class OpenLoc extends EditableRequest {
 
     async publishFile(parameters: { hash: Hash } & BlockchainSubmissionParams): Promise<OpenLoc> {
         const client = this.locSharedState.client;
-        const file = this.request.files.find(file => file.hash === parameters.hash && file.status === "REVIEW_ACCEPTED");
+        const file = this.request.files.find(file => file.hash === parameters.hash.toHex() && file.status === "REVIEW_ACCEPTED");
         if(!file) {
             throw new Error("File was not found or was not reviewed and accepted by the LLO yet");
         }
         await client.publishFile({
             locId: this.locId,
             file: {
-                hash: file.hash,
-                nature: hashString(file.nature),
+                hash: parameters.hash,
+                nature: Hash.of(file.nature),
                 size: BigInt(file.size),
                 submitter: this.locSharedState.nodeApi.queries.getValidAccountId(file.submitter.address, file.submitter.type),
             },
@@ -1208,9 +1231,9 @@ export class OpenLoc extends EditableRequest {
         return await this.refresh() as OpenLoc;
     }
 
-    async publishMetadata(parameters: { nameHash: string } & BlockchainSubmissionParams): Promise<OpenLoc> {
+    async publishMetadata(parameters: { nameHash: Hash } & BlockchainSubmissionParams): Promise<OpenLoc> {
         const client = this.locSharedState.client;
-        const metadata = this.request.metadata.find(metadata => metadata.nameHash === parameters.nameHash && metadata.status === "REVIEW_ACCEPTED");
+        const metadata = this.request.metadata.find(metadata => metadata.nameHash === parameters.nameHash.toHex() && metadata.status === "REVIEW_ACCEPTED");
         if(!metadata) {
             throw new Error("File was not found or was not reviewed and accepted by the LLO yet");
         }
@@ -1267,7 +1290,7 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
             locId: this.locId,
             link: {
                 id: parameters.target,
-                nature: hashString(link.nature),
+                nature: Hash.of(link.nature),
             },
             signer: parameters.signer,
             callback: parameters.callback,
@@ -1277,7 +1300,7 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
 
     async acknowledgeFile(parameters: AckFileParams): Promise<OpenLoc> {
         this.request.ensureCurrent();
-        const file = this.request.data().files.find(file => file.hash === parameters.hash && file.status === "PUBLISHED");
+        const file = this.request.data().files.find(file => file.hash.equalTo(parameters.hash) && file.status === "PUBLISHED");
         if(!file) {
             throw new Error("File was not found or was not published yet");
         }
@@ -1292,7 +1315,7 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
 
     async acknowledgeMetadata(parameters: AckMetadataParams): Promise<OpenLoc> {
         this.request.ensureCurrent();
-        const metadata = this.request.data().metadata.find(metadata => metadata.nameHash === parameters.nameHash && metadata.status === "PUBLISHED");
+        const metadata = this.request.data().metadata.find(metadata => metadata.nameHash.equalTo(parameters.nameHash) && metadata.status === "PUBLISHED");
         if(!metadata) {
             throw new Error("Data was not found or was not published yet");
         }
@@ -1614,12 +1637,12 @@ abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
 }
 
 export interface UploadCollectionItemFileParams {
-    itemId: string,
+    itemId: Hash,
     itemFile: ItemFileWithContent,
 }
 
 export interface UploadTokensRecordFileParams {
-    recordId: string,
+    recordId: Hash,
     file: ItemFileWithContent,
 }
 
@@ -1728,7 +1751,7 @@ implements LegalOfficerLocWithSelectableIssuersCommands<ClosedCollectionLoc> {
     }
 }
 
-async function requestSof(locSharedState: LocSharedState, locId: UUID, itemId?: string): Promise<PendingRequest> {
+async function requestSof(locSharedState: LocSharedState, locId: UUID, itemId?: Hash): Promise<PendingRequest> {
     const client = locSharedState.client;
     const locRequest = await client.createSofRequest({ locId, itemId });
     return new PendingRequest(locSharedState, locRequest, undefined, EMPTY_LOC_ISSUERS).veryNew(); // Discards this state

@@ -1,7 +1,6 @@
-import { UUID } from "@logion/node-api";
+import { UUID, Hash } from "@logion/node-api";
 import {
     HashOrContent,
-    hashString,
     ItemFileWithContent,
     MimeType,
     LocRequestStatus,
@@ -42,13 +41,13 @@ export async function requestTransactionLoc(state: State) {
     checkData(draftRequest.data(), "DRAFT");
 
     const metadataName = "Some name";
-    const nameHash = hashString(metadataName);
+    const nameHash = Hash.of(metadataName);
     draftRequest = await draftRequest.addMetadata({
         name: metadataName,
         value: "Some value"
     }) as DraftRequest;
     expect(draftRequest.data().metadata[0].name).toBe(metadataName);
-    expect(draftRequest.data().metadata[0].nameHash).toBe(nameHash);
+    expect(draftRequest.data().metadata[0].nameHash).toEqual(nameHash);
     expect(draftRequest.data().metadata[0].value).toBe("Some value");
     expect(draftRequest.data().metadata[0].addedOn).toBeUndefined();
     expect(draftRequest.data().metadata[0].status).toBe("DRAFT");
@@ -100,9 +99,9 @@ export async function requestTransactionLoc(state: State) {
         file: HashOrContent.fromContent(Buffer.from("test")),
     }) as OpenLoc;
     const hash = openLoc.data().files[0].hash;
-    expect(hash).toBe("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
+    expect(hash.toHex()).toBe("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
     expect(openLoc.data().files[0].name).toBe("test.txt");
-    expect(openLoc.data().files[0].hash).toBe(hash);
+    expect(openLoc.data().files[0].hash).toEqual(hash);
     expect(openLoc.data().files[0].nature).toBe("Some file nature");
     expect(openLoc.data().files[0].addedOn).toBeUndefined();
     expect(openLoc.data().files[0].status).toBe("DRAFT");
@@ -208,7 +207,7 @@ export async function collectionLoc(state: State) {
     let closedLoc = await openLoc.refresh() as ClosedCollectionLoc;
     expect(closedLoc).toBeInstanceOf(ClosedCollectionLoc);
 
-    const itemId = hashString("first-collection-item");
+    const itemId = Hash.of("first-collection-item");
     const itemDescription = "First collection item";
     closedLoc = await closedLoc.addCollectionItem({
         itemId,
@@ -285,10 +284,10 @@ export async function collectionLocWithUpload(state: State) {
     await aliceOpenLoc.legalOfficer.close({ signer });
     let closedLoc = await openLoc.refresh() as ClosedCollectionLoc;
 
-    const firstItemId = hashString("first-collection-item");
+    const firstItemId = Hash.of("first-collection-item");
     const firstItemDescription = "First collection item";
     const firstFileContent = "test";
-    const firstFileHash = hashString(firstFileContent);
+    const firstFileHash = Hash.of(firstFileContent);
     const firstItemToken: ItemTokenWithRestrictedType = {
         type: "owner",
         id: newAccount.address,
@@ -335,10 +334,10 @@ export async function collectionLocWithUpload(state: State) {
     expect(logionClassification.expiration).toEqual("2025-01-01")
     expect(logionClassification.regionalLimit![0]).toEqual("BE")
 
-    const secondItemId = hashString("second-collection-item");
+    const secondItemId = Hash.of("second-collection-item");
     const secondItemDescription = "Second collection item";
     const secondFileContent = "test2";
-    const secondFileHash = hashString(secondFileContent);
+    const secondFileHash = Hash.of(secondFileContent);
     closedLoc = await closedLoc.addCollectionItem({
         itemId: secondItemId,
         itemDescription: secondItemDescription,

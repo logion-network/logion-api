@@ -1,4 +1,4 @@
-import { UUID } from "@logion/node-api";
+import { Hash, UUID } from "@logion/node-api";
 
 import { LocClient, ClientTokensRecord, UploadableItemFile } from "./LocClient.js";
 import { CheckHashResult } from "./Loc.js";
@@ -27,7 +27,7 @@ export class TokensRecord implements ClientTokensRecord {
         return this._locId;
     }
 
-    get id(): string {
+    get id(): Hash {
         return this.record.id;
     }
 
@@ -47,17 +47,17 @@ export class TokensRecord implements ClientTokensRecord {
         return this.record.files;
     }
 
-    getRecordFile(hash: string): UploadableItemFile | undefined {
-        return this.record.files.find(file => file.hash === hash);
+    getRecordFile(hash: Hash): UploadableItemFile | undefined {
+        return this.record.files.find(file => file.hash.equalTo(hash));
     }
 
-    checkHash(hash: string): CheckHashResult {
+    checkHash(hash: Hash): CheckHashResult {
         return {
             recordFile: this.getRecordFile(hash)
         }
     }
 
-    async checkCertifiedCopy(hash: string): Promise<CheckCertifiedCopyResult> {
+    async checkCertifiedCopy(hash: Hash): Promise<CheckCertifiedCopyResult> {
         try {
             const delivery = await this.locClient.checkTokensRecordDelivery({
                 locId: this._locId,

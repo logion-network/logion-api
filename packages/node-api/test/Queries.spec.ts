@@ -1,8 +1,7 @@
 import { ApiPromise } from "@polkadot/api";
-import { CollectionItem, LegalOfficerCase, LogionNodeApiClass, Numbers, UUID } from "../src/index.js";
+import { CollectionItem, Hash, LegalOfficerCase, LogionNodeApiClass, Numbers, UUID } from "../src/index.js";
 import { POLKADOT_API_CREATE_TYPE, mockValidAccountId, mockBool } from "./Util.js";
 import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
-import { stringToHex } from "@polkadot/util";
 
 describe("Queries", () => {
 
@@ -47,7 +46,7 @@ describe("Queries", () => {
         expect(loc!.files).toEqual(DEFAULT_LOC.files);
         loc!.links.forEach((link, index) => {
             expect(link.id.toString()).toBe(DEFAULT_LOC.links[index].id.toString());
-            expect(link.nature).toBe(DEFAULT_LOC.links[index].nature);
+            expect(link.nature).toEqual(DEFAULT_LOC.links[index].nature);
         });
         expect(loc!.closed).toEqual(DEFAULT_LOC.closed);
         expect(loc!.locType).toEqual(DEFAULT_LOC.locType);
@@ -57,7 +56,7 @@ describe("Queries", () => {
     it("fetches collection item", async () => {
         const api = mockPolkadotApiForLogionLoc();
         const locId = new UUID();
-        const itemId = "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2";
+        const itemId = Hash.fromHex("0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2");
 
         const logionApi = new LogionNodeApiClass(api);
         const item = await logionApi.queries.getCollectionItem(locId, itemId);
@@ -161,10 +160,10 @@ function mockPolkadotApiForLogionLoc() {
                         metadata: {
                             toArray: () => DEFAULT_LOC.metadata.map(item => ({
                                 name: {
-                                    toHex: () => item.name
+                                    toHex: () => item.name.toHex()
                                 },
                                 value: {
-                                    toHex: () => item.value
+                                    toHex: () => item.value.toHex()
                                 },
                                 submitter: {
                                     isPolkadot: true,
@@ -178,10 +177,10 @@ function mockPolkadotApiForLogionLoc() {
                         files: {
                             toArray: () => DEFAULT_LOC.files.map(file => ({
                                 hash_: {
-                                    toHex: () => file.hash
+                                    toHex: () => file.hash.toHex()
                                 },
                                 nature: {
-                                    toHex: () => file.nature
+                                    toHex: () => file.nature.toHex()
                                 },
                                 submitter: {
                                     isPolkadot: true,
@@ -201,7 +200,7 @@ function mockPolkadotApiForLogionLoc() {
                                     toString: () => link.id.toDecimalString()
                                 },
                                 nature: {
-                                    toHex: () => link.nature
+                                    toHex: () => link.nature.toHex()
                                 }
                             }))
                         },
@@ -239,18 +238,18 @@ function mockPolkadotApiForLogionLoc() {
                 collectionItemsMap: () => Promise.resolve({
                     isSome: true,
                     unwrap: () => ({
-                        description: { toHex: () =>  DEFAULT_ITEM.description },
+                        description: { toHex: () =>  DEFAULT_ITEM.description.toHex() },
                         files: DEFAULT_ITEM.files.map(item => ({
-                            name: { toHex: () => item.name },
-                            contentType: { toHex: () => item.contentType },
-                            hash_: { toHex: () => item.hash },
+                            name: { toHex: () => item.name.toHex() },
+                            contentType: { toHex: () => item.contentType.toHex() },
+                            hash_: { toHex: () => item.hash.toHex() },
                             size_: { toBigInt: () => item.size },
                         })),
                         restrictedDelivery: mockBool(DEFAULT_ITEM.restrictedDelivery),
                         termsAndConditions: DEFAULT_ITEM.termsAndConditions.map(tc => ({
-                            tcType: { toHex: () => tc.tcType },
+                            tcType: { toHex: () => tc.tcType.toHex() },
                             tcLocId: { toString: () => tc.tcLocId.toDecimalString() },
-                            details: { toHex: () => tc.details },
+                            details: { toHex: () => tc.details.toHex() },
                         })),
                         tokenIssuance: { toBigInt: () => DEFAULT_ITEM.token?.issuance || 0n }
                     })
@@ -266,16 +265,16 @@ export const DEFAULT_LOC: LegalOfficerCase = {
     requesterAddress: mockValidAccountId("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb"),
     metadata: [
         {
-            name: "0x5beec8d95ab31db54c7fa04b4ad9f8f803d0f3c02dc5f92f01315525b1e7a418", // "meta_name",
-            value: "0x4825b5bf0234ae4bb2f01eae996a4b96b0166ccf807ab4b555f035cb786d7300", // "meta_value",
+            name: Hash.of("meta_name"),
+            value: Hash.of("meta_value"),
             submitter: mockValidAccountId("owner"),
             acknowledged: true,
         }
     ],
     files: [
         {
-            hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
-            nature: "0x8d9661f02e30e4d9c0aa5542c4fe4b2e517ff0f42e0b3551cd79c7bc66005c28", // "file-nature",
+            hash: Hash.fromHex("0x8fc334610ff6939e55ea65b472fc107df861790b02542ecdbbfeaa2d17ed5abb"),
+            nature: Hash.of("file-nature"),
             submitter: mockValidAccountId("owner"),
             size: BigInt(128000),
             acknowledged: true,
@@ -284,7 +283,7 @@ export const DEFAULT_LOC: LegalOfficerCase = {
     links: [
         {
             id: new UUID("90fcde7e-a255-404e-8b15-32963a4e64c0"),
-            nature: "0xd70a29488f030b5636f7e8ac37d2ac8cb910a04fdaf4e3e2b660b8171df354d0", // "link-nature"
+            nature: Hash.of("link-nature"),
         }
     ],
     closed: false,
@@ -296,14 +295,14 @@ export const DEFAULT_LOC: LegalOfficerCase = {
 }
 
 export const DEFAULT_ITEM: CollectionItem = {
-    id: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
-    description: stringToHex("Some description"),
+    id: Hash.fromHex("0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2"),
+    description: Hash.of("Some description"),
     files: [
         {
-            name: stringToHex("artwork.png"),
-            contentType: stringToHex("image/png"),
+            name: Hash.of("artwork.png"),
+            contentType: Hash.of("image/png"),
             size: BigInt(256000),
-            hash: "0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2",
+            hash: Hash.fromHex("0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2"),
         }
     ],
     restrictedDelivery: false,

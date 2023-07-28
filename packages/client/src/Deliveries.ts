@@ -1,12 +1,15 @@
-export function checkCertifiedCopy(deliveries: ItemDeliveries, hash: string): CheckCertifiedCopyResult {
+import { Hash } from "@logion/node-api";
+import { HexString } from "@polkadot/util/types";
+
+export function checkCertifiedCopy(deliveries: ItemDeliveries, hash: Hash): CheckCertifiedCopyResult {
     for(const originalFileHash of Object.keys(deliveries)) {
         for(let i = 0; i < deliveries[originalFileHash].length; ++i) {
             const delivery = deliveries[originalFileHash][i];
-            if(delivery.copyHash === hash) {
+            if(delivery.copyHash === hash.toHex()) {
                 return {
                     match: {
                         ...delivery,
-                        originalFileHash
+                        originalFileHash: Hash.fromHex(originalFileHash as HexString),
                     },
                     summary: i === 0 && delivery.belongsToCurrentOwner ? CheckResultType.POSITIVE : CheckResultType.NEGATIVE,
                     logionOrigin: CheckResultType.POSITIVE,
@@ -39,7 +42,7 @@ export interface ItemDelivery extends Delivery {
 }
 
 export interface CollectionDelivery extends Delivery {
-    originalFileHash: string;
+    originalFileHash: Hash;
 }
 
 export interface CheckCertifiedCopyResult {
@@ -51,7 +54,7 @@ export interface CheckCertifiedCopyResult {
 }
 
 export interface ItemDeliveryMatch extends ItemDelivery {
-    originalFileHash: string;
+    originalFileHash: Hash;
 }
 
 export enum CheckResultType {

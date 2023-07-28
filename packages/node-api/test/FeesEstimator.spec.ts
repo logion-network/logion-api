@@ -6,7 +6,7 @@ import { Balance } from "../src/interfaces/index.js";
 import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
 import { Adapters } from "../src/Adapters.js";
 import { POLKADOT_API_CREATE_TYPE, mockCodecWithToString, mockValidAccountId } from "./Util.js";
-import { UUID, FeesEstimator } from "../src/index.js";
+import { UUID, FeesEstimator, Hash } from "../src/index.js";
 
 describe("FeesEstimator", () => {
 
@@ -28,8 +28,8 @@ describe("FeesEstimator", () => {
         const estimator = new FeesEstimator(api, new Adapters(api));
         const fees = await estimator.estimateAddFile({
             locId: new UUID(LOC_REQUEST_ID),
-            hash: "0xf2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2",
-            nature: "0xf85455e7f9269c18b042ced52395324f78d482502049c80456581054fa9cb852", // "Some nature",
+            hash: Hash.fromHex("0xf2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2"),
+            nature: Hash.of("Some nature"),
             submitter: mockValidAccountId(DEFAULT_LEGAL_OFFICER),
             size: BigInt(42),
             origin: DEFAULT_LEGAL_OFFICER,

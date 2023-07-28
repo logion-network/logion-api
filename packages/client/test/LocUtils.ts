@@ -1,30 +1,18 @@
-import { CollectionItem, LegalOfficerCase, LocBatch, LocType, UUID, ValidAccountId, VerifiedIssuerType, VoidInfo, hashString } from "@logion/node-api";
-import {
-    PalletLogionLocRequester,
-    PalletLogionLocLocType,
-    PalletLogionLocFile,
-    PalletLogionLocSupportedAccountId,
-} from "@polkadot/types/lookup";
-import { AccountId32, H256 } from "@polkadot/types/interfaces/runtime";
-import { Bytes, u32 } from "@polkadot/types-codec";
+import { CollectionItem, Hash, LegalOfficerCase, LocBatch, LocType, UUID, ValidAccountId, VerifiedIssuerType, VoidInfo } from "@logion/node-api";
 import { DateTime } from "luxon";
 import { Mock } from "moq.ts";
 
 import { HashString, LocFile, LocLink, LocRequest, LocRequestStatus, OffchainCollectionItem, UploadableItemFile } from "../src/index.js";
 import {
-    mockCodecWithToHex,
-    mockCodecWithToString,
-    mockCodecWithToUtf8,
     REQUESTER,
-    mockCodecWithToBigInt,
     buildValidPolkadotAccountId
 } from "./Utils.js";
 
-export const EXISTING_FILE_HASH = "0xa4d9f9f1a02baae960d1a7c4cedb25940a414ae4c545bf2f14ab24691fec09a5";
+export const EXISTING_FILE_HASH = Hash.fromHex("0xa4d9f9f1a02baae960d1a7c4cedb25940a414ae4c545bf2f14ab24691fec09a5");
 
 export const EXISTING_FILE: LocFile = {
     name: "existing-file.txt",
-    hash: EXISTING_FILE_HASH,
+    hash: EXISTING_FILE_HASH.toHex(),
     nature: "Some nature",
     submitter: REQUESTER,
     restrictedDelivery: false,
@@ -33,7 +21,7 @@ export const EXISTING_FILE: LocFile = {
     status: "ACKNOWLEDGED",
 };
 
-export const EXISTING_ITEM_FILE_HASH = "0x8443d95fceccd27c0ca8d8c8d6c443ddc787afc234620a5548baf8c7b46aa277";
+export const EXISTING_ITEM_FILE_HASH = Hash.fromHex("0x8443d95fceccd27c0ca8d8c8d6c443ddc787afc234620a5548baf8c7b46aa277");
 
 export const EXISTING_ITEM_FILE: UploadableItemFile = {
     name: HashString.fromValue("existing-item-file.txt"),
@@ -90,7 +78,7 @@ export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType
         files: [
             {
                 hash: EXISTING_FILE_HASH,
-                nature: "0xf85455e7f9269c18b042ced52395324f78d482502049c80456581054fa9cb852", // "Some nature",
+                nature: Hash.of("Some nature"),
                 submitter: requester,
                 size: 128n,
                 acknowledged: status === "CLOSED",
@@ -104,57 +92,24 @@ export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType
     };
 }
 
-function mockPalletLogionLocRequester(address: ValidAccountId): PalletLogionLocRequester {
-    const mock = new Mock<PalletLogionLocRequester>();
-    if(address.type === "Polkadot") {
-        mock.setup(instance => instance.isAccount).returns(true);
-        mock.setup(instance => instance.isLoc).returns(false);
-        mock.setup(instance => instance.asAccount).returns(mockCodecWithToString<AccountId32>(address.address));
-    }
-    return mock.object();
-}
-
-function mockLogionLocFile(file: {
-    hash: string,
-    nature: string,
-    submitter: string,
-    size: bigint,
-}): PalletLogionLocFile {
-    const mock = new Mock<PalletLogionLocFile>();
-    mock.setup(instance => instance.hash_).returns(mockCodecWithToHex<H256>(file.hash));
-    mock.setup(instance => instance.nature).returns(mockCodecWithToUtf8<Bytes>(file.nature));
-    mock.setup(instance => instance.submitter).returns({ isPolkadot: true, asPolkadot: mockCodecWithToString<AccountId32>(file.submitter) } as PalletLogionLocSupportedAccountId);
-    mock.setup(instance => instance.size_).returns(mockCodecWithToBigInt<u32>(file.size));
-    return mock.object();
-}
-
-function mockPalletLogionLocLocType(locType: LocType): PalletLogionLocLocType {
-    const mock = new Mock<PalletLogionLocLocType>();
-    mock.setup(instance => instance.isCollection).returns(locType === "Collection");
-    mock.setup(instance => instance.isIdentity).returns(locType === "Identity");
-    mock.setup(instance => instance.isTransaction).returns(locType === "Transaction");
-    mock.setup(instance => instance.toString()).returns(locType);
-    return mock.object();
-}
-
 export const ITEM_DESCRIPTION = "Some item description";
 
 export function buildCollectionItem(): CollectionItem {
     return {
         id: EXISTING_ITEM_ID,
-        description: hashString(ITEM_DESCRIPTION),
+        description: Hash.of(ITEM_DESCRIPTION),
         files: [],
         restrictedDelivery: false,
         termsAndConditions: [],
     };
 }
 
-export const EXISTING_ITEM_ID = "0x3ba63a86247fac44f6f196db27ec10fdf5335367e3f6ac6be8da8594645bfc85";
+export const EXISTING_ITEM_ID = Hash.fromHex("0x3ba63a86247fac44f6f196db27ec10fdf5335367e3f6ac6be8da8594645bfc85");
 
 export function buildOffchainCollectionItem(collectionLocId: string): OffchainCollectionItem {
     return ({
         collectionLocId,
-        itemId: EXISTING_ITEM_ID,
+        itemId: EXISTING_ITEM_ID.toHex(),
         addedOn: DateTime.now().toISO(),
         files: [],
         termsAndConditions: [],

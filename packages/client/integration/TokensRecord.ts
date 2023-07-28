@@ -1,7 +1,7 @@
+import { Hash } from "@logion/node-api";
 import {
     ClosedCollectionLoc,
     HashOrContent,
-    hashString,
     ItemFileWithContent,
     LocRequestState,
     MimeType,
@@ -37,7 +37,7 @@ export async function tokensRecords(state: State) {
     const issuerClient = state.client.withCurrentAddress(issuerAccount);
     let closedCollectionLoc = (await issuerClient.locsState()).findById(collectionLocId) as ClosedCollectionLoc;
 
-    const recordId = hashString("record-id");
+    const recordId = Hash.of("record-id");
     const recordDescription = "Some tokens record";
     closedCollectionLoc = await closedCollectionLoc.addTokensRecord({
         recordId,
@@ -53,7 +53,7 @@ export async function tokensRecords(state: State) {
     });
 
     const record = await closedCollectionLoc.getTokensRecord({ recordId });
-    expect(record?.id).toBe(recordId);
+    expect(record?.id).toEqual(recordId);
     expect(record?.description.validValue()).toBe(recordDescription);
     expect(record?.files.length).toBe(1);
 

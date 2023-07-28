@@ -1,8 +1,6 @@
 import { Hash as Hasher } from 'fast-sha256';
 import { FileLike, UploadableData } from "./ComponentFactory.js";
-import { Hash, hashString, digestToHex } from "@logion/node-api";
-
-export { Hash, hashString };
+import { Hash } from "@logion/node-api";
 
 export interface HashAndSize {
     hash: Hash;
@@ -21,7 +19,7 @@ export async function hashBlob(file: Blob): Promise<HashAndSize> {
         chunk = await reader.read();
     }
     return {
-        hash: digestToHex(digest),
+        hash: Hash.fromDigest(digest),
         size,
     };
 }
@@ -29,7 +27,7 @@ export async function hashBlob(file: Blob): Promise<HashAndSize> {
 export function hashBuffer(buffer: Buffer): Hash {
     const digest = new Hasher();
     digest.update(buffer);
-    return digestToHex(digest);
+    return Hash.fromDigest(digest);
 }
 
 export async function hashStream(stream: NodeJS.ReadableStream): Promise<HashAndSize> {
@@ -41,20 +39,14 @@ export async function hashStream(stream: NodeJS.ReadableStream): Promise<HashAnd
             digest.update(data);
         });
         stream.on("end", () => resolve({
-            hash: digestToHex(digest),
+            hash: Hash.fromDigest(digest),
             size
         }));
         stream.on("error", reject);
     });
 }
 
-export function validHash(hash: string): boolean {
-    return hash.startsWith("0x")
-        && hash.length === 66
-        && hash.slice(2).search(/[^0-9a-f]/) === -1;
-}
-
-const HASH_OF_EMPTY = hashString("");
+const HASH_OF_EMPTY = Hash.of("");
 
 export class HashOrContent {
 
@@ -75,9 +67,6 @@ export class HashOrContent {
     constructor(parameters: { hash?: Hash, content?: FileLike }) {
         if(!parameters.hash && !parameters.content) {
             throw new Error("Either of hash or content must be defined");
-        }
-        if(parameters.hash && !validHash(parameters.hash)) {
-            throw new Error(`Invalid hash ${parameters.hash}: must be a 66 digits string prefixed with 0x with the reminder composed of hexadecimal digits only`);
         }
         this._hash = parameters.hash;
         this._content = parameters.content;
@@ -112,7 +101,7 @@ export class HashOrContent {
             let hashAndSize;
             if(this._hash) {
                 hashAndSize = await this.hashContent();
-                if(hashAndSize.hash !== this._hash) {
+                if(!hashAndSize.hash.equalTo(this._hash)) {
                     throw new Error("Provided hash does not match content");
                 }
             } else {
@@ -190,7 +179,7 @@ async function buildStream(path: string): Promise<NodeJS.ReadableStream> {
 export class HashString {
 
     static fromValue(value: string): HashString {
-        return new HashString(hashString(value), value);
+        return new HashString(Hash.of(value), value);
     }
 
     constructor(hash: Hash, value?: string) {
@@ -202,7 +191,7 @@ export class HashString {
     readonly value?: string;
 
     private static isValidValue(hash: Hash, value?: string): value is string {
-        return value !== undefined && hashString(value) === hash;
+        return value !== undefined && Hash.of(value).equalTo(hash);
     }
 
     isValidValue(): boolean {

@@ -1,7 +1,7 @@
 import { AnyJson } from "@polkadot/types-codec/types/helpers.js";
 import { IKeyringPair } from "@polkadot/types/types/interfaces.js";
 import { Adapters, LogionNodeApiClass, UUID } from "../src/index.js";
-import { REQUESTER, setup, signAndSend, ALICE } from "./Util.js";
+import { setup, signAndSend, ALICE } from "./Util.js";
 
 export async function createVote() {
     const { alice, requester, api } = await setup();

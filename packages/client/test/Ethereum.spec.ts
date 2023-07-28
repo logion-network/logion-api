@@ -4,7 +4,7 @@ describe("Ethereum", () => {
 
     it("generates expected item ID", () => {
         const itemId = generateEthereumTokenItemId(nonce, tokenId);
-        expect(itemId).toBe("0xc17b4efc90d044c63995a71bef37901e34401013a534e85c9d78522182046ff6");
+        expect(itemId.toHex()).toBe("0xc17b4efc90d044c63995a71bef37901e34401013a534e85c9d78522182046ff6");
     });
 });
 

@@ -119,7 +119,7 @@ export class Queries {
     }
 
     async getLegalOfficerCase(locId: UUID): Promise<LegalOfficerCase | undefined> {
-        const result = await this.api.query.logionLoc.locMap(locId.toHexString());
+        const result = await this.api.query.logionLoc.locMap(Adapters.toLocId(locId));
         if(result.isSome) {
             return this.adapters.fromPalletLogionLocLegalOfficerCase(result.unwrap());
         } else {
@@ -128,7 +128,10 @@ export class Queries {
     }
 
     async getCollectionItem(locId: UUID, itemId: Hash): Promise<CollectionItem | undefined> {
-        const result = await this.api.query.logionLoc.collectionItemsMap(Adapters.toLocId(locId), itemId);
+        const result = await this.api.query.logionLoc.collectionItemsMap(
+            Adapters.toLocId(locId),
+            this.adapters.toH256(itemId)
+        );
         if(result.isSome) {
             return Adapters.fromPalletCollectionItem(itemId, result.unwrap());
         } else {
@@ -138,7 +141,10 @@ export class Queries {
 
     async getCollectionItems(locId: UUID): Promise<CollectionItem[]> {
         const result = await this.api.query.logionLoc.collectionItemsMap.entries(Adapters.toLocId(locId));
-        return result.map(entry => Adapters.fromPalletCollectionItem(entry[0].args[1].toHex(), entry[1].unwrap()));
+        return result.map(entry => Adapters.fromPalletCollectionItem(
+            Hash.fromHex(entry[0].args[1].toHex()),
+            entry[1].unwrap(),
+        ));
     }
 
     async getCollectionSize(locId: UUID): Promise<number | undefined> {

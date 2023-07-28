@@ -1,3 +1,4 @@
+import { Hash } from "@logion/node-api";
 import {
     ClosedLoc,
     EditableRequest,
@@ -6,7 +7,6 @@ import {
     PendingRequest, OpenLoc
 } from "../src/index.js";
 import { State, ISSUER_ADDRESS, initRequesterBalance, TEST_LOGION_CLIENT_CONFIG } from "./Utils.js";
-import { hashString } from "../src/Hash.js";
 
 export async function verifiedIssuer(state: State) {
     const { alice, aliceAccount, issuerAccount, newAccount, signer } = state;
@@ -83,7 +83,7 @@ export async function verifiedIssuer(state: State) {
         name: dataName,
         value: "Verified issuer data value"
     });
-    openIssuerLoc = await openIssuerLoc.deleteMetadata({ nameHash: hashString(dataName) });
+    openIssuerLoc = await openIssuerLoc.deleteMetadata({ nameHash: Hash.of(dataName) });
 
     const file = HashOrContent.fromContent(Buffer.from("test"));
     openIssuerLoc = await openIssuerLoc.addFile({
