@@ -1,4 +1,4 @@
-import { LogionNodeApiClass, UUID, VerifiedIssuerType } from "@logion/node-api";
+import { Hash, LogionNodeApiClass, UUID, VerifiedIssuerType } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import { DateTime } from "luxon";
@@ -34,7 +34,6 @@ import {
     SharedState,
     FormDataLike,
     LegalOfficerClass,
-    hashString,
 } from "../src/index.js";
 import {
     ALICE,
@@ -430,7 +429,7 @@ describe("ClosedCollectionLoc", () => {
         });
 
         aliceAxiosMock.verify(instance => instance.post(
-                `/api/collection/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/${ ITEM_ID }/files`,
+                `/api/collection/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/${ ITEM_ID.toHex() }/files`,
                 It.IsAny(),
                 It.Is((options: AxiosRequestConfig<FormDataLike>) => options.headers !== undefined && options.headers["Content-Type"] === "multipart/form-data")
             ),
@@ -490,7 +489,7 @@ describe("ClosedCollectionLoc", () => {
         });
 
         aliceAxiosMock.verify(instance => instance.post(
-                `/api/records/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/${ RECORD_ID }/files`,
+                `/api/records/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/${ RECORD_ID.toHex() }/files`,
                 It.IsAny(),
                 It.Is((options: AxiosRequestConfig<FormDataLike>) => options.headers !== undefined && options.headers["Content-Type"] === "multipart/form-data")
             ),
@@ -593,7 +592,7 @@ const client = new Mock<LogionClient>();
 
 const legalOfficers: LegalOfficer[] = [ ALICE, BOB, CHARLIE ];
 
-const ITEM_ID = "0x186bf67f32bb45187a1c50286dbd9adf8751874831aeba2a66760a74a9c898cc";
+const ITEM_ID = Hash.fromHex("0x186bf67f32bb45187a1c50286dbd9adf8751874831aeba2a66760a74a9c898cc");
 
 const ALICE_DRAFT_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "DRAFT", "Transaction");
 const ALICE_OPEN_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "OPEN", "Transaction");
@@ -635,7 +634,7 @@ const SPECIFIC_LICENSES: SpecificLicense[] = [
 const LOGION_CLASSIFICATION: LogionClassification = new LogionClassification(new UUID(), { transferredRights: ["COM-MOD", "NOTIME", "WW"]});
 const CREATIVE_COMMONS: CreativeCommons = new CreativeCommons(new UUID(), "BY-SA");
 
-const RECORD_ID = "0x186bf67f32bb45187a1c50286dbd9adf8751874831aeba2a66760a74a9c898cc";
+const RECORD_ID = Hash.fromHex("0x186bf67f32bb45187a1c50286dbd9adf8751874831aeba2a66760a74a9c898cc");
 const RECORD_DESCRIPTION = "Some record description";
 const RECORD_FILES: ItemFileWithContent[] = [new ItemFileWithContent({
     name: "test.txt",
@@ -728,7 +727,7 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
             aliceAxiosMock.setup(instance => instance.post(`/api/loc-request/sof`, It.IsAny())).returnsAsync({
                 data: ALICE_REQUESTED_SOF_REQUEST
             } as AxiosResponse);
-            aliceAxiosMock.setup(instance => instance.get(`/api/collection/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/items/${ EXISTING_ITEM_ID }`)).returnsAsync({
+            aliceAxiosMock.setup(instance => instance.get(`/api/collection/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/items/${ EXISTING_ITEM_ID.toHex() }`)).returnsAsync({
                 data: OFFCHAIN_COLLECTION_ITEM
             } as AxiosResponse);
             axiosFactoryMock.setup(instance => instance.buildAxiosInstance(ALICE.node, token))
@@ -753,7 +752,7 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
                     data: request
                 } as AxiosResponse);
             })
-            bobAxiosMock.setup(instance => instance.get(`/api/collection/${ BOB_VOID_COLLECTION_LOC.request.id }/items/${ EXISTING_ITEM_ID }`)).returnsAsync({
+            bobAxiosMock.setup(instance => instance.get(`/api/collection/${ BOB_VOID_COLLECTION_LOC.request.id }/items/${ EXISTING_ITEM_ID.toHex() }`)).returnsAsync({
                 data: OFFCHAIN_COLLECTION_ITEM
             } as AxiosResponse);
             axiosFactoryMock.setup(instance => instance.buildAxiosInstance(BOB.node, token))
@@ -820,7 +819,7 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
             const addCollectionItemExtrinsic = new Mock<SubmittableExtrinsic>();
             nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.addCollectionItem(
                 new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id).toDecimalString(),
-                ITEM_ID,
+                It.Is<any>(param => param.toHex() === ITEM_ID.toHex()),
                 ITEM_DESCRIPTION,
                 [],
                 null,
@@ -830,10 +829,13 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
 
             nodeApiMock.setup(instance => instance.queries.getCollectionItem(
                 It.Is<UUID>(locId => locId.toString() !== ALICE_CLOSED_COLLECTION_LOC.request.id),
-                It.Is<string>(itemId => itemId !== EXISTING_ITEM_ID
-            )))
+                It.Is<Hash>(itemId => itemId.toHex() !== EXISTING_ITEM_ID.toHex())
+            ))
                 .returnsAsync(undefined);
-            nodeApiMock.setup(instance => instance.queries.getCollectionItem(ItIsUuid(new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id)), EXISTING_ITEM_ID))
+            nodeApiMock.setup(instance => instance.queries.getCollectionItem(
+                ItIsUuid(new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id)),
+                EXISTING_ITEM_ID
+            ))
                 .returnsAsync(COLLECTION_ITEM);
             nodeApiMock.setup(instance => instance.queries.getCollectionItem(ItIsUuid(new UUID(BOB_VOID_COLLECTION_LOC.request.id)), EXISTING_ITEM_ID))
                 .returnsAsync(COLLECTION_ITEM);
@@ -841,7 +843,7 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
             const addTokensRecordExtrinsic = new Mock<SubmittableExtrinsic>();
             nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.addTokensRecord(
                 new UUID(ALICE_CLOSED_COLLECTION_LOC.request.id).toDecimalString(),
-                ITEM_ID,
+                It.Is<Hash>(itemId => itemId.toHex() !== ITEM_ID.toHex()),
                 ITEM_DESCRIPTION,
                 It.IsAny(),
             )).returns(addTokensRecordExtrinsic.object());
@@ -870,10 +872,10 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
     );
 }
 
-function verifySoFRequested(axiosMock: Mock<AxiosInstance>, locId: UUID, itemId?: string) {
+function verifySoFRequested(axiosMock: Mock<AxiosInstance>, locId: UUID, itemId?: Hash) {
     axiosMock.verify(instance => instance.post(
         `/api/loc-request/sof`,
-        It.Is<{ locId: string, itemId: string | undefined }>(params => params.locId === locId.toString() && params.itemId === itemId)
+        It.Is<{ locId: string, itemId: string | undefined }>(params => params.locId === locId.toString() && params.itemId === itemId?.toHex())
     ), Times.Once());
 }
 
@@ -982,17 +984,17 @@ async function testAddFile(editable: EditableRequest) {
 }
 
 async function testDeleteMetadata(editable: EditableRequest) {
-    const nameHash = hashString("Test");
+    const nameHash = Hash.of("Test");
     let newState = await editable.deleteMetadata({
         nameHash,
     });
     expect(newState).toBeInstanceOf(EditableRequest);
-    aliceAxiosMock.verify(instance => instance.delete(`/api/loc-request/${ editable.locId }/metadata/${ nameHash }`), Times.Once());
+    aliceAxiosMock.verify(instance => instance.delete(`/api/loc-request/${ editable.locId }/metadata/${ nameHash.toHex() }`), Times.Once());
 }
 
 async function testDeleteFile(editable: EditableRequest) {
     let newState = await editable.deleteFile({
-        hash: "0x7bae16861c48edb6376401922729c4e3faaa5e203615b3ba6814ba4e85fb434c",
+        hash: Hash.fromHex("0x7bae16861c48edb6376401922729c4e3faaa5e203615b3ba6814ba4e85fb434c"),
     });
     expect(newState).toBeInstanceOf(EditableRequest);
     aliceAxiosMock.verify(instance => instance.delete(

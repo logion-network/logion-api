@@ -3,7 +3,7 @@ import { IKeyringPair, ISubmittableResult } from "@polkadot/types/types";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { waitReady } from "@polkadot/wasm-crypto";
 
-import { LogionNodeApiClass, buildApiClass } from "../src/index.js";
+import { Adapters, LogionNodeApiClass, buildApiClass } from "../src/index.js";
 
 export interface State {
     api: LogionNodeApiClass;
@@ -54,11 +54,15 @@ export function signAndSend(keypair: IKeyringPair, extrinsic: SubmittableExtrins
         extrinsic.signAndSend(keypair, (result) => {
             if(result.isError) {
                 unsub();
-                error(result.dispatchError);
+                if(result.dispatchError) {
+                    error(Adapters.getErrorMetadata(result.dispatchError));
+                } else {
+                    error();
+                }
             } else if (result.status.isInBlock) {
                 unsub();
                 if(result.dispatchError) {
-                    error(result.dispatchError);
+                    error(Adapters.getErrorMetadata(result.dispatchError));
                 } else {
                     resolve(result);
                 }

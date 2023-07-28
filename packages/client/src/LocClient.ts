@@ -14,10 +14,12 @@ import {
     FileParams,
     Link,
     VoidInfo,
+    Hash,
 } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AnyJson } from "@polkadot/types-codec/types";
 import { AxiosInstance } from 'axios';
+import { HexString } from "@polkadot/util/types";
 
 import { UserIdentity, LegalOfficer, PostalAddress, LegalOfficerClass } from "./Types.js";
 import { NetworkState } from "./NetworkState.js";
@@ -28,7 +30,7 @@ import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays,
 import { Signer, SignCallback } from "./Signer.js";
 import { ComponentFactory } from "./ComponentFactory.js";
 import { newBackendError } from "./Error.js";
-import { HashOrContent, HashString, hashString } from "./Hash.js";
+import { HashOrContent, HashString } from "./Hash.js";
 import { MimeType } from "./Mime.js";
 import { validateToken, ItemTokenWithRestrictedType, TokenType } from "./Token.js";
 import {
@@ -42,7 +44,6 @@ import {
 } from "./license/index.js";
 import { CollectionDelivery, ItemDeliveries } from './Deliveries.js';
 import { Fees } from './Fees.js';
-import { Hash } from "./Hash";
 
 export interface AddedOn {
     addedOn: string;
@@ -59,8 +60,11 @@ export interface SupportedAccountId {
 
 export type ItemStatus = "DRAFT" | "REVIEW_PENDING" | "REVIEW_ACCEPTED" | "REVIEW_REJECTED" | "PUBLISHED" | "ACKNOWLEDGED";
 
-export interface FileInfo extends Partial<AddedOn> {
-    hash: Hash;
+/**
+ * Backend LOC file.
+ */
+export interface LocFile extends Partial<AddedOn> {
+    hash: string;
     nature: string;
     submitter: SupportedAccountId;
     name: string;
@@ -71,12 +75,6 @@ export interface FileInfo extends Partial<AddedOn> {
     status: ItemStatus;
     rejectReason?: string;
     reviewedOn?: string;
-}
-
-/**
- * LOC File.
- */
-export interface LocFile extends FileInfo {
     size: string;
 }
 
@@ -85,7 +83,7 @@ export interface LocFile extends FileInfo {
  */
 export interface LocMetadataItem extends Partial<AddedOn> {
     name: string;
-    nameHash: Hash;
+    nameHash: string;
     value: string;
     submitter: SupportedAccountId;
     fees?: Fees;
@@ -189,7 +187,7 @@ export interface AddFileParams {
 }
 
 export interface DeleteFileParams {
-    hash: string
+    hash: Hash;
 }
 
 export interface AddLinkParams {
@@ -295,17 +293,17 @@ export interface CreateLocRequest {
 }
 
 export interface CreateSofRequest {
-    itemId?: string;
+    itemId?: Hash;
 }
 
 export interface GetDeliveriesRequest {
     locId: UUID;
-    itemId: string;
+    itemId: Hash;
 }
 
 export interface CheckCollectionDeliveryRequest {
     locId: UUID;
-    hash: string;
+    hash: Hash;
 }
 
 export interface FetchAllLocsParams {
@@ -328,13 +326,13 @@ export interface AddTokensRecordParams extends  BlockchainSubmissionParams {
 
 export interface GetTokensRecordDeliveriesRequest {
     locId: UUID;
-    recordId: string;
+    recordId: Hash;
 }
 
 export interface CheckTokensRecordDeliveryRequest {
     locId: UUID;
-    recordId: string;
-    hash: string;
+    recordId: Hash;
+    hash: Hash;
 }
 
 export class LocMultiClient {
@@ -523,7 +521,7 @@ export interface OffchainCollectionItemToken {
 }
 
 interface CreateOffchainCollectionItem {
-    itemId: Hash;
+    itemId: string;
     description: string;
     files: OffchainCollectionItemFile[];
     termsAndConditions: OffchainTermsAndConditionsElement[];
@@ -531,7 +529,7 @@ interface CreateOffchainCollectionItem {
 }
 
 export interface ClientTokensRecord {
-    id: string;
+    id: Hash;
     description: HashString;
     addedOn: string;
     files: UploadableItemFile[];
@@ -547,7 +545,7 @@ export interface OffchainTokensRecord {
 }
 
 interface CreateOffchainTokensRecord {
-    recordId: Hash;
+    recordId: string;
     description: string;
     files: OffchainTokensRecordFile[];
 }
@@ -597,9 +595,9 @@ export abstract class LocClient {
         }
     }
 
-    private async getOffchainItem(parameters: { locId: UUID, itemId: string }): Promise<OffchainCollectionItem> {
+    private async getOffchainItem(parameters: { locId: UUID, itemId: Hash }): Promise<OffchainCollectionItem> {
         const { locId, itemId } = parameters;
-        const response = await this.backend().get(`/api/collection/${ locId.toString() }/items/${ itemId }`);
+        const response = await this.backend().get(`/api/collection/${ locId.toString() }/items/${ itemId.toHex() }`);
         return response.data;
     }
 
@@ -611,9 +609,9 @@ export abstract class LocClient {
             files: onchainItem.files.map(file => ({
                 hash: file.hash,
                 size: file.size,
-                name: new HashString(file.name, offchainItem.files.find(offchainFile => offchainFile.hash === file.hash)?.name),
-                contentType: new HashString(file.contentType, offchainItem.files.find(offchainFile => offchainFile.hash === file.hash)?.contentType),
-                uploaded: offchainItem.files.find(offchainFile => offchainFile.hash === file.hash)?.uploaded || false,
+                name: new HashString(file.name, offchainItem.files.find(offchainFile => offchainFile.hash === file.hash.toHex())?.name),
+                contentType: new HashString(file.contentType, offchainItem.files.find(offchainFile => offchainFile.hash === file.hash.toHex())?.contentType),
+                uploaded: offchainItem.files.find(offchainFile => offchainFile.hash === file.hash.toHex())?.uploaded || false,
             })),
             token: onchainItem.token ? new ClientToken({
                 type: new HashString(onchainItem.token.type, offchainItem.token?.type),
@@ -631,7 +629,7 @@ export abstract class LocClient {
 
         const onchainItemsMap: Record<string, CollectionItem> = {};
         for(const item of onchainItems) {
-            onchainItemsMap[item.id] = item;
+            onchainItemsMap[item.id.toHex()] = item;
         }
 
         try {
@@ -659,9 +657,12 @@ export abstract class LocClient {
         return await this.nodeApi.queries.getCollectionSize(locId);
     }
 
-    async getTokensRecord(parameters: { recordId: string } & FetchParameters): Promise<ClientTokensRecord | undefined> {
+    async getTokensRecord(parameters: { recordId: Hash } & FetchParameters): Promise<ClientTokensRecord | undefined> {
         const { locId, recordId } = parameters;
-        const onchainRecord = await this.nodeApi.polkadot.query.logionLoc.tokensRecordsMap(locId.toDecimalString(), recordId);
+        const onchainRecord = await this.nodeApi.polkadot.query.logionLoc.tokensRecordsMap(
+            this.nodeApi.adapters.toNonCompactLocId(locId),
+            this.nodeApi.adapters.toH256(recordId),
+        );
         if(onchainRecord.isNone) {
             return undefined;
         }
@@ -673,24 +674,24 @@ export abstract class LocClient {
         }
     }
 
-    private async getOffchainRecord(parameters: { locId: UUID, recordId: string }): Promise<OffchainTokensRecord> {
+    private async getOffchainRecord(parameters: { locId: UUID, recordId: Hash }): Promise<OffchainTokensRecord> {
         const { locId, recordId } = parameters;
-        const response = await this.backend().get(`/api/records/${ locId.toString() }/record/${ recordId }`);
+        const response = await this.backend().get(`/api/records/${ locId.toString() }/record/${ recordId.toHex() }`);
         return response.data;
     }
 
     private mergeRecords(onchainItem: TypesTokensRecord, offchainItem: OffchainTokensRecord): ClientTokensRecord {
         return {
-            id: offchainItem.recordId,
+            id: Hash.fromHex(offchainItem.recordId as HexString),
             description: new HashString(onchainItem.description, offchainItem.description),
             addedOn: offchainItem.addedOn,
             issuer: onchainItem.submitter,
             files: onchainItem.files.map(file => ({
                 hash: file.hash,
-                name: new HashString(file.name, offchainItem.files.find(offchainFile => offchainFile.hash === file.hash)?.name),
-                contentType: new HashString(file.contentType, offchainItem.files.find(offchainFile => offchainFile.hash === file.hash)?.contentType),
+                name: new HashString(file.name, offchainItem.files.find(offchainFile => offchainFile.hash === file.hash.toHex())?.name),
+                contentType: new HashString(file.contentType, offchainItem.files.find(offchainFile => offchainFile.hash === file.hash.toHex())?.contentType),
                 size: BigInt(file.size),
-                uploaded: offchainItem.files.find(offchainFile => offchainFile.hash === file.hash)?.uploaded || false,
+                uploaded: offchainItem.files.find(offchainFile => offchainFile.hash === file.hash.toHex())?.uploaded || false,
             })),
         }
     }
@@ -748,13 +749,13 @@ export class PublicLocClient extends LocClient {
 
     override async getDeliveries(parameters: GetDeliveriesRequest): Promise<ItemDeliveries> {
         const { locId, itemId } = parameters;
-        const response = await this.backend().get(`/api/collection/${ locId }/${ itemId }/latest-deliveries`);
+        const response = await this.backend().get(`/api/collection/${ locId }/${ itemId.toHex() }/latest-deliveries`);
         return response.data;
     }
 
     override async checkDelivery(parameters: CheckCollectionDeliveryRequest): Promise<CollectionDelivery> {
         const { locId, hash } = parameters;
-        const response = await this.backend().put(`/api/collection/${ locId }/file-deliveries`, { copyHash: hash });
+        const response = await this.backend().put(`/api/collection/${ locId }/file-deliveries`, { copyHash: hash.toHex() });
         return response.data;
     }
 
@@ -769,14 +770,14 @@ export class PublicLocClient extends LocClient {
 
 async function getTokensRecordDeliveries(axios: AxiosInstance, parameters: GetTokensRecordDeliveriesRequest): Promise<ItemDeliveries> {
     const { locId, recordId } = parameters;
-    const response = await axios.get(`/api/records/${ locId }/${ recordId }/deliveries`);
+    const response = await axios.get(`/api/records/${ locId }/${ recordId.toHex() }/deliveries`);
     return response.data;
 }
 
 async function checkTokensRecordDelivery(axios: AxiosInstance, parameters: CheckTokensRecordDeliveryRequest): Promise<CollectionDelivery> {
     try {
         const { locId, recordId, hash } = parameters;
-        const response = await axios.put(`/api/records/${ locId }/${ recordId }/deliveries/check`, { copyHash: hash });
+        const response = await axios.put(`/api/records/${ locId }/${ recordId.toHex() }/deliveries/check`, { copyHash: hash.toHex() });
         return response.data;
     } catch(e) {
         throw newBackendError(e);
@@ -817,7 +818,7 @@ export class AuthenticatedLocClient extends LocClient {
         const { locId, itemId } = request;
         const response = await this.backend().post(`/api/loc-request/sof`, {
             locId: locId.toString(),
-            itemId
+            itemId: itemId?.toHex(),
         });
         return response.data;
     }
@@ -844,7 +845,7 @@ export class AuthenticatedLocClient extends LocClient {
     async deleteMetadata(parameters: DeleteMetadataParams & FetchParameters): Promise<void> {
         try {
             const { nameHash, locId } = parameters;
-            await this.backend().delete(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash }`);
+            await this.backend().delete(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash.toHex() }`);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -858,7 +859,7 @@ export class AuthenticatedLocClient extends LocClient {
         const formData = this.componentFactory.buildFormData();
         formData.append('file', await file.data(), fileName);
         formData.append('nature', nature);
-        formData.append('hash', file.contentHash);
+        formData.append('hash', file.contentHash.toHex());
 
         try {
             await this.backend().post(
@@ -874,7 +875,7 @@ export class AuthenticatedLocClient extends LocClient {
     async deleteFile(parameters: DeleteFileParams & FetchParameters): Promise<void> {
         try {
             const { hash, locId } = parameters;
-            await this.backend().delete(`/api/loc-request/${ locId.toString() }/files/${ hash }`);
+            await this.backend().delete(`/api/loc-request/${ locId.toString() }/files/${ hash.toHex() }`);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -919,8 +920,8 @@ export class AuthenticatedLocClient extends LocClient {
             }
             for(const itemFile of itemFiles) {
                 chainItemFiles.push({
-                    name: hashString(itemFile.name),
-                    contentType: hashString(itemFile.contentType.mimeType),
+                    name: Hash.of(itemFile.name),
+                    contentType: Hash.of(itemFile.contentType.mimeType),
                     hash: itemFile.hashOrContent.contentHash,
                     size: itemFile.size,
                 });
@@ -949,11 +950,11 @@ export class AuthenticatedLocClient extends LocClient {
         }
 
         await this.submitItemPublicData(locId, {
-            itemId,
+            itemId: itemId.toHex(),
             files: itemFiles?.map(file => ({
                 name: file.name,
                 contentType: file.contentType.mimeType,
-                hash: file.hashOrContent.contentHash,
+                hash: file.hashOrContent.contentHash.toHex(),
             })) || [],
             termsAndConditions: termsAndConditions.map(element => ({
                 type: element.type,
@@ -968,19 +969,19 @@ export class AuthenticatedLocClient extends LocClient {
 
         const submittable = this.nodeApi.polkadot.tx.logionLoc.addCollectionItem(
             this.nodeApi.adapters.toLocId(locId),
-            itemId,
-            hashString(itemDescription),
-            chainItemFiles.map(Adapters.toCollectionItemFile),
-            Adapters.toCollectionItemToken(itemToken ? {
-                id: hashString(itemToken.id),
-                type: hashString(itemToken.type),
+            this.nodeApi.adapters.toH256(itemId),
+            this.nodeApi.adapters.toH256(Hash.of(itemDescription)),
+            chainItemFiles.map(file => this.nodeApi.adapters.toCollectionItemFile(file)),
+            this.nodeApi.adapters.toCollectionItemToken(itemToken ? {
+                id: Hash.of(itemToken.id),
+                type: Hash.of(itemToken.type),
                 issuance: itemToken.issuance,
             } : undefined),
             booleanRestrictedDelivery,
-            termsAndConditions.map(element => Adapters.toTermsAndConditionsElement({
-                tcType: hashString(element.type),
+            termsAndConditions.map(element => this.nodeApi.adapters.toTermsAndConditionsElement({
+                tcType: Hash.of(element.type),
                 tcLocId: element.tcLocId,
-                details: hashString(element.details),
+                details: Hash.of(element.details),
             })),
         );
         try {
@@ -1014,25 +1015,25 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    private async cancelItemPublicDataSubmission(locId: UUID, itemId: string) {
+    private async cancelItemPublicDataSubmission(locId: UUID, itemId: Hash) {
         try {
-            await this.backend().delete(`/api/collection/${ locId.toString() }/items/${ itemId }`);
+            await this.backend().delete(`/api/collection/${ locId.toString() }/items/${ itemId.toHex() }`);
         } catch(e) {
             throw newBackendError(e);
         }
     }
 
-    async uploadItemFile(parameters: { locId: UUID, itemId: string, file: ItemFileWithContent }) {
+    async uploadItemFile(parameters: { locId: UUID, itemId: Hash, file: ItemFileWithContent }) {
         const { locId, itemId, file } = parameters;
 
         await file.hashOrContent.finalize(); // Ensure validity
 
         const formData = this.componentFactory.buildFormData();
         formData.append('file', await file.hashOrContent.data(), file.name);
-        formData.append('hash', file.hashOrContent.contentHash);
+        formData.append('hash', file.hashOrContent.contentHash.toHex());
         try {
             await this.backend().post(
-                `/api/collection/${ locId.toString() }/${ itemId }/files`,
+                `/api/collection/${ locId.toString() }/${ itemId.toHex() }/files`,
                 formData,
                 { headers: { "Content-Type": "multipart/form-data" } }
             );
@@ -1058,7 +1059,7 @@ export class AuthenticatedLocClient extends LocClient {
     override async getDeliveries(parameters: GetDeliveriesRequest): Promise<ItemDeliveries> {
         try {
             const { locId, itemId } = parameters;
-            const response = await this.backend().get(`/api/collection/${ locId }/${ itemId }/all-deliveries`);
+            const response = await this.backend().get(`/api/collection/${ locId }/${ itemId.toHex() }/all-deliveries`);
             return response.data;
         } catch(e) {
             throw newBackendError(e);
@@ -1068,7 +1069,7 @@ export class AuthenticatedLocClient extends LocClient {
     override async checkDelivery(parameters: CheckCollectionDeliveryRequest): Promise<CollectionDelivery> {
         try {
             const { locId, hash } = parameters;
-            const response = await this.backend().put(`/api/collection/${ locId }/file-deliveries`, { copyHash: hash });
+            const response = await this.backend().put(`/api/collection/${ locId }/file-deliveries`, { copyHash: hash.toHex() });
             return response.data;
         } catch(e) {
             throw newBackendError(e);
@@ -1188,27 +1189,27 @@ export class AuthenticatedLocClient extends LocClient {
         }
         for(const itemFile of files) {
             chainItemFiles.push({
-                name: hashString(itemFile.name),
-                contentType: hashString(itemFile.contentType.mimeType),
+                name: Hash.of(itemFile.name),
+                contentType: Hash.of(itemFile.contentType.mimeType),
                 hash: itemFile.hashOrContent.contentHash,
                 size: itemFile.size.toString(),
             });
         }
 
         await this.submitRecordPublicData(locId, {
-            recordId,
+            recordId: recordId.toHex(),
             files: files?.map(file => ({
                 name: file.name,
                 contentType: file.contentType.mimeType,
-                hash: file.hashOrContent.contentHash,
+                hash: file.hashOrContent.contentHash.toHex(),
             })) || [],
             description,
         });
 
         const submittable = this.nodeApi.polkadot.tx.logionLoc.addTokensRecord(
             this.nodeApi.adapters.toLocId(locId),
-            recordId,
-            hashString(description),
+            this.nodeApi.adapters.toH256(recordId),
+            this.nodeApi.adapters.toH256(Hash.of(description)),
             this.nodeApi.adapters.newTokensRecordFileVec(chainItemFiles),
         );
         try {
@@ -1240,25 +1241,25 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    private async cancelRecordPublicDataSubmission(locId: UUID, recordId: string) {
+    private async cancelRecordPublicDataSubmission(locId: UUID, recordId: Hash) {
         try {
-            await this.backend().delete(`/api/records/${ locId.toString() }/record/${ recordId }`);
+            await this.backend().delete(`/api/records/${ locId.toString() }/record/${ recordId.toHex() }`);
         } catch(e) {
             throw newBackendError(e);
         }
     }
 
-    async uploadTokensRecordFile(parameters: { locId: UUID, recordId: string, file: ItemFileWithContent }) {
+    async uploadTokensRecordFile(parameters: { locId: UUID, recordId: Hash, file: ItemFileWithContent }) {
         const { locId, recordId, file } = parameters;
 
         await file.hashOrContent.finalize(); // Ensure validity
 
         const formData = this.componentFactory.buildFormData();
         formData.append('file', await file.hashOrContent.data(), file.name);
-        formData.append('hash', file.hashOrContent.contentHash);
+        formData.append('hash', file.hashOrContent.contentHash.toHex());
         try {
             await this.backend().post(
-                `/api/records/${ locId.toString() }/${ recordId }/files`,
+                `/api/records/${ locId.toString() }/${ recordId.toHex() }/files`,
                 formData,
                 { headers: { "Content-Type": "multipart/form-data" } }
             );
@@ -1278,7 +1279,7 @@ export class AuthenticatedLocClient extends LocClient {
     async requestFileReview(parameters: { locId: UUID, hash: Hash }): Promise<void> {
         const { locId, hash } = parameters;
         try {
-            await this.backend().post(`/api/loc-request/${ locId.toString() }/files/${ hash }/review-request`);
+            await this.backend().post(`/api/loc-request/${ locId.toString() }/files/${ hash.toHex() }/review-request`);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1288,7 +1289,7 @@ export class AuthenticatedLocClient extends LocClient {
         try {
             const { locId, hash, decision, rejectReason } = parameters;
 
-            await this.backend().post(`/api/loc-request/${ locId.toString() }/files/${ hash }/review`, { decision, rejectReason });
+            await this.backend().post(`/api/loc-request/${ locId.toString() }/files/${ hash.toHex() }/review`, { decision, rejectReason });
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1307,7 +1308,7 @@ export class AuthenticatedLocClient extends LocClient {
         });
 
         try {
-            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/files/${ parameters.file.hash }/confirm`);
+            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/files/${ parameters.file.hash.toHex() }/confirm`);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1316,7 +1317,7 @@ export class AuthenticatedLocClient extends LocClient {
     async acknowledgeFile(parameters: { locId: UUID } & AckFileParams): Promise<void> {
         const submittable = this.nodeApi.polkadot.tx.logionLoc.acknowledgeFile(
             this.nodeApi.adapters.toLocId(parameters.locId),
-            parameters.hash,
+            this.nodeApi.adapters.toH256(parameters.hash),
         );
 
         await parameters.signer.signAndSend({
@@ -1326,7 +1327,7 @@ export class AuthenticatedLocClient extends LocClient {
         });
 
         try {
-            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/files/${ parameters.hash }/confirm-acknowledged`);
+            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/files/${ parameters.hash.toHex() }/confirm-acknowledged`);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1335,7 +1336,7 @@ export class AuthenticatedLocClient extends LocClient {
     async requestMetadataReview(parameters: { locId: UUID, nameHash: Hash }): Promise<void> {
         const { locId, nameHash } = parameters;
         try {
-            await this.backend().post(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash }/review-request`);
+            await this.backend().post(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash.toHex() }/review-request`);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1345,7 +1346,7 @@ export class AuthenticatedLocClient extends LocClient {
         try {
             const { locId, nameHash, decision, rejectReason } = parameters;
 
-            await this.backend().post(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash }/review`, { decision, rejectReason });
+            await this.backend().post(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash.toHex() }/review`, { decision, rejectReason });
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1353,14 +1354,14 @@ export class AuthenticatedLocClient extends LocClient {
 
     async publishMetadata(parameters: PublishMetadataParams): Promise<void> {
         const { name, value, submitter} = parameters.metadata;
-        const nameHash = hashString(name);
+        const nameHash = Hash.of(name);
         const submittable = this.nodeApi.polkadot.tx.logionLoc.addMetadata(
             this.nodeApi.adapters.toLocId(parameters.locId),
             this.nodeApi.adapters.toPalletLogionLocMetadataItem({
                 name: nameHash,
-                value: hashString(value),
+                value: Hash.of(value),
                 submitter,
-    }),
+            }),
         );
 
         await parameters.signer.signAndSend({
@@ -1370,7 +1371,7 @@ export class AuthenticatedLocClient extends LocClient {
         });
     
         try {
-            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/metadata/${ nameHash }/confirm`);
+            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/metadata/${ nameHash.toHex() }/confirm`);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1380,7 +1381,7 @@ export class AuthenticatedLocClient extends LocClient {
         const { locId, nameHash } = parameters;
         const submittable = this.nodeApi.polkadot.tx.logionLoc.acknowledgeMetadata(
             this.nodeApi.adapters.toLocId(parameters.locId),
-            parameters.nameHash,
+            this.nodeApi.adapters.toH256(parameters.nameHash),
         );
 
         await parameters.signer.signAndSend({
@@ -1390,7 +1391,7 @@ export class AuthenticatedLocClient extends LocClient {
         });
 
         try {
-            await this.backend().put(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash }/confirm-acknowledged`);
+            await this.backend().put(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash.toHex() }/confirm-acknowledged`);
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1696,12 +1697,12 @@ export class AuthenticatedLocClient extends LocClient {
 
     async setCollectionFileRestrictedDelivery(params: {
         locId: UUID,
-        hash: string,
+        hash: Hash,
         restrictedDelivery: boolean,
     }): Promise<void> {
         const { locId, hash, restrictedDelivery } = params;
         try {
-            await this.backend().put(`/api/collection/${ locId.toString() }/files/${ hash }`, {
+            await this.backend().put(`/api/collection/${ locId.toString() }/files/${ hash.toHex() }`, {
                 restrictedDelivery
             });
         } catch(e) {

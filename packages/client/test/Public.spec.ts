@@ -1,6 +1,7 @@
-import { LogionNodeApiClass, UUID, FeesEstimator } from "@logion/node-api";
+import { LogionNodeApiClass, UUID, FeesEstimator, Hash } from "@logion/node-api";
 import { AxiosInstance, AxiosResponse } from "axios";
 import { It, Mock } from "moq.ts";
+import { HexString } from "@polkadot/util/types";
 
 import {
     AccountTokens,
@@ -72,7 +73,13 @@ describe("PublicLoc", () => {
 
     it("finds file on check", async () => {
         const data = new Mock<LocData>();
-        data.setup(instance => instance.files).returns([ { ...EXISTING_FILE, published: true, size: BigInt(EXISTING_FILE.size), submitter: REQUESTER } ]);
+        data.setup(instance => instance.files).returns([ {
+            ...EXISTING_FILE,
+            hash: Hash.fromHex(EXISTING_FILE.hash as HexString),
+            published: true,
+            size: BigInt(EXISTING_FILE.size),
+            submitter: REQUESTER
+        } ]);
         data.setup(instance => instance.metadata).returns([]);
 
         const client = new Mock<PublicLocClient>();
@@ -81,7 +88,7 @@ describe("PublicLoc", () => {
             client: client.object(),
         });
 
-        const result = await publicLoc.checkHash(EXISTING_FILE.hash);
+        const result = await publicLoc.checkHash(Hash.fromHex(EXISTING_FILE.hash as HexString));
 
         expect(result.file).toBeDefined();
     });
@@ -96,8 +103,8 @@ describe("PublicLoc", () => {
         data.setup(instance => instance.metadata).returns([]);
 
         const client = new Mock<PublicLocClient>();
-        client.setup(instance => instance.getCollectionItem(It.Is<{ itemId: string } & FetchParameters>(args =>
-            args.itemId === EXISTING_ITEM_ID
+        client.setup(instance => instance.getCollectionItem(It.Is<{ itemId: Hash } & FetchParameters>(args =>
+            args.itemId.equalTo(EXISTING_ITEM_ID)
             && args.locId.toString() === locId.toString()
         ))).returnsAsync({
             addedOn: OFFCHAIN_COLLECTION_ITEM.addedOn,
@@ -128,8 +135,8 @@ describe("PublicLoc", () => {
         data.setup(instance => instance.metadata).returns([]);
 
         const client = new Mock<PublicLocClient>();
-        client.setup(instance => instance.getCollectionItem(It.Is<{ itemId: string } & FetchParameters>(args =>
-            args.itemId === EXISTING_ITEM_ID
+        client.setup(instance => instance.getCollectionItem(It.Is<{ itemId: Hash } & FetchParameters>(args =>
+            args.itemId.equalTo(EXISTING_ITEM_ID)
             && args.locId.toString() === locId.toString()
         ))).returnsAsync({
             addedOn: OFFCHAIN_COLLECTION_ITEM.addedOn,
@@ -172,7 +179,7 @@ async function buildSharedState(): Promise<SharedState> {
             aliceAxiosMock.setup(instance => instance.get(`/api/loc-request/${ LOC.request.id }/public`)).returnsAsync({
                 data: LOC.request
             } as AxiosResponse);
-            aliceAxiosMock.setup(instance => instance.get(`/api/collection/${ LOC.request.id }/items/${ EXISTING_ITEM_ID }`)).returnsAsync({
+            aliceAxiosMock.setup(instance => instance.get(`/api/collection/${ LOC.request.id }/items/${ EXISTING_ITEM_ID.toHex() }`)).returnsAsync({
                 data: OFFCHAIN_COLLECTION_ITEM
             } as AxiosResponse);
             axiosFactoryMock.setup(instance => instance.buildAxiosInstance(ALICE.node, undefined))

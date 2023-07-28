@@ -101,17 +101,17 @@ export class CollectionItem implements UploadableCollectionItem {
         return this._creativeCommons;
     }
 
-    getItemFile(hash: string): UploadableItemFile | undefined {
-        return this.clientItem.files.find(file => file.hash === hash);
+    getItemFile(hash: Hash): UploadableItemFile | undefined {
+        return this.clientItem.files.find(file => file.hash.equalTo(hash));
     }
 
-    checkHash(hash: string): CheckHashResult {
+    checkHash(hash: Hash): CheckHashResult {
         return {
             collectionItemFile: this.getItemFile(hash)
         }
     }
 
-    async checkCertifiedCopy(hash: string): Promise<CheckCertifiedCopyResult> {
+    async checkCertifiedCopy(hash: Hash): Promise<CheckCertifiedCopyResult> {
         if(!this.clientItem.restrictedDelivery) {
             throw new Error("No restricted delivery possible with this item");
         }
@@ -122,14 +122,14 @@ export class CollectionItem implements UploadableCollectionItem {
 
     async isAuthenticatedTokenOwner(): Promise<boolean> {
         try {
-            await this.locClient.backend().get(`/api/collection/${ this._locId.toString() }/items/${ this.clientItem.id }/check`);
+            await this.locClient.backend().get(`/api/collection/${ this._locId.toString() }/items/${ this.clientItem.id.toHex() }/check`);
             return true;
         } catch(e) {
             return false;
         }
     }
 
-    async getFile(hash: string): Promise<TypedFile> {
-        return downloadFile(this.locClient.backend(), `/api/collection/${ this._locId.toString() }/${ this.clientItem.id }/files/${ hash }/source`);
+    async getFile(hash: Hash): Promise<TypedFile> {
+        return downloadFile(this.locClient.backend(), `/api/collection/${ this._locId.toString() }/${ this.clientItem.id }/files/${ hash.toHex() }/source`);
     }
 }
