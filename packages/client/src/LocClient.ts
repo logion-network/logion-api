@@ -19,7 +19,6 @@ import {
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AnyJson } from "@polkadot/types-codec/types";
 import { AxiosInstance } from 'axios';
-import { HexString } from "@polkadot/util/types";
 
 import { UserIdentity, LegalOfficer, PostalAddress, LegalOfficerClass } from "./Types.js";
 import { NetworkState } from "./NetworkState.js";
@@ -682,7 +681,7 @@ export abstract class LocClient {
 
     private mergeRecords(onchainItem: TypesTokensRecord, offchainItem: OffchainTokensRecord): ClientTokensRecord {
         return {
-            id: Hash.fromHex(offchainItem.recordId as HexString),
+            id: Hash.fromHex(offchainItem.recordId),
             description: new HashString(onchainItem.description, offchainItem.description),
             addedOn: offchainItem.addedOn,
             issuer: onchainItem.submitter,

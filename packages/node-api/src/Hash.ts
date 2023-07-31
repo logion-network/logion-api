@@ -4,7 +4,7 @@ import { stringToU8a } from '@polkadot/util';
 
 export class Hash {
 
-    static fromHex(hex: HexString): Hash {
+    static fromHex(hex: string): Hash {
         if(!Hash.isValidHexHash(hex)) {
             throw new Error("Invalid hex string, must start with '0x' followed by 64 hexadecimal digits");
         }
@@ -23,7 +23,7 @@ export class Hash {
         return Hash.fromDigest(digest);
     }
 
-    static isValidHexHash(hash: HexString): boolean {
+    static isValidHexHash(hash: string): hash is HexString {
         return hash.startsWith("0x")
             && hash.length === 66
             && hash.slice(2).search(/[^0-9a-f]/) === -1;

@@ -1,7 +1,6 @@
 import { LogionNodeApiClass, UUID, FeesEstimator, Hash } from "@logion/node-api";
 import { AxiosInstance, AxiosResponse } from "axios";
 import { It, Mock } from "moq.ts";
-import { HexString } from "@polkadot/util/types";
 
 import {
     AccountTokens,
@@ -75,7 +74,7 @@ describe("PublicLoc", () => {
         const data = new Mock<LocData>();
         data.setup(instance => instance.files).returns([ {
             ...EXISTING_FILE,
-            hash: Hash.fromHex(EXISTING_FILE.hash as HexString),
+            hash: Hash.fromHex(EXISTING_FILE.hash),
             published: true,
             size: BigInt(EXISTING_FILE.size),
             submitter: REQUESTER
@@ -88,7 +87,7 @@ describe("PublicLoc", () => {
             client: client.object(),
         });
 
-        const result = await publicLoc.checkHash(Hash.fromHex(EXISTING_FILE.hash as HexString));
+        const result = await publicLoc.checkHash(Hash.fromHex(EXISTING_FILE.hash));
 
         expect(result.file).toBeDefined();
     });

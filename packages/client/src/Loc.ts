@@ -8,7 +8,6 @@ import {
     LocBatch,
     Hash,
 } from "@logion/node-api";
-import { HexString } from "@polkadot/util/types";
 
 import {
     LocRequest,
@@ -777,7 +776,7 @@ export abstract class LocRequestState extends State {
         } else {
             return {
                 ...backendMetadataItem,
-                nameHash: Hash.fromHex(backendMetadataItem.nameHash as HexString),
+                nameHash: Hash.fromHex(backendMetadataItem.nameHash),
                 submitter: api.queries.getValidAccountId(backendMetadataItem.submitter.address, backendMetadataItem.submitter.type),
                 published: false,
             };
@@ -796,7 +795,7 @@ export abstract class LocRequestState extends State {
         } else {
             return {
                 ...backendFile,
-                hash: Hash.fromHex(backendFile.hash as HexString),
+                hash: Hash.fromHex(backendFile.hash),
                 submitter: api.queries.getValidAccountId(backendFile.submitter.address, backendFile.submitter.type),
                 size: BigInt(backendFile.size),
                 published: false,

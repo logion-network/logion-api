@@ -1,5 +1,4 @@
 import { Hash } from "@logion/node-api";
-import { HexString } from "@polkadot/util/types";
 
 export function checkCertifiedCopy(deliveries: ItemDeliveries, hash: Hash): CheckCertifiedCopyResult {
     for(const originalFileHash of Object.keys(deliveries)) {
@@ -9,7 +8,7 @@ export function checkCertifiedCopy(deliveries: ItemDeliveries, hash: Hash): Chec
                 return {
                     match: {
                         ...delivery,
-                        originalFileHash: Hash.fromHex(originalFileHash as HexString),
+                        originalFileHash: Hash.fromHex(originalFileHash),
                     },
                     summary: i === 0 && delivery.belongsToCurrentOwner ? CheckResultType.POSITIVE : CheckResultType.NEGATIVE,
                     logionOrigin: CheckResultType.POSITIVE,
