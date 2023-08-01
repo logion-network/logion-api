@@ -837,8 +837,8 @@ export abstract class LocRequestState extends State {
         }, this.request, this.legalOfficerCase, this.locIssuers));
     }
 
-    async getFile(hash: string): Promise<TypedFile> {
-        return downloadFile(this.owner.buildAxiosToNode(), `/api/loc-request/${ this.request.id }/files/${ hash }`);
+    async getFile(hash: Hash): Promise<TypedFile> {
+        return downloadFile(this.owner.buildAxiosToNode(), `/api/loc-request/${ this.request.id }/files/${ hash.toHex() }`);
     }
 }
 
