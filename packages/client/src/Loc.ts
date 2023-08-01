@@ -55,6 +55,7 @@ import { TokensRecord as TokensRecordClass } from "./TokensRecord.js";
 import { downloadFile, TypedFile } from "./Http.js";
 import { requireDefined } from "./assertions.js";
 import { Fees } from "./Fees.js";
+import { HashString } from "./Hash.js";
 
 export interface LocData extends LocVerifiedIssuers {
     id: UUID
@@ -804,11 +805,12 @@ export abstract class LocRequestState extends State {
     }
 
     private static validatedValue(data: string, hash: Hash): string {
-        const calculatedHash = Hash.of(data);
-        if (calculatedHash === hash) {
+        const hashString = new HashString(hash, data);
+        if (hashString.isValidValue()) {
             return data;
+        } else {
+            return `Deleted data - related hash: ${ hash.toHex() })`;
         }
-        return `Deleted data - related hash: ${ hash })`;
     }
 
     private static mergeLink(backendLink: LocLink, chainLoc?: LegalOfficerCase): MergedLink {
