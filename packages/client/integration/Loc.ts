@@ -183,7 +183,9 @@ export async function collectionLoc(state: State) {
         legalOfficer: client.getLegalOfficer(alice.address),
         description: "This is a Collection LOC",
         draft: false,
+        valueFee: 100n,
     });
+    expect(pendingRequest.data().valueFee).toBe(100n);
 
     locsState = pendingRequest.locsState();
     expect(locsState.pendingRequests["Collection"][0].data().status).toBe("REVIEW_PENDING");
@@ -270,6 +272,7 @@ export async function collectionLocWithUpload(state: State) {
         legalOfficer: client.getLegalOfficer(alice.address),
         description: "This is a Collection LOC with upload",
         draft: false,
+        valueFee: 100n,
     });
 
     const aliceClient = client.withCurrentAddress(aliceAccount);

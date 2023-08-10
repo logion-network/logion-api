@@ -285,6 +285,10 @@ declare module '@polkadot/api-base/types/events' {
        **/
       StorageFeeWithdrawn: AugmentedEvent<ApiType, [AccountId32, u128]>;
       /**
+       * Issued when Value Fee is withdrawn. [payerAccountId, storageFee]
+       **/
+      ValueFeeWithdrawn: AugmentedEvent<ApiType, [AccountId32, u128]>;
+      /**
        * Generic event
        **/
       [key: string]: AugmentedEvent<ApiType>;

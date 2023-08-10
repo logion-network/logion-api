@@ -18,6 +18,7 @@ export async function tokensRecords(state: State) {
         legalOfficer: userClient.getLegalOfficer(alice.address),
         description: "Some LOC with records",
         draft: false,
+        valueFee: 100n,
     });
     const collectionLocId = collectionLoc.locId;
     const aliceClient = client.withCurrentAddress(aliceAccount);

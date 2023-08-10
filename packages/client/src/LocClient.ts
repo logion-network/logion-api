@@ -148,6 +148,7 @@ export interface LocRequest {
     selectedIssuers: VerifiedIssuerIdentity[];
     template?: string;
     sponsorshipId?: string;
+    valueFee?: string;
 }
 
 export interface IdenfyVerificationSession {
@@ -289,6 +290,7 @@ export interface CreateLocRequest {
     sponsorshipId?: string;
     requesterAddress?: SupportedAccountId;
     requesterIdentityLoc?: string;
+    valueFee?: string;
 }
 
 export interface CreateSofRequest {
@@ -1560,7 +1562,7 @@ export class AuthenticatedLocClient extends LocClient {
         await this.acceptLoc(parameters);
     }
 
-    async openCollectionLoc(parameters: { locId: UUID, legalOfficer: LegalOfficer } & OpenCollectionLocParams) {
+    async openCollectionLoc(parameters: { locId: UUID, legalOfficer: LegalOfficer, valueFee: bigint } & OpenCollectionLocParams) {
         const { locId, legalOfficer, signer, callback } = parameters
         const submittable = this.nodeApi.polkadot.tx.logionLoc.createCollectionLoc(
             this.nodeApi.adapters.toLocId(locId),
@@ -1568,6 +1570,7 @@ export class AuthenticatedLocClient extends LocClient {
             parameters.collectionLastBlockSubmission || null,
             parameters.collectionMaxSize || null,
             parameters.collectionCanUpload,
+            parameters.valueFee,
         );
         await signer.signAndSend({
             signerId: this.currentAddress.address,

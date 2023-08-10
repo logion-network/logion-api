@@ -11,24 +11,28 @@ export class Fees {
         inclusionFee: bigint,
         storageFee?: bigint,
         legalFee?: bigint,
-        certificateFee?: bigint
+        certificateFee?: bigint,
+        valueFee?: bigint,
     }) {
         this.inclusionFee = params.inclusionFee;
         this.storageFee = params.storageFee;
         this.legalFee = params.legalFee;
         this.certificateFee = params.certificateFee;
+        this.valueFee = params.valueFee;
     }
 
     readonly inclusionFee: bigint;
     readonly storageFee?: bigint;
     readonly legalFee?: bigint;
     readonly certificateFee?: bigint;
+    readonly valueFee?: bigint;
 
     get totalFee(): bigint {
         return this.inclusionFee
             + (this.storageFee || 0n)
             + (this.legalFee || 0n)
             + (this.certificateFee || 0n)
+            + (this.valueFee || 0n)
         ;
     }
 }
@@ -90,11 +94,12 @@ export class FeesEstimator {
         origin: string,
         submittable: SubmittableExtrinsic,
         locType: LocType,
+        valueFee?: bigint,
     }): Promise<Fees> {
-        const { locType } = params;
+        const { locType, valueFee } = params;
         const inclusionFee = await this.estimateInclusionFee(params.origin, params.submittable);
         const legalFee = await this.estimateLegalFee({ locType });
-        return new Fees({ inclusionFee, legalFee });
+        return new Fees({ inclusionFee, legalFee, valueFee });
     }
 
     async estimateCertificateFee(params: { tokenIssuance: bigint }): Promise<bigint> {

@@ -736,7 +736,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * Creates a new Collection LOC
        **/
-      createCollectionLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, legalOfficer: AccountId32 | string | Uint8Array, collectionLastBlockSubmission: Option<u32> | null | Uint8Array | u32 | AnyNumber, collectionMaxSize: Option<u32> | null | Uint8Array | u32 | AnyNumber, collectionCanUpload: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, Option<u32>, Option<u32>, bool]>;
+      createCollectionLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, legalOfficer: AccountId32 | string | Uint8Array, collectionLastBlockSubmission: Option<u32> | null | Uint8Array | u32 | AnyNumber, collectionMaxSize: Option<u32> | null | Uint8Array | u32 | AnyNumber, collectionCanUpload: bool | boolean | Uint8Array, valueFee: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, Option<u32>, Option<u32>, bool, u128]>;
       /**
        * Creates a new logion Identity LOC i.e. a LOC describing a real identity not yet linked to an AccountId;
        * No Legal Fee is applied.

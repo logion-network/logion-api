@@ -126,6 +126,7 @@ export class Adapters {
             collectionCanUpload: rawLoc.collectionCanUpload.isTrue,
             seal: rawLoc.seal.isSome ? rawLoc.seal.unwrap().toHex() : undefined,
             sponsorshipId: rawLoc.sponsorshipId.isSome ? this.fromSponsorshipId(rawLoc.sponsorshipId.unwrap()) : undefined,
+            valueFee: rawLoc.valueFee.toBigInt(),
         };
     }
 

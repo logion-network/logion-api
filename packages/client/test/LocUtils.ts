@@ -65,6 +65,7 @@ export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, 
         locType,
         voidInfo: voided ? { reason: "Some voiding reason.", voidedOn: DateTime.now().toISO() } : undefined,
         selectedIssuers: [],
+        valueFee: "0",
     };
 }
 
@@ -89,6 +90,7 @@ export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType
         locType,
         voidInfo,
         collectionCanUpload: false,
+        valueFee: locType === "Collection" ? 100n : 0n,
     };
 }
 
