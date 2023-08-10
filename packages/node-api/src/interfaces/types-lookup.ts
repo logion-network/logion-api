@@ -647,7 +647,9 @@ declare module '@polkadot/types/lookup' {
     readonly asLegalFeeWithdrawn: ITuple<[AccountId32, LogionSharedBeneficiary, u128]>;
     readonly isCertificateFeeWithdrawn: boolean;
     readonly asCertificateFeeWithdrawn: ITuple<[AccountId32, u128]>;
-    readonly type: 'LocCreated' | 'LocClosed' | 'LocVoid' | 'ItemAdded' | 'StorageFeeWithdrawn' | 'SponsorshipCreated' | 'SponsorshipWithdrawn' | 'LegalFeeWithdrawn' | 'CertificateFeeWithdrawn';
+    readonly isValueFeeWithdrawn: boolean;
+    readonly asValueFeeWithdrawn: ITuple<[AccountId32, u128]>;
+    readonly type: 'LocCreated' | 'LocClosed' | 'LocVoid' | 'ItemAdded' | 'StorageFeeWithdrawn' | 'SponsorshipCreated' | 'SponsorshipWithdrawn' | 'LegalFeeWithdrawn' | 'CertificateFeeWithdrawn' | 'ValueFeeWithdrawn';
   }
 
   /** @name PalletLogionLocSupportedAccountId (56) */
@@ -1537,6 +1539,7 @@ declare module '@polkadot/types/lookup' {
       readonly collectionLastBlockSubmission: Option<u32>;
       readonly collectionMaxSize: Option<u32>;
       readonly collectionCanUpload: bool;
+      readonly valueFee: u128;
     } & Struct;
     readonly isAddMetadata: boolean;
     readonly asAddMetadata: {
@@ -1974,6 +1977,7 @@ declare module '@polkadot/types/lookup' {
     readonly collectionCanUpload: bool;
     readonly seal: Option<H256>;
     readonly sponsorshipId: Option<u128>;
+    readonly valueFee: u128;
   }
 
   /** @name PalletLogionLocRequester (199) */
@@ -2066,7 +2070,8 @@ declare module '@polkadot/types/lookup' {
     readonly isV15AddTokenIssuance: boolean;
     readonly isV16MoveTokenIssuance: boolean;
     readonly isV17HashItemRecordPublicData: boolean;
-    readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance' | 'V16MoveTokenIssuance' | 'V17HashItemRecordPublicData';
+    readonly isV18AddValueFee: boolean;
+    readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance' | 'V16MoveTokenIssuance' | 'V17HashItemRecordPublicData' | 'V18AddValueFee';
   }
 
   /** @name PalletLogionLocError (220) */

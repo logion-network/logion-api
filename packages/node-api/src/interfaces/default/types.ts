@@ -122,6 +122,7 @@ export interface LegalOfficerCaseOf extends Struct {
   readonly collection_can_upload: bool;
   readonly seal: Option<Hash>;
   readonly sponsorship_id: Option<SponsorshipId>;
+  readonly value_fee: Balance;
 }
 
 /** @name LegalOfficerCaseSummary */
@@ -249,7 +250,8 @@ export interface StorageVersion extends Enum {
   readonly isV15AddTokenIssuance: boolean;
   readonly isV16MoveTokenIssuance: boolean;
   readonly isV17HashItemRecordPublicData: boolean;
-  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance' | 'V16MoveTokenIssuance' | 'V17HashItemRecordPublicData';
+  readonly isV18AddValueFee: boolean;
+  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance' | 'V16MoveTokenIssuance' | 'V17HashItemRecordPublicData' | 'V18AddValueFee';
 }
 
 /** @name SupportedAccountId */

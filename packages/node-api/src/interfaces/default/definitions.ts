@@ -47,6 +47,7 @@ export default {
             collection_can_upload: "bool",
             seal: "Option<Hash>",
             sponsorship_id: "Option<SponsorshipId>",
+            value_fee: "Balance",
         },
         MetadataItemParams: {
             name: "Hash",
@@ -103,6 +104,7 @@ export default {
                 "V15AddTokenIssuance",
                 "V16MoveTokenIssuance",
                 "V17HashItemRecordPublicData",
+                "V18AddValueFee",
             ]
         },
         Requester: {

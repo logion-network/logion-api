@@ -17,7 +17,7 @@ export async function verifiedIssuers() {
         api.polkadot.tx.logionLoc.nominateIssuer(ISSUER, issuerIdentityLocId.toDecimalString()),
     ]);
     await signAndSend(requester,
-        api.polkadot.tx.logionLoc.createCollectionLoc(collectionLocId.toDecimalString(), ALICE, null, 200, true),
+        api.polkadot.tx.logionLoc.createCollectionLoc(collectionLocId.toDecimalString(), ALICE, null, 200, true, 0),
     );
     await signAndSendBatch(alice, [
         api.polkadot.tx.logionLoc.setIssuerSelection(collectionLocId.toDecimalString(), ISSUER, true),

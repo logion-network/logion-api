@@ -232,6 +232,9 @@ function mockPolkadotApiForLogionLoc() {
                         sponsorshipId: {
                             isSome: DEFAULT_LOC.sponsorshipId !== undefined,
                             isNone: DEFAULT_LOC.sponsorshipId === undefined,
+                        },
+                        valueFee: {
+                            toBigInt: () => DEFAULT_LOC.valueFee,
                         }
                     })
                 }),
@@ -292,6 +295,7 @@ export const DEFAULT_LOC: LegalOfficerCase = {
     collectionMaxSize: undefined,
     collectionCanUpload: false,
     seal: "0x917ec227fc39f3eba7dc3546d714f4146bcbeb496a909316723ada32008de3c8",
+    valueFee: 0n,
 }
 
 export const DEFAULT_ITEM: CollectionItem = {

@@ -574,7 +574,8 @@ export default {
       SponsorshipCreated: '(u128,AccountId32,PalletLogionLocSupportedAccountId)',
       SponsorshipWithdrawn: '(u128,AccountId32,PalletLogionLocSupportedAccountId)',
       LegalFeeWithdrawn: '(AccountId32,LogionSharedBeneficiary,u128)',
-      CertificateFeeWithdrawn: '(AccountId32,u128)'
+      CertificateFeeWithdrawn: '(AccountId32,u128)',
+      ValueFeeWithdrawn: '(AccountId32,u128)'
     }
   },
   /**
@@ -1405,6 +1406,7 @@ export default {
         collectionLastBlockSubmission: 'Option<u32>',
         collectionMaxSize: 'Option<u32>',
         collectionCanUpload: 'bool',
+        valueFee: 'u128',
       },
       add_metadata: {
         locId: 'Compact<u128>',
@@ -1766,7 +1768,7 @@ export default {
     _enum: ['AlreadyExists', 'NotFound', 'PeerIdAlreadyInUse', 'HostHasGuest', 'GuestOfGuest', 'HostNotFound', 'HostCannotConvert', 'GuestCannotUpdate', 'CannotChangeRegion']
   },
   /**
-   * Lookup198: pallet_logion_loc::LegalOfficerCase<sp_core::crypto::AccountId32, primitive_types::H256, LocId, BlockNumber, primitive_types::H160, SponsorshipId>
+   * Lookup198: pallet_logion_loc::LegalOfficerCase<sp_core::crypto::AccountId32, primitive_types::H256, LocId, BlockNumber, primitive_types::H160, SponsorshipId, Balance>
    **/
   PalletLogionLocLegalOfficerCase: {
     owner: 'AccountId32',
@@ -1782,7 +1784,8 @@ export default {
     collectionMaxSize: 'Option<u32>',
     collectionCanUpload: 'bool',
     seal: 'Option<H256>',
-    sponsorshipId: 'Option<u128>'
+    sponsorshipId: 'Option<u128>',
+    valueFee: 'u128'
   },
   /**
    * Lookup199: pallet_logion_loc::Requester<sp_core::crypto::AccountId32, LocId, primitive_types::H160>
@@ -1867,7 +1870,7 @@ export default {
    * Lookup219: pallet_logion_loc::pallet::StorageVersion
    **/
   PalletLogionLocStorageVersion: {
-    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize', 'V11EnableEthereumSubmitter', 'V12Sponsorship', 'V13AcknowledgeItems', 'V14HashLocPublicData', 'V15AddTokenIssuance', 'V16MoveTokenIssuance', 'V17HashItemRecordPublicData']
+    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize', 'V11EnableEthereumSubmitter', 'V12Sponsorship', 'V13AcknowledgeItems', 'V14HashLocPublicData', 'V15AddTokenIssuance', 'V16MoveTokenIssuance', 'V17HashItemRecordPublicData', 'V18AddValueFee']
   },
   /**
    * Lookup220: pallet_logion_loc::pallet::Error<T>

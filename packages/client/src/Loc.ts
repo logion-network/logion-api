@@ -87,6 +87,7 @@ export interface LocData extends LocVerifiedIssuers {
     voteId?: string;
     template?: string;
     sponsorshipId?: UUID;
+    valueFee?: bigint;
 }
 
 export interface MergedLink extends LocLink, Published {
@@ -282,14 +283,14 @@ export class LocsState extends State {
         });
     }
 
-    async requestCollectionLoc(params: CreateLocRequestParams): Promise<DraftRequest | PendingRequest> {
+    async requestCollectionLoc(params: CreateCollectionLocRequestParams): Promise<DraftRequest | PendingRequest> {
         return this.requestLoc({
             ...params,
             locType: "Collection"
         });
     }
 
-    async requestIdentityLoc(params: CreateLocRequestParams): Promise<DraftRequest | PendingRequest> {
+    async requestIdentityLoc(params: CreateIdentityLocRequestParams): Promise<DraftRequest | PendingRequest> {
         const { userIdentity, userPostalAddress } = params;
         if (userIdentity === undefined) {
             throw new Error("User Identity is mandatory for an Identity LOC")
@@ -306,7 +307,7 @@ export class LocsState extends State {
         });
     }
 
-    async requestLoc(params: CreateLocRequestParams & { locType: LocType }): Promise<DraftRequest | PendingRequest> {
+    private async requestLoc(params: CreateAnyLocRequestParams): Promise<DraftRequest | PendingRequest> {
         const { legalOfficer, locType, description, userIdentity, userPostalAddress, company, draft, template, sponsorshipId } = params;
         const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
         const request = await client.createLocRequest({
@@ -319,6 +320,7 @@ export class LocsState extends State {
             draft,
             template,
             sponsorshipId: sponsorshipId?.toString(),
+            valueFee: params.valueFee ? params.valueFee.toString() : undefined,
         });
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
         if(draft) {
@@ -500,6 +502,7 @@ export class LegalOfficerLocsStateCommands {
             userPostalAddress,
             company,
             template,
+            valueFee: "0",
         });
 
         const locId = new UUID(request.id);
@@ -548,12 +551,28 @@ export interface LocSharedState extends SharedState {
 export interface CreateLocRequestParams {
     legalOfficer: LegalOfficerClass;
     description: string;
+    draft: boolean;
+    template?: string;
+}
+
+export interface CreateIdentityLocRequestParams extends CreateLocRequestParams {
+    userIdentity: UserIdentity;
+    userPostalAddress: PostalAddress;
+    company?: string;
+    sponsorshipId?: UUID;
+}
+
+export interface CreateCollectionLocRequestParams extends CreateLocRequestParams {
+    valueFee: bigint;
+}
+
+interface CreateAnyLocRequestParams extends CreateLocRequestParams {
+    locType: LocType;
     userIdentity?: UserIdentity;
     userPostalAddress?: PostalAddress;
     company?: string;
-    draft: boolean;
-    template?: string;
     sponsorshipId?: UUID;
+    valueFee?: bigint;
 }
 
 export interface CreateSofRequestParams {
@@ -727,6 +746,7 @@ export abstract class LocRequestState extends State {
             links: request.links.map(item => LocRequestState.mergeLink(item)),
             voteId: request.voteId ? request.voteId : undefined,
             sponsorshipId: request.sponsorshipId ? new UUID(request.sponsorshipId) : undefined,
+            valueFee: request.valueFee ? BigInt(request.valueFee) : undefined,
         };
     }
 
@@ -753,6 +773,7 @@ export abstract class LocRequestState extends State {
             iDenfy: request.iDenfy,
             voteId: request.voteId ? request.voteId : undefined,
             template: request.template,
+            valueFee: loc.valueFee,
         };
 
         if(data.voidInfo && request.voidInfo) {
@@ -1168,13 +1189,18 @@ export class AcceptedRequest extends ReviewedRequest {
         if (requesterAddress === undefined || requesterAddress?.type !== "Polkadot") {
             throw Error("Only Polkadot requester can open Collection LOC");
         }
+        const valueFee = this.request.valueFee;
+        if(!valueFee) {
+            throw new Error("Missing value fee");
+        }
 
         if (this.request.locType === "Collection") {
             await this.locSharedState.client.openCollectionLoc({
                 locId: this.locId,
                 legalOfficer: this.owner,
+                valueFee: BigInt(valueFee),
                 ...parameters
-            })
+            });
         } else {
             throw Error("Other LOCs are opened with open()");
         }
