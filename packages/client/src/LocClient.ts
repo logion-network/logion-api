@@ -15,6 +15,7 @@ import {
     Link,
     VoidInfo,
     Hash,
+    Fees as FeesClass,
 } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AnyJson } from "@polkadot/types-codec/types";
@@ -1297,14 +1298,10 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async publishFile(parameters: PublishFileParams): Promise<void> {
-        const submittable = this.nodeApi.polkadot.tx.logionLoc.addFile(
-            this.nodeApi.adapters.toLocId(parameters.locId),
-            this.nodeApi.adapters.toPalletLogionLocFile(parameters.file),
-        );
 
         await parameters.signer.signAndSend({
             signerId: this.currentAddress.address,
-            submittable,
+            submittable: this.publishFileSubmittable(parameters),
             callback: parameters.callback,
         });
 
@@ -1315,15 +1312,26 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async acknowledgeFile(parameters: { locId: UUID } & AckFileParams): Promise<void> {
-        const submittable = this.nodeApi.polkadot.tx.logionLoc.acknowledgeFile(
-            this.nodeApi.adapters.toLocId(parameters.locId),
-            this.nodeApi.adapters.toH256(parameters.hash),
-        );
+    async estimateFeesPublishFile(parameters: EstimateFeesPublishFileParams): Promise<FeesClass> {
 
+        return await this.nodeApi.fees.estimateWithStorage({
+            origin: this.currentAddress?.address || "",
+            submittable: this.publishFileSubmittable(parameters),
+            size: parameters.file.size,
+        });
+    }
+
+    private publishFileSubmittable(parameters: EstimateFeesPublishFileParams): SubmittableExtrinsic {
+        return this.nodeApi.polkadot.tx.logionLoc.addFile(
+            this.nodeApi.adapters.toLocId(parameters.locId),
+            this.nodeApi.adapters.toPalletLogionLocFile(parameters.file),
+        );
+    }
+
+    async acknowledgeFile(parameters: { locId: UUID } & AckFileParams): Promise<void> {
         await parameters.signer.signAndSend({
             signerId: this.currentAddress.address,
-            submittable,
+            submittable: this.acknowledgeFileSubmittable(parameters),
             callback: parameters.callback,
         });
 
@@ -1332,6 +1340,20 @@ export class AuthenticatedLocClient extends LocClient {
         } catch(e) {
             throw newBackendError(e);
         }
+    }
+
+    async estimateFeesAcknowledgeFile(parameters: { locId: UUID } & EstimateFeesAckFileParams): Promise<FeesClass> {
+        return await this.nodeApi.fees.estimateWithoutStorage({
+            origin: this.currentAddress?.address || "",
+            submittable: this.acknowledgeFileSubmittable(parameters)
+        });
+    }
+
+    private acknowledgeFileSubmittable(parameters: { locId: UUID } & EstimateFeesAckFileParams): SubmittableExtrinsic {
+        return this.nodeApi.polkadot.tx.logionLoc.acknowledgeFile(
+            this.nodeApi.adapters.toLocId(parameters.locId),
+            this.nodeApi.adapters.toH256(parameters.hash)
+        );
     }
 
     async requestMetadataReview(parameters: { locId: UUID, nameHash: Hash }): Promise<void> {
@@ -1354,20 +1376,12 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async publishMetadata(parameters: PublishMetadataParams): Promise<void> {
-        const { name, value, submitter} = parameters.metadata;
+        const { name } = parameters.metadata;
         const nameHash = Hash.of(name);
-        const submittable = this.nodeApi.polkadot.tx.logionLoc.addMetadata(
-            this.nodeApi.adapters.toLocId(parameters.locId),
-            this.nodeApi.adapters.toPalletLogionLocMetadataItem({
-                name: nameHash,
-                value: Hash.of(value),
-                submitter,
-            }),
-        );
 
         await parameters.signer.signAndSend({
             signerId: this.currentAddress.address,
-            submittable,
+            submittable: this.publishMetadataSubmittable(parameters),
             callback: parameters.callback,
         });
     
@@ -1378,16 +1392,32 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
+    async estimatePublishMetadata(parameters: EstimateFeesPublishMetadataParams): Promise<FeesClass> {
+        return await this.nodeApi.fees.estimateWithoutStorage({
+            origin: this.currentAddress?.address || "",
+            submittable: this.publishMetadataSubmittable(parameters)
+        });
+    }
+
+    private publishMetadataSubmittable(parameters: EstimateFeesPublishMetadataParams): SubmittableExtrinsic {
+        const { name, value, submitter } = parameters.metadata;
+        const nameHash = Hash.of(name);
+        return this.nodeApi.polkadot.tx.logionLoc.addMetadata(
+            this.nodeApi.adapters.toLocId(parameters.locId),
+            this.nodeApi.adapters.toPalletLogionLocMetadataItem({
+                name: nameHash,
+                value: Hash.of(value),
+                submitter,
+            }),
+        );
+    }
+
     async acknowledgeMetadata(parameters: { locId: UUID } & AckMetadataParams): Promise<void> {
         const { locId, nameHash } = parameters;
-        const submittable = this.nodeApi.polkadot.tx.logionLoc.acknowledgeMetadata(
-            this.nodeApi.adapters.toLocId(parameters.locId),
-            this.nodeApi.adapters.toH256(parameters.nameHash),
-        );
 
         await parameters.signer.signAndSend({
             signerId: this.currentAddress.address,
-            submittable,
+            submittable: this.acknowledgeMetadataSubmittable(parameters),
             callback: parameters.callback,
         });
 
@@ -1398,15 +1428,25 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async publishLink(parameters: PublishLinkParams): Promise<void> {
-        const submittable = this.nodeApi.polkadot.tx.logionLoc.addLink(
+    async estimateFeesAcknowledgeMetadata(parameters: { locId: UUID } & EstimateFeesAckMetadataParams): Promise<FeesClass> {
+        return await this.nodeApi.fees.estimateWithoutStorage({
+            origin: this.currentAddress?.address || "",
+            submittable: this.acknowledgeMetadataSubmittable(parameters)
+        });
+    }
+
+    private acknowledgeMetadataSubmittable(parameters: { locId: UUID } & EstimateFeesAckMetadataParams): SubmittableExtrinsic {
+        return this.nodeApi.polkadot.tx.logionLoc.acknowledgeMetadata(
             this.nodeApi.adapters.toLocId(parameters.locId),
-            this.nodeApi.adapters.toPalletLogionLocLocLink(parameters.link),
+            this.nodeApi.adapters.toH256(parameters.nameHash),
         );
+    }
+
+    async publishLink(parameters: PublishLinkParams): Promise<void> {
 
         await parameters.signer.signAndSend({
             signerId: this.currentAddress.address,
-            submittable,
+            submittable: this.publishLinkSubmittable(parameters),
             callback: parameters.callback,
         });
 
@@ -1415,6 +1455,20 @@ export class AuthenticatedLocClient extends LocClient {
         } catch(e) {
             throw newBackendError(e);
         }
+    }
+
+    private publishLinkSubmittable(parameters: EstimateFeesPublishLinkParams): SubmittableExtrinsic {
+        return this.nodeApi.polkadot.tx.logionLoc.addLink(
+            this.nodeApi.adapters.toLocId(parameters.locId),
+            this.nodeApi.adapters.toPalletLogionLocLocLink(parameters.link),
+        );
+    }
+
+    async estimateFeesPublishLink(parameters: EstimateFeesPublishLinkParams): Promise<FeesClass> {
+        return await this.nodeApi.fees.estimateWithoutStorage({
+            origin: this.currentAddress?.address || "",
+            submittable: this.publishLinkSubmittable(parameters)
+        });
     }
 
     async rejectLoc(args: {
@@ -1721,13 +1775,19 @@ export interface ReviewFileParams {
 
 export type ReviewResult = "ACCEPT" | "REJECT";
 
-export interface PublishFileParams extends BlockchainSubmissionParams {
+export interface EstimateFeesPublishFileParams {
     locId: UUID;
     file: FileParams;
 }
 
-export interface AckFileParams extends BlockchainSubmissionParams {
+export interface PublishFileParams extends EstimateFeesPublishFileParams, BlockchainSubmissionParams {
+}
+
+export interface EstimateFeesAckFileParams {
     hash: Hash;
+}
+
+export interface AckFileParams extends EstimateFeesAckFileParams, BlockchainSubmissionParams {
 }
 
 export interface ReviewMetadataParams {
@@ -1736,7 +1796,7 @@ export interface ReviewMetadataParams {
     rejectReason?: string;
 }
 
-export interface PublishMetadataParams extends BlockchainSubmissionParams {
+export interface EstimateFeesPublishMetadataParams {
     locId: UUID;
     metadata: {
         name: string;
@@ -1745,8 +1805,14 @@ export interface PublishMetadataParams extends BlockchainSubmissionParams {
     };
 }
 
-export interface AckMetadataParams extends BlockchainSubmissionParams {
+export interface PublishMetadataParams extends EstimateFeesPublishMetadataParams, BlockchainSubmissionParams {
+}
+
+export interface EstimateFeesAckMetadataParams {
     nameHash: Hash;
+}
+
+export interface AckMetadataParams extends EstimateFeesAckMetadataParams, BlockchainSubmissionParams {
 }
 
 export interface OpenCollectionLocParams extends BlockchainSubmissionParams {
@@ -1760,9 +1826,12 @@ export const EMPTY_LOC_ISSUERS: LocVerifiedIssuers = {
     issuers: [],
 }
 
-export interface PublishLinkParams extends BlockchainSubmissionParams {
+export interface EstimateFeesPublishLinkParams {
     locId: UUID;
     link: Link;
+}
+
+export interface PublishLinkParams extends EstimateFeesPublishLinkParams, BlockchainSubmissionParams {
 }
 
 export interface VoidParams extends BlockchainSubmissionParams, VoidInfo {
