@@ -98,4 +98,23 @@ export class FeesEstimator {
         const fee = await this.api.call.feesApi.queryCertificateFee(tokenIssuance);
         return fee.toBigInt();
     }
+
+    async estimateAddCollectionItem(params: {
+        origin: string,
+        submittable: SubmittableExtrinsic,
+        numOfEntries: bigint,
+        totSize: bigint,
+        tokenIssuance: bigint | undefined,
+    }): Promise<Fees> {
+        const { origin, submittable, numOfEntries, totSize } = params;
+        const tokenIssuance = params.tokenIssuance || 0n;
+        const inclusionFee = await this.estimateInclusionFee(origin, submittable);
+        const storageFee = await this.estimateStorageFee({ numOfEntries, totSize })
+        const certificateFee = await this.estimateCertificateFee({ tokenIssuance })
+        return new Fees({
+            inclusionFee,
+            storageFee,
+            certificateFee,
+        });
+    }
 }

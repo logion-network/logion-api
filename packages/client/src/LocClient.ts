@@ -260,7 +260,7 @@ export interface BlockchainSubmissionParams {
     callback?: SignCallback;
 }
 
-export interface AddCollectionItemParams extends BlockchainSubmissionParams {
+export interface EstimateFeesAddCollectionItemParams {
     itemId: Hash,
     itemDescription: string,
     itemFiles?: ItemFileWithContent[],
@@ -269,6 +269,9 @@ export interface AddCollectionItemParams extends BlockchainSubmissionParams {
     logionClassification?: LogionClassification,
     specificLicenses?: SpecificLicense[],
     creativeCommons?: CreativeCommons,
+}
+
+export interface AddCollectionItemParams extends EstimateFeesAddCollectionItemParams, BlockchainSubmissionParams {
 }
 
 export interface FetchLocRequestSpecification {
@@ -910,46 +913,11 @@ export class AuthenticatedLocClient extends LocClient {
             locId,
             itemFiles,
             itemToken,
-            restrictedDelivery,
         } = parameters;
 
-        const booleanRestrictedDelivery = restrictedDelivery !== undefined ? restrictedDelivery : false;
+        const termsAndConditions = this.termsAndConditions(parameters);
 
-        const chainItemFiles: ItemFile[] = [];
-        if(itemFiles) {
-            for(const itemFile of itemFiles) {
-                await itemFile.finalize(); // Ensure hash and size
-            }
-            for(const itemFile of itemFiles) {
-                chainItemFiles.push({
-                    name: Hash.of(itemFile.name),
-                    contentType: Hash.of(itemFile.contentType.mimeType),
-                    hash: itemFile.hashOrContent.contentHash,
-                    size: itemFile.size,
-                });
-            }
-        }
-
-        if(booleanRestrictedDelivery
-            && (chainItemFiles.length === 0 || !itemToken)) {
-            throw new Error("Restricted delivery requires a defined underlying token as well as at least one file");
-        }
-
-        if(itemToken) {
-            this.validTokenOrThrow(itemToken);
-        }
-
-        const termsAndConditions: TermsAndConditionsElement[] = [];
-        if (parameters.logionClassification && parameters.creativeCommons) {
-            throw new Error("Logion Classification and Creative Commons are mutually exclusive.");
-        } else if(parameters.logionClassification) {
-            termsAndConditions.push(parameters.logionClassification);
-        } else if (parameters.creativeCommons) {
-            termsAndConditions.push(parameters.creativeCommons);
-        }
-        if(parameters.specificLicenses) {
-            parameters.specificLicenses.forEach(specific => termsAndConditions.push(specific));
-        }
+        const submittable = await this.addCollectionItemSubmittable(parameters, termsAndConditions);
 
         await this.submitItemPublicData(locId, {
             itemId: itemId.toHex(),
@@ -969,23 +937,6 @@ export class AuthenticatedLocClient extends LocClient {
             } : undefined,
         });
 
-        const submittable = this.nodeApi.polkadot.tx.logionLoc.addCollectionItem(
-            this.nodeApi.adapters.toLocId(locId),
-            this.nodeApi.adapters.toH256(itemId),
-            this.nodeApi.adapters.toH256(Hash.of(itemDescription)),
-            chainItemFiles.map(file => this.nodeApi.adapters.toCollectionItemFile(file)),
-            this.nodeApi.adapters.toCollectionItemToken(itemToken ? {
-                id: Hash.of(itemToken.id),
-                type: Hash.of(itemToken.type),
-                issuance: itemToken.issuance,
-            } : undefined),
-            booleanRestrictedDelivery,
-            termsAndConditions.map(element => this.nodeApi.adapters.toTermsAndConditionsElement({
-                tcType: Hash.of(element.type),
-                tcLocId: element.tcLocId,
-                details: Hash.of(element.details),
-            })),
-        );
         try {
             await signer.signAndSend({
                 signerId: this.currentAddress.address,
@@ -1004,6 +955,86 @@ export class AuthenticatedLocClient extends LocClient {
                 }
             }
         }
+    }
+
+    private termsAndConditions(parameters: EstimateFeesAddCollectionItemParams): TermsAndConditionsElement[] {
+        const termsAndConditions: TermsAndConditionsElement[] = [];
+        if (parameters.logionClassification && parameters.creativeCommons) {
+            throw new Error("Logion Classification and Creative Commons are mutually exclusive.");
+        } else if(parameters.logionClassification) {
+            termsAndConditions.push(parameters.logionClassification);
+        } else if (parameters.creativeCommons) {
+            termsAndConditions.push(parameters.creativeCommons);
+        }
+        if(parameters.specificLicenses) {
+            parameters.specificLicenses.forEach(specific => termsAndConditions.push(specific));
+        }
+        return termsAndConditions;
+    }
+
+    private async addCollectionItemSubmittable(parameters: EstimateFeesAddCollectionItemParams & FetchParameters, termsAndConditions: TermsAndConditionsElement[]): Promise<SubmittableExtrinsic> {
+        const {
+            itemId,
+            itemDescription,
+            locId,
+            itemFiles,
+            itemToken,
+            restrictedDelivery,
+        } = parameters;
+
+        if(itemToken) {
+            this.validTokenOrThrow(itemToken);
+        }
+
+        const booleanRestrictedDelivery = restrictedDelivery !== undefined ? restrictedDelivery : false;
+
+        const chainItemFiles: ItemFile[] = [];
+        if(itemFiles) {
+            for(const itemFile of itemFiles) {
+                await itemFile.finalize(); // Ensure hash and size
+            }
+            for(const itemFile of itemFiles) {
+                chainItemFiles.push({
+                    name: Hash.of(itemFile.name),
+                    contentType: Hash.of(itemFile.contentType.mimeType),
+                    hash: itemFile.hashOrContent.contentHash,
+                    size: itemFile.size,
+                });
+            }
+        }
+        return this.nodeApi.polkadot.tx.logionLoc.addCollectionItem(
+            this.nodeApi.adapters.toLocId(locId),
+            this.nodeApi.adapters.toH256(itemId),
+            this.nodeApi.adapters.toH256(Hash.of(itemDescription)),
+            chainItemFiles.map(file => this.nodeApi.adapters.toCollectionItemFile(file)),
+            this.nodeApi.adapters.toCollectionItemToken(itemToken ? {
+                id: Hash.of(itemToken.id),
+                type: Hash.of(itemToken.type),
+                issuance: itemToken.issuance,
+            } : undefined),
+            booleanRestrictedDelivery,
+            termsAndConditions.map(element => this.nodeApi.adapters.toTermsAndConditionsElement({
+                tcType: Hash.of(element.type),
+                tcLocId: element.tcLocId,
+                details: Hash.of(element.details),
+            })),
+        );
+    }
+
+    async estimateFeesAddCollectionItem(parameters: EstimateFeesAddCollectionItemParams & FetchParameters): Promise<FeesClass> {
+        const { itemFiles, itemToken, } = parameters;
+        const termsAndConditions = this.termsAndConditions(parameters);
+        const submittable = await this.addCollectionItemSubmittable(parameters, termsAndConditions);
+        const numOfEntries = itemFiles ? BigInt(itemFiles.length) : 0n;
+        const totSize = itemFiles ? BigInt(itemFiles.length) : 0n;
+        const tokenIssuance = itemToken?.issuance;
+        return await this.nodeApi.fees.estimateAddCollectionItem({
+            origin: this.currentAddress?.address || "",
+            submittable,
+            numOfEntries,
+            totSize,
+            tokenIssuance,
+        })
     }
 
     private async submitItemPublicData(locId: UUID, item: CreateOffchainCollectionItem) {

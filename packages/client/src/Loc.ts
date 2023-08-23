@@ -51,7 +51,7 @@ import {
     EstimateFeesPublishFileParams,
     EstimateFeesPublishMetadataParams,
     EstimateFeesPublishLinkParams,
-    EstimateFeesOpenCollectionLocParams, OpenPolkadotLocParams,
+    EstimateFeesOpenCollectionLocParams, OpenPolkadotLocParams, EstimateFeesAddCollectionItemParams,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -1793,6 +1793,14 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
             ...parameters
         })
         return this;
+    }
+
+    async estimateFeesAddCollectionItem(parameters: EstimateFeesAddCollectionItemParams): Promise<FeesClass> {
+        const client = this.locSharedState.client;
+        return client.estimateFeesAddCollectionItem({
+            locId: this.locId,
+            ...parameters
+        })
     }
 
     async uploadCollectionItemFile(parameters: UploadCollectionItemFileParams): Promise<ClosedCollectionLoc> {
