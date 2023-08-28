@@ -1164,6 +1164,10 @@ export class LegalOfficerPendingRequestCommands {
                 requesterAccount,
                 sponsorshipId,
             });
+        } else {
+            // Acceptance of a Collection is always a pure backend operation (no onchain operation),
+            // thus there is no fees.
+            return undefined;
         }
     }
 }
