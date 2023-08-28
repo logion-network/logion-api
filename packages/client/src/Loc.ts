@@ -7,6 +7,7 @@ import {
     LogionNodeApiClass,
     LocBatch,
     Hash,
+    Fees as FeesClass,
 } from "@logion/node-api";
 
 import {
@@ -45,6 +46,12 @@ import {
     UploadableItemFile,
     ItemStatus,
     AddedOn,
+    EstimateFeesAckFileParams,
+    EstimateFeesAckMetadataParams,
+    EstimateFeesPublishFileParams,
+    EstimateFeesPublishMetadataParams,
+    EstimateFeesPublishLinkParams,
+    EstimateFeesOpenCollectionLocParams, OpenPolkadotLocParams, EstimateFeesAddCollectionItemParams,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -1138,6 +1145,31 @@ export class LegalOfficerPendingRequestCommands {
         }
         return await this.request.refresh() as AcceptedRequest | OpenLoc;
     }
+
+    async estimateFeesAccept(): Promise<FeesClass | undefined> {
+        this.request.ensureCurrent();
+        const requesterAccount = this.request.data().requesterAddress;
+        const requesterLoc = this.request.data().requesterLocId;
+        const sponsorshipId = this.request.data().sponsorshipId;
+        const locType = this.request.data().locType;
+        if(locType === "Transaction") {
+            return this.client.estimateFeesAcceptTransactionLoc({
+                locId: this.locId,
+                requesterAccount,
+                requesterLoc,
+            });
+        } else if(locType === "Identity") {
+            return this.client.estimateFeesAcceptIdentityLoc({
+                locId: this.locId,
+                requesterAccount,
+                sponsorshipId,
+            });
+        } else {
+            // Acceptance of a Collection is always a pure backend operation (no onchain operation),
+            // thus there is no fees.
+            return undefined;
+        }
+    }
 }
 
 export class ReviewedRequest extends LocRequestState {
@@ -1162,20 +1194,14 @@ export class ReviewedRequest extends LocRequestState {
 export class AcceptedRequest extends ReviewedRequest {
 
     async open(parameters: BlockchainSubmissionParams): Promise<OpenLoc> {
-        const requesterAddress = this.request.requesterAddress;
-        if (requesterAddress === undefined || requesterAddress?.type !== "Polkadot") {
-            throw Error("Only Polkadot requester can open LOC");
-        }
         if (this.request.locType === "Transaction") {
             await this.locSharedState.client.openTransactionLoc({
-                locId: this.locId,
-                legalOfficer: this.owner,
+                ...this.checkOpenParams(),
                 ...parameters
             })
         } else if (this.request.locType === "Identity") {
             await this.locSharedState.client.openIdentityLoc({
-                locId: this.locId,
-                legalOfficer: this.owner,
+                ...this.checkOpenParams(),
                 ...parameters
             })
         } else {
@@ -1184,27 +1210,60 @@ export class AcceptedRequest extends ReviewedRequest {
         return await this.refresh() as OpenLoc
     }
 
-    async openCollection(parameters: OpenCollectionLocParams): Promise<OpenLoc> {
+    private checkOpenParams(): OpenPolkadotLocParams {
         const requesterAddress = this.request.requesterAddress;
         if (requesterAddress === undefined || requesterAddress?.type !== "Polkadot") {
-            throw Error("Only Polkadot requester can open Collection LOC");
+            throw Error("Only Polkadot requester can open LOC");
+        }
+        return {
+            locId: this.locId,
+            legalOfficer: this.owner,
+        }
+    }
+
+    async estimateFeesOpen(): Promise<FeesClass> {
+        if (this.request.locType === "Transaction") {
+            return this.locSharedState.client.estimateFeesOpenTransactionLoc(this.checkOpenParams())
+        } else if (this.request.locType === "Identity") {
+            return this.locSharedState.client.estimateFeesOpenIdentityLoc(this.checkOpenParams())
+        } else {
+            throw Error("Collection LOCs fees are estimated with estimateFeesOpenCollection()");
+        }
+    }
+
+    async openCollection(parameters: OpenCollectionLocParams): Promise<OpenLoc> {
+        await this.locSharedState.client.openCollectionLoc({
+            ...this.checkOpenCollectionParams(),
+            ...parameters
+        });
+        return await this.refresh() as OpenLoc;
+    }
+
+    private checkOpenCollectionParams(): OpenPolkadotLocParams & { valueFee: bigint } {
+        const requesterAddress = this.request.requesterAddress;
+        if (requesterAddress === undefined || requesterAddress?.type !== "Polkadot") {
+            throw Error("Only Polkadot requester can open, or estimate fees of, a Collection LOC");
         }
         const valueFee = this.request.valueFee;
         if(!valueFee) {
             throw new Error("Missing value fee");
         }
-
         if (this.request.locType === "Collection") {
-            await this.locSharedState.client.openCollectionLoc({
+            return {
                 locId: this.locId,
                 legalOfficer: this.owner,
                 valueFee: BigInt(valueFee),
-                ...parameters
-            });
+            }
         } else {
-            throw Error("Other LOCs are opened with open()");
+            throw Error("Other LOCs are opened/estimated with open()/estimateFeesOpen()");
         }
-        return await this.refresh() as OpenLoc;
+    }
+
+    async estimateFeesOpenCollection(parameters: EstimateFeesOpenCollectionLocParams): Promise<FeesClass> {
+        return this.locSharedState.client.estimateFeesOpenCollectionLoc({
+            ...this.checkOpenCollectionParams(),
+            ...parameters
+        });
     }
 
     withLocs(locsState: LocsState): AcceptedRequest {
@@ -1240,41 +1299,67 @@ export class OpenLoc extends EditableRequest {
 
     async publishFile(parameters: { hash: Hash } & BlockchainSubmissionParams): Promise<OpenLoc> {
         const client = this.locSharedState.client;
-        const file = this.request.files.find(file => file.hash === parameters.hash.toHex() && file.status === "REVIEW_ACCEPTED");
-        if(!file) {
-            throw new Error("File was not found or was not reviewed and accepted by the LLO yet");
-        }
+        const file = this.findFile(parameters.hash);
         await client.publishFile({
-            locId: this.locId,
-            file: {
-                hash: parameters.hash,
-                nature: Hash.of(file.nature),
-                size: BigInt(file.size),
-                submitter: this.locSharedState.nodeApi.queries.getValidAccountId(file.submitter.address, file.submitter.type),
-            },
+            ...file,
             signer: parameters.signer,
             callback: parameters.callback,
         });
         return await this.refresh() as OpenLoc;
     }
 
-    async publishMetadata(parameters: { nameHash: Hash } & BlockchainSubmissionParams): Promise<OpenLoc> {
-        const client = this.locSharedState.client;
-        const metadata = this.request.metadata.find(metadata => metadata.nameHash === parameters.nameHash.toHex() && metadata.status === "REVIEW_ACCEPTED");
-        if(!metadata) {
+    private findFile(hash: Hash): EstimateFeesPublishFileParams {
+        const file = this.request.files.find(file => file.hash === hash.toHex() && file.status === "REVIEW_ACCEPTED");
+        if(!file) {
             throw new Error("File was not found or was not reviewed and accepted by the LLO yet");
         }
+        return {
+            locId: this.locId,
+            file: {
+                hash,
+                nature: Hash.of(file.nature),
+                size: BigInt(file.size),
+                submitter: this.locSharedState.nodeApi.queries.getValidAccountId(file.submitter.address, file.submitter.type),
+            }
+        }
+    }
+
+    async estimateFeesPublishFile(parameters: { hash: Hash }): Promise<FeesClass> {
+        const client = this.locSharedState.client;
+        const file = this.findFile(parameters.hash);
+        return client.estimateFeesPublishFile(file);
+    }
+
+    async publishMetadata(parameters: { nameHash: Hash } & BlockchainSubmissionParams): Promise<OpenLoc> {
+        const client = this.locSharedState.client;
+        const metadata = this.findMetadata(parameters.nameHash);
         await client.publishMetadata({
+            ...metadata,
+            signer: parameters.signer,
+            callback: parameters.callback,
+        });
+        return await this.refresh() as OpenLoc;
+    }
+
+    private findMetadata(nameHash: Hash): EstimateFeesPublishMetadataParams {
+        const metadata = this.request.metadata.find(metadata => metadata.nameHash === nameHash.toHex() && metadata.status === "REVIEW_ACCEPTED");
+        if (!metadata) {
+            throw new Error("File was not found or was not reviewed and accepted by the LLO yet");
+        }
+        return {
             locId: this.locId,
             metadata: {
                 name: metadata.name,
                 value: metadata.value,
                 submitter: this.locSharedState.nodeApi.queries.getValidAccountId(metadata.submitter.address, metadata.submitter.type),
-            },
-            signer: parameters.signer,
-            callback: parameters.callback,
-        });
-        return await this.refresh() as OpenLoc;
+            }
+        }
+    }
+
+    async estimateFeesPublishMetadata(parameters: { nameHash: Hash }): Promise<FeesClass> {
+        const client = this.locSharedState.client;
+        const metadata = this.findMetadata(parameters.nameHash);
+        return client.estimatePublishMetadata(metadata);
     }
 
     override get legalOfficer(): LegalOfficerOpenRequestCommands {
@@ -1309,20 +1394,36 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
     private legalOfficerLocWithSelectableIssuersCommands: LegalOfficerLocWithSelectableIssuersCommands<OpenLoc>;
 
     async publishLink(parameters: { target: UUID } & BlockchainSubmissionParams): Promise<OpenLoc> {
-        const link = this.request.data().links.find(link => link.target === parameters.target.toString());
+        const link = this.findLink(parameters.target);
         if(!link) {
             throw new Error("Link was not found");
         }
         await this.client.publishLink({
-            locId: this.locId,
-            link: {
-                id: parameters.target,
-                nature: Hash.of(link.nature),
-            },
+            ...link,
             signer: parameters.signer,
             callback: parameters.callback,
         });
         return await this.request.refresh() as OpenLoc;
+    }
+
+    private findLink(target: UUID): EstimateFeesPublishLinkParams {
+        const link = this.request.data().links.find(link => link.target === target.toString());
+        if(!link) {
+            throw new Error("Link was not found");
+        }
+        return {
+            locId: this.locId,
+            link: {
+                id: target,
+                nature: Hash.of(link.nature),
+            },
+        }
+    }
+
+    async estimateFeesPublishLink(parameters: { target: UUID }): Promise<FeesClass> {
+        const client = this.client;
+        const link = this.findLink(parameters.target);
+        return client.estimateFeesPublishLink(link);
     }
 
     async acknowledgeFile(parameters: AckFileParams): Promise<OpenLoc> {
@@ -1340,6 +1441,10 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
         return await this.request.refresh() as OpenLoc;
     }
 
+    async estimateFeesAcknowledgeFile(parameters: EstimateFeesAckFileParams): Promise<FeesClass> {
+        return await this.client.estimateFeesAcknowledgeFile({ locId: this.locId, ...parameters });
+    }
+
     async acknowledgeMetadata(parameters: AckMetadataParams): Promise<OpenLoc> {
         this.request.ensureCurrent();
         const metadata = this.request.data().metadata.find(metadata => metadata.nameHash.equalTo(parameters.nameHash) && metadata.status === "PUBLISHED");
@@ -1353,6 +1458,10 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
             callback: parameters.callback,
         });
         return await this.request.refresh() as OpenLoc;
+    }
+
+    async estimateFeesAcknowledgeMetadata(parameters: EstimateFeesAckMetadataParams): Promise<FeesClass> {
+        return this.client.estimateFeesAcknowledgeMetadata({ locId: this.locId, ...parameters })
     }
 
     async close(parameters: BlockchainSubmissionParams): Promise<ClosedLoc | ClosedCollectionLoc> {
@@ -1688,6 +1797,14 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
             ...parameters
         })
         return this;
+    }
+
+    async estimateFeesAddCollectionItem(parameters: EstimateFeesAddCollectionItemParams): Promise<FeesClass> {
+        const client = this.locSharedState.client;
+        return client.estimateFeesAddCollectionItem({
+            locId: this.locId,
+            ...parameters
+        })
     }
 
     async uploadCollectionItemFile(parameters: UploadCollectionItemFileParams): Promise<ClosedCollectionLoc> {

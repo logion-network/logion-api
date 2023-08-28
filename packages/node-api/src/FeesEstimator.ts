@@ -1,9 +1,6 @@
 import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types.js";
-import { UUID } from "./UUID.js";
-import { Adapters } from "./Adapters.js";
-import { ValidAccountId, LocType } from "./Types.js";
-import { Hash } from "./Hash.js";
+import { LocType } from "./Types.js";
 
 export class Fees {
 
@@ -39,27 +36,21 @@ export class Fees {
 
 export class FeesEstimator {
 
-    constructor(api: ApiPromise, adapters: Adapters) {
+    constructor(api: ApiPromise) {
         this.api = api;
-        this.adapters = adapters;
     }
 
     private readonly api: ApiPromise;
-    private readonly adapters: Adapters;
 
-    async estimateAddFile(args: {
-        locId: UUID,
-        hash: Hash,
-        nature: Hash,
-        submitter: ValidAccountId,
-        size: bigint,
+    async estimateWithStorage(params: {
         origin: string,
+        submittable: SubmittableExtrinsic,
+        size: bigint,
     }): Promise<Fees> {
-        const submittable = this.api.tx.logionLoc.addFile(Adapters.toLocId(args.locId), this.adapters.toPalletLogionLocFile(args));
-        const inclusionFee = await this.estimateInclusionFee(args.origin, submittable);
+        const inclusionFee = await this.estimateInclusionFee(params.origin, params.submittable);
         const storageFee = await this.estimateStorageFee({
             numOfEntries: 1n,
-            totSize: args.size,
+            totSize: params.size,
         });
         return new Fees({ inclusionFee, storageFee });
     }
@@ -106,5 +97,24 @@ export class FeesEstimator {
         const { tokenIssuance } = params;
         const fee = await this.api.call.feesApi.queryCertificateFee(tokenIssuance);
         return fee.toBigInt();
+    }
+
+    async estimateAddCollectionItem(params: {
+        origin: string,
+        submittable: SubmittableExtrinsic,
+        numOfEntries: bigint,
+        totSize: bigint,
+        tokenIssuance: bigint | undefined,
+    }): Promise<Fees> {
+        const { origin, submittable, numOfEntries, totSize } = params;
+        const tokenIssuance = params.tokenIssuance || 0n;
+        const inclusionFee = await this.estimateInclusionFee(origin, submittable);
+        const storageFee = await this.estimateStorageFee({ numOfEntries, totSize })
+        const certificateFee = await this.estimateCertificateFee({ tokenIssuance })
+        return new Fees({
+            inclusionFee,
+            storageFee,
+            certificateFee,
+        });
     }
 }

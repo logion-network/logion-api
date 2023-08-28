@@ -30,7 +30,7 @@ export class LogionNodeApiClass {
     constructor(api: ApiPromise) {
         this.polkadot = api;
         this.adapters = new Adapters(api);
-        this.fees = new FeesEstimator(api, this.adapters);
+        this.fees = new FeesEstimator(api);
         this.queries = new Queries(api, this.adapters);
     }
 

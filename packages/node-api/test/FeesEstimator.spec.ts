@@ -4,16 +4,12 @@ import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces';
 import { Mock } from "moq.ts";
 import { Balance } from "../src/interfaces/index.js";
 import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
-import { Adapters } from "../src/Adapters.js";
-import { POLKADOT_API_CREATE_TYPE, mockCodecWithToString, mockValidAccountId } from "./Util.js";
-import { UUID, FeesEstimator, Hash } from "../src/index.js";
+import { POLKADOT_API_CREATE_TYPE, mockCodecWithToString } from "./Util.js";
+import { FeesEstimator } from "../src/index.js";
 
 describe("FeesEstimator", () => {
 
-    const LOC_REQUEST_ID = "9a1575ca-fbe8-4a61-a5b0-357300b7a57d";
-
     it("estimates fees on file add", async () => {
-        const expectedStorageFee = BigInt(100);
 
         const dispatchInfo = new Mock<RuntimeDispatchInfo>();
         const expectedInclusionFee = BigInt(42);
@@ -21,22 +17,22 @@ describe("FeesEstimator", () => {
         const submittable = new Mock<SubmittableExtrinsic>();
         submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
 
+        const expectedStorageFee = BigInt(100);
         const queryFileStorageFee = () => Promise.resolve({ toBigInt: () => expectedStorageFee } as Balance );
-        const addFile = () => submittable.object();
 
-        const api = mockPolkadotApiForFeesEstimator(queryFileStorageFee, addFile);
-        const estimator = new FeesEstimator(api, new Adapters(api));
-        const fees = await estimator.estimateAddFile({
-            locId: new UUID(LOC_REQUEST_ID),
-            hash: Hash.fromHex("0xf2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2"),
-            nature: Hash.of("Some nature"),
-            submitter: mockValidAccountId(DEFAULT_LEGAL_OFFICER),
+        const api = mockPolkadotApiForFeesEstimator({ queryFileStorageFee });
+        const estimator = new FeesEstimator(api);
+        const fees = await estimator.estimateWithStorage({
             size: BigInt(42),
             origin: DEFAULT_LEGAL_OFFICER,
+            submittable: submittable.object(),
         });
 
         expect(fees.inclusionFee).toBe(expectedInclusionFee);
         expect(fees.storageFee).toBe(expectedStorageFee);
+        expect(fees.legalFee).toBeUndefined();
+        expect(fees.certificateFee).toBeUndefined();
+        expect(fees.valueFee).toBeUndefined();
         expect(fees.totalFee).toBe(expectedInclusionFee + expectedStorageFee);
     });
 
@@ -47,8 +43,8 @@ describe("FeesEstimator", () => {
         const submittable = new Mock<SubmittableExtrinsic>();
         submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
 
-        const api = mockPolkadotApiForFeesEstimator();
-        const estimator = new FeesEstimator(api, new Adapters(api));
+        const api = mockPolkadotApiForFeesEstimator({});
+        const estimator = new FeesEstimator(api);
         const fees = await estimator.estimateWithoutStorage({
             origin: DEFAULT_LEGAL_OFFICER,
             submittable: submittable.object(),
@@ -56,20 +52,84 @@ describe("FeesEstimator", () => {
 
         expect(fees.inclusionFee).toBe(expectedInclusionFee);
         expect(fees.storageFee).toBeUndefined();
+        expect(fees.legalFee).toBeUndefined();
+        expect(fees.certificateFee).toBeUndefined();
+        expect(fees.valueFee).toBeUndefined();
         expect(fees.totalFee).toBe(expectedInclusionFee);
+    });
+
+    it("estimates fees on LOC creation", async () => {
+
+        const dispatchInfo = new Mock<RuntimeDispatchInfo>();
+        const expectedInclusionFee = BigInt(42);
+        dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToString(expectedInclusionFee.toString()));
+        const submittable = new Mock<SubmittableExtrinsic>();
+        submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
+
+        const expectedLegalFee = BigInt(1000);
+        const queryLegalFee = () => Promise.resolve({ toBigInt: () => expectedLegalFee } as Balance );
+
+        const expectedValueFee = BigInt(2000);
+
+        const api = mockPolkadotApiForFeesEstimator( { queryLegalFee } );
+        const estimator = new FeesEstimator(api);
+        const fees = await estimator.estimateCreateLoc({
+            origin: DEFAULT_LEGAL_OFFICER,
+            submittable: submittable.object(),
+            locType: "Collection",
+            valueFee: expectedValueFee,
+        });
+
+        expect(fees.inclusionFee).toBe(expectedInclusionFee);
+        expect(fees.storageFee).toBeUndefined();
+        expect(fees.legalFee).toBe(expectedLegalFee);
+        expect(fees.certificateFee).toBeUndefined();
+        expect(fees.valueFee).toBe(expectedValueFee);
+        expect(fees.totalFee).toBe(expectedInclusionFee + expectedLegalFee + expectedValueFee);
+    });
+
+    it("estimates fees on Collection Item addition", async () => {
+
+        const dispatchInfo = new Mock<RuntimeDispatchInfo>();
+        const expectedInclusionFee = BigInt(42);
+        dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToString(expectedInclusionFee.toString()));
+        const submittable = new Mock<SubmittableExtrinsic>();
+        submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
+
+        const expectedStorageFee = BigInt(100);
+        const queryFileStorageFee = () => Promise.resolve({ toBigInt: () => expectedStorageFee } as Balance );
+
+        const expectedCertificateFee = BigInt(1000);
+        const queryCertificateFee = () => Promise.resolve({ toBigInt: () => expectedCertificateFee } as Balance );
+
+        const api = mockPolkadotApiForFeesEstimator( { queryCertificateFee, queryFileStorageFee } );
+        const estimator = new FeesEstimator(api);
+        const fees = await estimator.estimateAddCollectionItem({
+            origin: DEFAULT_LEGAL_OFFICER,
+            submittable: submittable.object(),
+            numOfEntries: BigInt(5),
+            totSize: BigInt(5),
+            tokenIssuance: BigInt(5),
+        });
+
+        expect(fees.inclusionFee).toBe(expectedInclusionFee);
+        expect(fees.storageFee).toBe(expectedStorageFee);
+        expect(fees.legalFee).toBeUndefined();
+        expect(fees.certificateFee).toBe(expectedCertificateFee);
+        expect(fees.valueFee).toBeUndefined();
+        expect(fees.totalFee).toBe(expectedInclusionFee + expectedStorageFee + expectedCertificateFee);
     });
 });
 
-function mockPolkadotApiForFeesEstimator(queryFileStorageFee?: any, addFile?: any) {
+
+function mockPolkadotApiForFeesEstimator(params: { queryFileStorageFee?: any, queryLegalFee?: any, queryCertificateFee?: any}) {
+    const { queryFileStorageFee, queryLegalFee, queryCertificateFee } = params;
     return {
-        tx: {
-            logionLoc: {
-                addFile,
-            },
-        },
         call: {
             feesApi: {
                 queryFileStorageFee,
+                queryLegalFee,
+                queryCertificateFee,
             }
         },
         createType: POLKADOT_API_CREATE_TYPE,
