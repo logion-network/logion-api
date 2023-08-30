@@ -102,14 +102,16 @@ export class Adapters {
                 name: Hash.fromHex(rawItem.name.toHex()),
                 value: Hash.fromHex(rawItem.value.toHex()),
                 submitter: this.fromPalletLogionLocSupportedAccountId(rawItem.submitter),
-                acknowledged: rawItem.acknowledged.isTrue,
+                acknowledgedByOwner: rawItem.acknowledgedByOwner.isTrue,
+                acknowledgedByVerifiedIssuer: rawItem.acknowledgedByVerifiedIssuer.isTrue,
             })),
             files: rawLoc.files.toArray().map(rawFile => ({
                 hash: Hash.fromHex(rawFile.hash_.toHex()),
                 nature: Hash.fromHex(rawFile.nature.toHex()),
                 submitter: this.fromPalletLogionLocSupportedAccountId(rawFile.submitter),
                 size: rawFile.size_.toBigInt(),
-                acknowledged: rawFile.acknowledged.isTrue,
+                acknowledgedByOwner: rawFile.acknowledgedByOwner.isTrue,
+                acknowledgedByVerifiedIssuer: rawFile.acknowledgedByVerifiedIssuer.isTrue,
             })),
             links: rawLoc.links.toArray().map(rawLink => ({
                 id: UUID.fromDecimalStringOrThrow(rawLink.id.toString()),

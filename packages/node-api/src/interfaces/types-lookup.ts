@@ -1997,7 +1997,8 @@ declare module '@polkadot/types/lookup' {
     readonly name: H256;
     readonly value: H256;
     readonly submitter: PalletLogionLocSupportedAccountId;
-    readonly acknowledged: bool;
+    readonly acknowledgedByOwner: bool;
+    readonly acknowledgedByVerifiedIssuer: bool;
   }
 
   /** @name PalletLogionLocFile (203) */
@@ -2006,7 +2007,8 @@ declare module '@polkadot/types/lookup' {
     readonly nature: H256;
     readonly submitter: PalletLogionLocSupportedAccountId;
     readonly size_: u32;
-    readonly acknowledged: bool;
+    readonly acknowledgedByOwner: bool;
+    readonly acknowledgedByVerifiedIssuer: bool;
   }
 
   /** @name PalletLogionLocLocType (204) */
@@ -2071,7 +2073,8 @@ declare module '@polkadot/types/lookup' {
     readonly isV16MoveTokenIssuance: boolean;
     readonly isV17HashItemRecordPublicData: boolean;
     readonly isV18AddValueFee: boolean;
-    readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance' | 'V16MoveTokenIssuance' | 'V17HashItemRecordPublicData' | 'V18AddValueFee';
+    readonly isV19AcknowledgeItemsByIssuer: boolean;
+    readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance' | 'V16MoveTokenIssuance' | 'V17HashItemRecordPublicData' | 'V18AddValueFee' | 'V19AcknowledgeItemsByIssuer';
   }
 
   /** @name PalletLogionLocError (220) */

@@ -171,7 +171,8 @@ function mockPolkadotApiForLogionLoc() {
                                         toString: () => item.submitter.address
                                     }
                                 },
-                                acknowledged: mockBool(item.acknowledged),
+                                acknowledgedByOwner: mockBool(item.acknowledgedByOwner),
+                                acknowledgedByVerifiedIssuer: mockBool(item.acknowledgedByVerifiedIssuer),
                             }))
                         },
                         files: {
@@ -191,7 +192,8 @@ function mockPolkadotApiForLogionLoc() {
                                 size_: {
                                     toBigInt: () => file.size
                                 },
-                                acknowledged: mockBool(file.acknowledged),
+                                acknowledgedByOwner: mockBool(file.acknowledgedByOwner),
+                                acknowledgedByVerifiedIssuer: mockBool(file.acknowledgedByVerifiedIssuer),
                             }))
                         },
                         links: {
@@ -271,7 +273,8 @@ export const DEFAULT_LOC: LegalOfficerCase = {
             name: Hash.of("meta_name"),
             value: Hash.of("meta_value"),
             submitter: mockValidAccountId("owner"),
-            acknowledged: true,
+            acknowledgedByOwner: true,
+            acknowledgedByVerifiedIssuer: false,
         }
     ],
     files: [
@@ -280,7 +283,8 @@ export const DEFAULT_LOC: LegalOfficerCase = {
             nature: Hash.of("file-nature"),
             submitter: mockValidAccountId("owner"),
             size: BigInt(128000),
-            acknowledged: true,
+            acknowledgedByOwner: true,
+            acknowledgedByVerifiedIssuer: false,
         }
     ],
     links: [

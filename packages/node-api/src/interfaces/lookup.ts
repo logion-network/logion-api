@@ -1805,7 +1805,8 @@ export default {
     name: 'H256',
     value: 'H256',
     submitter: 'PalletLogionLocSupportedAccountId',
-    acknowledged: 'bool'
+    acknowledgedByOwner: 'bool',
+    acknowledgedByVerifiedIssuer: 'bool'
   },
   /**
    * Lookup203: pallet_logion_loc::File<primitive_types::H256, sp_core::crypto::AccountId32, primitive_types::H160>
@@ -1819,7 +1820,8 @@ export default {
     nature: 'H256',
     submitter: 'PalletLogionLocSupportedAccountId',
     size_: 'u32',
-    acknowledged: 'bool'
+    acknowledgedByOwner: 'bool',
+    acknowledgedByVerifiedIssuer: 'bool'
   },
   /**
    * Lookup204: pallet_logion_loc::LocType
@@ -1870,7 +1872,7 @@ export default {
    * Lookup219: pallet_logion_loc::pallet::StorageVersion
    **/
   PalletLogionLocStorageVersion: {
-    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize', 'V11EnableEthereumSubmitter', 'V12Sponsorship', 'V13AcknowledgeItems', 'V14HashLocPublicData', 'V15AddTokenIssuance', 'V16MoveTokenIssuance', 'V17HashItemRecordPublicData', 'V18AddValueFee']
+    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize', 'V11EnableEthereumSubmitter', 'V12Sponsorship', 'V13AcknowledgeItems', 'V14HashLocPublicData', 'V15AddTokenIssuance', 'V16MoveTokenIssuance', 'V17HashItemRecordPublicData', 'V18AddValueFee', 'V19AcknowledgeItemsByIssuer']
   },
   /**
    * Lookup220: pallet_logion_loc::pallet::Error<T>

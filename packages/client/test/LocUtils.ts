@@ -82,7 +82,8 @@ export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType
                 nature: Hash.of("Some nature"),
                 submitter: requester,
                 size: 128n,
-                acknowledged: status === "CLOSED",
+                acknowledgedByOwner: status === "CLOSED",
+                acknowledgedByVerifiedIssuer: false,
             }
         ],
         links: [],
