@@ -18,7 +18,8 @@ export interface MetadataItemParams {
 }
 
 export interface MetadataItem extends MetadataItemParams {
-    acknowledged: boolean;
+    acknowledgedByOwner: boolean;
+    acknowledgedByVerifiedIssuer: boolean;
 }
 
 export interface FileParams {
@@ -29,7 +30,8 @@ export interface FileParams {
 }
 
 export interface File extends FileParams {
-    acknowledged: boolean;
+    acknowledgedByOwner: boolean;
+    acknowledgedByVerifiedIssuer: boolean;
 }
 
 export interface Link {

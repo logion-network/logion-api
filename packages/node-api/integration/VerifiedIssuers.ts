@@ -1,5 +1,5 @@
 import { Currency, UUID, Adapters, Hash } from "../src/index.js";
-import { ALICE, ISSUER, setup, signAndSend, signAndSendBatch } from "./Util.js";
+import { ALICE, ISSUER, setup, signAndSend, signAndSendBatch, REQUESTER } from "./Util.js";
 
 export async function verifiedIssuers() {
     const { api, alice, issuer, requester } = await setup();
@@ -19,13 +19,40 @@ export async function verifiedIssuers() {
     await signAndSend(requester,
         api.polkadot.tx.logionLoc.createCollectionLoc(collectionLocId.toDecimalString(), ALICE, null, 200, true, 0),
     );
+
     await signAndSendBatch(alice, [
         api.polkadot.tx.logionLoc.setIssuerSelection(collectionLocId.toDecimalString(), ISSUER, true),
+        // Metadata by owner
         api.polkadot.tx.logionLoc.addMetadata(collectionLocId.toDecimalString(), api.adapters.toPalletLogionLocMetadataItem({
-            name: Hash.of("Test"),
+            name: Hash.of("TestOwner"),
+            value: Hash.of("Test"),
+            submitter: api.queries.getValidAccountId(ALICE, "Polkadot"),
+        })),
+    ]);
+
+    await signAndSendBatch(requester, [
+        // Metadata by requester
+        api.polkadot.tx.logionLoc.addMetadata(collectionLocId.toDecimalString(), api.adapters.toPalletLogionLocMetadataItem({
+            name: Hash.of("TestRequester"),
+            value: Hash.of("Test"),
+            submitter: api.queries.getValidAccountId(REQUESTER, "Polkadot"),
+        })),
+
+        // Metadata by issuer
+        api.polkadot.tx.logionLoc.addMetadata(collectionLocId.toDecimalString(), api.adapters.toPalletLogionLocMetadataItem({
+            name: Hash.of("TestIssuer"),
             value: Hash.of("Test"),
             submitter: api.queries.getValidAccountId(ISSUER, "Polkadot"),
         })),
+    ]);
+
+    await signAndSend(issuer,
+        api.polkadot.tx.logionLoc.acknowledgeMetadata(collectionLocId.toDecimalString(), api.adapters.toH256(Hash.of("TestIssuer"))),
+    );
+
+    await signAndSendBatch(alice, [
+        api.polkadot.tx.logionLoc.acknowledgeMetadata(collectionLocId.toDecimalString(), api.adapters.toH256(Hash.of("TestRequester"))),
+        api.polkadot.tx.logionLoc.acknowledgeMetadata(collectionLocId.toDecimalString(), api.adapters.toH256(Hash.of("TestIssuer"))),
         api.polkadot.tx.logionLoc.close(collectionLocId.toDecimalString()),
     ]);
 
