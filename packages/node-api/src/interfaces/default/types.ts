@@ -89,7 +89,8 @@ export interface File extends Struct {
   readonly hash: Hash;
   readonly nature: Hash;
   readonly submitter: SupportedAccountId;
-  readonly acknowledged: bool;
+  readonly acknowledgedByOwner: bool;
+  readonly acknowledgedByVerifiedIssuer: bool;
 }
 
 /** @name FileParams */
@@ -182,7 +183,8 @@ export interface MetadataItem extends Struct {
   readonly name: Hash;
   readonly value: Hash;
   readonly submitter: SupportedAccountId;
-  readonly acknowledged: bool;
+  readonly acknowledgedByOwner: bool;
+  readonly acknowledgedByVerifiedIssuer: bool;
 }
 
 /** @name MetadataItemParams */

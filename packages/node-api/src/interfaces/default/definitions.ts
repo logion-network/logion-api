@@ -58,7 +58,8 @@ export default {
             name: "Hash",
             value: "Hash",
             submitter: "SupportedAccountId",
-            acknowledged: "bool"
+            acknowledgedByOwner: "bool",
+            acknowledgedByVerifiedIssuer: "bool"
         },
         LocType: {
             _enum: [
@@ -80,7 +81,8 @@ export default {
             hash: "Hash",
             nature: "Hash",
             submitter: "SupportedAccountId",
-            acknowledged: "bool"
+            acknowledgedByOwner: "bool",
+            acknowledgedByVerifiedIssuer: "bool"
         },
         LocVoidInfo: {
             replacer: "Option<LocId>"

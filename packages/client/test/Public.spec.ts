@@ -77,7 +77,9 @@ describe("PublicLoc", () => {
             hash: Hash.fromHex(EXISTING_FILE.hash),
             published: true,
             size: BigInt(EXISTING_FILE.size),
-            submitter: REQUESTER
+            submitter: REQUESTER,
+            acknowledgedByOwner: false,
+            acknowledgedByVerifiedIssuer: false,
         } ]);
         data.setup(instance => instance.metadata).returns([]);
 

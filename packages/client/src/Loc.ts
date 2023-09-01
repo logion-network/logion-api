@@ -113,6 +113,8 @@ export interface MergedFile extends Partial<AddedOn>, Published {
     reviewedOn?: string;
     submitter: ValidAccountId;
     size: bigint;
+    acknowledgedByOwner: boolean;
+    acknowledgedByVerifiedIssuer: boolean;
 }
 
 export interface MergedMetadataItem extends Partial<AddedOn>, Published {
@@ -124,6 +126,8 @@ export interface MergedMetadataItem extends Partial<AddedOn>, Published {
     rejectReason?: string;
     reviewedOn?: string;
     submitter: ValidAccountId;
+    acknowledgedByOwner: boolean;
+    acknowledgedByVerifiedIssuer: boolean;
 }
 
 export class LocsState extends State {
@@ -808,6 +812,8 @@ export abstract class LocRequestState extends State {
                 nameHash: Hash.fromHex(backendMetadataItem.nameHash),
                 submitter: api.queries.getValidAccountId(backendMetadataItem.submitter.address, backendMetadataItem.submitter.type),
                 published: false,
+                acknowledgedByOwner: false,
+                acknowledgedByVerifiedIssuer: false,
             };
         }
     }
@@ -828,6 +834,8 @@ export abstract class LocRequestState extends State {
                 submitter: api.queries.getValidAccountId(backendFile.submitter.address, backendFile.submitter.type),
                 size: BigInt(backendFile.size),
                 published: false,
+                acknowledgedByOwner: false,
+                acknowledgedByVerifiedIssuer: false,
             }
         }
     }
@@ -1298,8 +1306,9 @@ export class OpenLoc extends EditableRequest {
     }
 
     async publishFile(parameters: { hash: Hash } & BlockchainSubmissionParams): Promise<OpenLoc> {
+        // TODO: Check signer is requester
         const client = this.locSharedState.client;
-        const file = this.findFile(parameters.hash);
+        const file = this.findFile(parameters.hash, "REVIEW_ACCEPTED");
         await client.publishFile({
             ...file,
             signer: parameters.signer,
@@ -1308,10 +1317,10 @@ export class OpenLoc extends EditableRequest {
         return await this.refresh() as OpenLoc;
     }
 
-    private findFile(hash: Hash): EstimateFeesPublishFileParams {
-        const file = this.request.files.find(file => file.hash === hash.toHex() && file.status === "REVIEW_ACCEPTED");
+    private findFile(hash: Hash, status: ItemStatus): EstimateFeesPublishFileParams {
+        const file = this.request.files.find(file => file.hash === hash.toHex() && file.status === status);
         if(!file) {
-            throw new Error("File was not found or was not reviewed and accepted by the LLO yet");
+            throw new Error(`File ${ hash.toHex() } with status ${ status } was not found`);
         }
         return {
             locId: this.locId,
@@ -1326,13 +1335,35 @@ export class OpenLoc extends EditableRequest {
 
     async estimateFeesPublishFile(parameters: { hash: Hash }): Promise<FeesClass> {
         const client = this.locSharedState.client;
-        const file = this.findFile(parameters.hash);
+        const file = this.findFile(parameters.hash, "REVIEW_ACCEPTED");
         return client.estimateFeesPublishFile(file);
     }
 
-    async publishMetadata(parameters: { nameHash: Hash } & BlockchainSubmissionParams): Promise<OpenLoc> {
+    async acknowledgeFile(parameters: AckFileParams): Promise<OpenLoc> {
+        // TODO: Check signer is verified issuer
         const client = this.locSharedState.client;
-        const metadata = this.findMetadata(parameters.nameHash);
+        this.findFile(parameters.hash, "PUBLISHED");
+        await client.acknowledgeFile({
+            locId: this.locId,
+            hash: parameters.hash,
+            signer: parameters.signer,
+            callback: parameters.callback,
+        });
+        return await this.refresh() as OpenLoc;
+    }
+
+    async estimateFeesAcknowledgeFile(parameters: EstimateFeesAckFileParams): Promise<FeesClass> {
+        const client = this.locSharedState.client;
+        return await client.estimateFeesAcknowledgeFile({
+            locId: this.locId,
+            ...parameters
+        });
+    }
+
+    async publishMetadata(parameters: { nameHash: Hash } & BlockchainSubmissionParams): Promise<OpenLoc> {
+        // TODO: Check signer is requester
+        const client = this.locSharedState.client;
+        const metadata = this.findMetadata(parameters.nameHash, "REVIEW_ACCEPTED");
         await client.publishMetadata({
             ...metadata,
             signer: parameters.signer,
@@ -1341,10 +1372,10 @@ export class OpenLoc extends EditableRequest {
         return await this.refresh() as OpenLoc;
     }
 
-    private findMetadata(nameHash: Hash): EstimateFeesPublishMetadataParams {
-        const metadata = this.request.metadata.find(metadata => metadata.nameHash === nameHash.toHex() && metadata.status === "REVIEW_ACCEPTED");
+    private findMetadata(nameHash: Hash, status: ItemStatus): EstimateFeesPublishMetadataParams {
+        const metadata = this.request.metadata.find(metadata => metadata.nameHash === nameHash.toHex() && metadata.status === status);
         if (!metadata) {
-            throw new Error("File was not found or was not reviewed and accepted by the LLO yet");
+            throw new Error(`Metadata ${ nameHash.toHex() } with status ${ status } not found`);
         }
         return {
             locId: this.locId,
@@ -1358,8 +1389,29 @@ export class OpenLoc extends EditableRequest {
 
     async estimateFeesPublishMetadata(parameters: { nameHash: Hash }): Promise<FeesClass> {
         const client = this.locSharedState.client;
-        const metadata = this.findMetadata(parameters.nameHash);
+        const metadata = this.findMetadata(parameters.nameHash, "REVIEW_ACCEPTED");
         return client.estimatePublishMetadata(metadata);
+    }
+
+    async acknowledgeMetadata(parameters: AckMetadataParams): Promise<OpenLoc> {
+        // TODO: Check signer is verified issuer
+        const client = this.locSharedState.client;
+        this.findMetadata(parameters.nameHash, "PUBLISHED");
+        await client.acknowledgeMetadata({
+            locId: this.locId,
+            nameHash: parameters.nameHash,
+            signer: parameters.signer,
+            callback: parameters.callback,
+        });
+        return await this.refresh() as OpenLoc;
+    }
+
+    async estimateFeesAcknowledgeMetadata(parameters: EstimateFeesAckMetadataParams): Promise<FeesClass> {
+        const client = this.locSharedState.client;
+        return await client.estimateFeesAcknowledgeMetadata({
+            locId: this.locId,
+            ...parameters
+        });
     }
 
     override get legalOfficer(): LegalOfficerOpenRequestCommands {
