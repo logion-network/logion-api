@@ -1,9 +1,10 @@
-import { web3AccountsSubscribe, web3Enable, isWeb3Injected, web3Accounts } from '@polkadot/extension-dapp';
+import { web3AccountsSubscribe, web3Enable, web3EnablePromise, web3Accounts } from '@polkadot/extension-dapp';
 import initMetaMask from "@polkadot/extension-compat-metamask/bundle";
 import { InjectedAccountWithMeta, InjectedExtension } from '@polkadot/extension-inject/types';
 
-export function isExtensionAvailable(): boolean {
-    return isWeb3Injected;
+export async function isExtensionAvailable(appName: string): Promise<boolean> {
+    const extensions = await web3Enable(appName);
+    return extensions.length > 0;
 }
 
 export type InjectedAccount = InjectedAccountWithMeta;
@@ -13,7 +14,13 @@ export type InjectedAccountsConsumer = (accounts: InjectedAccount[]) => void;
 export type InjectedAccountsConsumerRegister = (consumer: InjectedAccountsConsumer) => void;
 
 export async function enableExtensions(appName: string): Promise<InjectedAccountsConsumerRegister> {
-    await web3Enable(appName);
+    const extensions =
+        web3EnablePromise === null ?
+        await web3Enable(appName) :
+        await web3EnablePromise;
+    if (extensions === null || extensions.length === 0) {
+        throw new Error("Failed to detect any web3 extensions");
+    }
     return consumer => web3AccountsSubscribe(consumer, { extensions: [ "polkadot-js" ] });
 }
 
