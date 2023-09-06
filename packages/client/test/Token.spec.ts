@@ -36,10 +36,17 @@ const esdtTypes: TokenType[] = [
     "multiversx_esdt",
 ]
 
+const psp34Types: TokenType[] = [
+    "astar_psp34",
+    "astar_shiden_psp34",
+    "astar_shibuya_psp34",
+]
+
 const allTypes: TokenType[] = [
     ...ercNonFungibleTypes,
     ...ercFungibleTypes,
     ...esdtTypes,
+    ...psp34Types,
     ...otherTypes,
 ];
 
@@ -88,6 +95,10 @@ describe("Token", () => {
 
         it(`checks that singular_kusama is POLKADOT-compatible`, () =>
             testIsTokenCompatibleWith('singular_kusama', 'POLKADOT')
+        );
+
+        it(`checks that PSP34 token types are POLKADOT-compatible`, () =>
+            psp34Types.forEach(type => testIsTokenCompatibleWith(type, 'POLKADOT'))
         );
 
         it("validates valid owner token with Ethereum address", () => {
@@ -157,6 +168,75 @@ describe("Token", () => {
             )
         });
 
+        it("validates valid PSP34 token", () => {
+            psp34Types.forEach(type => {
+                testValid({
+                    type,
+                    issuance: 1n,
+                    id: '{"contract":"XyNVZ92vFrYf4rCj8EoAXMRWRG7okRy7gxhn167HaYQZqTc","id":{ "U32": 42 }}',
+                });
+            });
+        });
+
+        it("invalidates PSP34 token with invalid JSON", () => {
+            psp34Types.forEach(type => {
+                testInvalid({
+                    type,
+                    issuance: 1n,
+                    id: '{42}',
+                }, "token ID is not valid JSON");
+            });
+        });
+
+        it("invalidates PSP34 token with no JSON dictionnary", () => {
+            psp34Types.forEach(type => {
+                testInvalid({
+                    type,
+                    issuance: 1n,
+                    id: '42',
+                }, "token ID is not a JSON dictionnary");
+            });
+        });
+
+        it("invalidates PSP34 token with missing contract", () => {
+            psp34Types.forEach(type => {
+                testInvalid({
+                    type,
+                    issuance: 1n,
+                    id: '{"id": { "U32": 42 }}',
+                }, "token ID is missing the 'contract' field");
+            });
+        });
+
+        it("invalidates PSP34 token with missing id", () => {
+            psp34Types.forEach(type => {
+                testInvalid({
+                    type,
+                    issuance: 1n,
+                    id: '{"contract":"XyNVZ92vFrYf4rCj8EoAXMRWRG7okRy7gxhn167HaYQZqTc"}',
+                }, "token ID is missing the 'id' field");
+            });
+        });
+
+        it("invalidates PSP34 token with non-object ID", () => {
+            psp34Types.forEach(type => {
+                testInvalid({
+                    type,
+                    issuance: 1n,
+                    id: '{"contract":"XyNVZ92vFrYf4rCj8EoAXMRWRG7okRy7gxhn167HaYQZqTc","id": 42}',
+                }, "token ID's 'id' field is not an object");
+            });
+        });
+
+        it("invalidates PSP34 token with ID without value", () => {
+            psp34Types.forEach(type => {
+                testInvalid({
+                    type,
+                    issuance: 1n,
+                    id: '{"contract":"XyNVZ92vFrYf4rCj8EoAXMRWRG7okRy7gxhn167HaYQZqTc","id": {}}',
+                }, "token ID's 'id' object is missing a value for U8, U16, U32, U64, U128 or Bytes");
+            });
+        });
     });
 
     describe("isTokenType", () => {

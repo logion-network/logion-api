@@ -25,6 +25,9 @@ export type TokenType =
     | 'multiversx_devnet_esdt'
     | 'multiversx_testnet_esdt'
     | 'multiversx_esdt'
+    | 'astar_psp34'
+    | 'astar_shiden_psp34'
+    | 'astar_shibuya_psp34'
     ;
 
 export type NetworkType = 'ETHEREUM' | 'POLKADOT' | 'MULTIVERSX';
@@ -48,6 +51,9 @@ export function isTokenType(type: string): type is TokenType {
         || type === 'multiversx_devnet_esdt'
         || type === 'multiversx_testnet_esdt'
         || type === 'multiversx_esdt'
+        || type === 'astar_psp34'
+        || type === 'astar_shiden_psp34'
+        || type === 'astar_shibuya_psp34'
     );
 }
 
@@ -58,11 +64,12 @@ export function isTokenCompatibleWith(type: TokenType, networkType: NetworkType)
     if (networkType === 'ETHEREUM') {
         return type.startsWith("ethereum")
             || type.startsWith("goerli")
-            || type.startsWith("polygon")
+            || type.startsWith("polygon");
     } else if (networkType === 'MULTIVERSX') {
-        return type.startsWith("multiversx")
+        return type.startsWith("multiversx");
     } else {
         return type === "singular_kusama"
+            || type.startsWith("astar");
     }
 }
 
@@ -125,6 +132,8 @@ export function validateToken(api: LogionNodeApiClass, itemToken: ItemTokenWithR
                 error: "token ID must be a valid MultiversX ESDT ID",
             }
         }
+    } else if (itemToken.type.includes("psp34")) {
+        return validatePsp34TokenId(itemToken.id);
     } else {
         return {
             valid: false,
@@ -182,4 +191,62 @@ export function isSingularKusamaId(tokenId: string): boolean {
 
 export function isMultiversxESDTId(tokenId: string): boolean {
     return /^[0-9A-Z]+-[0-9a-f]{6}(-[0-9a-f]+)?$/.test(tokenId);
+}
+
+export function validatePsp34TokenId(tokenId: string): TokenValidationResult {
+    try {
+        const idObject = JSON.parse(tokenId);
+        if(typeof idObject !== "object") {
+            return {
+                valid: false,
+                error: "token ID is not a JSON dictionnary",
+            };
+        }
+
+        const contract = idObject['contract'];
+        if(!contract) {
+            return {
+                valid: false,
+                error: "token ID is missing the 'contract' field",
+            };
+        }
+        if(typeof contract !== "string") {
+            return {
+                valid: false,
+                error: "token ID's 'contract' field is not a string",
+            };
+        }
+
+        const id = idObject['id'];
+        if(!id) {
+            return {
+                valid: false,
+                error: "token ID is missing the 'id' field",
+            };
+        }
+        if(typeof id !== "object") {
+            return {
+                valid: false,
+                error: "token ID's 'id' field is not an object",
+            };
+        }
+        if(!idObject.id.U8
+            && !idObject.id.U16
+            && !idObject.id.U32
+            && !idObject.id.U64
+            && !idObject.id.U128
+            && !idObject.id.Bytes) {
+            return {
+                valid: false,
+                error: "token ID's 'id' object is missing a value for U8, U16, U32, U64, U128 or Bytes",
+            };
+        }
+
+        return { valid: true };
+    } catch(e) {
+        return {
+            valid: false,
+            error: "token ID is not valid JSON",
+        };
+    }
 }
