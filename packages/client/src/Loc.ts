@@ -95,6 +95,7 @@ export interface LocData extends LocVerifiedIssuers {
     template?: string;
     sponsorshipId?: UUID;
     valueFee?: bigint;
+    legalFee?: bigint;
 }
 
 export interface MergedLink extends LocLink, Published {
@@ -331,7 +332,8 @@ export class LocsState extends State {
             draft,
             template,
             sponsorshipId: sponsorshipId?.toString(),
-            valueFee: params.valueFee ? params.valueFee.toString() : undefined,
+            valueFee: params.valueFee?.toString(),
+            legalFee: params.legalFee?.toString(),
         });
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
         if(draft) {
@@ -564,6 +566,7 @@ export interface CreateLocRequestParams {
     description: string;
     draft: boolean;
     template?: string;
+    legalFee?: bigint;
 }
 
 export interface CreateIdentityLocRequestParams extends CreateLocRequestParams {
@@ -757,7 +760,8 @@ export abstract class LocRequestState extends State {
             links: request.links.map(item => LocRequestState.mergeLink(item)),
             voteId: request.voteId ? request.voteId : undefined,
             sponsorshipId: request.sponsorshipId ? new UUID(request.sponsorshipId) : undefined,
-            valueFee: request.valueFee ? BigInt(request.valueFee) : undefined,
+            valueFee: request.valueFee !== undefined ? BigInt(request.valueFee) : undefined,
+            legalFee: request.legalFee !== undefined ? BigInt(request.legalFee) : undefined,
         };
     }
 
@@ -784,7 +788,6 @@ export abstract class LocRequestState extends State {
             iDenfy: request.iDenfy,
             voteId: request.voteId ? request.voteId : undefined,
             template: request.template,
-            valueFee: loc.valueFee,
         };
 
         if(data.voidInfo && request.voidInfo) {
