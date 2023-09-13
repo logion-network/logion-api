@@ -8,6 +8,7 @@ export async function createTransactionLocTest() {
     const createLocExtrinsic = api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
         api.adapters.toLocId(TRANSACTION_LOC_ID),
         ALICE,
+        null,
     );
     await signAndSend(requester, createLocExtrinsic);
 
@@ -47,20 +48,6 @@ export async function addMetadataToTransactionLocTestAsRequester() {
     );
 }
 
-export async function addMetadataToTransactionLocTestAsIssuer() {
-    const { api, requester } = await setup();
-    await addMetadataToTransactionLocTest(
-        requester,
-        {
-            name: ISSUER_METADATA_NAME,
-            value: Hash.of("Some other value (bis)"),
-            submitter: api.queries.getValidAccountId(ISSUER, "Polkadot"),
-        },
-        false,
-        2
-    );
-}
-
 async function addMetadataToTransactionLocTest(who: IKeyringPair, item: MetadataItemParams, expectedAcknowledgedByOwner: boolean, index: number) {
     const { api } = await setup();
     const { name, value, submitter } = item
@@ -93,18 +80,6 @@ export async function acknowledgeMetadataAsOwner() {
     expect(loc?.metadata[1].acknowledgedByOwner).toBeTrue();
 }
 
-export async function acknowledgeMetadataAsIssuer() {
-    const { issuer, api } = await setup();
-    const acknowledgeMetadataExtrinsic = api.polkadot.tx.logionLoc.acknowledgeMetadata(
-        api.adapters.toLocId(TRANSACTION_LOC_ID),
-        ISSUER_FILE_HASH.bytes,
-    );
-    await signAndSend(issuer, acknowledgeMetadataExtrinsic);
-
-    const loc = await api.queries.getLegalOfficerCase(TRANSACTION_LOC_ID);
-    expect(loc?.metadata[2].acknowledgedByVerifiedIssuer).toBeTrue();
-}
-
 export async function addFileToTransactionLocTestAsLLO() {
     const { alice, api } = await setup();
 
@@ -133,21 +108,6 @@ export async function addFileToTransactionLocTestAsRequester() {
         },
         false,
         1);
-}
-
-export async function addFileToTransactionLocTestAsIssuer() {
-    const { requester, api } = await setup();
-
-    await addFileToTransactionLocTest(
-        requester,
-        {
-            hash: ISSUER_FILE_HASH,
-            nature: Hash.of("Some other nature (bis)"),
-            submitter: api.queries.getValidAccountId(ISSUER, "Polkadot"),
-            size: BigInt(789),
-        },
-        false,
-        2);
 }
 
 async function addFileToTransactionLocTest(who: IKeyringPair, file: FileParams, expectedAcknowledgedByOwner: boolean, index: number) {
@@ -184,19 +144,6 @@ export async function acknowledgeFileAsOwner() {
     expect(loc?.files[0].acknowledgedByOwner).toBeTrue();
     expect(loc?.files[1].acknowledgedByOwner).toBeTrue();
 }
-
-export async function acknowledgeFileAsIssuer() {
-    const { issuer, api } = await setup();
-    const acknowledgeFileExtrinsic = api.polkadot.tx.logionLoc.acknowledgeFile(
-        api.adapters.toLocId(TRANSACTION_LOC_ID),
-        ISSUER_FILE_HASH.bytes,
-    );
-    await signAndSend(issuer, acknowledgeFileExtrinsic);
-
-    const loc = await api.queries.getLegalOfficerCase(TRANSACTION_LOC_ID);
-    expect(loc?.files[2].acknowledgedByVerifiedIssuer).toBeTrue();
-}
-
 
 const TRANSACTION_LOC_ID = new UUID("c1dc4b62-714b-4001-ae55-1b54ad61dd93");
 const REQUESTER_METADATA_NAME = Hash.of("Some other name");

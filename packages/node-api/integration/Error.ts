@@ -1,5 +1,5 @@
 import { IKeyringPair } from "@polkadot/types/types";
-import { Adapters, Hash, TypesErrorMetadata, UUID } from "../src/index.js";
+import { Adapters, Hash, UUID } from "../src/index.js";
 import { setup, signAndSend } from "./Util.js";
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types.js';
 
@@ -8,19 +8,20 @@ export async function badOriginError() {
     const extrinsic = api.polkadot.tx.logionLoc.createLogionIdentityLoc(
         Adapters.toLocId(new UUID()),
     );
-    await testError(requester, extrinsic, {
-        pallet: "dispatch",
-        error: "BadOrigin",
-        details: "A bad origin."
-    });
+    await testError(requester, extrinsic, "Got error BadOrigin from pallet dispatch: A bad origin.");
 }
 
-async function testError(signer: IKeyringPair, extrinsic: SubmittableExtrinsic, expectedError: TypesErrorMetadata) {
+async function testError(signer: IKeyringPair, extrinsic: SubmittableExtrinsic, expectedError: string) {
     try {
         await signAndSend(signer, extrinsic);
         expect(false).toBe(true);
     } catch(error) {
-        expect(error).toEqual(expectedError);
+        if(error instanceof Error) {
+            expect(error.message).toBe(expectedError);
+        } else {
+            console.error(error);
+            expect(false).toBe(true);
+        }
     }
 }
 
@@ -35,9 +36,5 @@ export async function moduleError() {
         false,
         [],
     );
-    await testError(requester, extrinsic, {
-        pallet: "logionLoc",
-        error: "WrongCollectionLoc",
-        details: "Item cannot be added to given collection, it may be missing or limits are reached"
-    });
+    await testError(requester, extrinsic, "Got error WrongCollectionLoc from pallet logionLoc: Item cannot be added to given collection, it may be missing or limits are reached");
 }

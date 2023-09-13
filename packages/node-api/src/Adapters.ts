@@ -129,6 +129,7 @@ export class Adapters {
             seal: rawLoc.seal.isSome ? rawLoc.seal.unwrap().toHex() : undefined,
             sponsorshipId: rawLoc.sponsorshipId.isSome ? this.fromSponsorshipId(rawLoc.sponsorshipId.unwrap()) : undefined,
             valueFee: rawLoc.valueFee.toBigInt(),
+            legalFee: rawLoc.legalFee.isSome ? rawLoc.legalFee.unwrap().toBigInt() : undefined,
         };
     }
 

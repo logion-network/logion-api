@@ -1569,6 +1569,7 @@ export class AuthenticatedLocClient extends LocClient {
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficer.address,
+            parameters.legalFee || null,
         );
     }
 
@@ -1688,6 +1689,7 @@ export class AuthenticatedLocClient extends LocClient {
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficer.address,
+            parameters.legalFee || null,
         );
     }
 
@@ -1753,6 +1755,7 @@ export class AuthenticatedLocClient extends LocClient {
             parameters.collectionMaxSize || null,
             parameters.collectionCanUpload,
             parameters.valueFee,
+            parameters.legalFee || null,
         );
     }
 
@@ -1949,6 +1952,7 @@ export interface AckMetadataParams extends EstimateFeesAckMetadataParams, Blockc
 export interface OpenPolkadotLocParams {
     locId: UUID;
     legalOfficer: LegalOfficer;
+    legalFee?: bigint;
 }
 
 export interface EstimateFeesOpenCollectionLocParams {

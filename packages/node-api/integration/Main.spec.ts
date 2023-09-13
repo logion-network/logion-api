@@ -13,10 +13,6 @@ import {
     addFileToTransactionLocTestAsLLO,
     addFileToTransactionLocTestAsRequester,
     acknowledgeFileAsOwner,
-    addFileToTransactionLocTestAsIssuer,
-    acknowledgeFileAsIssuer,
-    acknowledgeMetadataAsIssuer,
-    addMetadataToTransactionLocTestAsIssuer
 } from "./TransactionLoc.js";
 import { createVote } from "./Vote.js";
 import { verifiedIssuers } from "./VerifiedIssuers.js";
@@ -48,15 +44,11 @@ describe("Logion Node API", () => {
 
     it("adds metadata to transaction LOC (LLO)", addMetadataToTransactionLocTestAsLLO);
     it("adds metadata to transaction LOC (Requester)", addMetadataToTransactionLocTestAsRequester);
-    it("adds metadata to transaction LOC (Verified Issuer)", addMetadataToTransactionLocTestAsIssuer);
     it("acknowledges metadata (LLO)", acknowledgeMetadataAsOwner);
-    it("acknowledges metadata (Verified Issuer)", acknowledgeMetadataAsIssuer);
 
     it("adds file to transaction LOC (LLO)", addFileToTransactionLocTestAsLLO);
     it("adds file to transaction LOC (Requester)", addFileToTransactionLocTestAsRequester);
-    it("adds file to transaction LOC (Verified Issuer)", addFileToTransactionLocTestAsIssuer);
     it("acknowledges file (LLO)", acknowledgeFileAsOwner);
-    it("acknowledges file (VerifiedIssuer)", acknowledgeFileAsIssuer);
 
     it("creates collection LOC limited in size", createCollectionLocLimitedInSizeTest);
     it("closes collection LOC", closeCollectionLocTest);

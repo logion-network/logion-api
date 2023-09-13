@@ -55,14 +55,14 @@ export function signAndSend(keypair: IKeyringPair, extrinsic: SubmittableExtrins
             if(result.isError) {
                 unsub();
                 if(result.dispatchError) {
-                    error(Adapters.getErrorMetadata(result.dispatchError));
+                    error(new Error(Adapters.getErrorMessage(result.dispatchError)));
                 } else {
                     error();
                 }
             } else if (result.status.isInBlock) {
                 unsub();
                 if(result.dispatchError) {
-                    error(Adapters.getErrorMetadata(result.dispatchError));
+                    error(new Error(Adapters.getErrorMessage(result.dispatchError)));
                 } else {
                     resolve(result);
                 }
