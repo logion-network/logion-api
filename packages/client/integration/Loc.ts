@@ -39,6 +39,7 @@ export async function requestTransactionLoc(state: State) {
     locsState = draftRequest.locsState();
     checkData(locsState.draftRequests["Transaction"][0].data(), "DRAFT");
     checkData(draftRequest.data(), "DRAFT");
+    expect(draftRequest.data().legalFee).toBeUndefined();
 
     const metadataName = "Some name";
     const nameHash = Hash.of(metadataName);
@@ -184,8 +185,10 @@ export async function collectionLoc(state: State) {
         description: "This is a Collection LOC",
         draft: false,
         valueFee: 100n,
+        legalFee: 1900n,
     });
     expect(pendingRequest.data().valueFee).toBe(100n);
+    expect(pendingRequest.data().legalFee).toBe(1900n);
 
     locsState = pendingRequest.locsState();
     expect(locsState.pendingRequests["Collection"][0].data().status).toBe("REVIEW_PENDING");

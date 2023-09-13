@@ -150,6 +150,7 @@ export interface LocRequest {
     template?: string;
     sponsorshipId?: string;
     valueFee?: string;
+    legalFee?: string;
 }
 
 export interface IdenfyVerificationSession {
@@ -295,6 +296,7 @@ export interface CreateLocRequest {
     requesterAddress?: SupportedAccountId;
     requesterIdentityLoc?: string;
     valueFee?: string;
+    legalFee?: string;
 }
 
 export interface CreateSofRequest {
