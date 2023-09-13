@@ -181,7 +181,8 @@ async function createAndCloseIdentityLoc(
         signerId: requesterAddress,
         submittable: api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
             api.adapters.toLocId(identityLocId),
-            legalOfficerAddress
+            legalOfficerAddress,
+            null
         )
     });
     await signer.signAndSend({

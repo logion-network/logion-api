@@ -48,6 +48,7 @@ export default {
             seal: "Option<Hash>",
             sponsorship_id: "Option<SponsorshipId>",
             value_fee: "Balance",
+            legal_fee: "Option<Balance>",
         },
         MetadataItemParams: {
             name: "Hash",
@@ -107,6 +108,8 @@ export default {
                 "V16MoveTokenIssuance",
                 "V17HashItemRecordPublicData",
                 "V18AddValueFee",
+                "V19AcknowledgeItemsByIssuer",
+                "V20AddCustomLegalFee",
             ]
         },
         Requester: {

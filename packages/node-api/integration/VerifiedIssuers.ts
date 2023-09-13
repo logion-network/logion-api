@@ -10,14 +10,14 @@ export async function verifiedIssuers() {
         api.polkadot.tx.balances.transfer(ISSUER, Currency.toCanonicalAmount(Currency.nLgnt(200n))),
     );
     await signAndSend(issuer,
-        api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(issuerIdentityLocId.toDecimalString(), ALICE),
+        api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(issuerIdentityLocId.toDecimalString(), ALICE, null),
     );
     await signAndSendBatch(alice, [
         api.polkadot.tx.logionLoc.close(issuerIdentityLocId.toDecimalString()),
         api.polkadot.tx.logionLoc.nominateIssuer(ISSUER, issuerIdentityLocId.toDecimalString()),
     ]);
     await signAndSend(requester,
-        api.polkadot.tx.logionLoc.createCollectionLoc(collectionLocId.toDecimalString(), ALICE, null, 200, true, 0),
+        api.polkadot.tx.logionLoc.createCollectionLoc(collectionLocId.toDecimalString(), ALICE, null, 200, true, 0, null),
     );
 
     await signAndSendBatch(alice, [
@@ -27,6 +27,14 @@ export async function verifiedIssuers() {
             name: Hash.of("TestOwner"),
             value: Hash.of("Test"),
             submitter: api.queries.getValidAccountId(ALICE, "Polkadot"),
+        })),
+
+        // File by owner
+        api.polkadot.tx.logionLoc.addFile(collectionLocId.toDecimalString(), api.adapters.toPalletLogionLocFile({
+            hash: Hash.of("TestOwner"),
+            nature: Hash.of("Test"),
+            submitter: api.queries.getValidAccountId(ALICE, "Polkadot"),
+            size: 9n,
         })),
     ]);
 
@@ -38,21 +46,40 @@ export async function verifiedIssuers() {
             submitter: api.queries.getValidAccountId(REQUESTER, "Polkadot"),
         })),
 
+        // File by requester
+        api.polkadot.tx.logionLoc.addFile(collectionLocId.toDecimalString(), api.adapters.toPalletLogionLocFile({
+            hash: Hash.of("TestRequester"),
+            nature: Hash.of("Test"),
+            submitter: api.queries.getValidAccountId(REQUESTER, "Polkadot"),
+            size: 13n,
+        })),
+
         // Metadata by issuer
         api.polkadot.tx.logionLoc.addMetadata(collectionLocId.toDecimalString(), api.adapters.toPalletLogionLocMetadataItem({
             name: Hash.of("TestIssuer"),
             value: Hash.of("Test"),
             submitter: api.queries.getValidAccountId(ISSUER, "Polkadot"),
         })),
+
+        // File by issuer
+        api.polkadot.tx.logionLoc.addFile(collectionLocId.toDecimalString(), api.adapters.toPalletLogionLocFile({
+            hash: Hash.of("TestIssuer"),
+            nature: Hash.of("Test"),
+            submitter: api.queries.getValidAccountId(ISSUER, "Polkadot"),
+            size: 10n,
+        })),
     ]);
 
-    await signAndSend(issuer,
+    await signAndSendBatch(issuer, [
         api.polkadot.tx.logionLoc.acknowledgeMetadata(collectionLocId.toDecimalString(), api.adapters.toH256(Hash.of("TestIssuer"))),
-    );
+        api.polkadot.tx.logionLoc.acknowledgeFile(collectionLocId.toDecimalString(), api.adapters.toH256(Hash.of("TestIssuer"))),
+    ]);
 
     await signAndSendBatch(alice, [
         api.polkadot.tx.logionLoc.acknowledgeMetadata(collectionLocId.toDecimalString(), api.adapters.toH256(Hash.of("TestRequester"))),
         api.polkadot.tx.logionLoc.acknowledgeMetadata(collectionLocId.toDecimalString(), api.adapters.toH256(Hash.of("TestIssuer"))),
+        api.polkadot.tx.logionLoc.acknowledgeFile(collectionLocId.toDecimalString(), api.adapters.toH256(Hash.of("TestRequester"))),
+        api.polkadot.tx.logionLoc.acknowledgeFile(collectionLocId.toDecimalString(), api.adapters.toH256(Hash.of("TestIssuer"))),
         api.polkadot.tx.logionLoc.close(collectionLocId.toDecimalString()),
     ]);
 

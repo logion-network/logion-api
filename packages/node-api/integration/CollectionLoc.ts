@@ -9,7 +9,8 @@ export async function createCollectionLocLimitedInSizeTest() {
         null,
         100,
         false,
-        0
+        0,
+        null
     );
     await signAndSend(requester, createExtrinsic);
     const loc = await api.queries.getLegalOfficerCase(COLLECTION_LOC_ID);

@@ -56,6 +56,7 @@ export interface LegalOfficerCase {
     seal?: string;
     sponsorshipId?: UUID;
     valueFee: bigint;
+    legalFee?: bigint;
 }
 
 export type LocType = 'Transaction' | 'Collection' | 'Identity';
