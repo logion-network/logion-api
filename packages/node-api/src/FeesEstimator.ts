@@ -86,10 +86,11 @@ export class FeesEstimator {
         submittable: SubmittableExtrinsic,
         locType: LocType,
         valueFee?: bigint,
+        legalFee?: bigint,
     }): Promise<Fees> {
         const { locType, valueFee } = params;
         const inclusionFee = await this.estimateInclusionFee(params.origin, params.submittable);
-        const legalFee = await this.estimateLegalFee({ locType });
+        const legalFee = params.legalFee !== undefined ? params.legalFee : await this.estimateLegalFee({ locType });
         return new Fees({ inclusionFee, legalFee, valueFee });
     }
 
