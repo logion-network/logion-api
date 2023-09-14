@@ -1551,6 +1551,7 @@ export class AuthenticatedLocClient extends LocClient {
                 origin: this.currentAddress?.address || "",
                 submittable,
                 locType: 'Transaction',
+                legalFee: 0n,
             });
         }
         return undefined;
@@ -1580,6 +1581,7 @@ export class AuthenticatedLocClient extends LocClient {
             origin: this.currentAddress?.address || "",
             submittable: this.openTransactionLocSubmittable(parameters),
             locType: 'Transaction',
+            legalFee: parameters.legalFee,
         });
     }
 
@@ -1605,6 +1607,7 @@ export class AuthenticatedLocClient extends LocClient {
             origin: this.currentAddress?.address || "",
             submittable: this.openLogionTransactionLocSubmittable(parameters),
             locType: 'Transaction',
+            legalFee: 0n,
         });
     }
 
@@ -1700,6 +1703,7 @@ export class AuthenticatedLocClient extends LocClient {
             origin: this.currentAddress?.address || "",
             submittable: this.openIdentityLocSubmittable(parameters),
             locType: 'Identity',
+            legalFee: parameters.legalFee,
         });
     }
 
@@ -1724,6 +1728,7 @@ export class AuthenticatedLocClient extends LocClient {
             origin: this.currentAddress?.address || "",
             submittable: this.openLogionIdentityLocSubmittable(parameters),
             locType: 'Identity',
+            legalFee: 0n,
         });
     }
 
@@ -1760,6 +1765,7 @@ export class AuthenticatedLocClient extends LocClient {
             submittable: this.openCollectionLocSubmittable(parameters),
             locType: 'Collection',
             valueFee: parameters.valueFee,
+            legalFee: parameters.legalFee,
         });
     }
 
