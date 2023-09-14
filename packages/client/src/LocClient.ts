@@ -1567,11 +1567,11 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private openTransactionLocSubmittable(parameters: OpenPolkadotLocParams): SubmittableExtrinsic {
-        const { locId, legalOfficer } = parameters
+        const { locId, legalOfficer } = parameters;
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficer.address,
-            parameters.legalFee || null,
+            parameters.legalFee === undefined ? null : parameters.legalFee,
         );
     }
 
@@ -1691,7 +1691,7 @@ export class AuthenticatedLocClient extends LocClient {
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficer.address,
-            parameters.legalFee || null,
+            parameters.legalFee === undefined ? null : parameters.legalFee,
         );
     }
 
@@ -1735,14 +1735,7 @@ export class AuthenticatedLocClient extends LocClient {
         const { locId, signer, callback } = parameters
         await signer.signAndSend({
             signerId: this.currentAddress.address,
-            submittable: this.openCollectionLocSubmittable({
-                locId,
-                legalOfficer: parameters.legalOfficer,
-                valueFee: parameters.valueFee,
-                collectionLastBlockSubmission: parameters.collectionLastBlockSubmission,
-                collectionMaxSize: parameters.collectionMaxSize,
-                collectionCanUpload: parameters.collectionCanUpload,
-            }),
+            submittable: this.openCollectionLocSubmittable(parameters),
             callback,
         });
         await this.openLoc({ locId });
@@ -1757,7 +1750,7 @@ export class AuthenticatedLocClient extends LocClient {
             parameters.collectionMaxSize || null,
             parameters.collectionCanUpload,
             parameters.valueFee,
-            parameters.legalFee || null,
+            parameters.legalFee === undefined ? null : parameters.legalFee,
         );
     }
 

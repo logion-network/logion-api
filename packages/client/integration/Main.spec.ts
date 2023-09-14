@@ -3,7 +3,7 @@ import { enablesProtection, requestsProtectionAndCancel } from "./Protection.js"
 import { transferAndCannotPayFees, transfers, transferWithInsufficientFunds } from "./Balance.js";
 import { providesVault } from "./Vault.js";
 import { recoverLostAccount, recoverLostVault, requestRecoveryAndCancel, requestRecoveryWithResubmit } from "./Recovery.js";
-import { requestTransactionLoc, collectionLoc, collectionLocWithUpload, identityLoc, otherIdentityLoc, logionIdentityLoc } from "./Loc.js";
+import { requestTransactionLoc, collectionLoc, collectionLocWithUpload, identityLoc, otherIdentityLoc, logionIdentityLoc, transactionLocWithCustomLegalFee } from "./Loc.js";
 import { verifiedIssuer } from "./VerifiedIssuer.js";
 import { tokensRecords } from "./TokensRecord.js";
 import { fees } from "./Fees.js";
@@ -80,6 +80,10 @@ describe("Logion SDK", () => {
 
     it("requests a Transaction LOC", async () => {
         await requestTransactionLoc(state);
+    });
+
+    it("requests a Transaction LOC with custom legal fee", async () => {
+        await transactionLocWithCustomLegalFee(state);
     });
 
     it("provides Collection LOC", async () => {

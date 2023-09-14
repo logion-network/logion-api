@@ -172,6 +172,33 @@ function checkData(data: LocData, locRequestStatus: LocRequestStatus) {
     expect(data.status).toEqual(locRequestStatus);
 }
 
+export async function transactionLocWithCustomLegalFee(state: State) {
+    const { alice, aliceAccount, newAccount, signer } = state;
+    const client = state.client.withCurrentAddress(newAccount);
+    let locsState = await client.locsState();
+
+    let draftRequest = await locsState.requestTransactionLoc({
+        legalOfficer: client.getLegalOfficer(alice.address),
+        description: "This is a Transaction LOC",
+        draft: true,
+        legalFee: 0n,
+    }) as DraftRequest;
+
+    expect(draftRequest).toBeInstanceOf(DraftRequest);
+    expect(draftRequest.data().legalFee).toBe(0n);
+
+    // Open LOC
+    let pendingRequest = await draftRequest.submit();
+    const aliceClient = state.client.withCurrentAddress(aliceAccount);
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, statuses: [ "REVIEW_PENDING", "OPEN" ], locTypes: [ "Transaction" ] } });
+    let alicePendingLoc = aliceLocs.findById(pendingRequest.data().id) as PendingRequest;
+    await alicePendingLoc.legalOfficer.accept({ signer }) as AcceptedRequest;
+    let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
+    let openLoc = await acceptedLoc.open({ signer });
+
+    expect(openLoc.data().legalFee).toBe(0n);
+}
+
 export async function collectionLoc(state: State) {
 
     const { alice, aliceAccount, newAccount, signer } = state;
@@ -185,10 +212,10 @@ export async function collectionLoc(state: State) {
         description: "This is a Collection LOC",
         draft: false,
         valueFee: 100n,
-        legalFee: 1900n,
+        legalFee: 0n,
     });
     expect(pendingRequest.data().valueFee).toBe(100n);
-    expect(pendingRequest.data().legalFee).toBe(1900n);
+    expect(pendingRequest.data().legalFee).toBe(0n);
 
     locsState = pendingRequest.locsState();
     expect(locsState.pendingRequests["Collection"][0].data().status).toBe("REVIEW_PENDING");
@@ -204,6 +231,8 @@ export async function collectionLoc(state: State) {
     expect(locsState.acceptedRequests["Collection"][0].data().status).toBe("REVIEW_ACCEPTED");
 
     let openLoc = await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
+    expect(openLoc.data().valueFee).toBe(100n);
+    expect(openLoc.data().legalFee).toBe(0n);
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
 
     let aliceClosedLoc = await aliceOpenLoc.legalOfficer.close({ signer });

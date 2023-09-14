@@ -1229,6 +1229,7 @@ export class AcceptedRequest extends ReviewedRequest {
         return {
             locId: this.locId,
             legalOfficer: this.owner,
+            legalFee: this.request.legalFee !== undefined ? BigInt(this.request.legalFee) : undefined,
         }
     }
 
@@ -1264,6 +1265,7 @@ export class AcceptedRequest extends ReviewedRequest {
                 locId: this.locId,
                 legalOfficer: this.owner,
                 valueFee: BigInt(valueFee),
+                legalFee: this.request.legalFee !== undefined ? BigInt(this.request.legalFee) : undefined,
             }
         } else {
             throw Error("Other LOCs are opened/estimated with open()/estimateFeesOpen()");
