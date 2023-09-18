@@ -6,7 +6,7 @@
 import '@polkadot/api-base/types/storage';
 
 import type { ApiTypes, AugmentedQuery, QueryableStorageEntry } from '@polkadot/api-base/types';
-import type { BTreeSet, Bytes, Null, Option, U8aFixed, Vec, bool, u128, u32, u64 } from '@polkadot/types-codec';
+import type { BTreeSet, Bytes, Null, Option, Struct, U8aFixed, Vec, bool, u128, u32, u64 } from '@polkadot/types-codec';
 import type { AnyNumber, ITuple } from '@polkadot/types-codec/types';
 import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, H256 } from '@polkadot/types/interfaces/runtime';
@@ -93,7 +93,10 @@ declare module '@polkadot/api-base/types/storage' {
       /**
        * Holds on account balances.
        **/
-      holds: AugmentedQuery<ApiType, (arg: AccountId32 | string | Uint8Array) => Observable<Vec<PalletBalancesIdAmount>>, [AccountId32]> & QueryableStorageEntry<ApiType, [AccountId32]>;
+      holds: AugmentedQuery<ApiType, (arg: AccountId32 | string | Uint8Array) => Observable<Vec<{
+    readonly id: Null;
+    readonly amount: u128;
+  } & Struct>>, [AccountId32]> & QueryableStorageEntry<ApiType, [AccountId32]>;
       /**
        * The total units of outstanding deactivated balance in the system.
        **/
@@ -372,7 +375,7 @@ declare module '@polkadot/api-base/types/storage' {
        * allows light-clients to leverage the changes trie storage tracking mechanism and
        * in case of changes fetch the list of events of interest.
        * 
-       * The value has the type `(T::BlockNumber, EventIndex)` because if we used only just
+       * The value has the type `(BlockNumberFor<T>, EventIndex)` because if we used only just
        * the `EventIndex` then in case if the topic has the same contents on the next block
        * no notification will be triggered thus the event might be lost.
        **/
