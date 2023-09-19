@@ -69,9 +69,17 @@ export default {
                 "Collection"
             ]
         },
+        LocLinkParams: {
+            id: "LocId",
+            nature: "Hash",
+            submitter: "SupportedAccountId"
+        },
         LocLink: {
             id: "LocId",
             nature: "Hash",
+            submitter: "SupportedAccountId",
+            acknowledgedByOwner: "bool",
+            acknowledgedByVerifiedIssuer: "bool"
         },
         FileParams: {
             hash: "Hash",
@@ -110,6 +118,7 @@ export default {
                 "V18AddValueFee",
                 "V19AcknowledgeItemsByIssuer",
                 "V20AddCustomLegalFee",
+                "V21EnableRequesterLinks",
             ]
         },
         Requester: {

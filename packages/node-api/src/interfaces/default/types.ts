@@ -158,6 +158,16 @@ export interface LocId extends u128 {}
 export interface LocLink extends Struct {
   readonly id: LocId;
   readonly nature: Hash;
+  readonly submitter: SupportedAccountId;
+  readonly acknowledgedByOwner: bool;
+  readonly acknowledgedByVerifiedIssuer: bool;
+}
+
+/** @name LocLinkParams */
+export interface LocLinkParams extends Struct {
+  readonly id: LocId;
+  readonly nature: Hash;
+  readonly submitter: SupportedAccountId;
 }
 
 /** @name LocType */
@@ -256,7 +266,8 @@ export interface StorageVersion extends Enum {
   readonly isV18AddValueFee: boolean;
   readonly isV19AcknowledgeItemsByIssuer: boolean;
   readonly isV20AddCustomLegalFee: boolean;
-  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance' | 'V16MoveTokenIssuance' | 'V17HashItemRecordPublicData' | 'V18AddValueFee' | 'V19AcknowledgeItemsByIssuer' | 'V20AddCustomLegalFee';
+  readonly isV21EnableRequesterLinks: boolean;
+  readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance' | 'V16MoveTokenIssuance' | 'V17HashItemRecordPublicData' | 'V18AddValueFee' | 'V19AcknowledgeItemsByIssuer' | 'V20AddCustomLegalFee' | 'V21EnableRequesterLinks';
 }
 
 /** @name SupportedAccountId */
