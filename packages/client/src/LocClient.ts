@@ -12,10 +12,10 @@ import {
     TypesTokensRecord,
     TypesTokensRecordFile,
     FileParams,
-    Link,
     VoidInfo,
     Hash,
     Fees as FeesClass,
+    LinkParams,
 } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AnyJson } from "@polkadot/types-codec/types";
@@ -98,6 +98,7 @@ export interface LocMetadataItem extends Partial<AddedOn> {
 export interface LocLink extends AddedOn {
     target: string;
     nature: string;
+    submitter: SupportedAccountId;
     fees?: Fees;
 }
 
@@ -1493,7 +1494,7 @@ export class AuthenticatedLocClient extends LocClient {
     private publishLinkSubmittable(parameters: EstimateFeesPublishLinkParams): SubmittableExtrinsic {
         return this.nodeApi.polkadot.tx.logionLoc.addLink(
             this.nodeApi.adapters.toLocId(parameters.locId),
-            this.nodeApi.adapters.toPalletLogionLocLocLink(parameters.link),
+            this.nodeApi.adapters.toPalletLogionLocLocLinkParams(parameters.link),
         );
     }
 
@@ -1972,7 +1973,7 @@ export const EMPTY_LOC_ISSUERS: LocVerifiedIssuers = {
 
 export interface EstimateFeesPublishLinkParams {
     locId: UUID;
-    link: Link;
+    link: LinkParams;
 }
 
 export interface PublishLinkParams extends EstimateFeesPublishLinkParams, BlockchainSubmissionParams {

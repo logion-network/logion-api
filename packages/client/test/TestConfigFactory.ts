@@ -108,7 +108,7 @@ export function buildLogionNodeApiMock(): Mock<LogionNodeApiClass> {
     nodeApi.setup(instance => instance.queries.isValidAccountId).returns(() => true);
     nodeApi.setup(instance => instance.adapters.toLocId).returns(uuid => mockCodecWithToBigInt(BigInt(uuid.toDecimalString())));
     nodeApi.setup(instance => instance.adapters.newTokensRecordFileVec).returns(_files => mockCodecWithToHex(""));
-    nodeApi.setup(instance => instance.adapters.toPalletLogionLocLocLink).returns(_link => mockCodecWithToHex(""));
+    nodeApi.setup(instance => instance.adapters.toPalletLogionLocLocLinkParams).returns(_link => mockCodecWithToHex(""));
     nodeApi.setup(instance => instance.adapters.toH256).returns(hash => mockCodecWithToHex(hash.toHex()));
     nodeApi.setup(instance => instance.adapters.toCollectionItemToken).returns(_token => ({} as any));
     nodeApi.setup(instance => instance.adapters.toCollectionItemFile).returns(_file => ({} as any));

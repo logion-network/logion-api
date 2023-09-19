@@ -37,6 +37,7 @@ export const EXISTING_LINK: LocLink = {
     target: EXISTING_LINK_TARGET.toString(),
     nature: "Some nature",
     addedOn: DateTime.now().toISO(),
+    submitter: REQUESTER,
 };
 
 export type LocAndRequest = {

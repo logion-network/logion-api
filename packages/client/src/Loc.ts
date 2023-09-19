@@ -1473,6 +1473,7 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
             link: {
                 id: target,
                 nature: Hash.of(link.nature),
+                submitter: undefined as unknown as ValidAccountId, // TODO
             },
         }
     }
