@@ -1421,7 +1421,7 @@ export default {
       },
       add_link: {
         locId: 'Compact<u128>',
-        link: 'PalletLogionLocLocLink',
+        link: 'PalletLogionLocLocLinkParams',
       },
       close: {
         locId: 'Compact<u128>',
@@ -1495,7 +1495,11 @@ export default {
           hash_: 'hash',
         },
         locId: 'Compact<u128>',
-        hash_: 'H256'
+        hash_: 'H256',
+      },
+      acknowledge_link: {
+        locId: 'Compact<u128>',
+        target: 'Compact<u128>'
       }
     }
   },
@@ -1521,11 +1525,12 @@ export default {
     size_: 'u32'
   },
   /**
-   * Lookup164: pallet_logion_loc::LocLink<LocId, primitive_types::H256>
+   * Lookup164: pallet_logion_loc::LocLinkParams<LocId, primitive_types::H256, sp_core::crypto::AccountId32, primitive_types::H160>
    **/
-  PalletLogionLocLocLink: {
+  PalletLogionLocLocLinkParams: {
     id: 'u128',
-    nature: 'H256'
+    nature: 'H256',
+    submitter: 'PalletLogionLocSupportedAccountId'
   },
   /**
    * Lookup166: pallet_logion_loc::CollectionItemFile<primitive_types::H256>
@@ -1834,13 +1839,23 @@ export default {
     _enum: ['Transaction', 'Identity', 'Collection']
   },
   /**
-   * Lookup211: pallet_logion_loc::LocVoidInfo<LocId>
+   * Lookup210: pallet_logion_loc::LocLink<LocId, primitive_types::H256, sp_core::crypto::AccountId32, primitive_types::H160>
+   **/
+  PalletLogionLocLocLink: {
+    id: 'u128',
+    nature: 'H256',
+    submitter: 'PalletLogionLocSupportedAccountId',
+    acknowledgedByOwner: 'bool',
+    acknowledgedByVerifiedIssuer: 'bool'
+  },
+  /**
+   * Lookup212: pallet_logion_loc::LocVoidInfo<LocId>
    **/
   PalletLogionLocLocVoidInfo: {
     replacer: 'Option<u128>'
   },
   /**
-   * Lookup215: pallet_logion_loc::CollectionItem<primitive_types::H256, LocId, TokenIssuance>
+   * Lookup216: pallet_logion_loc::CollectionItem<primitive_types::H256, LocId, TokenIssuance>
    **/
   PalletLogionLocCollectionItem: {
     description: 'H256',
@@ -1850,7 +1865,7 @@ export default {
     termsAndConditions: 'Vec<PalletLogionLocTermsAndConditionsElement>'
   },
   /**
-   * Lookup216: pallet_logion_loc::TokensRecord<primitive_types::H256, bounded_collections::bounded_vec::BoundedVec<pallet_logion_loc::TokensRecordFile<primitive_types::H256>, S>, sp_core::crypto::AccountId32>
+   * Lookup217: pallet_logion_loc::TokensRecord<primitive_types::H256, bounded_collections::bounded_vec::BoundedVec<pallet_logion_loc::TokensRecordFile<primitive_types::H256>, S>, sp_core::crypto::AccountId32>
    **/
   PalletLogionLocTokensRecord: {
     description: 'H256',
@@ -1858,13 +1873,13 @@ export default {
     submitter: 'AccountId32'
   },
   /**
-   * Lookup218: pallet_logion_loc::VerifiedIssuer<LocId>
+   * Lookup219: pallet_logion_loc::VerifiedIssuer<LocId>
    **/
   PalletLogionLocVerifiedIssuer: {
     identityLoc: 'u128'
   },
   /**
-   * Lookup221: pallet_logion_loc::Sponsorship<sp_core::crypto::AccountId32, primitive_types::H160, LocId>
+   * Lookup222: pallet_logion_loc::Sponsorship<sp_core::crypto::AccountId32, primitive_types::H160, LocId>
    **/
   PalletLogionLocSponsorship: {
     sponsor: 'AccountId32',
@@ -1873,44 +1888,44 @@ export default {
     locId: 'Option<u128>'
   },
   /**
-   * Lookup222: pallet_logion_loc::pallet::StorageVersion
+   * Lookup223: pallet_logion_loc::pallet::StorageVersion
    **/
   PalletLogionLocStorageVersion: {
-    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize', 'V11EnableEthereumSubmitter', 'V12Sponsorship', 'V13AcknowledgeItems', 'V14HashLocPublicData', 'V15AddTokenIssuance', 'V16MoveTokenIssuance', 'V17HashItemRecordPublicData', 'V18AddValueFee', 'V19AcknowledgeItemsByIssuer', 'V20AddCustomLegalFee']
+    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize', 'V11EnableEthereumSubmitter', 'V12Sponsorship', 'V13AcknowledgeItems', 'V14HashLocPublicData', 'V15AddTokenIssuance', 'V16MoveTokenIssuance', 'V17HashItemRecordPublicData', 'V18AddValueFee', 'V19AcknowledgeItemsByIssuer', 'V20AddCustomLegalFee', 'V21EnableRequesterLinks']
   },
   /**
-   * Lookup223: pallet_logion_loc::pallet::Error<T>
+   * Lookup224: pallet_logion_loc::pallet::Error<T>
    **/
   PalletLogionLocError: {
     _enum: ['AlreadyExists', 'NotFound', 'Unauthorized', 'CannotMutate', 'AlreadyClosed', 'LinkedLocNotFound', 'ReplacerLocNotFound', 'AlreadyVoid', 'ReplacerLocAlreadyVoid', 'ReplacerLocAlreadyReplacing', 'CannotMutateVoid', 'UnexpectedRequester', 'ReplacerLocWrongType', 'InvalidSubmitter', 'CollectionHasNoLimit', 'WrongCollectionLoc', 'CollectionItemAlreadyExists', 'CollectionItemTooMuchData', 'CollectionLimitsReached', 'MetadataItemInvalid', 'FileInvalid', 'LocLinkInvalid', 'CannotUpload', 'MustUpload', 'DuplicateFile', 'MissingToken', 'MissingFiles', 'TermsAndConditionsLocNotFound', 'TermsAndConditionsLocNotClosed', 'TermsAndConditionsLocVoid', 'DuplicateLocFile', 'DuplicateLocMetadata', 'DuplicateLocLink', 'TokensRecordTooMuchData', 'TokensRecordAlreadyExists', 'CannotAddRecord', 'InvalidIdentityLoc', 'AlreadyNominated', 'NotNominated', 'CannotSubmit', 'InsufficientFunds', 'AlreadyUsed', 'CannotLinkToSponsorship', 'ItemNotFound', 'ItemAlreadyAcknowledged', 'CannotCloseUnacknowledged', 'BadTokenIssuance']
   },
   /**
-   * Lookup224: pallet_verified_recovery::pallet::Error<T>
+   * Lookup225: pallet_verified_recovery::pallet::Error<T>
    **/
   PalletVerifiedRecoveryError: {
     _enum: ['InvalidLegalOfficers', 'MissingIdentityLoc']
   },
   /**
-   * Lookup225: pallet_logion_vault::pallet::Error<T>
+   * Lookup226: pallet_logion_vault::pallet::Error<T>
    **/
   PalletLogionVaultError: {
     _enum: ['InvalidSignatories', 'WrongInitiator']
   },
   /**
-   * Lookup226: pallet_logion_vote::Vote<LocId, sp_core::crypto::AccountId32>
+   * Lookup227: pallet_logion_vote::Vote<LocId, sp_core::crypto::AccountId32>
    **/
   PalletLogionVoteVote: {
     locId: 'u128',
     ballots: 'Vec<PalletLogionVoteBallot>'
   },
   /**
-   * Lookup228: pallet_logion_vote::pallet::Error<T>
+   * Lookup229: pallet_logion_vote::pallet::Error<T>
    **/
   PalletLogionVoteError: {
     _enum: ['InvalidLoc', 'VoteNotFound', 'NotAllowed', 'AlreadyVoted']
   },
   /**
-   * Lookup229: pallet_treasury::Proposal<sp_core::crypto::AccountId32, Balance>
+   * Lookup230: pallet_treasury::Proposal<sp_core::crypto::AccountId32, Balance>
    **/
   PalletTreasuryProposal: {
     proposer: 'AccountId32',
@@ -1919,17 +1934,17 @@ export default {
     bond: 'u128'
   },
   /**
-   * Lookup232: frame_support::PalletId
+   * Lookup233: frame_support::PalletId
    **/
   FrameSupportPalletId: '[u8;8]',
   /**
-   * Lookup233: pallet_treasury::pallet::Error<T, I>
+   * Lookup234: pallet_treasury::pallet::Error<T, I>
    **/
   PalletTreasuryError: {
     _enum: ['InsufficientProposersBalance', 'InvalidIndex', 'TooManyApprovals', 'InsufficientPermission', 'ProposalNotApproved']
   },
   /**
-   * Lookup235: sp_runtime::MultiSignature
+   * Lookup236: sp_runtime::MultiSignature
    **/
   SpRuntimeMultiSignature: {
     _enum: {
@@ -1939,43 +1954,43 @@ export default {
     }
   },
   /**
-   * Lookup236: sp_core::sr25519::Signature
+   * Lookup237: sp_core::sr25519::Signature
    **/
   SpCoreSr25519Signature: '[u8;64]',
   /**
-   * Lookup237: sp_core::ecdsa::Signature
+   * Lookup238: sp_core::ecdsa::Signature
    **/
   SpCoreEcdsaSignature: '[u8;65]',
   /**
-   * Lookup240: frame_system::extensions::check_non_zero_sender::CheckNonZeroSender<T>
+   * Lookup241: frame_system::extensions::check_non_zero_sender::CheckNonZeroSender<T>
    **/
   FrameSystemExtensionsCheckNonZeroSender: 'Null',
   /**
-   * Lookup241: frame_system::extensions::check_spec_version::CheckSpecVersion<T>
+   * Lookup242: frame_system::extensions::check_spec_version::CheckSpecVersion<T>
    **/
   FrameSystemExtensionsCheckSpecVersion: 'Null',
   /**
-   * Lookup242: frame_system::extensions::check_tx_version::CheckTxVersion<T>
+   * Lookup243: frame_system::extensions::check_tx_version::CheckTxVersion<T>
    **/
   FrameSystemExtensionsCheckTxVersion: 'Null',
   /**
-   * Lookup243: frame_system::extensions::check_genesis::CheckGenesis<T>
+   * Lookup244: frame_system::extensions::check_genesis::CheckGenesis<T>
    **/
   FrameSystemExtensionsCheckGenesis: 'Null',
   /**
-   * Lookup246: frame_system::extensions::check_nonce::CheckNonce<T>
+   * Lookup247: frame_system::extensions::check_nonce::CheckNonce<T>
    **/
   FrameSystemExtensionsCheckNonce: 'Compact<u32>',
   /**
-   * Lookup247: frame_system::extensions::check_weight::CheckWeight<T>
+   * Lookup248: frame_system::extensions::check_weight::CheckWeight<T>
    **/
   FrameSystemExtensionsCheckWeight: 'Null',
   /**
-   * Lookup248: pallet_transaction_payment::ChargeTransactionPayment<T>
+   * Lookup249: pallet_transaction_payment::ChargeTransactionPayment<T>
    **/
   PalletTransactionPaymentChargeTransactionPayment: 'Compact<u128>',
   /**
-   * Lookup249: logion_node_runtime::Runtime
+   * Lookup250: logion_node_runtime::Runtime
    **/
   LogionNodeRuntimeRuntime: 'Null'
 };

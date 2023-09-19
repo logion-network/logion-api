@@ -203,7 +203,15 @@ function mockPolkadotApiForLogionLoc() {
                                 },
                                 nature: {
                                     toHex: () => link.nature.toHex()
-                                }
+                                },
+                                submitter: {
+                                    isPolkadot: true,
+                                    asPolkadot: {
+                                        toString: () => link.submitter.address
+                                    }
+                                },
+                                acknowledgedByOwner: mockBool(link.acknowledgedByOwner),
+                                acknowledgedByVerifiedIssuer: mockBool(link.acknowledgedByVerifiedIssuer),
                             }))
                         },
                         closed: mockBool(DEFAULT_LOC.closed),
@@ -295,6 +303,9 @@ export const DEFAULT_LOC: LegalOfficerCase = {
         {
             id: new UUID("90fcde7e-a255-404e-8b15-32963a4e64c0"),
             nature: Hash.of("link-nature"),
+            submitter: mockValidAccountId("owner"),
+            acknowledgedByOwner: true,
+            acknowledgedByVerifiedIssuer: false,
         }
     ],
     closed: false,
