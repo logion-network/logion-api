@@ -1,5 +1,5 @@
-import { UUID, MetadataItemParams, FileParams, Hash } from "../src/index.js";
-import { ALICE, REQUESTER, setup, signAndSend, ISSUER } from "./Util.js";
+import { UUID, MetadataItemParams, FileParams, Hash, LinkParams } from "../src/index.js";
+import { ALICE, REQUESTER, setup, signAndSend, signAndSendBatch } from "./Util.js";
 import { IKeyringPair } from "@polkadot/types/types";
 
 export async function createTransactionLocTest() {
@@ -10,7 +10,21 @@ export async function createTransactionLocTest() {
         ALICE,
         null,
     );
-    await signAndSend(requester, createLocExtrinsic);
+    const createOtherLocExtrinsic = api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
+        api.adapters.toLocId(OTHER_TRANSACTION_LOC_ID),
+        ALICE,
+        0n,
+    );
+    const createYetAnotherLocExtrinsic = api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
+        api.adapters.toLocId(YET_ANOTHER_TRANSACTION_LOC_ID),
+        ALICE,
+        0n,
+    );
+    await signAndSendBatch(requester, [
+        createLocExtrinsic,
+        createOtherLocExtrinsic,
+        createYetAnotherLocExtrinsic,
+    ]);
 
     const loc = await api.queries.getLegalOfficerCase(TRANSACTION_LOC_ID);
     expect(loc?.owner).toBe(ALICE);
@@ -145,8 +159,68 @@ export async function acknowledgeFileAsOwner() {
     expect(loc?.files[1].acknowledgedByOwner).toBeTrue();
 }
 
+export async function addLinkToTransactionLocTestAsLLO() {
+    const { alice, api } = await setup();
+    await addLinkToTransactionLocTest(
+        alice,
+        {
+            id: OTHER_TRANSACTION_LOC_ID,
+            nature: Hash.of("Some link"),
+            submitter: api.queries.getValidAccountId(ALICE, "Polkadot"),
+        },
+        true,
+        0
+    );
+}
+
+export async function addLinkToTransactionLocTestAsRequester() {
+    const { api, requester } = await setup();
+    await addLinkToTransactionLocTest(
+        requester,
+        {
+            id: YET_ANOTHER_TRANSACTION_LOC_ID,
+            nature: Hash.of("Some other link"),
+            submitter: api.queries.getValidAccountId(REQUESTER, "Polkadot"),
+        },
+        false,
+        1
+    );
+}
+
+async function addLinkToTransactionLocTest(who: IKeyringPair, item: LinkParams, expectedAcknowledgedByOwner: boolean, index: number) {
+    const { api } = await setup();
+    const { id, nature, submitter } = item;
+    const addMetadataExtrinsic = api.polkadot.tx.logionLoc.addLink(
+        api.adapters.toLocId(TRANSACTION_LOC_ID),
+        api.adapters.toPalletLogionLocLocLinkParams(item),
+    );
+    await signAndSend(who, addMetadataExtrinsic);
+
+    const loc = await api.queries.getLegalOfficerCase(TRANSACTION_LOC_ID);
+    expect(loc?.links.length).toBe(index + 1);
+    expect(loc?.links[index].id.toString()).toBe(id.toString());
+    expect(loc?.links[index].nature).toEqual(nature);
+    expect(loc?.links[index].submitter.address).toBe(submitter.address);
+    expect(loc?.links[index].submitter.type).toBe(submitter.type);
+    expect(loc?.links[index].acknowledgedByOwner).toBe(expectedAcknowledgedByOwner);
+    expect(loc?.links[index].acknowledgedByVerifiedIssuer).toBeFalse();
+}
+
+export async function acknowledgeLinkAsOwner() {
+    const { alice, api } = await setup();
+    const acknowledgeMetadataExtrinsic = api.polkadot.tx.logionLoc.acknowledgeLink(
+        api.adapters.toLocId(TRANSACTION_LOC_ID),
+        api.adapters.toLocId(YET_ANOTHER_TRANSACTION_LOC_ID),
+    );
+    await signAndSend(alice, acknowledgeMetadataExtrinsic);
+
+    const loc = await api.queries.getLegalOfficerCase(TRANSACTION_LOC_ID);
+    expect(loc?.links[0].acknowledgedByOwner).toBeTrue();
+    expect(loc?.links[1].acknowledgedByOwner).toBeTrue();
+}
+
 const TRANSACTION_LOC_ID = new UUID("c1dc4b62-714b-4001-ae55-1b54ad61dd93");
+const OTHER_TRANSACTION_LOC_ID = new UUID("9bf94e53-5259-495d-a120-1119e0111276");
+const YET_ANOTHER_TRANSACTION_LOC_ID = new UUID("703edded-c81a-4ef1-b018-da7dffbb4f0f");
 const REQUESTER_METADATA_NAME = Hash.of("Some other name");
-const ISSUER_METADATA_NAME = Hash.of("Yet some other name");
 const REQUESTER_FILE_HASH = Hash.fromHex("0xb741477ee8b0f12dbf1094487c3832145911f6e55ced5dbe57c3248a18f0461b");
-const ISSUER_FILE_HASH = Hash.fromHex("0x4df3c3f68fcc83b27e9d42c90431a72499f17875c81a599b566c9889b9696703");

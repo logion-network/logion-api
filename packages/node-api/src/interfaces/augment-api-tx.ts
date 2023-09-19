@@ -10,7 +10,7 @@ import type { Bytes, Compact, Option, U8aFixed, Vec, bool, u128, u16, u32, u64, 
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
 import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, Call, H256, MultiAddress } from '@polkadot/types/interfaces/runtime';
-import type { LogionNodeRuntimeOpaqueSessionKeys, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFileParams, PalletLogionLocLocLink, PalletLogionLocMetadataItemParams, PalletLogionLocOtherAccountId, PalletLogionLocSupportedAccountId, PalletLogionLocTermsAndConditionsElement, PalletLogionLocTokensRecordFile, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
+import type { LogionNodeRuntimeOpaqueSessionKeys, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFileParams, PalletLogionLocLocLinkParams, PalletLogionLocMetadataItemParams, PalletLogionLocOtherAccountId, PalletLogionLocSupportedAccountId, PalletLogionLocTermsAndConditionsElement, PalletLogionLocTokensRecordFile, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
 
 export type __AugmentedSubmittable = AugmentedSubmittable<() => unknown>;
 export type __SubmittableExtrinsic<ApiType extends ApiTypes> = SubmittableExtrinsic<ApiType>;
@@ -236,6 +236,10 @@ declare module '@polkadot/api-base/types/submittable' {
        **/
       acknowledgeFile: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, hash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256]>;
       /**
+       * See [`Pallet::acknowledge_link`].
+       **/
+      acknowledgeLink: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, target: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, Compact<u128>]>;
+      /**
        * See [`Pallet::acknowledge_metadata`].
        **/
       acknowledgeMetadata: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, name: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256]>;
@@ -254,7 +258,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * See [`Pallet::add_link`].
        **/
-      addLink: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, link: PalletLogionLocLocLink | { id?: any; nature?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, PalletLogionLocLocLink]>;
+      addLink: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, link: PalletLogionLocLocLinkParams | { id?: any; nature?: any; submitter?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, PalletLogionLocLocLinkParams]>;
       /**
        * See [`Pallet::add_metadata`].
        **/

@@ -11,32 +11,41 @@ export interface TypesAccountData {
     total: string,
 }
 
-export interface MetadataItemParams {
-    name: Hash;
-    value: Hash;
+export interface LocItemParams {
     submitter: ValidAccountId;
 }
 
-export interface MetadataItem extends MetadataItemParams {
+export interface MetadataItemParams extends LocItemParams {
+    name: Hash;
+    value: Hash;
+}
+
+export interface LocItemAck {
     acknowledgedByOwner: boolean;
     acknowledgedByVerifiedIssuer: boolean;
 }
 
-export interface FileParams {
+export interface MetadataItem extends MetadataItemParams, LocItemAck {
+    
+}
+
+export interface FileParams extends LocItemParams {
     hash: Hash;
     nature: Hash;
-    submitter: ValidAccountId;
     size: bigint;
 }
 
-export interface File extends FileParams {
-    acknowledgedByOwner: boolean;
-    acknowledgedByVerifiedIssuer: boolean;
+export interface File extends FileParams, LocItemAck {
+    
 }
 
-export interface Link {
+export interface LinkParams extends LocItemParams {
     id: UUID;
     nature: Hash;
+}
+
+export interface Link extends LinkParams, LocItemAck {
+
 }
 
 export interface LegalOfficerCase {

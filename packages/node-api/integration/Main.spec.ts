@@ -13,6 +13,9 @@ import {
     addFileToTransactionLocTestAsLLO,
     addFileToTransactionLocTestAsRequester,
     acknowledgeFileAsOwner,
+    addLinkToTransactionLocTestAsLLO,
+    addLinkToTransactionLocTestAsRequester,
+    acknowledgeLinkAsOwner,
 } from "./TransactionLoc.js";
 import { createVote } from "./Vote.js";
 import { verifiedIssuers } from "./VerifiedIssuers.js";
@@ -49,6 +52,10 @@ describe("Logion Node API", () => {
     it("adds file to transaction LOC (LLO)", addFileToTransactionLocTestAsLLO);
     it("adds file to transaction LOC (Requester)", addFileToTransactionLocTestAsRequester);
     it("acknowledges file (LLO)", acknowledgeFileAsOwner);
+
+    it("adds link to transaction LOC (LLO)", addLinkToTransactionLocTestAsLLO);
+    it("adds link to transaction LOC (Requester)", addLinkToTransactionLocTestAsRequester);
+    it("acknowledges link (LLO)", acknowledgeLinkAsOwner);
 
     it("creates collection LOC limited in size", createCollectionLocLimitedInSizeTest);
     it("closes collection LOC", closeCollectionLocTest);

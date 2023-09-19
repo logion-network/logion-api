@@ -13,7 +13,7 @@ import {
     PalletLogionLocSupportedAccountId,
     PalletLogionLocMetadataItemParams,
     PalletLogionLocSponsorship,
-    PalletLogionLocLocLink,
+    PalletLogionLocLocLinkParams,
 } from '@polkadot/types/lookup';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { ISubmittableResult } from "@polkadot/types/types";
@@ -43,7 +43,7 @@ import {
     AccountType,
     HostData,
     Region,
-    Link,
+    LinkParams,
     ItemToken,
 } from "./Types.js";
 import { UUID } from "./UUID.js";
@@ -116,6 +116,9 @@ export class Adapters {
             links: rawLoc.links.toArray().map(rawLink => ({
                 id: UUID.fromDecimalStringOrThrow(rawLink.id.toString()),
                 nature: Hash.fromHex(rawLink.nature.toHex()),
+                submitter: this.fromPalletLogionLocSupportedAccountId(rawLink.submitter),
+                acknowledgedByOwner: rawLink.acknowledgedByOwner.isTrue,
+                acknowledgedByVerifiedIssuer: rawLink.acknowledgedByVerifiedIssuer.isTrue,
             })),
             closed: rawLoc.closed.isTrue,
             locType: rawLoc.locType.toString() as LocType,
@@ -420,16 +423,6 @@ export class Adapters {
         });
     }
 
-    static toLocLink(link: {
-        target: UUID;
-        nature: Hash;
-    }): { id?: string; nature?: Hash } {
-        return {
-            id: Adapters.toLocId(link.target),
-            nature: link.nature,
-        };
-    }
-
     static fromPalletCollectionItem(itemId: Hash, unwrappedResult: PalletLogionLocCollectionItem): CollectionItem {
         const description = Hash.fromHex(unwrappedResult.description.toHex());
         const token = unwrappedResult.token;
@@ -614,10 +607,11 @@ export class Adapters {
         return this.api.createType<H256>("H256", data.bytes);
     }
 
-    toPalletLogionLocLocLink(link: Link): PalletLogionLocLocLink {
-        return this.api.createType("PalletLogionLocLocLink", {
+    toPalletLogionLocLocLinkParams(link: LinkParams): PalletLogionLocLocLinkParams {
+        return this.api.createType("PalletLogionLocLocLinkParams", {
             id: this.toNonCompactU128Uuid(link.id),
             nature: this.toH256(link.nature),
+            submitter: this.toPalletLogionLocSupportedAccountId(link.submitter),
         });
     }
 }
