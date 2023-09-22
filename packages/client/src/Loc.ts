@@ -14,13 +14,11 @@ import {
     LocRequest,
     LocClient,
     AddMetadataParams,
-    DeleteMetadataParams,
     LocMultiClient,
     LocLink,
     LocMetadataItem,
     LocFile,
     AddFileParams,
-    DeleteFileParams,
     AddCollectionItemParams,
     LocRequestVoidInfo,
     LocRequestStatus,
@@ -40,18 +38,22 @@ import {
     AckMetadataParams,
     OpenCollectionLocParams,
     AddLinkParams,
-    DeleteLinkParams,
     VoidParams,
     VerifiedIssuer,
     UploadableItemFile,
     ItemStatus,
-    AddedOn,
-    EstimateFeesAckFileParams,
-    EstimateFeesAckMetadataParams,
+    RefFileParams,
+    RefMetadataParams,
     EstimateFeesPublishFileParams,
     EstimateFeesPublishMetadataParams,
     EstimateFeesPublishLinkParams,
-    EstimateFeesOpenCollectionLocParams, OpenPolkadotLocParams, EstimateFeesAddCollectionItemParams,
+    EstimateFeesOpenCollectionLocParams,
+    OpenPolkadotLocParams,
+    EstimateFeesAddCollectionItemParams,
+    PartialItemLifecycle,
+    RefLinkParams,
+    AckLinkParams,
+    ReviewLinkParams,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -98,10 +100,18 @@ export interface LocData extends LocVerifiedIssuers {
     legalFee?: bigint;
 }
 
-export interface MergedLink extends LocLink, Published {
+interface ItemLifecycle extends PartialItemLifecycle, Published {
+    acknowledgedByOwner: boolean;
+    acknowledgedByVerifiedIssuer: boolean;
 }
 
-export interface MergedFile extends Partial<AddedOn>, Published {
+export interface MergedLink extends ItemLifecycle {
+    target: string;
+    nature: string;
+    submitter: ValidAccountId;
+}
+
+export interface MergedFile extends ItemLifecycle {
     hash: Hash;
     nature: string;
     name: string;
@@ -109,26 +119,16 @@ export interface MergedFile extends Partial<AddedOn>, Published {
     contentType: string;
     fees?: Fees;
     storageFeePaidBy?: string;
-    status: ItemStatus;
-    rejectReason?: string;
-    reviewedOn?: string;
     submitter: ValidAccountId;
     size: bigint;
-    acknowledgedByOwner: boolean;
-    acknowledgedByVerifiedIssuer: boolean;
 }
 
-export interface MergedMetadataItem extends Partial<AddedOn>, Published {
+export interface MergedMetadataItem extends ItemLifecycle {
     name: string;
     nameHash: Hash;
     value: string;
     fees?: Fees;
-    status: ItemStatus;
-    rejectReason?: string;
-    reviewedOn?: string;
     submitter: ValidAccountId;
-    acknowledgedByOwner: boolean;
-    acknowledgedByVerifiedIssuer: boolean;
 }
 
 export class LocsState extends State {
@@ -757,7 +757,7 @@ export abstract class LocRequestState extends State {
             identityLocId: request.identityLoc ? new UUID(request.identityLoc) : undefined,
             metadata: request.metadata.map(item => LocRequestState.mergeMetadata(api, item)),
             files: request.files.map(item => LocRequestState.mergeFile(api, item)),
-            links: request.links.map(item => LocRequestState.mergeLink(item)),
+            links: request.links.map(item => LocRequestState.mergeLink(api, item)),
             voteId: request.voteId ? request.voteId : undefined,
             sponsorshipId: request.sponsorshipId ? new UUID(request.sponsorshipId) : undefined,
             valueFee: request.valueFee !== undefined ? BigInt(request.valueFee) : undefined,
@@ -782,7 +782,7 @@ export abstract class LocRequestState extends State {
             userPostalAddress: request.userPostalAddress,
             metadata: request.metadata.map(item => LocRequestState.mergeMetadata(api, item, loc)),
             files: request.files.map(item => LocRequestState.mergeFile(api, item, loc)),
-            links: request.links.map(item => LocRequestState.mergeLink(item, loc)),
+            links: request.links.map(item => LocRequestState.mergeLink(api, item, loc)),
             seal: loc.closed ? loc.seal : request.seal,
             company: request.company,
             iDenfy: request.iDenfy,
@@ -852,7 +852,7 @@ export abstract class LocRequestState extends State {
         }
     }
 
-    private static mergeLink(backendLink: LocLink, chainLoc?: LegalOfficerCase): MergedLink {
+    private static mergeLink(api: LogionNodeApiClass, backendLink: LocLink, chainLoc?: LegalOfficerCase): MergedLink {
         const chainLink = chainLoc ? chainLoc.links.find(link => link.id.toString() === backendLink.target) : undefined;
         if(chainLink) {
             return {
@@ -864,7 +864,10 @@ export abstract class LocRequestState extends State {
         } else {
             return {
                 ...backendLink,
+                submitter: api.queries.getValidAccountId(backendLink.submitter.address, backendLink.submitter.type),
                 published: false,
+                acknowledgedByOwner: false,
+                acknowledgedByVerifiedIssuer: false,
             }
         }
     }
@@ -940,7 +943,16 @@ export abstract class EditableRequest extends LocRequestState {
         return await this.refresh() as EditableRequest;
     }
 
-    async deleteMetadata(params: DeleteMetadataParams): Promise<EditableRequest> {
+    async addLink(params: AddLinkParams): Promise<EditableRequest> {
+        const client = this.locSharedState.client;
+        await client.addLink({
+            locId: this.locId,
+            ...params
+        });
+        return await this.refresh() as EditableRequest;
+    }
+
+    async deleteMetadata(params: RefMetadataParams): Promise<EditableRequest> {
         const client = this.locSharedState.client;
         await client.deleteMetadata({
             locId: this.locId,
@@ -949,7 +961,7 @@ export abstract class EditableRequest extends LocRequestState {
         return await this.refresh() as EditableRequest
     }
 
-    async deleteFile(params: DeleteFileParams): Promise<EditableRequest> {
+    async deleteFile(params: RefFileParams): Promise<EditableRequest> {
         const client = this.locSharedState.client;
         await client.deleteFile({
             locId: this.locId,
@@ -958,20 +970,38 @@ export abstract class EditableRequest extends LocRequestState {
         return await this.refresh() as EditableRequest
     }
 
-    async requestFileReview(hash: Hash): Promise<EditableRequest> {
+    async deleteLink(params: RefLinkParams): Promise<EditableRequest> {
+        const client = this.locSharedState.client;
+        await client.deleteLink({
+            locId: this.locId,
+            ...params
+        })
+        return await this.refresh() as EditableRequest
+    }
+
+    async requestFileReview(params: RefFileParams): Promise<EditableRequest> {
         const client = this.locSharedState.client;
         await client.requestFileReview({
             locId: this.locId,
-            hash,
+            ...params,
         });
         return await this.refresh() as EditableRequest;
     }
 
-    async requestMetadataReview(nameHash: Hash): Promise<EditableRequest> {
+    async requestMetadataReview(params: RefMetadataParams): Promise<EditableRequest> {
         const client = this.locSharedState.client;
         await client.requestMetadataReview({
             locId: this.locId,
-            nameHash,
+            ...params,
+        });
+        return await this.refresh() as EditableRequest;
+    }
+
+    async requestLinkReview(params: RefLinkParams): Promise<EditableRequest> {
+        const client = this.locSharedState.client;
+        await client.requestLinkReview({
+            locId: this.locId,
+            ...params,
         });
         return await this.refresh() as EditableRequest;
     }
@@ -1006,21 +1036,14 @@ export class LegalOfficerEditableRequestCommands extends LegalOfficerLocRequestC
         return await this.request.refresh() as EditableRequest;
     }
 
-    async addLink(params: AddLinkParams): Promise<EditableRequest> {
-        await this.client.addLink({
+    async reviewLink(params: ReviewLinkParams): Promise<EditableRequest> {
+        await this.client.reviewLink({
+            ...params,
             locId: this.locId,
-            ...params
         });
         return await this.request.refresh() as EditableRequest;
     }
 
-    async deleteLink(params: DeleteLinkParams): Promise<EditableRequest> {
-        await this.client.deleteLink({
-            locId: this.locId,
-            ...params
-        })
-        return await this.request.refresh() as EditableRequest
-    }
 }
 
 export interface IdenfyVerificationCreation {
@@ -1357,7 +1380,7 @@ export class OpenLoc extends EditableRequest {
         return await this.refresh() as OpenLoc;
     }
 
-    async estimateFeesAcknowledgeFile(parameters: EstimateFeesAckFileParams): Promise<FeesClass> {
+    async estimateFeesAcknowledgeFile(parameters: RefFileParams): Promise<FeesClass> {
         const client = this.locSharedState.client;
         return await client.estimateFeesAcknowledgeFile({
             locId: this.locId,
@@ -1411,9 +1434,62 @@ export class OpenLoc extends EditableRequest {
         return await this.refresh() as OpenLoc;
     }
 
-    async estimateFeesAcknowledgeMetadata(parameters: EstimateFeesAckMetadataParams): Promise<FeesClass> {
+    async estimateFeesAcknowledgeMetadata(parameters: RefMetadataParams): Promise<FeesClass> {
         const client = this.locSharedState.client;
         return await client.estimateFeesAcknowledgeMetadata({
+            locId: this.locId,
+            ...parameters
+        });
+    }
+
+    async publishLink(parameters: { target: UUID } & BlockchainSubmissionParams): Promise<OpenLoc> {
+        const client = this.locSharedState.client;
+        const link = this.findLink(parameters.target, "REVIEW_ACCEPTED");
+        await client.publishLink({
+            ...link,
+            signer: parameters.signer,
+            callback: parameters.callback,
+        });
+        return await this.refresh() as OpenLoc;
+    }
+
+    private findLink(target: UUID, status: ItemStatus): EstimateFeesPublishLinkParams {
+        const link = this.request.links.find(link => link.target === target.toString() && link.status === status);
+        if(!link) {
+            throw new Error(`Link with target ${ target } was not found`);
+        }
+        return {
+            locId: this.locId,
+            link: {
+                id: target,
+                nature: Hash.of(link.nature),
+                submitter: this.locSharedState.nodeApi.queries.getValidAccountId(link.submitter.address, link.submitter.type),
+            },
+        }
+    }
+
+    async estimateFeesPublishLink(parameters: { target: UUID }): Promise<FeesClass> {
+        const client = this.locSharedState.client;
+        const link = this.findLink(parameters.target, "REVIEW_ACCEPTED");
+        return client.estimateFeesPublishLink(link);
+    }
+
+    async acknowledgeLink(parameters: AckLinkParams): Promise<OpenLoc> {
+        // TODO: Check signer is verified issuer
+        const client = this.locSharedState.client;
+        this.findLink(parameters.target, "PUBLISHED");
+        await client.acknowledgeLink({
+            locId: this.locId,
+            target: parameters.target,
+            signer: parameters.signer,
+            callback: parameters.callback,
+        });
+        return await this.refresh() as OpenLoc;
+    }
+
+    async estimateFeesAcknowledgeLink(parameters: RefLinkParams): Promise<FeesClass> {
+        const client = this.locSharedState.client;
+        return await client.estimateFeesAcknowledgeLink({
             locId: this.locId,
             ...parameters
         });
@@ -1450,40 +1526,6 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
 
     private legalOfficerLocWithSelectableIssuersCommands: LegalOfficerLocWithSelectableIssuersCommands<OpenLoc>;
 
-    async publishLink(parameters: { target: UUID } & BlockchainSubmissionParams): Promise<OpenLoc> {
-        const link = this.findLink(parameters.target);
-        if(!link) {
-            throw new Error("Link was not found");
-        }
-        await this.client.publishLink({
-            ...link,
-            signer: parameters.signer,
-            callback: parameters.callback,
-        });
-        return await this.request.refresh() as OpenLoc;
-    }
-
-    private findLink(target: UUID): EstimateFeesPublishLinkParams {
-        const link = this.request.data().links.find(link => link.target === target.toString());
-        if(!link) {
-            throw new Error("Link was not found");
-        }
-        return {
-            locId: this.locId,
-            link: {
-                id: target,
-                nature: Hash.of(link.nature),
-                submitter: undefined as unknown as ValidAccountId, // TODO
-            },
-        }
-    }
-
-    async estimateFeesPublishLink(parameters: { target: UUID }): Promise<FeesClass> {
-        const client = this.client;
-        const link = this.findLink(parameters.target);
-        return client.estimateFeesPublishLink(link);
-    }
-
     async acknowledgeFile(parameters: AckFileParams): Promise<OpenLoc> {
         this.request.ensureCurrent();
         const file = this.request.data().files.find(file => file.hash.equalTo(parameters.hash) && file.status === "PUBLISHED");
@@ -1499,7 +1541,7 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
         return await this.request.refresh() as OpenLoc;
     }
 
-    async estimateFeesAcknowledgeFile(parameters: EstimateFeesAckFileParams): Promise<FeesClass> {
+    async estimateFeesAcknowledgeFile(parameters: RefFileParams): Promise<FeesClass> {
         return await this.client.estimateFeesAcknowledgeFile({ locId: this.locId, ...parameters });
     }
 
@@ -1518,8 +1560,27 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
         return await this.request.refresh() as OpenLoc;
     }
 
-    async estimateFeesAcknowledgeMetadata(parameters: EstimateFeesAckMetadataParams): Promise<FeesClass> {
+    async estimateFeesAcknowledgeMetadata(parameters: RefMetadataParams): Promise<FeesClass> {
         return this.client.estimateFeesAcknowledgeMetadata({ locId: this.locId, ...parameters })
+    }
+
+    async acknowledgeLink(parameters: AckLinkParams): Promise<OpenLoc> {
+        this.request.ensureCurrent();
+        const link = this.request.data().links.find(link => link.target == parameters.target.toString() && link.status === "PUBLISHED");
+        if(!link) {
+            throw new Error("Data was not found or was not published yet");
+        }
+        await this.client.acknowledgeLink({
+            locId: this.locId,
+            target: parameters.target,
+            signer: parameters.signer,
+            callback: parameters.callback,
+        });
+        return await this.request.refresh() as OpenLoc;
+    }
+
+    async estimateFeesAcknowledgeLink(parameters: RefLinkParams): Promise<FeesClass> {
+        return this.client.estimateFeesAcknowledgeLink({ locId: this.locId, ...parameters })
     }
 
     async close(parameters: BlockchainSubmissionParams): Promise<ClosedLoc | ClosedCollectionLoc> {

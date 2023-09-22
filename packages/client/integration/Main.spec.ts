@@ -70,16 +70,13 @@ describe("Logion SDK", () => {
         await identityLoc(state);
     });
 
-    it("provides Other Identity LOC", async () => {
-        await otherIdentityLoc(state);
-    });
-
     it("provides Logion Identity LOC", async () => {
         await logionIdentityLoc(state);
     });
 
-    it("requests a Transaction LOC", async () => {
-        await requestTransactionLoc(state);
+    it("provides Other Identity LOC, requests a Transaction LOC and link it to the Identity LOC", async () => {
+        const linkTarget = await otherIdentityLoc(state);
+        await requestTransactionLoc(state, linkTarget);
     });
 
     it("requests a Transaction LOC with custom legal fee", async () => {

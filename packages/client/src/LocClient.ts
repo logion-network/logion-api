@@ -60,10 +60,16 @@ export interface SupportedAccountId {
 
 export type ItemStatus = "DRAFT" | "REVIEW_PENDING" | "REVIEW_ACCEPTED" | "REVIEW_REJECTED" | "PUBLISHED" | "ACKNOWLEDGED";
 
+export interface PartialItemLifecycle extends Partial<AddedOn> {
+    status: ItemStatus;
+    rejectReason?: string;
+    reviewedOn?: string;
+}
+
 /**
  * Backend LOC file.
  */
-export interface LocFile extends Partial<AddedOn> {
+export interface LocFile extends PartialItemLifecycle {
     hash: string;
     nature: string;
     submitter: SupportedAccountId;
@@ -72,30 +78,24 @@ export interface LocFile extends Partial<AddedOn> {
     contentType: string;
     fees?: Fees;
     storageFeePaidBy?: string;
-    status: ItemStatus;
-    rejectReason?: string;
-    reviewedOn?: string;
     size: string;
 }
 
 /**
  * Backend MetadataItem.
  */
-export interface LocMetadataItem extends Partial<AddedOn> {
+export interface LocMetadataItem extends PartialItemLifecycle {
     name: string;
     nameHash: string;
     value: string;
     submitter: SupportedAccountId;
     fees?: Fees;
-    status: ItemStatus;
-    rejectReason?: string;
-    reviewedOn?: string;
 }
 
 /**
  * Backend LocLink.
  */
-export interface LocLink extends AddedOn {
+export interface LocLink extends PartialItemLifecycle {
     target: string;
     nature: string;
     submitter: SupportedAccountId;
@@ -179,27 +179,15 @@ export interface AddMetadataParams {
     value: string,
 }
 
-export interface DeleteMetadataParams {
-    nameHash: Hash,
-}
-
 export interface AddFileParams {
     file: HashOrContent,
     fileName: string,
     nature: string,
 }
 
-export interface DeleteFileParams {
-    hash: Hash;
-}
-
 export interface AddLinkParams {
     target: UUID;
     nature: string;
-}
-
-export interface DeleteLinkParams {
-    target: UUID;
 }
 
 export class ItemFileWithContent {
@@ -850,7 +838,7 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async deleteMetadata(parameters: DeleteMetadataParams & FetchParameters): Promise<void> {
+    async deleteMetadata(parameters: RefMetadataParams & FetchParameters): Promise<void> {
         try {
             const { nameHash, locId } = parameters;
             await this.backend().delete(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash.toHex() }`);
@@ -880,7 +868,7 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async deleteFile(parameters: DeleteFileParams & FetchParameters): Promise<void> {
+    async deleteFile(parameters: RefFileParams & FetchParameters): Promise<void> {
         try {
             const { hash, locId } = parameters;
             await this.backend().delete(`/api/loc-request/${ locId.toString() }/files/${ hash.toHex() }`);
@@ -898,7 +886,7 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async deleteLink(parameters: DeleteLinkParams & FetchParameters): Promise<void> {
+    async deleteLink(parameters: RefLinkParams & FetchParameters): Promise<void> {
         try {
             const { target, locId } = parameters;
             await this.backend().delete(`/api/loc-request/${ locId.toString() }/links/${ target.toString() }`);
@@ -1376,14 +1364,14 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async estimateFeesAcknowledgeFile(parameters: { locId: UUID } & EstimateFeesAckFileParams): Promise<FeesClass> {
+    async estimateFeesAcknowledgeFile(parameters: { locId: UUID } & RefFileParams): Promise<FeesClass> {
         return await this.nodeApi.fees.estimateWithoutStorage({
             origin: this.currentAddress?.address || "",
             submittable: this.acknowledgeFileSubmittable(parameters)
         });
     }
 
-    private acknowledgeFileSubmittable(parameters: { locId: UUID } & EstimateFeesAckFileParams): SubmittableExtrinsic {
+    private acknowledgeFileSubmittable(parameters: { locId: UUID } & RefFileParams): SubmittableExtrinsic {
         return this.nodeApi.polkadot.tx.logionLoc.acknowledgeFile(
             this.nodeApi.adapters.toLocId(parameters.locId),
             this.nodeApi.adapters.toH256(parameters.hash)
@@ -1462,18 +1450,37 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async estimateFeesAcknowledgeMetadata(parameters: { locId: UUID } & EstimateFeesAckMetadataParams): Promise<FeesClass> {
+    async estimateFeesAcknowledgeMetadata(parameters: { locId: UUID } & RefMetadataParams): Promise<FeesClass> {
         return await this.nodeApi.fees.estimateWithoutStorage({
             origin: this.currentAddress?.address || "",
             submittable: this.acknowledgeMetadataSubmittable(parameters)
         });
     }
 
-    private acknowledgeMetadataSubmittable(parameters: { locId: UUID } & EstimateFeesAckMetadataParams): SubmittableExtrinsic {
+    private acknowledgeMetadataSubmittable(parameters: { locId: UUID } & RefMetadataParams): SubmittableExtrinsic {
         return this.nodeApi.polkadot.tx.logionLoc.acknowledgeMetadata(
             this.nodeApi.adapters.toLocId(parameters.locId),
             this.nodeApi.adapters.toH256(parameters.nameHash),
         );
+    }
+
+    async requestLinkReview(parameters: { locId: UUID, target: UUID }): Promise<void> {
+        const { locId, target } = parameters;
+        try {
+            await this.backend().post(`/api/loc-request/${ locId.toString() }/links/${ target.toString() }/review-request`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    async reviewLink(parameters: { locId: UUID } & ReviewLinkParams): Promise<void> {
+        try {
+            const { locId, target, decision, rejectReason } = parameters;
+
+            await this.backend().post(`/api/loc-request/${ locId.toString() }/links/${ target.toString() }/review`, { decision, rejectReason });
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async publishLink(parameters: PublishLinkParams): Promise<void> {
@@ -1503,6 +1510,36 @@ export class AuthenticatedLocClient extends LocClient {
             origin: this.currentAddress?.address || "",
             submittable: this.publishLinkSubmittable(parameters)
         });
+    }
+
+    async acknowledgeLink(parameters: { locId: UUID } & AckLinkParams): Promise<void> {
+        const { locId, target } = parameters;
+
+        await parameters.signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable: this.acknowledgeLinkSubmittable(parameters),
+            callback: parameters.callback,
+        });
+
+        try {
+            await this.backend().put(`/api/loc-request/${ locId.toString() }/links/${ target.toString() }/confirm-acknowledged`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    async estimateFeesAcknowledgeLink(parameters: { locId: UUID } & RefLinkParams): Promise<FeesClass> {
+        return await this.nodeApi.fees.estimateWithoutStorage({
+            origin: this.currentAddress?.address || "",
+            submittable: this.acknowledgeLinkSubmittable(parameters)
+        });
+    }
+
+    private acknowledgeLinkSubmittable(parameters: { locId: UUID } & RefLinkParams): SubmittableExtrinsic {
+        return this.nodeApi.polkadot.tx.logionLoc.acknowledgeLink(
+            this.nodeApi.adapters.toLocId(parameters.locId),
+            this.nodeApi.adapters.toLocId(parameters.target),
+        );
     }
 
     async rejectLoc(args: {
@@ -1903,13 +1940,19 @@ export class AuthenticatedLocClient extends LocClient {
     }
 }
 
-export interface ReviewFileParams {
-    hash: Hash;
+export interface ReviewParams {
     decision: ReviewResult;
     rejectReason?: string;
 }
 
 export type ReviewResult = "ACCEPT" | "REJECT";
+
+export interface ReviewFileParams extends RefFileParams, ReviewParams {}
+
+export interface ReviewMetadataParams extends RefMetadataParams, ReviewParams {}
+
+export interface ReviewLinkParams extends RefLinkParams, ReviewParams {}
+
 
 export interface EstimateFeesPublishFileParams {
     locId: UUID;
@@ -1919,17 +1962,11 @@ export interface EstimateFeesPublishFileParams {
 export interface PublishFileParams extends EstimateFeesPublishFileParams, BlockchainSubmissionParams {
 }
 
-export interface EstimateFeesAckFileParams {
+export interface RefFileParams {
     hash: Hash;
 }
 
-export interface AckFileParams extends EstimateFeesAckFileParams, BlockchainSubmissionParams {
-}
-
-export interface ReviewMetadataParams {
-    nameHash: Hash;
-    decision: ReviewResult;
-    rejectReason?: string;
+export interface AckFileParams extends RefFileParams, BlockchainSubmissionParams {
 }
 
 export interface EstimateFeesPublishMetadataParams {
@@ -1944,11 +1981,18 @@ export interface EstimateFeesPublishMetadataParams {
 export interface PublishMetadataParams extends EstimateFeesPublishMetadataParams, BlockchainSubmissionParams {
 }
 
-export interface EstimateFeesAckMetadataParams {
+export interface RefMetadataParams {
     nameHash: Hash;
 }
 
-export interface AckMetadataParams extends EstimateFeesAckMetadataParams, BlockchainSubmissionParams {
+export interface AckMetadataParams extends RefMetadataParams, BlockchainSubmissionParams {
+}
+
+export interface RefLinkParams {
+    target: UUID;
+}
+
+export interface AckLinkParams extends RefLinkParams, BlockchainSubmissionParams {
 }
 
 export interface OpenPolkadotLocParams {
