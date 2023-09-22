@@ -22,12 +22,12 @@ import {
 
 import { State, TEST_LOGION_CLIENT_CONFIG, initRequesterBalance, LegalOfficerWorker } from "./Utils.js";
 
-export async function requestTransactionLoc(state: State) {
+export async function requestTransactionLoc(state: State, linkTarget: UUID) {
     const { alice, aliceAccount, newAccount, signer } = state;
     const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
 
-    // Create DRAFT LOC with metadata
+    // Create DRAFT LOC
     let draftRequest = await locsState.requestTransactionLoc({
         legalOfficer: client.getLegalOfficer(alice.address),
         description: "This is a Transaction LOC",
@@ -41,6 +41,7 @@ export async function requestTransactionLoc(state: State) {
     checkData(draftRequest.data(), "DRAFT");
     expect(draftRequest.data().legalFee).toBeUndefined();
 
+    // Add Metadata
     const metadataName = "Some name";
     const nameHash = Hash.of(metadataName);
     draftRequest = await draftRequest.addMetadata({
@@ -52,6 +53,17 @@ export async function requestTransactionLoc(state: State) {
     expect(draftRequest.data().metadata[0].value).toBe("Some value");
     expect(draftRequest.data().metadata[0].addedOn).toBeUndefined();
     expect(draftRequest.data().metadata[0].status).toBe("DRAFT");
+
+    // Add Link
+    const nature = "Some nature";
+    draftRequest = await draftRequest.addLink({
+        target: linkTarget,
+        nature,
+    }) as DraftRequest;
+    expect(draftRequest.data().links[0].target).toEqual(linkTarget.toString());
+    expect(draftRequest.data().links[0].nature).toBe(nature);
+    expect(draftRequest.data().links[0].addedOn).toBeUndefined();
+    expect(draftRequest.data().links[0].status).toBe("DRAFT");
 
     // Submit LOC
     let pendingRequest = await draftRequest.submit();
@@ -70,10 +82,12 @@ export async function requestTransactionLoc(state: State) {
     let rejectedRequest = await pendingRequest.refresh() as RejectedRequest;
     expect(rejectedRequest).toBeInstanceOf(RejectedRequest);
     expect(rejectedRequest.data().metadata[0].status).toBe("REVIEW_REJECTED");
+    expect(rejectedRequest.data().links[0].status).toBe("REVIEW_REJECTED");
 
     draftRequest = await rejectedRequest.rework();
     expect(draftRequest).toBeInstanceOf(DraftRequest);
     expect(draftRequest.data().metadata[0].status).toBe("DRAFT");
+    expect(draftRequest.data().links[0].status).toBe("DRAFT");
     pendingRequest = await draftRequest.submit();
 
     alicePendingLoc = await aliceRejectedLoc.refresh() as PendingRequest;
@@ -112,7 +126,7 @@ export async function requestTransactionLoc(state: State) {
     expect(checkResult.metadataItem).not.toBeDefined();
     expect(checkResult.collectionItem).not.toBeDefined();
 
-    openLoc = await openLoc.requestFileReview(hash) as OpenLoc;
+    openLoc = await openLoc.requestFileReview({ hash }) as OpenLoc;
     expect(openLoc.data().files[0].status).toBe("REVIEW_PENDING");
 
     aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewFile({ hash, decision: "ACCEPT" }) as OpenLoc;
@@ -148,7 +162,7 @@ export async function requestTransactionLoc(state: State) {
         name: metadataName,
         value: "Some value"
     }) as OpenLoc;
-    openLoc = await openLoc.requestMetadataReview(nameHash) as OpenLoc;
+    openLoc = await openLoc.requestMetadataReview({ nameHash }) as OpenLoc;
     aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
     aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewMetadata({ nameHash, decision: "ACCEPT" }) as OpenLoc;
     openLoc = await openLoc.refresh() as OpenLoc;
@@ -160,6 +174,35 @@ export async function requestTransactionLoc(state: State) {
         signer,
     }) as OpenLoc;
     expect(aliceOpenLoc.data().metadata[0].status).toBe("ACKNOWLEDGED");
+
+    // Continue with Link
+    aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
+    const rejectReason = "Because nature is not good";
+    aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewLink({ target: linkTarget, decision: "REJECT", rejectReason }) as OpenLoc;
+    expect(aliceOpenLoc.data().links[0].status).toBe("REVIEW_REJECTED");
+    expect(aliceOpenLoc.data().links[0].rejectReason).toBe(rejectReason);
+    await waitFor<OnchainLocState>({
+        producer: async state => state ? await state.refresh() : aliceOpenLoc,
+        predicate: state => state.data().links[0].reviewedOn !== undefined,
+    });
+    openLoc = await openLoc.refresh() as OpenLoc;
+    openLoc = await openLoc.deleteLink({ target: linkTarget }) as OpenLoc;
+    openLoc = await openLoc.addLink({
+        target: linkTarget,
+        nature: "Better nature"
+    }) as OpenLoc;
+    openLoc = await openLoc.requestLinkReview({ target: linkTarget }) as OpenLoc;
+    aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
+    aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewLink({ target: linkTarget, decision: "ACCEPT" }) as OpenLoc;
+    openLoc = await openLoc.refresh() as OpenLoc;
+    openLoc = await openLoc.publishLink({ target: linkTarget, signer });
+    expect(openLoc.data().links[0].status).toBe("PUBLISHED");
+    aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
+    aliceOpenLoc = await aliceOpenLoc.legalOfficer.acknowledgeLink({
+        target: linkTarget,
+        signer,
+    }) as OpenLoc;
+    expect(aliceOpenLoc.data().links[0].status).toBe("ACKNOWLEDGED");
 
     // Close LOC
     const closedLoc = await aliceOpenLoc.legalOfficer.close({ signer });
@@ -462,7 +505,7 @@ export async function identityLoc(state: State) {
     await legalOfficer.closeLoc(acceptedRequest.locId);
 }
 
-export async function otherIdentityLoc(state: State) {
+export async function otherIdentityLoc(state: State): Promise<UUID> {
     const { alice, aliceAccount, ethereumAccount, signer } = state;
     const legalOfficer = new LegalOfficerWorker(alice, state);
 
@@ -503,6 +546,8 @@ export async function otherIdentityLoc(state: State) {
 
     await legalOfficer.acceptAndOpenLoc(pendingRequest.locId);
     await legalOfficer.closeLoc(pendingRequest.locId);
+
+    return pendingRequest.locId;
 }
 
 export async function logionIdentityLoc(state: State) {

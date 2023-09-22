@@ -38,6 +38,7 @@ export const EXISTING_LINK: LocLink = {
     nature: "Some nature",
     addedOn: DateTime.now().toISO(),
     submitter: REQUESTER,
+    status: "REVIEW_ACCEPTED",
 };
 
 export type LocAndRequest = {

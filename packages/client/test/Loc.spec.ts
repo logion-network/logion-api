@@ -217,7 +217,7 @@ describe("OpenLoc", () => {
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
-        await openLoc.legalOfficer.publishLink({
+        await openLoc.publishLink({
             target: EXISTING_LINK_TARGET,
             signer: signer.object(),
         });
@@ -1006,11 +1006,12 @@ async function testAddLink(editable: EditableRequest) {
     const target = new UUID();
     const nature = "Some nature";
 
-    await editable.legalOfficer.addLink({
+    let newState = await editable.addLink({
         target,
         nature,
     });
 
+    expect(newState).toBeInstanceOf(EditableRequest);
     aliceAxiosMock.verify(instance => instance.post(
             `/api/loc-request/${ editable.locId }/links`,
             It.Is((params: any) => params.target === target.toString() && params.nature === "Some nature"),
@@ -1021,7 +1022,8 @@ async function testAddLink(editable: EditableRequest) {
 
 async function testDeleteLink(editable: EditableRequest) {
     const target = new UUID();
-    await editable.legalOfficer.deleteLink({ target });
+    let newState = await editable.deleteLink({ target });
+    expect(newState).toBeInstanceOf(EditableRequest);
     aliceAxiosMock.verify(instance => instance.delete(`/api/loc-request/${ editable.locId }/links/${ target.toString() }`), Times.Once());
 }
 
