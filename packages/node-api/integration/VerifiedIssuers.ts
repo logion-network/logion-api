@@ -14,7 +14,7 @@ export async function verifiedIssuers() {
             issuerIdentityLocId.toDecimalString(),
             ALICE,
             null,
-            api.adapters.toPalletLogionLocItemsParams({ metadata: [], files: [], links: [] }),
+            api.adapters.emptyPalletLogionLocItemsParams(),
         ),
     );
     await signAndSendBatch(alice, [
@@ -30,7 +30,7 @@ export async function verifiedIssuers() {
             true,
             0,
             null,
-            api.adapters.toPalletLogionLocItemsParams({ metadata: [], files: [], links: [] }),
+            api.adapters.emptyPalletLogionLocItemsParams(),
         ),
     );
 

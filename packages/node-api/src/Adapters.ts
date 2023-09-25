@@ -627,4 +627,12 @@ export class Adapters {
             links: items.links.map(item => this.toPalletLogionLocLocLinkParams(item)),
         });
     }
+
+    emptyPalletLogionLocItemsParams(): PalletLogionLocItemsParams {
+        return this.toPalletLogionLocItemsParams({
+            metadata: [],
+            files: [],
+            links: [],
+        });
+    }
 }

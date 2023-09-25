@@ -1611,6 +1611,7 @@ export class AuthenticatedLocClient extends LocClient {
             this.nodeApi.adapters.toLocId(locId),
             legalOfficer.address,
             parameters.legalFee === undefined ? null : parameters.legalFee,
+            this.nodeApi.adapters.emptyPalletLogionLocItemsParams(),
         );
     }
 
@@ -1733,6 +1734,7 @@ export class AuthenticatedLocClient extends LocClient {
             this.nodeApi.adapters.toLocId(locId),
             legalOfficer.address,
             parameters.legalFee === undefined ? null : parameters.legalFee,
+            this.nodeApi.adapters.emptyPalletLogionLocItemsParams(),
         );
     }
 
@@ -1794,6 +1796,7 @@ export class AuthenticatedLocClient extends LocClient {
             parameters.collectionCanUpload,
             parameters.valueFee,
             parameters.legalFee === undefined ? null : parameters.legalFee,
+            this.nodeApi.adapters.emptyPalletLogionLocItemsParams(),
         );
     }
 
