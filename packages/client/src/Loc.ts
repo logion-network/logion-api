@@ -108,6 +108,7 @@ interface ItemLifecycle extends PartialItemLifecycle, Published {
 export interface MergedLink extends ItemLifecycle {
     target: string;
     nature: string;
+    fees?: Fees;
     submitter: ValidAccountId;
 }
 
