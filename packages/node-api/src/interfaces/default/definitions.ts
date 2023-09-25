@@ -239,6 +239,11 @@ export default {
                 Treasury: null,
                 LegalOfficer: "AccountId",
             }
+        },
+        ItemsParams: {
+            metadata: "Vec<MetadataItemParams>",
+            files: "Vec<FileParams>",
+            links: "Vec<LocLinkParams>",
         }
     }
 };

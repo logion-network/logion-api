@@ -10,14 +10,28 @@ export async function verifiedIssuers() {
         api.polkadot.tx.balances.transfer(ISSUER, Currency.toCanonicalAmount(Currency.nLgnt(200n))),
     );
     await signAndSend(issuer,
-        api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(issuerIdentityLocId.toDecimalString(), ALICE, null),
+        api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
+            issuerIdentityLocId.toDecimalString(),
+            ALICE,
+            null,
+            api.adapters.toPalletLogionLocItemsParams({ metadata: [], files: [], links: [] }),
+        ),
     );
     await signAndSendBatch(alice, [
         api.polkadot.tx.logionLoc.close(issuerIdentityLocId.toDecimalString()),
         api.polkadot.tx.logionLoc.nominateIssuer(ISSUER, issuerIdentityLocId.toDecimalString()),
     ]);
     await signAndSend(requester,
-        api.polkadot.tx.logionLoc.createCollectionLoc(collectionLocId.toDecimalString(), ALICE, null, 200, true, 0, null),
+        api.polkadot.tx.logionLoc.createCollectionLoc(
+            collectionLocId.toDecimalString(),
+            ALICE,
+            null,
+            200,
+            true,
+            0,
+            null,
+            api.adapters.toPalletLogionLocItemsParams({ metadata: [], files: [], links: [] }),
+        ),
     );
 
     await signAndSendBatch(alice, [

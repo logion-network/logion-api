@@ -14,6 +14,7 @@ import {
     PalletLogionLocMetadataItemParams,
     PalletLogionLocSponsorship,
     PalletLogionLocLocLinkParams,
+    PalletLogionLocItemsParams,
 } from '@polkadot/types/lookup';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { ISubmittableResult } from "@polkadot/types/types";
@@ -612,6 +613,18 @@ export class Adapters {
             id: this.toNonCompactU128Uuid(link.id),
             nature: this.toH256(link.nature),
             submitter: this.toPalletLogionLocSupportedAccountId(link.submitter),
+        });
+    }
+
+    toPalletLogionLocItemsParams(items: {
+        metadata: MetadataItemParams[],
+        files: FileParams[],
+        links: LinkParams[],
+    }): PalletLogionLocItemsParams {
+        return this.api.createType("PalletLogionLocItemsParams", {
+            metadata: items.metadata.map(item => this.toPalletLogionLocMetadataItem(item)),
+            files: items.files.map(item => this.toPalletLogionLocFile(item)),
+            links: items.links.map(item => this.toPalletLogionLocLocLinkParams(item)),
         });
     }
 }

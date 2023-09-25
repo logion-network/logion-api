@@ -9,16 +9,19 @@ export async function createTransactionLocTest() {
         api.adapters.toLocId(TRANSACTION_LOC_ID),
         ALICE,
         null,
+        api.adapters.toPalletLogionLocItemsParams({ metadata: [], files: [], links: [] }),
     );
     const createOtherLocExtrinsic = api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
         api.adapters.toLocId(OTHER_TRANSACTION_LOC_ID),
         ALICE,
         0n,
+        api.adapters.toPalletLogionLocItemsParams({ metadata: [], files: [], links: [] }),
     );
     const createYetAnotherLocExtrinsic = api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
         api.adapters.toLocId(YET_ANOTHER_TRANSACTION_LOC_ID),
         ALICE,
         0n,
+        api.adapters.toPalletLogionLocItemsParams({ metadata: [], files: [], links: [] }),
     );
     await signAndSendBatch(requester, [
         createLocExtrinsic,

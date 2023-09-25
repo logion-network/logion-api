@@ -19,7 +19,12 @@ async function createClosedLoc(args: { alice: IKeyringPair, requester: IKeyringP
     const { alice, requester, api } = args;
 
     const locId = new UUID();
-    await signAndSend(requester, api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(api.adapters.toLocId(locId), ALICE, null));
+    await signAndSend(requester, api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
+        api.adapters.toLocId(locId),
+        ALICE,
+        null,
+        api.adapters.toPalletLogionLocItemsParams({ metadata: [], files: [], links: [] }),
+    ));
     await signAndSend(alice, api.polkadot.tx.logionLoc.close(api.adapters.toLocId(locId)));
 
     return locId;

@@ -10,7 +10,8 @@ export async function createCollectionLocLimitedInSizeTest() {
         100,
         false,
         0,
-        null
+        null,
+        api.adapters.toPalletLogionLocItemsParams({ metadata: [], files: [], links: [] }),
     );
     await signAndSend(requester, createExtrinsic);
     const loc = await api.queries.getLegalOfficerCase(COLLECTION_LOC_ID);

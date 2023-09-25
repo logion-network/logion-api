@@ -107,6 +107,13 @@ export interface HostData extends Struct {
   readonly region: Region;
 }
 
+/** @name ItemsParams */
+export interface ItemsParams extends Struct {
+  readonly metadata: Vec<MetadataItemParams>;
+  readonly files: Vec<FileParams>;
+  readonly links: Vec<LocLinkParams>;
+}
+
 /** @name LegalOfficerCaseOf */
 export interface LegalOfficerCaseOf extends Struct {
   readonly owner: AccountId;
