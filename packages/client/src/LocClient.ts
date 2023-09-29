@@ -16,6 +16,7 @@ import {
     Hash,
     Fees as FeesClass,
     LinkParams,
+    MetadataItemParams,
 } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AnyJson } from "@polkadot/types-codec/types";
@@ -272,20 +273,32 @@ export interface FetchLocRequestSpecification {
     sponsorshipId?: string;
 }
 
-export interface CreateLocRequest {
+export interface BaseLoc {
     ownerAddress: string;
     description: string;
     locType: LocType;
     userIdentity?: UserIdentity;
     userPostalAddress?: PostalAddress;
     company?: string;
-    draft?: boolean;
     template?: string;
-    sponsorshipId?: string;
-    requesterAddress?: SupportedAccountId;
-    requesterIdentityLoc?: string;
     valueFee?: string;
     legalFee?: string;
+}
+
+export interface ItemsParams {
+    metadata: AddMetadataParams[];
+    files: AddFileParams[];
+    links: AddLinkParams[];
+}
+
+export interface CreateLocRequest extends BaseLoc {
+    requesterAddress?: SupportedAccountId;
+    requesterIdentityLoc?: string;
+    draft?: boolean;
+    sponsorshipId?: string;
+}
+
+export interface CreateOpenLoc extends BaseLoc, ItemsParams {
 }
 
 export interface CreateSofRequest {
@@ -804,6 +817,15 @@ export class AuthenticatedLocClient extends LocClient {
     async createLocRequest(request: CreateLocRequest): Promise<LocRequest> {
         try {
             const response = await this.backend().post(`/api/loc-request`, request);
+            return response.data;
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    async createOpenLoc(request: CreateOpenLoc): Promise<LocRequest> {
+        try {
+            const response = await this.backend().post(`/api/loc-request/open`, request);
             return response.data;
         } catch(e) {
             throw newBackendError(e);
@@ -1606,12 +1628,16 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private openTransactionLocSubmittable(parameters: OpenPolkadotLocParams): SubmittableExtrinsic {
-        const { locId, legalOfficer } = parameters;
+        const { locId, legalOfficer, metadata, files, links } = parameters;
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficer.address,
             parameters.legalFee === undefined ? null : parameters.legalFee,
-            this.nodeApi.adapters.emptyPalletLogionLocItemsParams(),
+            this.nodeApi.adapters.toPalletLogionLocItemsParams({
+                metadata: metadata.map(this.toMetadataItemParams),
+                files: files.map(this.toFileParams),
+                links: links.map(this.toLinkParams),
+            }),
         );
     }
 
@@ -1729,13 +1755,42 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private openIdentityLocSubmittable(parameters: OpenPolkadotLocParams): SubmittableExtrinsic {
-        const { locId, legalOfficer } = parameters
+        const { locId, legalOfficer, metadata, files, links } = parameters
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficer.address,
             parameters.legalFee === undefined ? null : parameters.legalFee,
-            this.nodeApi.adapters.emptyPalletLogionLocItemsParams(),
+            this.nodeApi.adapters.toPalletLogionLocItemsParams({
+                metadata: metadata.map(this.toMetadataItemParams),
+                files: files.map(this.toFileParams),
+                links: links.map(this.toLinkParams),
+            }),
         );
+    }
+
+    private toMetadataItemParams(item: AddMetadataParams): MetadataItemParams {
+        return {
+            name: Hash.of(item.name),
+            value: Hash.of(item.value),
+            submitter: this.currentAddress,
+        }
+    }
+
+    private toFileParams(item: AddFileParams): FileParams {
+        return {
+            hash: item.file.contentHash,
+            nature: Hash.of(item.nature),
+            size: item.file.size!, // TODO this will not work if no content is provided
+            submitter: this.currentAddress,
+        }
+    }
+
+    private toLinkParams(item: AddLinkParams): LinkParams {
+        return {
+            id: item.target,
+            nature: Hash.of(item.nature),
+            submitter: this.currentAddress,
+        }
     }
 
     async estimateFeesOpenIdentityLoc(parameters: OpenPolkadotLocParams) {
@@ -1787,7 +1842,7 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private openCollectionLocSubmittable(parameters: { valueFee: bigint } & OpenPolkadotLocParams & EstimateFeesOpenCollectionLocParams): SubmittableExtrinsic {
-        const { locId, legalOfficer } = parameters
+        const { locId, legalOfficer, metadata, files, links } = parameters
         return this.nodeApi.polkadot.tx.logionLoc.createCollectionLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficer.address,
@@ -1796,7 +1851,11 @@ export class AuthenticatedLocClient extends LocClient {
             parameters.collectionCanUpload,
             parameters.valueFee,
             parameters.legalFee === undefined ? null : parameters.legalFee,
-            this.nodeApi.adapters.emptyPalletLogionLocItemsParams(),
+            this.nodeApi.adapters.toPalletLogionLocItemsParams({
+                metadata: metadata.map(this.toMetadataItemParams),
+                files: files.map(this.toFileParams),
+                links: links.map(this.toLinkParams),
+            }),
         );
     }
 
@@ -2002,12 +2061,16 @@ export interface OpenPolkadotLocParams {
     locId: UUID;
     legalOfficer: LegalOfficer;
     legalFee?: bigint;
+    metadata: AddMetadataParams[],
+    files: AddFileParams[],
+    links: AddLinkParams[],
 }
 
 export interface EstimateFeesOpenCollectionLocParams {
     collectionLastBlockSubmission?: bigint;
     collectionMaxSize?: number;
     collectionCanUpload: boolean;
+    valueFee?: bigint;
 }
 
 export interface OpenCollectionLocParams extends EstimateFeesOpenCollectionLocParams, BlockchainSubmissionParams {

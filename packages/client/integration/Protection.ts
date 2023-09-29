@@ -182,7 +182,12 @@ async function createAndCloseIdentityLoc(
         submittable: api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
             api.adapters.toLocId(identityLocId),
             legalOfficerAddress,
-            null
+            null,
+            {
+                metadata: [],
+                files: [],
+                links: [],
+            }
         )
     });
     await signer.signAndSend({

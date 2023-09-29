@@ -54,6 +54,7 @@ import {
     RefLinkParams,
     AckLinkParams,
     ReviewLinkParams,
+    ItemsParams,
 } from "./LocClient.js";
 import { SharedState } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -344,6 +345,79 @@ export class LocsState extends State {
         }
     }
 
+    async openTransactionLoc(params: CreateLocParams & ItemsParams & BlockchainSubmissionParams): Promise<OpenLoc> {
+        return this.openLoc({
+            ...params,
+            locType: "Transaction"
+        });
+    }
+
+    async openCollectionLoc(params: CreateCollectionLocParams & ItemsParams & BlockchainSubmissionParams): Promise<OpenLoc> {
+        return this.openLoc({
+            ...params,
+            locType: "Collection"
+        });
+    }
+
+    async openIdentityLoc(params: CreateIdentityLocParams & ItemsParams & BlockchainSubmissionParams): Promise<OpenLoc> {
+        const { userIdentity, userPostalAddress } = params;
+        if (userIdentity === undefined) {
+            throw new Error("User Identity is mandatory for an Identity LOC")
+        }
+        if (userPostalAddress === undefined) {
+            throw new Error("User Postal Address is mandatory for an Identity LOC")
+        }
+        return this.openLoc({
+            ...params,
+            locType: "Identity"
+        });
+    }
+
+    private async openLoc(params: CreateAnyLocParams & ItemsParams & BlockchainSubmissionParams): Promise<OpenLoc> {
+        const { legalOfficer, locType, description, userIdentity, userPostalAddress, company, template, metadata, files, links } = params;
+        if (this.sharedState.currentAddress?.type !== "Polkadot") {
+            throw Error("Direct LOC opening must be done by Polkadot account");
+        }
+        const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
+        const request = await client.createOpenLoc({
+            ownerAddress: legalOfficer.address,
+            description,
+            locType,
+            userIdentity,
+            userPostalAddress,
+            company,
+            template,
+            valueFee: params.valueFee?.toString(),
+            legalFee: params.legalFee?.toString(),
+            metadata,
+            files,
+            links,
+        });
+        const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
+        const locId = new UUID(request.id);
+        if (params.locType === "Identity") {
+            await client.openIdentityLoc({
+                ...params,
+                locId
+            });
+        } else if (params.locType === "Transaction") {
+            await client.openTransactionLoc({
+                ...params,
+                locId
+            });
+        } else if (params.locType === "Collection") {
+            await client.openCollectionLoc({
+                collectionCanUpload: requireDefined(params.collectionCanUpload),
+                collectionLastBlockSubmission: requireDefined(params.collectionLastBlockSubmission),
+                collectionMaxSize: requireDefined(params.collectionMaxSize),
+                valueFee: requireDefined(params.valueFee),
+                ...params, locId,
+            });
+        }
+        const loc = await client.getLoc({ locId });
+        return  new OpenLoc(locSharedState, request, loc, EMPTY_LOC_ISSUERS).veryNew();
+    }
+
     async refresh(params?: FetchAllLocsParams): Promise<LocsState> {
         const current = this.getCurrentStateOrThrow() as LocsState; // Ensure no state discarded error
         return current.discardOnSuccess(() => current._refresh(params));
@@ -562,32 +636,48 @@ export interface LocSharedState extends SharedState {
     locsState: LocsState;
 }
 
-export interface CreateLocRequestParams {
+export interface CreateLocParams {
     legalOfficer: LegalOfficerClass;
     description: string;
-    draft: boolean;
     template?: string;
     legalFee?: bigint;
 }
 
-export interface CreateIdentityLocRequestParams extends CreateLocRequestParams {
+export interface HasDraft {
+    draft: boolean;
+}
+
+export interface CreateLocRequestParams extends CreateLocParams, HasDraft {
+}
+
+export interface HasIdentity {
     userIdentity: UserIdentity;
     userPostalAddress: PostalAddress;
     company?: string;
+}
+
+export interface CreateIdentityLocRequestParams extends CreateLocRequestParams, HasIdentity {
     sponsorshipId?: UUID;
+}
+
+export interface CreateIdentityLocParams extends CreateLocParams, HasIdentity {
+}
+
+export interface CreateCollectionLocParams extends CreateLocParams, EstimateFeesOpenCollectionLocParams {
 }
 
 export interface CreateCollectionLocRequestParams extends CreateLocRequestParams {
     valueFee: bigint;
 }
 
-interface CreateAnyLocRequestParams extends CreateLocRequestParams {
+
+interface CreateAnyLocParams extends CreateLocParams, Partial<HasIdentity>, Partial<EstimateFeesOpenCollectionLocParams> {
     locType: LocType;
-    userIdentity?: UserIdentity;
-    userPostalAddress?: PostalAddress;
-    company?: string;
+}
+
+interface CreateAnyLocRequestParams extends CreateAnyLocParams {
     sponsorshipId?: UUID;
-    valueFee?: bigint;
+    draft: boolean;
 }
 
 export interface CreateSofRequestParams {
@@ -1228,6 +1318,11 @@ export class ReviewedRequest extends LocRequestState {
 
 export class AcceptedRequest extends ReviewedRequest {
 
+    veryNew(): AcceptedRequest {
+        const newLocsState = this.locsState().refreshWith(this);
+        return newLocsState.findById(this.locId) as AcceptedRequest;
+    }
+
     async open(parameters: BlockchainSubmissionParams): Promise<OpenLoc> {
         if (this.request.locType === "Transaction") {
             await this.locSharedState.client.openTransactionLoc({
@@ -1254,6 +1349,9 @@ export class AcceptedRequest extends ReviewedRequest {
             locId: this.locId,
             legalOfficer: this.owner,
             legalFee: this.request.legalFee !== undefined ? BigInt(this.request.legalFee) : undefined,
+            metadata: [],
+            files: [],
+            links: [],
         }
     }
 
@@ -1290,6 +1388,9 @@ export class AcceptedRequest extends ReviewedRequest {
                 legalOfficer: this.owner,
                 valueFee: BigInt(valueFee),
                 legalFee: this.request.legalFee !== undefined ? BigInt(this.request.legalFee) : undefined,
+                metadata: [],
+                files: [],
+                links: [],
             }
         } else {
             throw Error("Other LOCs are opened/estimated with open()/estimateFeesOpen()");

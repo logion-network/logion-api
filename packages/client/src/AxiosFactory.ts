@@ -9,9 +9,15 @@ export class AxiosFactory {
                 'Authorization': `Bearer ${token}`,
             };
         }
-        return axios.create({
+
+        const instance = axios.create({
             baseURL: endpoint,
             headers,
         });
+        instance.interceptors.request.use(request => {
+            console.log("AXIOS:%s %s", request.method, request.url);
+            return request
+        })
+        return instance;
     }
 }
