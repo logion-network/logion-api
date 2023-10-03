@@ -1,11 +1,21 @@
-import { State, initRequesterBalance, TEST_LOGION_CLIENT_CONFIG } from "./Utils.js";
+import {
+    State,
+    initRequesterBalance,
+    TEST_LOGION_CLIENT_CONFIG,
+    LegalOfficerWorker,
+    DIRECT_REQUESTER_ADDRESS,
+} from "./Utils.js";
+import { ALICE } from "../test/Utils.js";
 import {
     HashOrContent,
     ItemsParams,
     MergedFile,
     AddFileParams,
     MergedMetadataItem,
-    AddMetadataParams, AddLinkParams, MergedLink, LocData
+    AddMetadataParams,
+    AddLinkParams,
+    MergedLink,
+    LocData
 } from "../src/index.js";
 import { UUID } from "@logion/node-api";
 
@@ -19,7 +29,7 @@ export async function openIdentityLoc(state: State): Promise<UUID> {
     const items = provideItems("identity", []);
     const openLoc = await locsState.openIdentityLoc({
         description: "Direct Identity",
-        legalOfficer: alice,
+        legalOfficerAddress: alice.address,
         template: "a-template",
         legalFee: 15n,
         files: items.files,
@@ -41,6 +51,12 @@ export async function openIdentityLoc(state: State): Promise<UUID> {
         signer
     });
     checkData(openLoc.data(), items);
+
+    const legalOfficer = new LegalOfficerWorker(alice, state);
+    await legalOfficer.acknowledgeMetadata(openLoc.locId, items.metadata);
+    await legalOfficer.acknowledgeFiles(openLoc.locId, items.files);
+    await legalOfficer.closeLoc(openLoc.locId);
+
     return openLoc.locId;
 }
 
@@ -51,7 +67,7 @@ export async function openTransactionLoc(state: State, linkedLoc: UUID): Promise
     const items = provideItems("transaction", [ linkedLoc ]);
     const openLoc = await locsState.openTransactionLoc({
         description: "Direct Transaction",
-        legalOfficer: alice,
+        legalOfficerAddress: alice.address,
         template: "a-template",
         legalFee: 15n,
         files: items.files,
@@ -69,8 +85,8 @@ export async function openCollectionLoc(state: State, linkedLoc1: UUID, linkedLo
     let locsState = await client.locsState();
     const items = provideItems("collection", [ linkedLoc1, linkedLoc2 ]);
     const openLoc = await locsState.openCollectionLoc({
-        description: "Direct Transaction",
-        legalOfficer: alice,
+        description: "Direct Collection",
+        legalOfficerAddress: alice.address,
         template: "a-template",
         legalFee: 15n,
         files: items.files,
@@ -78,12 +94,32 @@ export async function openCollectionLoc(state: State, linkedLoc1: UUID, linkedLo
         links: items.links,
         collectionCanUpload: false,
         collectionMaxSize: 200,
+        valueFee: 13000n,
         signer
     });
-    checkData(openLoc.data(), items);
+    checkCollectionData(openLoc.data(), items);
+}
+
+function checkCollectionData(data: LocData, items: ItemsParams) {
+    expect(data.collectionCanUpload).toBeFalse();
+    expect(data.collectionMaxSize).toEqual(200);
+    expect(data.collectionLastBlockSubmission).toBeUndefined();
+    expect(data.valueFee).toEqual(13000n);
+
+    checkData(data, items);
 }
 
 function checkData(data: LocData, items: ItemsParams) {
+    expect(data.status).toEqual("OPEN")
+    const locType = data.locType;
+    expect(data.description).toEqual(`Direct ${ locType }`)
+    expect(data.legalFee).toEqual(15n)
+    expect(data.template).toEqual("a-template")
+    expect(data.requesterLocId).toBeUndefined();
+    expect(data.requesterAddress?.address).toEqual(DIRECT_REQUESTER_ADDRESS);
+    expect(data.requesterAddress?.type).toEqual("Polkadot");
+    expect(data.ownerAddress).toEqual(ALICE.address);
+
     expect(data.files.length).toEqual(items.files.length);
     expect(data.metadata.length).toEqual(items.metadata.length);
     expect(data.links.length).toEqual(items.links.length);
@@ -98,14 +134,22 @@ function checkData(data: LocData, items: ItemsParams) {
     }
 
 }
+
 function provideItems(name: string, linkedLocs: UUID[]): ItemsParams {
-    const links: AddLinkParams [] = linkedLocs.map(target => ({ target, nature: "Some link nature"}));
+    const links: AddLinkParams [] = linkedLocs.map(target => ({ target, nature: "Some link nature" }));
     return {
-        files: [ {
-            fileName: `${ name }.txt`,
-            nature: "Some file nature",
-            file: HashOrContent.fromContent(Buffer.from(name)),
-        } ],
+        files: [
+            {
+                fileName: `${ name }-1.txt`,
+                nature: "Some file nature",
+                file: HashOrContent.fromContent(Buffer.from(name + "1")),
+            },
+            {
+                fileName: `${ name }-2.txt`,
+                nature: "Some other file nature",
+                file: HashOrContent.fromContent(Buffer.from(name + "2")),
+            },
+        ],
         metadata: [
             {
                 name: name + "1",
@@ -125,17 +169,26 @@ function provideItems(name: string, linkedLocs: UUID[]): ItemsParams {
 }
 
 function checkFile(actual: MergedFile, expected: AddFileParams) {
+    expect(actual.status).toEqual("PUBLISHED");
+    expect(actual.submitter.address).toEqual(DIRECT_REQUESTER_ADDRESS);
+    expect(actual.submitter.type).toEqual("Polkadot");
     expect(actual.name).toEqual(expected.fileName);
     expect(actual.nature).toEqual(expected.nature);
     expect(actual.hash).toEqual(expected.file.contentHash);
 }
 
 function checkMetadataItem(actual: MergedMetadataItem, expected: AddMetadataParams) {
+    expect(actual.status).toEqual("PUBLISHED");
+    expect(actual.submitter.address).toEqual(DIRECT_REQUESTER_ADDRESS);
+    expect(actual.submitter.type).toEqual("Polkadot");
     expect(actual.name).toEqual(expected.name);
     expect(actual.value).toEqual(expected.value);
 }
 
 function checkLink(actual: MergedLink, expected: AddLinkParams) {
+    expect(actual.status).toEqual("PUBLISHED");
+    expect(actual.submitter.address).toEqual(DIRECT_REQUESTER_ADDRESS);
+    expect(actual.submitter.type).toEqual("Polkadot");
     expect(actual.target).toEqual(expected.target.toString());
     expect(actual.nature).toEqual(expected.nature);
 }

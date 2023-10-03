@@ -1,4 +1,4 @@
-import { buildApiClass, UUID, Currency, Numbers, ValidAccountId } from "@logion/node-api";
+import { buildApiClass, UUID, Currency, Numbers, ValidAccountId, Hash } from "@logion/node-api";
 import { Keyring } from "@polkadot/api";
 import FormData from "form-data";
 
@@ -13,6 +13,7 @@ import {
     LegalOfficerClass,
     PendingRequest,
     OpenLoc,
+    AddFileParams
 } from "../src/index.js";
 import { ALICE, BOB, CHARLIE } from "../test/Utils.js";
 import { requireDefined } from "../src/assertions.js";
@@ -167,5 +168,23 @@ export class LegalOfficerWorker {
         const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
         const loc = locsState.findById(id) as OpenLoc;
         await loc.legalOfficer.close({ signer: this.state.signer });
+    }
+
+    async acknowledgeMetadata(id: UUID, metadata: { name: string }[]) {
+        const legalOfficerClient = this.state.client.withCurrentAddress(this.state.client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot"));
+        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
+        let loc = locsState.findById(id) as OpenLoc;
+        for (let item of metadata) {
+            loc = await loc.legalOfficer.acknowledgeMetadata({ signer: this.state.signer, nameHash: Hash.of(item.name) });
+        }
+    }
+
+    async acknowledgeFiles(id: UUID, files: AddFileParams[]) {
+        const legalOfficerClient = this.state.client.withCurrentAddress(this.state.client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot"));
+        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
+        let loc = locsState.findById(id) as OpenLoc;
+        for (let item of files) {
+            loc = await loc.legalOfficer.acknowledgeFile({ signer: this.state.signer, hash: item.file.contentHash });
+        }
     }
 }

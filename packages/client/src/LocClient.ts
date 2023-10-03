@@ -298,7 +298,9 @@ export interface CreateLocRequest extends BaseLoc {
     sponsorshipId?: string;
 }
 
-export interface CreateOpenLoc extends BaseLoc, ItemsParams {
+export interface CreateOpenLoc extends BaseLoc {
+    metadata: AddMetadataParams[];
+    links: { target: string, nature: string }[];
 }
 
 export interface CreateSofRequest {
@@ -869,8 +871,8 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async addFile(parameters: AddFileParams & FetchParameters): Promise<void> {
-        const { file, fileName, nature, locId } = parameters;
+    async addFile(parameters: AddFileParams & FetchParameters & { direct: boolean }): Promise<void> {
+        const { file, fileName, nature, locId, direct } = parameters;
 
         await file.finalize();
 
@@ -878,6 +880,7 @@ export class AuthenticatedLocClient extends LocClient {
         formData.append('file', await file.data(), fileName);
         formData.append('nature', nature);
         formData.append('hash', file.contentHash.toHex());
+        formData.append('direct', String(direct));
 
         try {
             await this.backend().post(
@@ -1628,15 +1631,15 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private openTransactionLocSubmittable(parameters: OpenPolkadotLocParams): SubmittableExtrinsic {
-        const { locId, legalOfficer, metadata, files, links } = parameters;
+        const { locId, legalOfficerAddress, metadata, files, links } = parameters;
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
             this.nodeApi.adapters.toLocId(locId),
-            legalOfficer.address,
+            legalOfficerAddress,
             parameters.legalFee === undefined ? null : parameters.legalFee,
             this.nodeApi.adapters.toPalletLogionLocItemsParams({
-                metadata: metadata.map(this.toMetadataItemParams),
-                files: files.map(this.toFileParams),
-                links: links.map(this.toLinkParams),
+                metadata: metadata.map(item => this.toMetadataItemParams(item)),
+                files: files.map(item => this.toFileParams(item)),
+                links: links.map(item => this.toLinkParams(item)),
             }),
         );
     }
@@ -1755,15 +1758,15 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private openIdentityLocSubmittable(parameters: OpenPolkadotLocParams): SubmittableExtrinsic {
-        const { locId, legalOfficer, metadata, files, links } = parameters
+        const { locId, legalOfficerAddress, metadata, files, links } = parameters
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
             this.nodeApi.adapters.toLocId(locId),
-            legalOfficer.address,
+            legalOfficerAddress,
             parameters.legalFee === undefined ? null : parameters.legalFee,
             this.nodeApi.adapters.toPalletLogionLocItemsParams({
-                metadata: metadata.map(this.toMetadataItemParams),
-                files: files.map(this.toFileParams),
-                links: links.map(this.toLinkParams),
+                metadata: metadata.map(item => this.toMetadataItemParams(item)),
+                files: files.map(item => this.toFileParams(item)),
+                links: links.map(item => this.toLinkParams(item)),
             }),
         );
     }
@@ -1780,7 +1783,7 @@ export class AuthenticatedLocClient extends LocClient {
         return {
             hash: item.file.contentHash,
             nature: Hash.of(item.nature),
-            size: item.file.size!, // TODO this will not work if no content is provided
+            size: item.file.size!,
             submitter: this.currentAddress,
         }
     }
@@ -1842,19 +1845,19 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private openCollectionLocSubmittable(parameters: { valueFee: bigint } & OpenPolkadotLocParams & EstimateFeesOpenCollectionLocParams): SubmittableExtrinsic {
-        const { locId, legalOfficer, metadata, files, links } = parameters
+        const { locId, legalOfficerAddress, metadata, files, links } = parameters
         return this.nodeApi.polkadot.tx.logionLoc.createCollectionLoc(
             this.nodeApi.adapters.toLocId(locId),
-            legalOfficer.address,
+            legalOfficerAddress,
             parameters.collectionLastBlockSubmission || null,
             parameters.collectionMaxSize || null,
             parameters.collectionCanUpload,
             parameters.valueFee,
             parameters.legalFee === undefined ? null : parameters.legalFee,
             this.nodeApi.adapters.toPalletLogionLocItemsParams({
-                metadata: metadata.map(this.toMetadataItemParams),
-                files: files.map(this.toFileParams),
-                links: links.map(this.toLinkParams),
+                metadata: metadata.map(item => this.toMetadataItemParams(item)),
+                files: files.map(item => this.toFileParams(item)),
+                links: links.map(item => this.toLinkParams(item)),
             }),
         );
     }
@@ -2059,7 +2062,7 @@ export interface AckLinkParams extends RefLinkParams, BlockchainSubmissionParams
 
 export interface OpenPolkadotLocParams {
     locId: UUID;
-    legalOfficer: LegalOfficer;
+    legalOfficerAddress: string;
     legalFee?: bigint;
     metadata: AddMetadataParams[],
     files: AddFileParams[],

@@ -16,7 +16,7 @@ export async function verifiedIssuer(state: State) {
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, signer, ISSUER_ADDRESS);
     let issuerLocsState = await issuerClient.locsState();
     const pendingRequest = await issuerLocsState.requestIdentityLoc({
-        legalOfficer: issuerClient.getLegalOfficer(alice.address),
+        legalOfficerAddress: alice.address,
         description: "This is a verified issuer Identity LOC",
         userIdentity: {
             email: "john.doe.trusted@invalid.domain",
@@ -50,7 +50,7 @@ export async function verifiedIssuer(state: State) {
     const userClient = state.client.withCurrentAddress(newAccount);
     let userLocsState = await userClient.locsState();
     let pendingLocRequest = await userLocsState.requestTransactionLoc({
-        legalOfficer: userClient.getLegalOfficer(alice.address),
+        legalOfficerAddress: alice.address,
         description: "Some LOC with verified issuer",
         draft: false,
     }) as PendingRequest;

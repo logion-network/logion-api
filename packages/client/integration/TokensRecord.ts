@@ -15,7 +15,7 @@ export async function tokensRecords(state: State) {
 
     const userClient = state.client.withCurrentAddress(newAccount);
     let collectionLoc: LocRequestState = await (await userClient.locsState()).requestCollectionLoc({
-        legalOfficer: userClient.getLegalOfficer(alice.address),
+        legalOfficerAddress: alice.address,
         description: "Some LOC with records",
         draft: false,
         valueFee: 100n,

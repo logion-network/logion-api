@@ -56,7 +56,7 @@ import {
     ReviewLinkParams,
     ItemsParams,
 } from "./LocClient.js";
-import { SharedState } from "./SharedClient.js";
+import { SharedState, getLegalOfficer } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
 import { CollectionItem as CollectionItemClass } from "./CollectionItem.js";
 import { State } from "./State.js";
@@ -322,7 +322,8 @@ export class LocsState extends State {
     }
 
     private async requestLoc(params: CreateAnyLocRequestParams): Promise<DraftRequest | PendingRequest> {
-        const { legalOfficer, locType, description, userIdentity, userPostalAddress, company, draft, template, sponsorshipId } = params;
+        const { legalOfficerAddress, locType, description, userIdentity, userPostalAddress, company, draft, template, sponsorshipId } = params;
+        const legalOfficer = getLegalOfficer(this.sharedState, legalOfficerAddress)
         const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
         const request = await client.createLocRequest({
             ownerAddress: legalOfficer.address,
@@ -374,7 +375,8 @@ export class LocsState extends State {
     }
 
     private async openLoc(params: CreateAnyLocParams & ItemsParams & BlockchainSubmissionParams): Promise<OpenLoc> {
-        const { legalOfficer, locType, description, userIdentity, userPostalAddress, company, template, metadata, files, links } = params;
+        const { legalOfficerAddress, locType, description, userIdentity, userPostalAddress, company, template, metadata, links } = params;
+        const legalOfficer = getLegalOfficer(this.sharedState, legalOfficerAddress)
         if (this.sharedState.currentAddress?.type !== "Polkadot") {
             throw Error("Direct LOC opening must be done by Polkadot account");
         }
@@ -390,11 +392,21 @@ export class LocsState extends State {
             valueFee: params.valueFee?.toString(),
             legalFee: params.legalFee?.toString(),
             metadata,
-            files,
-            links,
+            links: links.map(link => ({
+                target: link.target.toString(),
+                nature: link.nature
+            }))
         });
-        const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
+
         const locId = new UUID(request.id);
+        for (const file of params.files) {
+            await client.addFile({
+                ...file,
+                locId,
+                direct: true,
+            })
+        }
+        const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
         if (params.locType === "Identity") {
             await client.openIdentityLoc({
                 ...params,
@@ -408,14 +420,14 @@ export class LocsState extends State {
         } else if (params.locType === "Collection") {
             await client.openCollectionLoc({
                 collectionCanUpload: requireDefined(params.collectionCanUpload),
-                collectionLastBlockSubmission: requireDefined(params.collectionLastBlockSubmission),
-                collectionMaxSize: requireDefined(params.collectionMaxSize),
+                collectionLastBlockSubmission: params.collectionLastBlockSubmission,
+                collectionMaxSize: params.collectionMaxSize,
                 valueFee: requireDefined(params.valueFee),
                 ...params, locId,
             });
         }
         const loc = await client.getLoc({ locId });
-        return  new OpenLoc(locSharedState, request, loc, EMPTY_LOC_ISSUERS).veryNew();
+        return (await new OpenLoc(locSharedState, request, loc, EMPTY_LOC_ISSUERS).refresh()) as OpenLoc;
     }
 
     async refresh(params?: FetchAllLocsParams): Promise<LocsState> {
@@ -637,7 +649,7 @@ export interface LocSharedState extends SharedState {
 }
 
 export interface CreateLocParams {
-    legalOfficer: LegalOfficerClass;
+    legalOfficerAddress: string;
     description: string;
     template?: string;
     legalFee?: bigint;
@@ -1029,7 +1041,8 @@ export abstract class EditableRequest extends LocRequestState {
         const client = this.locSharedState.client;
         await client.addFile({
             locId: this.locId,
-            ...params
+            ...params,
+            direct: false,
         });
         return await this.refresh() as EditableRequest;
     }
@@ -1347,7 +1360,7 @@ export class AcceptedRequest extends ReviewedRequest {
         }
         return {
             locId: this.locId,
-            legalOfficer: this.owner,
+            legalOfficerAddress: this.owner.address,
             legalFee: this.request.legalFee !== undefined ? BigInt(this.request.legalFee) : undefined,
             metadata: [],
             files: [],
@@ -1385,7 +1398,7 @@ export class AcceptedRequest extends ReviewedRequest {
         if (this.request.locType === "Collection") {
             return {
                 locId: this.locId,
-                legalOfficer: this.owner,
+                legalOfficerAddress: this.owner.address,
                 valueFee: BigInt(valueFee),
                 legalFee: this.request.legalFee !== undefined ? BigInt(this.request.legalFee) : undefined,
                 metadata: [],

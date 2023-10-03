@@ -104,7 +104,7 @@ describe("Logion SDK", () => {
         await voidTransactionLoc(state);
     });
 
-    fit("directly opens LOCs", async () => {
+    it("directly opens LOCs", async () => {
         const linkedLoc1 = await openIdentityLoc(state);
         const linkedLoc2 = await openTransactionLoc(state, linkedLoc1);
         await openCollectionLoc(state, linkedLoc1, linkedLoc2);
