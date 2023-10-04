@@ -1,4 +1,4 @@
-import { buildApiClass, UUID, Currency, Numbers, ValidAccountId } from "@logion/node-api";
+import { buildApiClass, UUID, Currency, Numbers, ValidAccountId, Hash } from "@logion/node-api";
 import { Keyring } from "@polkadot/api";
 import FormData from "form-data";
 
@@ -13,6 +13,7 @@ import {
     LegalOfficerClass,
     PendingRequest,
     OpenLoc,
+    AddFileParams
 } from "../src/index.js";
 import { ALICE, BOB, CHARLIE } from "../test/Utils.js";
 import { requireDefined } from "../src/assertions.js";
@@ -44,6 +45,9 @@ export const TEST_LOGION_CLIENT_CONFIG: LogionClientConfig = {
 export const REQUESTER_ADDRESS = "5DPLBrBxniGbGdFe1Lmdpkt6K3aNjhoNPJrSJ51rwcmhH2Tn";
 export const REQUESTER_SECRET_SEED = "unique chase zone team upset caution match west enter eyebrow limb wrist";
 
+export const DIRECT_REQUESTER_ADDRESS = "5EPPUZ9XEjeAgJj4DDtYn9thPtE68Nu7ZQDMySG3EP5nGVmV";
+export const DIRECT_REQUESTER_SECRET_SEED = "pitch move leader grief stool crisp arm menu target hero inner essay";
+
 export const NEW_ADDRESS = "5FWP7ha7wBpRomanrgCFuV8c7gBTsyexzWZR42umqGv8Rpx4";
 export const NEW_SECRET_SEED = "inquiry nose frog devote demand main front caution excess bridge mom voice";
 
@@ -60,6 +64,7 @@ export interface State {
     bob: LegalOfficerClass;
     charlie: LegalOfficerClass;
     requesterAccount: ValidAccountId,
+    directRequesterAccount: ValidAccountId,
     newAccount: ValidAccountId,
     aliceAccount: ValidAccountId,
     bobAccount: ValidAccountId,
@@ -72,6 +77,7 @@ export async function setupInitialState(): Promise<State> {
     const anonymousClient = await LogionClient.create(TEST_LOGION_CLIENT_CONFIG);
     const signer = buildSigner([
         REQUESTER_SECRET_SEED,
+        DIRECT_REQUESTER_SECRET_SEED,
         NEW_SECRET_SEED,
         ALICE_SECRET_SEED,
         BOB_SECRET_SEED,
@@ -79,6 +85,7 @@ export async function setupInitialState(): Promise<State> {
         ISSUER_SECRET_SEED,
     ]);
     const requesterAccount = anonymousClient.logionApi.queries.getValidAccountId(REQUESTER_ADDRESS, "Polkadot");
+    const directRequesterAccount = anonymousClient.logionApi.queries.getValidAccountId(DIRECT_REQUESTER_ADDRESS, "Polkadot");
     const newAccount = anonymousClient.logionApi.queries.getValidAccountId(NEW_ADDRESS, "Polkadot");
     const aliceAccount = anonymousClient.logionApi.queries.getValidAccountId(ALICE.address, "Polkadot");
     const bobAccount = anonymousClient.logionApi.queries.getValidAccountId(BOB.address, "Polkadot");
@@ -87,6 +94,7 @@ export async function setupInitialState(): Promise<State> {
     const ethereumAccount = anonymousClient.logionApi.queries.getValidAccountId(ETHEREUM_ADDRESS, "Ethereum");
     const client = await anonymousClient.authenticate([
         requesterAccount,
+        directRequesterAccount,
         newAccount,
         aliceAccount,
         bobAccount,
@@ -105,6 +113,7 @@ export async function setupInitialState(): Promise<State> {
         bob,
         charlie,
         requesterAccount,
+        directRequesterAccount,
         newAccount,
         aliceAccount,
         bobAccount,
@@ -159,5 +168,23 @@ export class LegalOfficerWorker {
         const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
         const loc = locsState.findById(id) as OpenLoc;
         await loc.legalOfficer.close({ signer: this.state.signer });
+    }
+
+    async acknowledgeMetadata(id: UUID, metadata: { name: string }[]) {
+        const legalOfficerClient = this.state.client.withCurrentAddress(this.state.client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot"));
+        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
+        let loc = locsState.findById(id) as OpenLoc;
+        for (let item of metadata) {
+            loc = await loc.legalOfficer.acknowledgeMetadata({ signer: this.state.signer, nameHash: Hash.of(item.name) });
+        }
+    }
+
+    async acknowledgeFiles(id: UUID, files: AddFileParams[]) {
+        const legalOfficerClient = this.state.client.withCurrentAddress(this.state.client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot"));
+        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
+        let loc = locsState.findById(id) as OpenLoc;
+        for (let item of files) {
+            loc = await loc.legalOfficer.acknowledgeFile({ signer: this.state.signer, hash: item.file.contentHash });
+        }
     }
 }

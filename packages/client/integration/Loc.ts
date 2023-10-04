@@ -29,7 +29,7 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID) {
 
     // Create DRAFT LOC
     let draftRequest = await locsState.requestTransactionLoc({
-        legalOfficer: client.getLegalOfficer(alice.address),
+        legalOfficerAddress: alice.address,
         description: "This is a Transaction LOC",
         draft: true,
     }) as DraftRequest;
@@ -221,7 +221,7 @@ export async function transactionLocWithCustomLegalFee(state: State) {
     let locsState = await client.locsState();
 
     let draftRequest = await locsState.requestTransactionLoc({
-        legalOfficer: client.getLegalOfficer(alice.address),
+        legalOfficerAddress: alice.address,
         description: "This is a Transaction LOC",
         draft: true,
         legalFee: 0n,
@@ -251,7 +251,7 @@ export async function collectionLoc(state: State) {
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, newAccount.address);
 
     const pendingRequest = await locsState.requestCollectionLoc({
-        legalOfficer: client.getLegalOfficer(alice.address),
+        legalOfficerAddress: alice.address,
         description: "This is a Collection LOC",
         draft: false,
         valueFee: 100n,
@@ -318,7 +318,7 @@ export async function collectionLocWithUpload(state: State) {
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, newAccount.address);
 
     const logionClassificationLocRequest = await locsState.requestTransactionLoc({
-        legalOfficer: client.getLegalOfficer(alice.address),
+        legalOfficerAddress: alice.address,
         description: "This is the Logion Classification LOC",
         draft: false,
     });
@@ -331,7 +331,7 @@ export async function collectionLocWithUpload(state: State) {
 
     locsState = logionClassificationOpenLoc.locsState();
     const creativeCommonsLocRequest = await locsState.requestTransactionLoc({
-        legalOfficer: client.getLegalOfficer(alice.address),
+        legalOfficerAddress: alice.address,
         description: "This is the LOC acting usage of CreativeCommons on logion",
         draft: false,
     });
@@ -344,7 +344,7 @@ export async function collectionLocWithUpload(state: State) {
 
     locsState = creativeCommonsOpenLoc.locsState();
     const pendingRequest = await locsState.requestCollectionLoc({
-        legalOfficer: client.getLegalOfficer(alice.address),
+        legalOfficerAddress: alice.address,
         description: "This is a Collection LOC with upload",
         draft: false,
         valueFee: 100n,
@@ -473,7 +473,7 @@ export async function identityLoc(state: State) {
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, signer, newAccount.address);
 
     const pendingRequest = await locsState.requestIdentityLoc({
-        legalOfficer: client.getLegalOfficer(alice.address),
+        legalOfficerAddress: alice.address,
         description: "This is an Identity LOC",
         userIdentity: {
             email: "john.doe@invalid.domain",
@@ -522,7 +522,7 @@ export async function otherIdentityLoc(state: State): Promise<UUID> {
     let locsState = await client.locsState();
 
     const pendingRequest = await locsState.requestIdentityLoc({
-        legalOfficer: client.getLegalOfficer(alice.address),
+        legalOfficerAddress: alice.address,
         description: "This is an Identity LOC",
         userIdentity: {
             email: "john.doe@invalid.domain",

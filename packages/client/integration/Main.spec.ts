@@ -1,4 +1,4 @@
-import { setupInitialState, State, tearDown } from "./Utils.js";
+import { setupInitialState, State, tearDown, initRequesterBalance, TEST_LOGION_CLIENT_CONFIG } from "./Utils.js";
 import { enablesProtection, requestsProtectionAndCancel } from "./Protection.js";
 import { transferAndCannotPayFees, transfers, transferWithInsufficientFunds } from "./Balance.js";
 import { providesVault } from "./Vault.js";
@@ -10,6 +10,7 @@ import { fees } from "./Fees.js";
 import { backendConfig } from "./LegalOfficer.js";
 import { voidTransactionLoc } from "./Void.js";
 import { votingProcess } from "./Vote.js";
+import { openIdentityLoc, openTransactionLoc, openCollectionLoc } from "./DirectLocOpen.js";
 
 describe("Logion SDK", () => {
 
@@ -102,6 +103,12 @@ describe("Logion SDK", () => {
     it("voids a Transaction LOC", async () => {
         await voidTransactionLoc(state);
     });
+
+    it("directly opens LOCs", async () => {
+        const linkedLoc1 = await openIdentityLoc(state);
+        const linkedLoc2 = await openTransactionLoc(state, linkedLoc1);
+        await openCollectionLoc(state, linkedLoc1, linkedLoc2);
+    })
 
     it("provides vote", async () => {
         await votingProcess(state);
