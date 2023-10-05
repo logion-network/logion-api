@@ -112,7 +112,6 @@ describe("Balance", () => {
             {
                 coin: {
                     id: "lgnt",
-                    name: "LGNT",
                     symbol: "LGNT",
                 },
                 available: new Numbers.PrefixedNumber("300", Numbers.ATTO),
@@ -186,7 +185,6 @@ describe("Balance", () => {
             {
                 coin: {
                     id: "lgnt",
-                    name: "LGNT",
                     symbol: "LGNT",
                 },
                 available: new Numbers.PrefixedNumber("100", Numbers.ATTO),
@@ -265,7 +263,6 @@ describe("Balance", () => {
             {
                 coin: {
                     id: "lgnt",
-                    name: "LGNT",
                     symbol: "LGNT",
                 },
                 available: new Numbers.PrefixedNumber("200", Numbers.ATTO),

@@ -20,7 +20,6 @@ import { Hash } from "./Hash.js";
 
 export interface Coin {
     id: string,
-    name: string,
     symbol: string,
 }
 
@@ -98,13 +97,11 @@ export class Queries {
         if(coinId === 'dot') {
             return {
                 id: 'dot',
-                name: 'Polkadot',
                 symbol: 'DOT',
             };
         } else if(coinId === "lgnt") {
             return {
                 id: 'lgnt',
-                name: 'logion Token',
                 symbol: Currency.SYMBOL,
             };
         } else {
