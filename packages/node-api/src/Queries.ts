@@ -21,8 +21,6 @@ import { Hash } from "./Hash.js";
 export interface Coin {
     id: string,
     name: string,
-    iconId: string,
-    iconType: 'svg' | 'png',
     symbol: string,
 }
 
@@ -101,16 +99,12 @@ export class Queries {
             return {
                 id: 'dot',
                 name: 'Polkadot',
-                iconId: 'dot',
-                iconType: 'png',
                 symbol: 'DOT',
             };
         } else if(coinId === "lgnt") {
             return {
                 id: 'lgnt',
                 name: 'logion Token',
-                iconId: 'lgnt',
-                iconType: 'svg',
                 symbol: Currency.SYMBOL,
             };
         } else {

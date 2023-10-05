@@ -111,8 +111,6 @@ describe("Balance", () => {
         const balances: CoinBalance[] = [
             {
                 coin: {
-                    iconId: "lgnt",
-                    iconType: "svg",
                     id: "lgnt",
                     name: "LGNT",
                     symbol: "LGNT",
@@ -187,8 +185,6 @@ describe("Balance", () => {
         const balances: CoinBalance[] = [
             {
                 coin: {
-                    iconId: "lgnt",
-                    iconType: "svg",
                     id: "lgnt",
                     name: "LGNT",
                     symbol: "LGNT",
@@ -268,8 +264,6 @@ describe("Balance", () => {
         const balances: CoinBalance[] = [
             {
                 coin: {
-                    iconId: "lgnt",
-                    iconType: "svg",
                     id: "lgnt",
                     name: "LGNT",
                     symbol: "LGNT",
