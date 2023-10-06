@@ -1,4 +1,4 @@
-import { setupInitialState, State, tearDown, initRequesterBalance, TEST_LOGION_CLIENT_CONFIG } from "./Utils.js";
+import { setupInitialState, State, tearDown } from "./Utils.js";
 import { enablesProtection, requestsProtectionAndCancel } from "./Protection.js";
 import { transferAndCannotPayFees, transfers, transferWithInsufficientFunds } from "./Balance.js";
 import { providesVault } from "./Vault.js";

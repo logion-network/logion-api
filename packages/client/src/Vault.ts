@@ -106,22 +106,18 @@ export class VaultState extends State {
     private sharedState: VaultSharedState;
 
     get pendingVaultTransferRequests() {
-        this.ensureCurrent();
         return this.sharedState.pendingVaultTransferRequests;
     }
 
     get cancelledVaultTransferRequests() {
-        this.ensureCurrent();
         return this.sharedState.cancelledVaultTransferRequests;
     }
 
     get rejectedVaultTransferRequests() {
-        this.ensureCurrent();
         return this.sharedState.rejectedVaultTransferRequests;
     }
 
     get acceptedVaultTransferRequests() {
-        this.ensureCurrent();
         return this.sharedState.acceptedVaultTransferRequests;
     }
 
@@ -139,7 +135,7 @@ export class VaultState extends State {
         signer: Signer,
         callback?: SignCallback,
     }): Promise<VaultState> {
-        return this.discardOnSuccess(() => this._createVaultTransferRequest(params));
+        return this.discardOnSuccess<VaultState>(current => current._createVaultTransferRequest(params));
     }
 
     private async _createVaultTransferRequest(params: {
@@ -223,7 +219,7 @@ export class VaultState extends State {
         signer: Signer,
         callback?: SignCallback,
     ): Promise<VaultState> {
-        return this.discardOnSuccess(() => this._cancelVaultTransferRequest(legalOfficer, request, signer, callback));
+        return this.discardOnSuccess<VaultState>(current => current._cancelVaultTransferRequest(legalOfficer, request, signer, callback));
     }
 
     private async _cancelVaultTransferRequest(
@@ -293,7 +289,7 @@ export class VaultState extends State {
         legalOfficer: LegalOfficer,
         request: VaultTransferRequest,
     ): Promise<VaultState> {
-        return this.discardOnSuccess(() => this._resubmitVaultTransferRequest(legalOfficer, request));
+        return this.discardOnSuccess<VaultState>(current => current._resubmitVaultTransferRequest(legalOfficer, request));
     }
 
     private async _resubmitVaultTransferRequest(
@@ -322,7 +318,7 @@ export class VaultState extends State {
     }
 
     async refresh(): Promise<VaultState> {
-        return this.discardOnSuccess(() => this._refresh());
+        return this.discardOnSuccess<VaultState>(current => current._refresh());
     }
 
     private async _refresh(): Promise<VaultState> {
@@ -339,17 +335,14 @@ export class VaultState extends State {
     }
 
     get vaultAddress(): string {
-        this.ensureCurrent();
         return this.sharedState.vault.address;
     }
 
     get transactions(): Transaction[] {
-        this.ensureCurrent();
         return this.sharedState.transactions;
     }
 
     get balances(): CoinBalance[] {
-        this.ensureCurrent();
         return this.sharedState.balances;
     }
 }

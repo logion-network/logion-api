@@ -59,17 +59,15 @@ export class BalanceState extends State {
     private sharedState: BalanceSharedState;
 
     get transactions(): Transaction[] {
-        this.ensureCurrent();
         return this.sharedState.transactions;
     }
 
     get balances(): CoinBalance[] {
-        this.ensureCurrent();
         return this.sharedState.balances;
     }
 
     async transfer(params: TransferParam): Promise<BalanceState> {
-        return this.discardOnSuccess(() => this._transfer(params));
+        return this.discardOnSuccess<BalanceState>(current => current._transfer(params));
     }
 
     private async _transfer(params: TransferParam): Promise<BalanceState> {
@@ -131,6 +129,6 @@ export class BalanceState extends State {
     }
 
     async refresh(): Promise<BalanceState> {
-        return this.discardOnSuccess(() => this._refresh());
+        return this.discardOnSuccess<BalanceState>(current => current._refresh());
     }
 }

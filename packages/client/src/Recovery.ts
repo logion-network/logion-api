@@ -164,7 +164,7 @@ export class NoProtection extends State {
     private readonly sharedState: SharedState;
 
     async refresh(): Promise<NoProtection> {
-        return this.discardOnSuccess(() => this._refresh());
+        return this.discardOnSuccess<NoProtection>(current => current._refresh());
     }
 
     private async _refresh(): Promise<NoProtection> {
@@ -194,7 +194,7 @@ export class NoProtection extends State {
         postalAddress: PostalAddress,
         recoveredAddress?: string,
     }): Promise<PendingProtection> {
-        return this.discardOnSuccess(() => this.requestProtectionOrRecovery(params));
+        return this.discardOnSuccess<NoProtection, PendingProtection>(current => current.requestProtectionOrRecovery(params));
     }
 
     private async requestProtectionOrRecovery(params: {
@@ -392,7 +392,7 @@ export class PendingProtection extends State implements WithProtectionParameters
     private readonly sharedState: RecoverySharedState;
 
     async refresh(): Promise<PendingProtection | AcceptedProtection | RejectedProtection | RejectedRecovery> {
-        return this.discardOnSuccess(() => this._refresh());
+        return this.discardOnSuccess<PendingProtection, PendingProtection | AcceptedProtection | RejectedProtection | RejectedRecovery>(current => current._refresh());
     }
 
     private async _refresh(): Promise<PendingProtection | AcceptedProtection | RejectedProtection | RejectedRecovery> {
@@ -411,7 +411,6 @@ export class PendingProtection extends State implements WithProtectionParameters
     }
 
     get protectionParameters(): ProtectionParameters {
-        this.ensureCurrent();
         return buildProtectionParameters(this.sharedState);
     }
 }
@@ -495,12 +494,11 @@ export class RejectedRecovery extends State implements WithProtectionParameters 
     protected readonly sharedState: RecoverySharedState;
 
     get protectionParameters(): ProtectionParameters {
-        this.ensureCurrent();
         return buildProtectionParameters(this.sharedState);
     }
 
     async cancel(): Promise<NoProtection> {
-        return this.discardOnSuccess(() => this._cancel());
+        return this.discardOnSuccess<RejectedProtection, NoProtection>(current => current._cancel());
     }
 
     private async _cancel(): Promise<NoProtection> {
@@ -516,7 +514,7 @@ export class RejectedRecovery extends State implements WithProtectionParameters 
     }
 
     async resubmit(currentLegalOfficer: LegalOfficer): Promise<PendingProtection> {
-        return this.discardOnSuccess(() => this._resubmit(currentLegalOfficer));
+        return this.discardOnSuccess<RejectedRecovery, PendingProtection>(current => current._resubmit(currentLegalOfficer));
     }
 
     private async _resubmit(currentLegalOfficer: LegalOfficer): Promise<PendingProtection> {
@@ -533,7 +531,7 @@ export class RejectedRecovery extends State implements WithProtectionParameters 
 export class RejectedProtection extends RejectedRecovery {
 
     async changeLegalOfficer(currentLegalOfficer: LegalOfficer, newLegalOfficer: LegalOfficer): Promise<PendingProtection> {
-        return this.discardOnSuccess(() => this._changeLegalOfficer(currentLegalOfficer, newLegalOfficer));
+        return this.discardOnSuccess<RejectedProtection, PendingProtection>(current => current._changeLegalOfficer(currentLegalOfficer, newLegalOfficer));
     }
 
     private async _changeLegalOfficer(currentLegalOfficer: LegalOfficer, newLegalOfficer: LegalOfficer): Promise<PendingProtection> {
@@ -591,7 +589,7 @@ export class AcceptedProtection extends State implements WithProtectionParameter
         signer: Signer,
         callback?: SignCallback,
     ): Promise<ActiveProtection | PendingRecovery> {
-        return this.discardOnSuccess(() => this._activate(signer, callback));
+        return this.discardOnSuccess<AcceptedProtection, ActiveProtection | PendingRecovery>(current => current._activate(signer, callback));
     }
 
     private async _activate(
@@ -621,7 +619,6 @@ export class AcceptedProtection extends State implements WithProtectionParameter
     }
 
     get protectionParameters(): ProtectionParameters {
-        this.ensureCurrent();
         return buildProtectionParameters(this.sharedState);
     }
 }
@@ -650,22 +647,19 @@ export class ActiveProtection extends State implements WithProtectionParameters,
     private readonly sharedState: RecoverySharedState;
 
     get protectionParameters(): ProtectionParameters {
-        this.ensureCurrent();
         return buildProtectionParameters(this.sharedState);
     }
 
     isFullyReady(): boolean {
-        this.ensureCurrent();
         return isProtectionFullyReady(this.sharedState);
     }
 
     async vaultState(): Promise<VaultState> {
-        this.ensureCurrent();
         return vaultState(this.sharedState);
     }
 
     async refresh(): Promise<ActiveProtection> {
-        return this.discardOnSuccess(() => refreshWithActiveProtection(this.sharedState, ActiveProtection));
+        return this.discardOnSuccess<ActiveProtection>(current => refreshWithActiveProtection(current.sharedState, ActiveProtection));
     }
 
     async waitForFullyReady(pollingParameters?: PollingParameters): Promise<ActiveProtection> {
@@ -725,7 +719,7 @@ export class PendingRecovery extends State implements WithProtectionParameters, 
         signer: Signer,
         callback?: SignCallback,
     ): Promise<ClaimedRecovery> {
-        return this.discardOnSuccess(() => this._claimRecovery(signer, callback));
+        return this.discardOnSuccess<PendingRecovery, ClaimedRecovery>(current => current._claimRecovery(signer, callback));
     }
 
     private async _claimRecovery(
@@ -745,22 +739,19 @@ export class PendingRecovery extends State implements WithProtectionParameters, 
     }
 
     get protectionParameters(): ProtectionParameters {
-        this.ensureCurrent();
         return buildProtectionParameters(this.sharedState);
     }
 
     isFullyReady(): boolean {
-        this.ensureCurrent();
         return isProtectionFullyReady(this.sharedState);
     }
 
     async vaultState(): Promise<VaultState> {
-        this.ensureCurrent();
         return vaultState(this.sharedState);
     }
 
     async refresh(): Promise<PendingRecovery> {
-        return this.discardOnSuccess(() => refreshWithActiveProtection(this.sharedState, PendingRecovery));
+        return this.discardOnSuccess<PendingRecovery>(current => refreshWithActiveProtection(current.sharedState, PendingRecovery));
     }
 
     async waitForFullyReady(pollingParameters?: PollingParameters): Promise<PendingRecovery> {
@@ -777,22 +768,19 @@ export class ClaimedRecovery extends State implements WithProtectionParameters {
     private readonly sharedState: RecoverySharedState;
 
     get protectionParameters(): ProtectionParameters {
-        this.ensureCurrent();
         return buildProtectionParameters(this.sharedState);
     }
 
     isFullyReady(): boolean {
-        this.ensureCurrent();
         return isProtectionFullyReady(this.sharedState);
     }
 
     async vaultState(): Promise<VaultState> {
-        this.ensureCurrent();
         return vaultState(this.sharedState);
     }
 
     async refresh(): Promise<ClaimedRecovery> {
-        return this.discardOnSuccess(() => refreshWithActiveProtection(this.sharedState, ClaimedRecovery));
+        return this.discardOnSuccess<ClaimedRecovery>(current => refreshWithActiveProtection(current.sharedState, ClaimedRecovery));
     }
 
     async waitForFullyReady(pollingParameters?: PollingParameters): Promise<ClaimedRecovery> {
@@ -800,7 +788,6 @@ export class ClaimedRecovery extends State implements WithProtectionParameters {
     }
 
     async recoveredVaultState(): Promise<VaultState> {
-        this.ensureCurrent();
         return VaultState.create({
             ...this.sharedState,
             isRecovery: true,
@@ -808,7 +795,6 @@ export class ClaimedRecovery extends State implements WithProtectionParameters {
     }
 
     async recoveredBalanceState(): Promise<BalanceState> {
-        this.ensureCurrent();
         return getBalanceState({
             ...this.sharedState,
             isRecovery: true,
