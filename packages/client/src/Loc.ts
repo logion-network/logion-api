@@ -108,14 +108,14 @@ interface ItemLifecycle extends PartialItemLifecycle, Published {
 
 export interface MergedLink extends ItemLifecycle {
     target: string;
-    nature: string;
+    nature: HashString;
     fees?: Fees;
     submitter: ValidAccountId;
 }
 
 export interface MergedFile extends ItemLifecycle {
     hash: Hash;
-    nature: string;
+    nature: HashString;
     name: string;
     restrictedDelivery: boolean;
     contentType: string;
@@ -126,9 +126,8 @@ export interface MergedFile extends ItemLifecycle {
 }
 
 export interface MergedMetadataItem extends ItemLifecycle {
-    name: string;
-    nameHash: Hash;
-    value: string;
+    name: HashString;
+    value: HashString;
     fees?: Fees;
     submitter: ValidAccountId;
 }
@@ -819,7 +818,7 @@ export abstract class LocRequestState extends State {
         }
 
         for (const item of loc.metadata) {
-            if (item.value === hash.toHex()) {
+            if (item.value.value === hash.toHex()) {
                 result.metadataItem = item;
             }
         }
@@ -887,15 +886,15 @@ export abstract class LocRequestState extends State {
             return {
                 ...backendMetadataItem,
                 ...chainMetadataItem,
-                nameHash: Hash.fromHex(chainMetadataItem.name.toHex()),
                 published: true,
-                name: LocRequestState.validatedValue(backendMetadataItem.name, chainMetadataItem.name),
-                value: LocRequestState.validatedValue(backendMetadataItem.value, chainMetadataItem.value),
+                name: new HashString(chainMetadataItem.name, backendMetadataItem.name),
+                value: new HashString(chainMetadataItem.value, backendMetadataItem.value),
             };
         } else {
             return {
                 ...backendMetadataItem,
-                nameHash: Hash.fromHex(backendMetadataItem.nameHash),
+                name: HashString.fromValue(backendMetadataItem.name),
+                value: HashString.fromValue(backendMetadataItem.value),
                 submitter: api.queries.getValidAccountId(backendMetadataItem.submitter.address, backendMetadataItem.submitter.type),
                 published: false,
                 acknowledgedByOwner: false,
@@ -911,11 +910,12 @@ export abstract class LocRequestState extends State {
                 ...backendFile,
                 ...chainFile,
                 published: true,
-                nature: LocRequestState.validatedValue(backendFile.nature, chainFile.nature),
+                nature: new HashString(chainFile.nature, backendFile.nature),
             };
         } else {
             return {
                 ...backendFile,
+                nature: HashString.fromValue(backendFile.nature),
                 hash: Hash.fromHex(backendFile.hash),
                 submitter: api.queries.getValidAccountId(backendFile.submitter.address, backendFile.submitter.type),
                 size: BigInt(backendFile.size),
@@ -926,15 +926,6 @@ export abstract class LocRequestState extends State {
         }
     }
 
-    private static validatedValue(data: string, hash: Hash): string {
-        const hashString = new HashString(hash, data);
-        if (hashString.isValidValue()) {
-            return data;
-        } else {
-            return `Deleted data - related hash: ${ hash.toHex() })`;
-        }
-    }
-
     private static mergeLink(api: LogionNodeApiClass, backendLink: LocLink, chainLoc?: LegalOfficerCase): MergedLink {
         const chainLink = chainLoc ? chainLoc.links.find(link => link.id.toString() === backendLink.target) : undefined;
         if(chainLink) {
@@ -942,11 +933,12 @@ export abstract class LocRequestState extends State {
                 ...backendLink,
                 ...chainLink,
                 published: true,
-                nature: LocRequestState.validatedValue(backendLink.nature, chainLink.nature),
+                nature: new HashString(chainLink.nature, backendLink.nature),
             };
         } else {
             return {
                 ...backendLink,
+                nature: HashString.fromValue(backendLink.nature),
                 submitter: api.queries.getValidAccountId(backendLink.submitter.address, backendLink.submitter.type),
                 published: false,
                 acknowledgedByOwner: false,
@@ -1635,7 +1627,7 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
     }
 
     async acknowledgeMetadata(parameters: AckMetadataParams): Promise<OpenLoc> {
-        const metadata = this.request.data().metadata.find(metadata => metadata.nameHash.equalTo(parameters.nameHash) && metadata.status === "PUBLISHED");
+        const metadata = this.request.data().metadata.find(metadata => metadata.name.hash.equalTo(parameters.nameHash) && metadata.status === "PUBLISHED");
         if(!metadata) {
             throw new Error("Data was not found or was not published yet");
         }

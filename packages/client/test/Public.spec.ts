@@ -74,6 +74,7 @@ describe("PublicLoc", () => {
         const data = new Mock<LocData>();
         data.setup(instance => instance.files).returns([ {
             ...EXISTING_FILE,
+            nature: HashString.fromValue(EXISTING_FILE.nature),
             hash: Hash.fromHex(EXISTING_FILE.hash),
             published: true,
             size: BigInt(EXISTING_FILE.size),
