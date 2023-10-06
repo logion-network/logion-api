@@ -1,6 +1,7 @@
 import { Hash as Hasher } from 'fast-sha256';
 import { FileLike, UploadableData } from "./ComponentFactory.js";
 import { Hash } from "@logion/node-api";
+import { requireDefined } from './assertions.js';
 
 export interface HashAndSize {
     hash: Hash;
@@ -134,7 +135,7 @@ export class HashOrContent {
             throw new Error("No content available");
         }
         this.ensureFinalized();
-        return this._content;
+        return requireDefined(this._content);
     }
 
     get size() {
@@ -142,7 +143,7 @@ export class HashOrContent {
             throw new Error("No content available to compute the size of");
         }
         this.ensureFinalized();
-        return this._size;
+        return requireDefined(this._size);
     }
 
     async data(): Promise<UploadableData> {
@@ -153,7 +154,7 @@ export class HashOrContent {
         if(typeof this._content === "string") {
             return await buildStream(this._content as string);
         } else {
-            return this._content;
+            return requireDefined(this._content);
         }
     }
 }

@@ -1783,7 +1783,7 @@ export class AuthenticatedLocClient extends LocClient {
         return {
             hash: item.file.contentHash,
             nature: Hash.of(item.nature),
-            size: item.file.size!,
+            size: item.file.size,
             submitter: this.currentAddress,
         }
     }

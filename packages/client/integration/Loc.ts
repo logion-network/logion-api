@@ -48,9 +48,8 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID) {
         name: metadataName,
         value: "Some value"
     }) as DraftRequest;
-    expect(draftRequest.data().metadata[0].name).toBe(metadataName);
-    expect(draftRequest.data().metadata[0].nameHash).toEqual(nameHash);
-    expect(draftRequest.data().metadata[0].value).toBe("Some value");
+    expect(draftRequest.data().metadata[0].name.validValue()).toBe(metadataName);
+    expect(draftRequest.data().metadata[0].value.validValue()).toBe("Some value");
     expect(draftRequest.data().metadata[0].addedOn).toBeUndefined();
     expect(draftRequest.data().metadata[0].status).toBe("DRAFT");
 
@@ -61,7 +60,7 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID) {
         nature,
     }) as DraftRequest;
     expect(draftRequest.data().links[0].target).toEqual(linkTarget.toString());
-    expect(draftRequest.data().links[0].nature).toBe(nature);
+    expect(draftRequest.data().links[0].nature.validValue()).toBe(nature);
     expect(draftRequest.data().links[0].addedOn).toBeUndefined();
     expect(draftRequest.data().links[0].status).toBe("DRAFT");
 
@@ -117,7 +116,7 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID) {
     expect(hash.toHex()).toBe("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
     expect(openLoc.data().files[0].name).toBe("test.txt");
     expect(openLoc.data().files[0].hash).toEqual(hash);
-    expect(openLoc.data().files[0].nature).toBe("Some file nature");
+    expect(openLoc.data().files[0].nature.validValue()).toBe("Some file nature");
     expect(openLoc.data().files[0].addedOn).toBeUndefined();
     expect(openLoc.data().files[0].status).toBe("DRAFT");
 

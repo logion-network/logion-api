@@ -173,7 +173,7 @@ function checkFile(actual: MergedFile, expected: AddFileParams) {
     expect(actual.submitter.address).toEqual(DIRECT_REQUESTER_ADDRESS);
     expect(actual.submitter.type).toEqual("Polkadot");
     expect(actual.name).toEqual(expected.fileName);
-    expect(actual.nature).toEqual(expected.nature);
+    expect(actual.nature.validValue()).toEqual(expected.nature);
     expect(actual.hash).toEqual(expected.file.contentHash);
 }
 
@@ -181,8 +181,8 @@ function checkMetadataItem(actual: MergedMetadataItem, expected: AddMetadataPara
     expect(actual.status).toEqual("PUBLISHED");
     expect(actual.submitter.address).toEqual(DIRECT_REQUESTER_ADDRESS);
     expect(actual.submitter.type).toEqual("Polkadot");
-    expect(actual.name).toEqual(expected.name);
-    expect(actual.value).toEqual(expected.value);
+    expect(actual.name.validValue()).toEqual(expected.name);
+    expect(actual.value.validValue()).toEqual(expected.value);
 }
 
 function checkLink(actual: MergedLink, expected: AddLinkParams) {
@@ -190,5 +190,5 @@ function checkLink(actual: MergedLink, expected: AddLinkParams) {
     expect(actual.submitter.address).toEqual(DIRECT_REQUESTER_ADDRESS);
     expect(actual.submitter.type).toEqual("Polkadot");
     expect(actual.target).toEqual(expected.target.toString());
-    expect(actual.nature).toEqual(expected.nature);
+    expect(actual.nature.validValue()).toEqual(expected.nature);
 }
