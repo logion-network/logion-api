@@ -52,15 +52,15 @@ export class State {
      * @param action The state transition logic producing next state
      * @returns Next state if state transition logic execution did not throw
      */
-    async discardOnSuccess<T extends State>(action: () => Promise<T>): Promise<T> {
-        this.ensureCurrent();
-        let next: T | undefined;
+    async discardOnSuccess<T extends State, U extends State = T>(action: (current: T) => Promise<U>): Promise<U> {
+        const current = this.getCurrentStateOrThrow();
+        let next: U | undefined;
         try {
-            next = await action();
+            next = await action(current as T);
             return next;
         } finally {
             if(next !== undefined) {
-                this.discard(next);
+                current.discard(next);
             }
         }
     }
@@ -70,15 +70,15 @@ export class State {
      * @param action The state transition logic producing next state
      * @returns Next state if state transition logic execution did not throw
      */
-    syncDiscardOnSuccess<T extends State>(action: () => T): T {
-        this.ensureCurrent();
-        let next: T | undefined;
+    syncDiscardOnSuccess<T extends State, U extends State = T>(action: (current: T) => U): U {
+        const current = this.getCurrentStateOrThrow();
+        let next: U | undefined;
         try {
-            next = action();
+            next = action(current as T);
             return next;
         } finally {
             if(next !== undefined) {
-                this.discard(next);
+                current.discard(next);
             }
         }
     }
@@ -105,6 +105,21 @@ export class State {
             return currentState;
         } else {
             throw new Error("State was discarded without replacement");
+        }
+    }
+
+    /**
+     * @descripiton Finalizes (i.e. replaces with no new state) current state only if given state transition logic
+     * executed successfully (i.e. without throwing an error).
+     * @param action The state transition logic producing next state
+     * @returns Next state if state transition logic execution did not throw
+     */
+    async finalizeOnSuccess<T extends State>(action: (current: T) => Promise<void>): Promise<void> {
+        const current = this.getCurrentStateOrThrow();
+        try {
+            await action(current as T);
+        } finally {
+            current.discard(undefined);
         }
     }
 }

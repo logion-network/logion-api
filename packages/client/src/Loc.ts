@@ -153,38 +153,31 @@ export class LocsState extends State {
     }
 
     get draftRequests(): Record<LocType, DraftRequest[]> {
-        this.ensureCurrent();
-        return this.withPredicate(this._locs, loc => loc instanceof DraftRequest);
+        return LocsState.withPredicate(this._locs, loc => loc instanceof DraftRequest);
     }
 
     get openLocs(): Record<LocType, OpenLoc[]> {
-        this.ensureCurrent();
-        return this.withPredicate(this._locs, loc => loc instanceof OpenLoc);
+        return LocsState.withPredicate(this._locs, loc => loc instanceof OpenLoc);
     }
 
     get closedLocs(): Record<LocType, (ClosedLoc | ClosedCollectionLoc)[]> {
-        this.ensureCurrent();
-        return this.withPredicate(this._locs, loc => loc instanceof ClosedLoc || loc instanceof ClosedCollectionLoc);
+        return LocsState.withPredicate(this._locs, loc => loc instanceof ClosedLoc || loc instanceof ClosedCollectionLoc);
     }
 
     get voidedLocs(): Record<LocType, (VoidedLoc | VoidedCollectionLoc)[]> {
-        this.ensureCurrent();
-        return this.withPredicate(this._locs, loc => loc instanceof VoidedLoc || loc instanceof VoidedCollectionLoc);
+        return LocsState.withPredicate(this._locs, loc => loc instanceof VoidedLoc || loc instanceof VoidedCollectionLoc);
     }
 
     get pendingRequests(): Record<LocType, PendingRequest[]> {
-        this.ensureCurrent();
-        return this.withPredicate(this._locs, loc => loc instanceof PendingRequest);
+        return LocsState.withPredicate(this._locs, loc => loc instanceof PendingRequest);
     }
 
     get rejectedRequests(): Record<LocType, RejectedRequest[]> {
-        this.ensureCurrent();
-        return this.withPredicate(this._locs, loc => loc instanceof RejectedRequest);
+        return LocsState.withPredicate(this._locs, loc => loc instanceof RejectedRequest);
     }
 
     get acceptedRequests(): Record<LocType, AcceptedRequest[]> {
-        this.ensureCurrent();
-        return this.withPredicate(this._locs, loc => loc instanceof AcceptedRequest);
+        return LocsState.withPredicate(this._locs, loc => loc instanceof AcceptedRequest);
     }
 
     getLocRequestState(index: number): LocRequestState | undefined {
@@ -195,27 +188,25 @@ export class LocsState extends State {
     }
 
     hasValidIdentityLoc(legalOfficer: LegalOfficer): boolean {
-        this.ensureCurrent();
-        return this.filter(this._locs, 'Identity', loc =>
+        return LocsState.filter(this._locs, 'Identity', loc =>
             loc instanceof ClosedLoc &&
             loc.data().ownerAddress === legalOfficer.address
         ).length > 0;
     }
 
     get legalOfficersWithValidIdentityLoc(): LegalOfficerClass[] {
-        this.ensureCurrent();
         return this.sharedState.legalOfficers.filter(lo => this.hasValidIdentityLoc(lo));
     }
 
-    private withPredicate<T extends LocRequestState>(locs: Record<string, LocRequestState>, predicate: (l: LocRequestState) => boolean): Record<LocType, T[]> {
+    private static withPredicate<T extends LocRequestState>(locs: Record<string, LocRequestState>, predicate: (l: LocRequestState) => boolean): Record<LocType, T[]> {
         return {
-            'Transaction': this.filter(locs, 'Transaction', predicate),
-            'Collection': this.filter(locs, 'Collection', predicate),
-            'Identity': this.filter(locs, 'Identity', predicate),
+            'Transaction': LocsState.filter(locs, 'Transaction', predicate),
+            'Collection': LocsState.filter(locs, 'Collection', predicate),
+            'Identity': LocsState.filter(locs, 'Identity', predicate),
         };
     }
 
-    private filter<T extends LocRequestState>(locs: Record<string, LocRequestState>, locType: LocType, predicate: (loc: LocRequestState) => boolean): T[] {
+    private static filter<T extends LocRequestState>(locs: Record<string, LocRequestState>, locType: LocType, predicate: (loc: LocRequestState) => boolean): T[] {
         const filteredLocs = Object.values(locs)
             .filter(predicate)
             .filter(value => value.data().locType === locType)
@@ -223,7 +214,7 @@ export class LocsState extends State {
     }
 
     refreshWith(loc: LocRequestState): LocsState {
-        return this.syncDiscardOnSuccess(() => this._refreshWith(loc));
+        return this.syncDiscardOnSuccess<LocsState>(current => current._refreshWith(loc));
     }
 
     private _refreshWith(loc: LocRequestState): LocsState {
@@ -254,7 +245,7 @@ export class LocsState extends State {
     }
 
     refreshWithout(locId: UUID): LocsState {
-        return this.syncDiscardOnSuccess(() => this._refreshWithout(locId));
+        return this.syncDiscardOnSuccess<LocsState>(current => current._refreshWithout(locId));
     }
 
     private _refreshWithout(locId: UUID): LocsState {
@@ -279,7 +270,6 @@ export class LocsState extends State {
     }
 
     findByIdOrUndefined(locId: UUID): LocRequestState | undefined {
-        this.ensureCurrent();
         const stringLocId = locId.toString();
         if(stringLocId in this._locs) {
             return this._locs[stringLocId];
@@ -431,8 +421,7 @@ export class LocsState extends State {
     }
 
     async refresh(params?: FetchAllLocsParams): Promise<LocsState> {
-        const current = this.getCurrentStateOrThrow() as LocsState; // Ensure no state discarded error
-        return current.discardOnSuccess(() => current._refresh(params));
+        return this.discardOnSuccess<LocsState>(current => current._refresh(params));
     }
 
     private async _refresh(params?: FetchAllLocsParams): Promise<LocsState> {
@@ -527,7 +516,6 @@ export class LocsState extends State {
      * @returns True if it is, false otherwise.
      */
     get isVerifiedIssuer(): boolean {
-        this.ensureCurrent();
         this._isVerifiedIssuer ||= this.computeIsVerifiedIssuer();
         return this._isVerifiedIssuer;
     }
@@ -541,19 +529,17 @@ export class LocsState extends State {
     }
 
     get openVerifiedIssuerLocs(): Record<LocType, OpenLoc[]> {
-        this.ensureCurrent();
         if(!this.isVerifiedIssuer) {
             throw new Error("Authenticated user is not a Verified Issuer");
         }
-        return this.withPredicate(this._verifiedIssuerLocs, loc => loc instanceof OpenLoc);
+        return LocsState.withPredicate(this._verifiedIssuerLocs, loc => loc instanceof OpenLoc);
     }
 
     get closedVerifiedIssuerLocs(): Record<LocType, (ClosedLoc | ClosedCollectionLoc)[]> {
-        this.ensureCurrent();
         if(!this.isVerifiedIssuer) {
             throw new Error("Authenticated user is not a Verified Issuer");
         }
-        return this.withPredicate(this._verifiedIssuerLocs, loc => loc instanceof ClosedLoc || loc instanceof ClosedCollectionLoc);
+        return LocsState.withPredicate(this._verifiedIssuerLocs, loc => loc instanceof ClosedLoc || loc instanceof ClosedCollectionLoc);
     }
 
     get legalOfficer(): LegalOfficerLocsStateCommands {
@@ -775,7 +761,7 @@ export abstract class LocRequestState extends State {
     }
 
     async refresh(): Promise<LocRequestState> {
-        const current = this.getCurrentStateOrThrow() as LocRequestState; // Ensure no state discarded error
+        const current = this.getCurrentStateOrThrow() as LocRequestState;
         const sharedState = current.locSharedState;
         const client = sharedState.client;
         const request = await client.getLocRequest({ locId: current.locId });
@@ -786,12 +772,10 @@ export abstract class LocRequestState extends State {
     }
 
     locsState(): LocsState {
-        this.ensureCurrent();
         return this.locSharedState.locsState;
     }
 
     data(): LocData {
-        this.ensureCurrent();
         return LocRequestState.buildLocData(this.locSharedState.nodeApi, this.legalOfficerCase, this.request, this.locIssuers);
     }
 
@@ -804,7 +788,6 @@ export abstract class LocRequestState extends State {
     }
 
     async supersededLoc(): Promise<VoidedLoc | undefined> {
-        this.ensureCurrent();
         const superseded = this.data().replacerOf;
         if (superseded) {
             return this.locSharedState.locsState.findById(superseded) as VoidedLoc;
@@ -813,19 +796,16 @@ export abstract class LocRequestState extends State {
     }
 
     isLogionIdentity(): boolean {
-        this.ensureCurrent();
         const loc = this.data();
         return loc.locType === 'Identity' && !loc.requesterAddress && !loc.requesterLocId;
     }
 
     isLogionData(): boolean {
-        this.ensureCurrent();
         const loc = this.data();
         return loc.locType !== 'Identity' && (loc.requesterLocId !== undefined && loc.requesterLocId !== null);
     }
 
     async checkHash(hash: Hash): Promise<CheckHashResult> {
-        this.ensureCurrent();
         return LocRequestState.checkHash(this.data(), hash);
     }
 
@@ -978,10 +958,10 @@ export abstract class LocRequestState extends State {
     abstract withLocs(locsState: LocsState): LocRequestState;
 
     protected _withLocs<T extends LocRequestState>(locsState: LocsState, constructor: new (locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers) => T): T {
-        return this.syncDiscardOnSuccess(() => new constructor({
+        return this.syncDiscardOnSuccess<T>(current => new constructor({
             ...this.locSharedState,
             locsState
-        }, this.request, this.legalOfficerCase, this.locIssuers));
+        }, current.request, current.legalOfficerCase, current.locIssuers));
     }
 
     async getFile(hash: Hash): Promise<TypedFile> {
@@ -1173,10 +1153,9 @@ export class DraftRequest extends EditableRequest {
     }
 
     async cancel(): Promise<LocsState> {
-        this.ensureCurrent();
-        await this.locSharedState.client.cancel(this.locId);
-        this.discard(undefined);
-        return this.locSharedState.locsState.refreshWithout(this.locId);
+        const locsState = this.locSharedState.locsState;
+        await this.finalizeOnSuccess<DraftRequest>(current => current.locSharedState.client.cancel(this.locId));
+        return locsState.refreshWithout(this.locId);
     }
 
     isIDenfySessionInProgress(): boolean {
@@ -1245,7 +1224,6 @@ export class LegalOfficerPendingRequestCommands {
     private request: PendingRequest;
 
     async reject(reason: string): Promise<RejectedRequest> {
-        this.request.ensureCurrent();
         await this.client.rejectLoc({
             locId: this.locId,
             reason,
@@ -1254,7 +1232,6 @@ export class LegalOfficerPendingRequestCommands {
     }
 
     async accept(args?: BlockchainSubmissionParams): Promise<AcceptedRequest | OpenLoc> {
-        this.request.ensureCurrent();
         const requesterAccount = this.request.data().requesterAddress;
         const requesterLoc = this.request.data().requesterLocId;
         const sponsorshipId = this.request.data().sponsorshipId;
@@ -1285,7 +1262,6 @@ export class LegalOfficerPendingRequestCommands {
     }
 
     async estimateFeesAccept(): Promise<FeesClass | undefined> {
-        this.request.ensureCurrent();
         const requesterAccount = this.request.data().requesterAddress;
         const requesterLoc = this.request.data().requesterLocId;
         const sponsorshipId = this.request.data().sponsorshipId;
@@ -1313,10 +1289,9 @@ export class LegalOfficerPendingRequestCommands {
 export class ReviewedRequest extends LocRequestState {
 
     async cancel(): Promise<LocsState> {
-        this.ensureCurrent();
-        await this.locSharedState.client.cancel(this.locId);
-        this.discard(undefined);
-        return this.locSharedState.locsState.refreshWithout(this.locId);
+        const locsState = this.locSharedState.locsState;
+        await this.finalizeOnSuccess<ReviewedRequest>(current => current.locSharedState.client.cancel(this.locId));
+        return locsState.refreshWithout(this.locId);
     }
 
     async rework(): Promise<DraftRequest> {
@@ -1642,7 +1617,6 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
     private legalOfficerLocWithSelectableIssuersCommands: LegalOfficerLocWithSelectableIssuersCommands<OpenLoc>;
 
     async acknowledgeFile(parameters: AckFileParams): Promise<OpenLoc> {
-        this.request.ensureCurrent();
         const file = this.request.data().files.find(file => file.hash.equalTo(parameters.hash) && file.status === "PUBLISHED");
         if(!file) {
             throw new Error("File was not found or was not published yet");
@@ -1661,7 +1635,6 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
     }
 
     async acknowledgeMetadata(parameters: AckMetadataParams): Promise<OpenLoc> {
-        this.request.ensureCurrent();
         const metadata = this.request.data().metadata.find(metadata => metadata.nameHash.equalTo(parameters.nameHash) && metadata.status === "PUBLISHED");
         if(!metadata) {
             throw new Error("Data was not found or was not published yet");
@@ -1680,7 +1653,6 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
     }
 
     async acknowledgeLink(parameters: AckLinkParams): Promise<OpenLoc> {
-        this.request.ensureCurrent();
         const link = this.request.data().links.find(link => link.target == parameters.target.toString() && link.status === "PUBLISHED");
         if(!link) {
             throw new Error("Data was not found or was not published yet");
@@ -1699,7 +1671,6 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
     }
 
     async close(parameters: BlockchainSubmissionParams): Promise<ClosedLoc | ClosedCollectionLoc> {
-        this.request.ensureCurrent();
         const file = this.request.data().files.find(file => file.status !== "ACKNOWLEDGED");
         if(file) {
             throw new Error("All files have not been acknowledged yet");
@@ -1950,7 +1921,6 @@ export async function getTokensRecords(parameters: { locClient: LocClient } & Ge
 abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
 
     async getCollectionItem(parameters: { itemId: Hash }): Promise<CollectionItemClass | undefined> {
-        this.ensureCurrent();
         return getCollectionItem({
             locClient: this.locSharedState.client,
             locId: this.locId,
@@ -1959,7 +1929,6 @@ abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
     }
 
     async getCollectionItems(): Promise<CollectionItemClass[]> {
-        this.ensureCurrent();
         const clientItems = await this.locSharedState.client.getCollectionItems({
             locId: this.locId,
         });
@@ -1971,7 +1940,6 @@ abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
     }
 
     override async checkHash(hash: Hash): Promise<CheckHashResult> {
-        this.ensureCurrent();
         const result = await super.checkHash(hash);
         const collectionItem = await this.getCollectionItem({ itemId: hash });
         return {
@@ -1981,7 +1949,6 @@ abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
     }
 
     async size(): Promise<number | undefined> {
-        this.ensureCurrent();
         const client = this.locSharedState.client;
         return await client.getCollectionSize({
             locId: this.locId
@@ -1989,7 +1956,6 @@ abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
     }
 
     async getTokensRecord(parameters: { recordId: Hash }): Promise<TokensRecordClass | undefined> {
-        this.ensureCurrent();
         return getTokensRecord({
             locClient: this.locSharedState.client,
             locId: this.locId,
@@ -1998,7 +1964,6 @@ abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
     }
 
     async getTokensRecords(): Promise<TokensRecordClass[]> {
-        this.ensureCurrent();
         return getTokensRecords({
             locClient: this.locSharedState.client,
             locId: this.locId,
@@ -2019,7 +1984,6 @@ export interface UploadTokensRecordFileParams {
 export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
 
     async addCollectionItem(parameters: AddCollectionItemParams): Promise<ClosedCollectionLoc> {
-        this.ensureCurrent();
         const client = this.locSharedState.client;
         if(parameters.itemFiles
             && parameters.itemFiles.length > 0
@@ -2030,7 +1994,7 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
             locId: this.locId,
             ...parameters
         })
-        return this;
+        return this.getCurrentStateOrThrow() as ClosedCollectionLoc;
     }
 
     async estimateFeesAddCollectionItem(parameters: EstimateFeesAddCollectionItemParams): Promise<FeesClass> {
@@ -2042,18 +2006,16 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
     }
 
     async uploadCollectionItemFile(parameters: UploadCollectionItemFileParams): Promise<ClosedCollectionLoc> {
-        this.ensureCurrent();
         const client = this.locSharedState.client;
         await client.uploadItemFile({
             locId: this.locId,
             itemId: parameters.itemId,
             file: parameters.itemFile,
         })
-        return this;
+        return this.getCurrentStateOrThrow() as ClosedCollectionLoc;
     }
 
     async addTokensRecord(parameters: AddTokensRecordParams): Promise<ClosedCollectionLoc> {
-        this.ensureCurrent();
         const client = this.locSharedState.client;
         if(parameters.files.length === 0) {
             throw new Error("Cannot add a tokens record without files");
@@ -2065,18 +2027,17 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
             locId: this.locId,
             ...parameters
         })
-        return this;
+        return this.getCurrentStateOrThrow() as ClosedCollectionLoc;
     }
 
     async uploadTokensRecordFile(parameters: UploadTokensRecordFileParams): Promise<ClosedCollectionLoc> {
-        this.ensureCurrent();
         const client = this.locSharedState.client;
         await client.uploadTokensRecordFile({
             locId: this.locId,
             recordId: parameters.recordId,
             file: parameters.file,
         })
-        return this;
+        return this.getCurrentStateOrThrow() as ClosedCollectionLoc;
     }
 
     async requestSof(params: CreateSofRequestParams): Promise<PendingRequest> {
@@ -2138,7 +2099,6 @@ async function requestSof(locSharedState: LocSharedState, locId: UUID, itemId?: 
 export class VoidedLoc extends LocRequestState {
 
     async replacerLoc(): Promise<OpenLoc | ClosedLoc | VoidedLoc | undefined> {
-        this.ensureCurrent();
         const replacer = this.data().voidInfo?.replacer;
         if (replacer) {
             return this.locSharedState.locsState.findById(replacer) as OpenLoc | ClosedLoc | VoidedLoc;
@@ -2158,7 +2118,6 @@ export class VoidedLoc extends LocRequestState {
 export class VoidedCollectionLoc extends ClosedOrVoidCollectionLoc {
 
     async replacerLoc(): Promise<OpenLoc | ClosedCollectionLoc | VoidedCollectionLoc | undefined> {
-        this.ensureCurrent();
         const replacer = this.data().voidInfo?.replacer;
         if (replacer) {
             return this.locSharedState.locsState.findById(replacer) as OpenLoc | ClosedCollectionLoc | VoidedCollectionLoc;

@@ -77,7 +77,7 @@ export class Votes extends State {
     }
 
     refreshWith(updatedVote: VoteData): Votes {
-        return this.syncDiscardOnSuccess(() => this._refreshWith(updatedVote));
+        return this.syncDiscardOnSuccess<Votes>(current => current._refreshWith(updatedVote));
     }
 
     _refreshWith(updatedVoteData: VoteData): Votes {
@@ -103,7 +103,7 @@ export class Votes extends State {
     }
 
     refresh(): Promise<Votes> {
-        return this.getCurrentStateOrThrow().discardOnSuccess(async () => Votes.fetchAndDiscard(this.client, this._votes));
+        return this.discardOnSuccess<Votes>(current => Votes.fetchAndDiscard(current.client, current._votes));
     }
 }
 
@@ -166,45 +166,44 @@ export abstract class Vote extends State {
 export class PendingVote extends Vote {
 
     async castVote(params: { result: VoteResult } & BlockchainSubmissionParams): Promise<PendingVote> {
-        this.ensureCurrent();
-        const api = this._votes.client.logionApi;
+        const current = this.getCurrentStateOrThrow() as PendingVote;
+        const api = current._votes.client.logionApi;
         const submittable = api.polkadot.tx.vote.vote(
-            this._data.voteId,
+            current._data.voteId,
             params.result === "Yes",
         );
         await params.signer.signAndSend({
-            signerId: super.currentAddress(),
+            signerId: current.currentAddress(),
             submittable,
             callback: params.callback,
         });
         const ballots = {
-            ...this._data.ballots,
-            [super.currentAddress()]: params.result,
+            ...current._data.ballots,
+            [current.currentAddress()]: params.result,
         };
         const newData = {
-            ...this._data,
+            ...current._data,
             ballots
         };
-        const current = this.getCurrentStateOrThrow() as PendingVote;
-        const newVotes = current.syncDiscardOnSuccess(() => current._votes.refreshWith(newData));
-        return newVotes.findByIdOrThrow(current._data.voteId) as PendingVote;
+        const newVotes = current.syncDiscardOnSuccess<PendingVote, Votes>(current => current._votes.refreshWith(newData));
+        return newVotes.findByIdOrThrow(newData.voteId) as PendingVote;
     }
 
     override refreshVotes(newVotes: Votes): PendingVote {
-        return this.syncDiscardOnSuccess(() => new PendingVote(newVotes, this._data));
+        return this.syncDiscardOnSuccess<PendingVote>(current => new PendingVote(newVotes, current._data));
     }
 }
 
 export class ApprovedVote extends Vote {
 
     override refreshVotes(newVotes: Votes): ApprovedVote {
-        return this.syncDiscardOnSuccess(() => new ApprovedVote(newVotes, this._data));
+        return this.syncDiscardOnSuccess<ApprovedVote>(current => new ApprovedVote(newVotes, current._data));
     }
 }
 
 export class RejectedVote extends Vote {
 
     override refreshVotes(newVotes: Votes): RejectedVote {
-        return this.syncDiscardOnSuccess(() => new RejectedVote(newVotes, this._data));
+        return this.syncDiscardOnSuccess<RejectedVote>(current => new RejectedVote(newVotes, current._data));
     }
 }
