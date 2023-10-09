@@ -161,7 +161,6 @@ export const ETHEREUM_ADDRESS_LENGTH_IN_BITS = 20 * 8;
 export interface AccountId {
     readonly address: string;
     readonly type: AccountType;
-    equals(other: AccountId): boolean;
 }
 
 export class AnyAccountId implements AccountId {

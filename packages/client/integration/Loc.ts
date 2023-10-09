@@ -59,7 +59,7 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID) {
         target: linkTarget,
         nature,
     }) as DraftRequest;
-    expect(draftRequest.data().links[0].target).toEqual(linkTarget.toString());
+    expect(draftRequest.data().links[0].target.toString()).toEqual(linkTarget.toString());
     expect(draftRequest.data().links[0].nature.validValue()).toBe(nature);
     expect(draftRequest.data().links[0].addedOn).toBeUndefined();
     expect(draftRequest.data().links[0].status).toBe("DRAFT");

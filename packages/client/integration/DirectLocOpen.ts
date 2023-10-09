@@ -189,6 +189,6 @@ function checkLink(actual: MergedLink, expected: AddLinkParams) {
     expect(actual.status).toEqual("PUBLISHED");
     expect(actual.submitter.address).toEqual(DIRECT_REQUESTER_ADDRESS);
     expect(actual.submitter.type).toEqual("Polkadot");
-    expect(actual.target).toEqual(expected.target.toString());
+    expect(actual.target.toString()).toEqual(expected.target.toString());
     expect(actual.nature.validValue()).toEqual(expected.nature);
 }

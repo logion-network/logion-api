@@ -73,7 +73,10 @@ describe("PublicLoc", () => {
     it("finds file on check", async () => {
         const data = new Mock<LocData>();
         data.setup(instance => instance.files).returns([ {
-            ...EXISTING_FILE,
+            name: EXISTING_FILE.name,
+            restrictedDelivery: EXISTING_FILE.restrictedDelivery,
+            contentType: EXISTING_FILE.contentType,
+            status: EXISTING_FILE.status,
             nature: HashString.fromValue(EXISTING_FILE.nature),
             hash: Hash.fromHex(EXISTING_FILE.hash),
             published: true,

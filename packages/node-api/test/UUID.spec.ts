@@ -53,5 +53,17 @@ describe("UUID", () => {
         const decimalUuid = "1014483181808745655871291974752783997";
         expect(uuidObject.toDecimalString()).toBe(decimalUuid);
         UUID.fromDecimalStringOrThrow(decimalUuid);
-    })
+    });
+
+    it("implements equality", () => {
+        const uuid1 = new UUID('6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b');
+        const uuid2 = new UUID('6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b');
+        expect(uuid1.equalTo(uuid2)).toBe(true);
+    });
+
+    it("implements difference", () => {
+        const uuid1 = new UUID('6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b');
+        const uuid2 = new UUID('58f7e9d6-7feb-450d-8ce5-ab1a126a293c');
+        expect(uuid1.equalTo(uuid2)).toBe(false);
+    });
 });
