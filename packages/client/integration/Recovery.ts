@@ -91,10 +91,9 @@ export async function recoverLostAccount(state: State) {
 
     console.log("Transfer from recovered account")
     const recoveredBalance = await claimed.recoveredBalanceState();
-    await recoveredBalance.transfer({
+    await recoveredBalance.transferAll({
         signer,
         destination: NEW_ADDRESS,
-        amount: recoveredBalance.balances[0].available,
     });
 }
 
