@@ -53,6 +53,15 @@ export class UUID {
         const hexString = this.toString().replace(/-/g, "");
         return new BN(hexString, 16).toString(10);
     }
+
+    equalTo(other: UUID): boolean {
+        for(let i = 0; i < this.bytes.length; ++i) {
+            if(this.bytes[i] !== other.bytes[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
 
 export function toDecimalString(value: string): string {

@@ -22,7 +22,6 @@ import {
     AddCollectionItemParams,
     LocRequestVoidInfo,
     LocRequestStatus,
-    Published,
     ItemFileWithContent,
     AuthenticatedLocClient,
     FetchAllLocsParams,
@@ -50,11 +49,11 @@ import {
     EstimateFeesOpenCollectionLocParams,
     OpenPolkadotLocParams,
     EstimateFeesAddCollectionItemParams,
-    PartialItemLifecycle,
     RefLinkParams,
     AckLinkParams,
     ReviewLinkParams,
     ItemsParams,
+    ItemLifecycle as BackendItemLifecycle,
 } from "./LocClient.js";
 import { SharedState, getLegalOfficer } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -66,6 +65,8 @@ import { downloadFile, TypedFile } from "./Http.js";
 import { requireDefined } from "./assertions.js";
 import { Fees } from "./Fees.js";
 import { HashString } from "./Hash.js";
+import { DateTime } from "luxon";
+import { fromIsoString } from "./DateTimeUtil.js";
 
 export interface LocData extends LocVerifiedIssuers {
     id: UUID
@@ -101,13 +102,20 @@ export interface LocData extends LocVerifiedIssuers {
     legalFee?: bigint;
 }
 
-interface ItemLifecycle extends PartialItemLifecycle, Published {
+interface ItemLifecycle {
+    addedOn?: DateTime;
+    reviewedOn?: DateTime;
+    acknowledgedByOwnerOn?: DateTime;
+    acknowledgedByVerifiedIssuerOn?: DateTime;
+    published: boolean;
+    status: ItemStatus;
+    rejectReason?: string;
     acknowledgedByOwner: boolean;
     acknowledgedByVerifiedIssuer: boolean;
 }
 
 export interface MergedLink extends ItemLifecycle {
-    target: string;
+    target: UUID;
     nature: HashString;
     fees?: Fees;
     submitter: ValidAccountId;
@@ -884,22 +892,45 @@ export abstract class LocRequestState extends State {
         const chainMetadataItem = chainLoc ? chainLoc.metadata.find(item => item.name.toHex() === backendMetadataItem.nameHash) : undefined;
         if(chainMetadataItem) {
             return {
-                ...backendMetadataItem,
-                ...chainMetadataItem,
-                published: true,
+                ...LocRequestState.parseItemLifecycleDates({
+                    ...backendMetadataItem,
+                    published: true,
+                    acknowledgedByOwner: chainMetadataItem.acknowledgedByOwner,
+                    acknowledgedByVerifiedIssuer: chainMetadataItem.acknowledgedByVerifiedIssuer,
+                }),
+                submitter: chainMetadataItem.submitter,
+                fees: backendMetadataItem.fees,
                 name: new HashString(chainMetadataItem.name, backendMetadataItem.name),
                 value: new HashString(chainMetadataItem.value, backendMetadataItem.value),
             };
         } else {
             return {
-                ...backendMetadataItem,
+                ...LocRequestState.parseItemLifecycleDates({
+                    ...backendMetadataItem,
+                    published: false,
+                    acknowledgedByOwner: false,
+                    acknowledgedByVerifiedIssuer: false,
+                }),
+                submitter: api.queries.getValidAccountId(backendMetadataItem.submitter.address, backendMetadataItem.submitter.type),
+                fees: backendMetadataItem.fees,
                 name: HashString.fromValue(backendMetadataItem.name),
                 value: HashString.fromValue(backendMetadataItem.value),
-                submitter: api.queries.getValidAccountId(backendMetadataItem.submitter.address, backendMetadataItem.submitter.type),
-                published: false,
-                acknowledgedByOwner: false,
-                acknowledgedByVerifiedIssuer: false,
             };
+        }
+    }
+
+    private static parseItemLifecycleDates(args: { published: boolean, acknowledgedByOwner: boolean, acknowledgedByVerifiedIssuer: boolean } & BackendItemLifecycle): ItemLifecycle {
+        const { published, acknowledgedByOwner, acknowledgedByVerifiedIssuer } = args;
+        return {
+            published,
+            acknowledgedByOwner,
+            acknowledgedByVerifiedIssuer,
+            status: args.status,
+            rejectReason: args.rejectReason,
+            addedOn: args.addedOn ? fromIsoString(args.addedOn) : undefined,
+            reviewedOn: args.reviewedOn ? fromIsoString(args.reviewedOn) : undefined,
+            acknowledgedByOwnerOn: args.acknowledgedByOwnerOn ? fromIsoString(args.acknowledgedByOwnerOn) : undefined,
+            acknowledgedByVerifiedIssuerOn: args.acknowledgedByVerifiedIssuerOn ? fromIsoString(args.acknowledgedByVerifiedIssuerOn) : undefined,
         }
     }
 
@@ -907,21 +938,37 @@ export abstract class LocRequestState extends State {
         const chainFile = chainLoc ? chainLoc.files.find(item => item.hash.toHex() === backendFile.hash) : undefined;
         if(chainFile) {
             return {
-                ...backendFile,
-                ...chainFile,
-                published: true,
+                ...LocRequestState.parseItemLifecycleDates({
+                    ...backendFile,
+                    published: true,
+                    acknowledgedByOwner: chainFile.acknowledgedByOwner,
+                    acknowledgedByVerifiedIssuer: chainFile.acknowledgedByVerifiedIssuer,
+                }),
+                submitter: chainFile.submitter,
+                fees: backendFile.fees,
+                name: backendFile.name,
                 nature: new HashString(chainFile.nature, backendFile.nature),
+                size: chainFile.size,
+                restrictedDelivery: backendFile.restrictedDelivery,
+                hash: chainFile.hash,
+                contentType: backendFile.contentType,
             };
         } else {
             return {
-                ...backendFile,
-                nature: HashString.fromValue(backendFile.nature),
-                hash: Hash.fromHex(backendFile.hash),
+                ...LocRequestState.parseItemLifecycleDates({
+                    ...backendFile,
+                    published: false,
+                    acknowledgedByOwner: false,
+                    acknowledgedByVerifiedIssuer: false,
+                }),
                 submitter: api.queries.getValidAccountId(backendFile.submitter.address, backendFile.submitter.type),
+                fees: backendFile.fees,
+                name: backendFile.name,
+                nature: HashString.fromValue(backendFile.nature),
                 size: BigInt(backendFile.size),
-                published: false,
-                acknowledgedByOwner: false,
-                acknowledgedByVerifiedIssuer: false,
+                restrictedDelivery: backendFile.restrictedDelivery,
+                hash: Hash.fromHex(backendFile.hash),
+                contentType: backendFile.contentType,
             }
         }
     }
@@ -930,19 +977,29 @@ export abstract class LocRequestState extends State {
         const chainLink = chainLoc ? chainLoc.links.find(link => link.id.toString() === backendLink.target) : undefined;
         if(chainLink) {
             return {
-                ...backendLink,
-                ...chainLink,
-                published: true,
+                ...LocRequestState.parseItemLifecycleDates({
+                    ...backendLink,
+                    published: true,
+                    acknowledgedByOwner: chainLink.acknowledgedByOwner,
+                    acknowledgedByVerifiedIssuer: chainLink.acknowledgedByVerifiedIssuer,
+                }),
+                submitter: chainLink.submitter,
+                fees: backendLink.fees,
                 nature: new HashString(chainLink.nature, backendLink.nature),
+                target: chainLink.id,
             };
         } else {
             return {
-                ...backendLink,
-                nature: HashString.fromValue(backendLink.nature),
+                ...LocRequestState.parseItemLifecycleDates({
+                    ...backendLink,
+                    published: false,
+                    acknowledgedByOwner: false,
+                    acknowledgedByVerifiedIssuer: false,
+                }),
                 submitter: api.queries.getValidAccountId(backendLink.submitter.address, backendLink.submitter.type),
-                published: false,
-                acknowledgedByOwner: false,
-                acknowledgedByVerifiedIssuer: false,
+                fees: backendLink.fees,
+                nature: HashString.fromValue(backendLink.nature),
+                target: new UUID(backendLink.target),
             }
         }
     }
@@ -958,6 +1015,18 @@ export abstract class LocRequestState extends State {
 
     async getFile(hash: Hash): Promise<TypedFile> {
         return downloadFile(this.owner.buildAxiosToNode(), `/api/loc-request/${ this.request.id }/files/${ hash.toHex() }`);
+    }
+
+    isRequester(): boolean {
+        return this.request.requesterAddress && this.locSharedState.currentAddress?.equals(this.request.requesterAddress) || false;
+    }
+
+    isOwner(): boolean {
+        return this.locSharedState.currentAddress?.type === "Polkadot" && this.locSharedState.currentAddress?.address === this.request.ownerAddress;
+    }
+
+    isVerifiedIssuer(): boolean {
+        return this.locSharedState.currentAddress?.type === "Polkadot" && (this.locIssuers.issuers.find(issuer => issuer.address === this.locSharedState.currentAddress?.address) !== undefined);
     }
 }
 
@@ -1416,7 +1485,7 @@ export class OpenLoc extends EditableRequest {
     }
 
     async publishFile(parameters: { hash: Hash } & BlockchainSubmissionParams): Promise<OpenLoc> {
-        // TODO: Check signer is requester
+        this.ensureCanPublish();
         const client = this.locSharedState.client;
         const file = this.findFile(parameters.hash, "REVIEW_ACCEPTED");
         await client.publishFile({
@@ -1425,6 +1494,15 @@ export class OpenLoc extends EditableRequest {
             callback: parameters.callback,
         });
         return await this.refresh() as OpenLoc;
+    }
+
+    private ensureCanPublish() {
+        if(this.request.requesterAddress && !this.isRequester()) {
+            throw new Error("Only requester can publish");
+        }
+        if(!this.request.requesterAddress && !this.isOwner()) {
+            throw new Error("Only owner can publish");
+        }
     }
 
     private findFile(hash: Hash, status: ItemStatus): EstimateFeesPublishFileParams {
@@ -1450,7 +1528,7 @@ export class OpenLoc extends EditableRequest {
     }
 
     async acknowledgeFile(parameters: AckFileParams): Promise<OpenLoc> {
-        // TODO: Check signer is verified issuer
+        this.ensureCanAcknowledge();
         const client = this.locSharedState.client;
         this.findFile(parameters.hash, "PUBLISHED");
         await client.acknowledgeFile({
@@ -1462,6 +1540,12 @@ export class OpenLoc extends EditableRequest {
         return await this.refresh() as OpenLoc;
     }
 
+    private ensureCanAcknowledge() {
+        if(!this.isOwner() && !this.isVerifiedIssuer()) {
+            throw new Error("Only owner or a verified issuer can acknowledge");
+        }
+    }
+
     async estimateFeesAcknowledgeFile(parameters: RefFileParams): Promise<FeesClass> {
         const client = this.locSharedState.client;
         return await client.estimateFeesAcknowledgeFile({
@@ -1471,7 +1555,7 @@ export class OpenLoc extends EditableRequest {
     }
 
     async publishMetadata(parameters: { nameHash: Hash } & BlockchainSubmissionParams): Promise<OpenLoc> {
-        // TODO: Check signer is requester
+        this.ensureCanPublish();
         const client = this.locSharedState.client;
         const metadata = this.findMetadata(parameters.nameHash, "REVIEW_ACCEPTED");
         await client.publishMetadata({
@@ -1504,7 +1588,7 @@ export class OpenLoc extends EditableRequest {
     }
 
     async acknowledgeMetadata(parameters: AckMetadataParams): Promise<OpenLoc> {
-        // TODO: Check signer is verified issuer
+        this.ensureCanAcknowledge();
         const client = this.locSharedState.client;
         this.findMetadata(parameters.nameHash, "PUBLISHED");
         await client.acknowledgeMetadata({
@@ -1525,6 +1609,7 @@ export class OpenLoc extends EditableRequest {
     }
 
     async publishLink(parameters: { target: UUID } & BlockchainSubmissionParams): Promise<OpenLoc> {
+        this.ensureCanPublish();
         const client = this.locSharedState.client;
         const link = this.findLink(parameters.target, "REVIEW_ACCEPTED");
         await client.publishLink({
@@ -1557,7 +1642,7 @@ export class OpenLoc extends EditableRequest {
     }
 
     async acknowledgeLink(parameters: AckLinkParams): Promise<OpenLoc> {
-        // TODO: Check signer is verified issuer
+        this.ensureCanAcknowledge();
         const client = this.locSharedState.client;
         this.findLink(parameters.target, "PUBLISHED");
         await client.acknowledgeLink({
@@ -1645,7 +1730,7 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
     }
 
     async acknowledgeLink(parameters: AckLinkParams): Promise<OpenLoc> {
-        const link = this.request.data().links.find(link => link.target == parameters.target.toString() && link.status === "PUBLISHED");
+        const link = this.request.data().links.find(link => link.target.equalTo(parameters.target) && link.status === "PUBLISHED");
         if(!link) {
             throw new Error("Data was not found or was not published yet");
         }

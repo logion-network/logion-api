@@ -47,8 +47,8 @@ export async function verifiedIssuer(state: State) {
     let aliceClosed = await aliceOpen.legalOfficer.close({ signer }) as ClosedLoc;
     aliceClosed = await aliceClosed.legalOfficer.nominateIssuer({ signer });
 
-    const userClient = state.client.withCurrentAddress(newAccount);
-    let userLocsState = await userClient.locsState();
+    const requesterClient = state.client.withCurrentAddress(newAccount);
+    let userLocsState = await requesterClient.locsState();
     let pendingLocRequest = await userLocsState.requestTransactionLoc({
         legalOfficerAddress: alice.address,
         description: "Some LOC with verified issuer",
@@ -77,29 +77,53 @@ export async function verifiedIssuer(state: State) {
     expect(issuerLocsState.openVerifiedIssuerLocs["Transaction"].length).toBe(1);
     let issuerLoc = issuerLocsState.findById(transactionLocId);
 
-    let openIssuerLoc = await issuerLoc.refresh() as EditableRequest;
+    let openIssuerLoc = await issuerLoc.refresh() as OpenLoc;
     const dataName = "Verified issuer data name";
+    const dataNameHash = Hash.of(dataName);
     openIssuerLoc = await openIssuerLoc.addMetadata({
         name: dataName,
         value: "Verified issuer data value"
-    });
-    openIssuerLoc = await openIssuerLoc.deleteMetadata({ nameHash: Hash.of(dataName) });
+    }) as OpenLoc;
+    openIssuerLoc = await openIssuerLoc.deleteMetadata({ nameHash: dataNameHash }) as OpenLoc;
 
     const file = HashOrContent.fromContent(Buffer.from("test"));
     openIssuerLoc = await openIssuerLoc.addFile({
         fileName: "test.txt",
         nature: "Some file nature",
         file,
-    });
-    openIssuerLoc = await openIssuerLoc.deleteFile({ hash: file.contentHash });
+    }) as OpenLoc;
+    openIssuerLoc = await openIssuerLoc.deleteFile({ hash: file.contentHash }) as OpenLoc;
 
+    // Full add-review-publish-ack cycle (metadata)
+    openIssuerLoc = await openIssuerLoc.addMetadata({
+        name: dataName,
+        value: "Verified issuer data value"
+    }) as OpenLoc;
+    openIssuerLoc = await openIssuerLoc.requestMetadataReview({ nameHash: dataNameHash }) as OpenLoc;
+    aliceOpenTransaction = await aliceOpenTransaction.refresh() as OpenLoc;
+    aliceOpenTransaction = await aliceOpenTransaction.legalOfficer.reviewMetadata({
+        nameHash: dataNameHash,
+        decision: "ACCEPT",
+    }) as OpenLoc;
+    openLoc = await openLoc.refresh() as OpenLoc;
+    openLoc = await openLoc.publishMetadata({ nameHash: dataNameHash, signer });
+    expect(openLoc.data().metadata[0].status).toBe("PUBLISHED");
+    openIssuerLoc = await openIssuerLoc.refresh() as OpenLoc;
+    openIssuerLoc = await openIssuerLoc.acknowledgeMetadata({ nameHash: dataNameHash, signer });
+    aliceOpenTransaction = await aliceOpenTransaction.refresh() as OpenLoc;
+    expect(aliceOpenTransaction.data().metadata[0].status).toBe("PUBLISHED");
+    aliceOpenTransaction = await aliceOpenTransaction.acknowledgeMetadata({ nameHash: dataNameHash, signer });
+    expect(aliceOpenTransaction.data().metadata[0].status).toBe("ACKNOWLEDGED");
+
+    // Issuer unselection
     aliceOpenTransaction = await aliceOpenTransaction.refresh() as OpenLoc;
     aliceOpenTransaction = await aliceOpenTransaction.legalOfficer.unselectIssuer({
         issuer: ISSUER_ADDRESS,
         signer
     });
 
-    userLocsState = await userClient.locsState();
+    userLocsState = await requesterClient.locsState();
     const userLoc = userLocsState.findById(transactionLocId);
-    expect(userLoc.data().issuers.length).toBe(0);
+    expect(userLoc.data().issuers.length).toBe(1);
+    expect(userLoc.data().issuers[0].selected).toBe(false);
 }

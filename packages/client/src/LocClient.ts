@@ -46,12 +46,8 @@ import {
 import { CollectionDelivery, ItemDeliveries } from './Deliveries.js';
 import { Fees } from './Fees.js';
 
-export interface AddedOn {
+interface AddedOn {
     addedOn: string;
-}
-
-export interface Published {
-    published: boolean;
 }
 
 export interface SupportedAccountId {
@@ -61,16 +57,18 @@ export interface SupportedAccountId {
 
 export type ItemStatus = "DRAFT" | "REVIEW_PENDING" | "REVIEW_ACCEPTED" | "REVIEW_REJECTED" | "PUBLISHED" | "ACKNOWLEDGED";
 
-export interface PartialItemLifecycle extends Partial<AddedOn> {
+export interface ItemLifecycle extends Partial<AddedOn> {
+    reviewedOn?: string;
+    acknowledgedByOwnerOn?: string;
+    acknowledgedByVerifiedIssuerOn?: string;
     status: ItemStatus;
     rejectReason?: string;
-    reviewedOn?: string;
 }
 
 /**
  * Backend LOC file.
  */
-export interface LocFile extends PartialItemLifecycle {
+export interface LocFile extends ItemLifecycle {
     hash: string;
     nature: string;
     submitter: SupportedAccountId;
@@ -85,7 +83,7 @@ export interface LocFile extends PartialItemLifecycle {
 /**
  * Backend MetadataItem.
  */
-export interface LocMetadataItem extends PartialItemLifecycle {
+export interface LocMetadataItem extends ItemLifecycle {
     name: string;
     nameHash: string;
     value: string;
@@ -96,7 +94,7 @@ export interface LocMetadataItem extends PartialItemLifecycle {
 /**
  * Backend LocLink.
  */
-export interface LocLink extends PartialItemLifecycle {
+export interface LocLink extends ItemLifecycle {
     target: string;
     nature: string;
     submitter: SupportedAccountId;
@@ -813,7 +811,7 @@ export class AuthenticatedLocClient extends LocClient {
         this.componentFactory = params.componentFactory;
     }
 
-    private readonly currentAddress: ValidAccountId;
+    readonly currentAddress: ValidAccountId;
     private readonly componentFactory: ComponentFactory;
 
     async createLocRequest(request: CreateLocRequest): Promise<LocRequest> {
