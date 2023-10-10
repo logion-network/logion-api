@@ -75,10 +75,9 @@ export interface LocData extends LocVerifiedIssuers {
     requesterLocId?: UUID;
     description: string;
     locType: LocType;
-    closed: boolean;
-    createdOn: string;
-    decisionOn?: string;
-    closedOn?: string;
+    createdOn: DateTime;
+    decisionOn?: DateTime;
+    closedOn?: DateTime;
     status: LocRequestStatus;
     voidInfo?: LocRequestVoidInfo & VoidInfo
     replacerOf?: UUID;
@@ -838,10 +837,12 @@ export abstract class LocRequestState extends State {
         return {
             ...request,
             ...locIssuers,
+            closedOn: request.closedOn ? fromIsoString(request.closedOn) : undefined,
+            createdOn: fromIsoString(request.createdOn),
+            decisionOn: request.decisionOn ? fromIsoString(request.decisionOn) : undefined,
             requesterAddress: request.requesterAddress ? api.queries.getValidAccountId(request.requesterAddress.address, request.requesterAddress.type) : undefined,
             requesterLocId: request.requesterIdentityLoc ? new UUID(request.requesterIdentityLoc) : undefined,
             id: new UUID(request.id),
-            closed: false,
             replacerOf: undefined,
             voidInfo: undefined,
             identityLocId: request.identityLoc ? new UUID(request.identityLoc) : undefined,
@@ -861,9 +862,9 @@ export abstract class LocRequestState extends State {
             ...locIssuers,
             id: new UUID(request.id),
             ownerAddress: loc.owner,
-            closedOn: request.closedOn,
-            createdOn: request.createdOn,
-            decisionOn: request.decisionOn,
+            closedOn: request.closedOn ? fromIsoString(request.closedOn) : undefined,
+            createdOn: fromIsoString(request.createdOn),
+            decisionOn: request.decisionOn ? fromIsoString(request.decisionOn) : undefined,
             description: request.description,
             rejectReason: request.rejectReason,
             status: request.status,

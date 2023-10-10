@@ -945,7 +945,6 @@ function expectDataToMatch(data: LocData, request: LocRequest) {
     expect(data.requesterLocId?.toString()).toBe(request.requesterIdentityLoc ? request.requesterIdentityLoc : undefined);
     expect(data.description).toBe(request.description);
     expect(data.locType).toBe(request.locType);
-    expect(data.closed).toBe(request.status === "CLOSED");
     expect(data.createdOn).toBeDefined();
     expect(data.status).toBe(request.status);
     expect(data.voidInfo?.reason).toBe(request.voidInfo?.reason);
