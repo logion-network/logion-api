@@ -6,15 +6,13 @@ import {
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types'; 
 
 import { Transaction, TransactionClient } from "./TransactionClient.js";
-import { SignCallback, Signer } from "./Signer.js";
 import { SharedState } from "./SharedClient.js";
 import { State } from "./State.js";
+import { BlockchainSubmissionParams } from "./LocClient.js";
 
-export interface TransferParam {
-    signer: Signer;
+export interface TransferParam extends BlockchainSubmissionParams {
     destination: string;
     amount: Numbers.PrefixedNumber;
-    callback?: SignCallback;
 }
 
 export interface BalanceSharedState extends SharedState {
@@ -47,6 +45,10 @@ function newTransactionClient(currentAddress: string, sharedState: SharedState):
         networkState: sharedState.networkState,
         currentAddress,
     })
+}
+
+export interface TransferAllParam extends BlockchainSubmissionParams {
+    destination: string;
 }
 
 export class BalanceState extends State {
@@ -82,7 +84,7 @@ export class BalanceState extends State {
                 this.sharedState.nodeApi.polkadot.tx.balances.transferKeepAlive(
                     destination,
                     canonicalAmount,
-                )
+                ),
             );
             await this.ensureFundsForFees(submittable);
             const recoveredAccountData = await this.sharedState.nodeApi.queries.getAccountData(this.sharedState.recoveredAddress || "");
@@ -130,5 +132,37 @@ export class BalanceState extends State {
 
     async refresh(): Promise<BalanceState> {
         return this.discardOnSuccess<BalanceState>(current => current._refresh());
+    }
+
+    async transferAll(params: TransferAllParam): Promise<BalanceState> {
+        return this.discardOnSuccess<BalanceState>(current => current._transferAll(params));
+    }
+
+    private async _transferAll(params: TransferAllParam): Promise<BalanceState> {
+        const { signer, destination, callback } = params;
+
+        let submittable: SubmittableExtrinsic;
+        if(this.sharedState.isRecovery) {
+            submittable = this.sharedState.nodeApi.polkadot.tx.recovery.asRecovered(
+                this.sharedState.recoveredAddress || "",
+                this.sharedState.nodeApi.polkadot.tx.balances.transferAll(
+                    destination,
+                    true,
+                ),
+            );
+        } else {
+            submittable = this.sharedState.nodeApi.polkadot.tx.balances.transferAll(
+                destination,
+                true,
+            );
+        }
+
+        await signer.signAndSend({
+            signerId: this.sharedState.currentAddress?.address || "",
+            submittable,
+            callback,
+        })
+
+        return this._refresh();
     }
 }

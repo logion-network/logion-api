@@ -63,7 +63,7 @@ describe("Logion SDK", () => {
         await recoverLostVault(state);
     });
 
-    xit("recovers a lost account", async () => {
+    it("recovers a lost account", async () => {
         await recoverLostAccount(state);
     });
 
