@@ -13,15 +13,15 @@ export type InjectedAccountsConsumer = (accounts: InjectedAccount[]) => void;
 
 export type InjectedAccountsConsumerRegister = (consumer: InjectedAccountsConsumer) => void;
 
-export async function enableExtensions(appName: string): Promise<InjectedAccountsConsumerRegister> {
-    const extensions =
+export async function enableExtensions(appName: string, extensions?: string[]): Promise<InjectedAccountsConsumerRegister> {
+    const extensionsList =
         web3EnablePromise === null ?
         await web3Enable(appName) :
         await web3EnablePromise;
-    if (extensions === null || extensions.length === 0) {
+    if (extensionsList === null || extensionsList.length === 0) {
         throw new Error("Failed to detect any web3 extensions");
     }
-    return consumer => web3AccountsSubscribe(consumer, { extensions: [ "polkadot-js" ] });
+    return consumer => web3AccountsSubscribe(consumer, { extensions });
 }
 
 export const META_MASK_NAME = "Web3Source";

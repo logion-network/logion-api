@@ -13,7 +13,7 @@ import { enableExtensions, ExtensionSigner } from '@logion/extension';
 
 const client = LogionClient.create(...); // Create your logion client
 
-const register = await enableExtensions("Your app name");
+const register = await enableExtensions("Your app name", [ "polkadot-js" ]);
 const signer = new ExtensionSigner();
 register((accounts: InjectedAccount[]) => {
     const addresses = accounts.map(account => account.address);
