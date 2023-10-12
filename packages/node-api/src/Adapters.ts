@@ -78,9 +78,9 @@ export class Adapters {
 
     fromFrameSystemAccountInfo(accountData: FrameSystemAccountInfo): TypesAccountData {
         return {
-            available: accountData.data.free.toString(),
-            reserved: accountData.data.reserved.toString(),
-            total: accountData.data.free.add(accountData.data.reserved).toString(),
+            available: accountData.data.free.toBigInt(),
+            reserved: accountData.data.reserved.toBigInt(),
+            total: BigInt(accountData.data.free.add(accountData.data.reserved).toString()),
         };
     }
 

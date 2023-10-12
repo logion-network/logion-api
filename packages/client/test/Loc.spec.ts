@@ -1,4 +1,4 @@
-import { Hash, LogionNodeApiClass, UUID, VerifiedIssuerType } from "@logion/node-api";
+import { Fees, Hash, LogionNodeApiClass, UUID, VerifiedIssuerType } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import { DateTime } from "luxon";
@@ -46,7 +46,8 @@ import {
     buildSimpleNodeApi,
     buildValidPolkadotAccountId,
     ItIsUuid,
-    mockCodecWithToString
+    mockCodecWithToString,
+    mockCodecWithToBigInt
 } from "./Utils.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
 import {
@@ -223,7 +224,7 @@ describe("OpenLoc", () => {
         });
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
-        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addLink(It.IsAny(), It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addLink(It.IsAny(), It.IsAny()), Times.Exactly(2));
     });
 
     it("can be voided", async () => {
@@ -865,6 +866,9 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
 
             const dismissIssuerExtrinsic = new Mock<SubmittableExtrinsic>();
             nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.dismissIssuer(It.IsAny())).returns(dismissIssuerExtrinsic.object());
+
+            nodeApiMock.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny())).returnsAsync(new Fees({ inclusionFee: 0n }));
+            nodeApiMock.setup(instance => instance.fees.ensureEnoughFunds(It.IsAny())).returnsAsync(undefined);
         },
         currentAddress,
         legalOfficers,

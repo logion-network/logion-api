@@ -19,7 +19,7 @@ import {
 } from "./TransactionLoc.js";
 import { createVote } from "./Vote.js";
 import { verifiedIssuers } from "./VerifiedIssuers.js";
-import { storageFees, legalFees, certificateFees } from "./Fees.js";
+import { storageFees, legalFees, certificateFees, ensureEnoughFunds } from "./Fees.js";
 import { toPalletLogionLocOtherAccountId, toSponsorshipId, toPalletLogionLocMetadataItem, toPalletLogionLocFile, toCollectionItemToken, toCollectionItemFile } from "./Adapters.js";
 import { badOriginError, moduleError } from "./Error.js";
 
@@ -30,6 +30,7 @@ describe("Logion Node API", () => {
     it("queries file storage fees", storageFees);
     it("queries legal fees", legalFees);
     it("queries certificate fees", certificateFees);
+    it("ensures enough funds", ensureEnoughFunds);
 
     it("adapts to PalletLogionLocOtherAccountId", toPalletLogionLocOtherAccountId);
     it("adapts to SponsorshipId", toSponsorshipId);

@@ -2,6 +2,7 @@ import { ApiPromise } from "@polkadot/api";
 import { CollectionItem, Hash, LegalOfficerCase, LogionNodeApiClass, Numbers, UUID } from "../src/index.js";
 import { POLKADOT_API_CREATE_TYPE, mockValidAccountId, mockBool } from "./Util.js";
 import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
+import { BN } from "bn.js";
 
 describe("Queries", () => {
 
@@ -12,8 +13,8 @@ describe("Queries", () => {
         const logionApi = new LogionNodeApiClass(api);
         const data = await logionApi.queries.getAccountData(accountId);
     
-        expect(data.available).toBe("42");
-        expect(data.reserved).toBe("0");
+        expect(data.available).toBe(42n);
+        expect(data.reserved).toBe(0n);
     });
     
     it("Getting balances", async () => {
@@ -125,11 +126,11 @@ function mockPolkadotApiWithAccountData(accountId: string) {
                 account: (id: string) => id === accountId ? {
                     data: {
                         free: {
-                            toString: () => "42",
-                            add: () => "42",
+                            toBigInt: () => 42n,
+                            add: () => new BN("42"),
                         },
                         reserved: {
-                            toString: () => "0"
+                            toBigInt: () => 0n
                         }
                     }
                 }: undefined,
