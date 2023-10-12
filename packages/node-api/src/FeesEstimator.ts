@@ -118,4 +118,14 @@ export class FeesEstimator {
             certificateFee,
         });
     }
+
+    async ensureEnoughFunds(params: { fees: Fees, origin: string }) {
+        const { fees, origin } = params;
+        const totalFees = fees.totalFee;
+        const accountData = await this.api.query.system.account(origin);
+        const existentialDeposit = this.api.consts.balances.existentialDeposit.toBigInt();
+        if(accountData.data.free.toBigInt() - existentialDeposit < totalFees) {
+            throw new Error("Not enough funds");
+        }
+    }
 }

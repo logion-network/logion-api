@@ -1343,6 +1343,9 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async publishFile(parameters: PublishFileParams): Promise<void> {
+        const fees = await this.estimateFeesPublishFile(parameters);
+        await this.ensureEnoughFunds(fees);
+
         try {
             await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/files/${ parameters.file.hash.toHex() }/pre-publish-ack`);
         } catch(e) {
@@ -1356,10 +1359,13 @@ export class AuthenticatedLocClient extends LocClient {
         });
     }
 
-    async estimateFeesPublishFile(parameters: EstimateFeesPublishFileParams): Promise<FeesClass> {
+    private async ensureEnoughFunds(fees: FeesClass) {
+        await this.nodeApi.fees.ensureEnoughFunds({ origin: this.currentAddress.address, fees });
+    }
 
+    async estimateFeesPublishFile(parameters: EstimateFeesPublishFileParams): Promise<FeesClass> {
         return await this.nodeApi.fees.estimateWithStorage({
-            origin: this.currentAddress?.address || "",
+            origin: this.currentAddress.address,
             submittable: this.publishFileSubmittable(parameters),
             size: parameters.file.size,
         });
@@ -1373,6 +1379,9 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async acknowledgeFile(parameters: { locId: UUID } & AckFileParams): Promise<void> {
+        const fees = await this.estimateFeesAcknowledgeFile(parameters);
+        await this.ensureEnoughFunds(fees);
+
         try {
             await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/files/${ parameters.hash.toHex() }/pre-ack`);
         } catch(e) {
@@ -1388,7 +1397,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     async estimateFeesAcknowledgeFile(parameters: { locId: UUID } & RefFileParams): Promise<FeesClass> {
         return await this.nodeApi.fees.estimateWithoutStorage({
-            origin: this.currentAddress?.address || "",
+            origin: this.currentAddress.address,
             submittable: this.acknowledgeFileSubmittable(parameters)
         });
     }
@@ -1423,6 +1432,9 @@ export class AuthenticatedLocClient extends LocClient {
         const { name } = parameters.metadata;
         const nameHash = Hash.of(name);
 
+        const fees = await this.estimateFeesPublishMetadata(parameters);
+        await this.ensureEnoughFunds(fees);
+
         try {
             await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/metadata/${ nameHash.toHex() }/pre-publish-ack`);
         } catch(e) {
@@ -1436,9 +1448,9 @@ export class AuthenticatedLocClient extends LocClient {
         });
     }
 
-    async estimatePublishMetadata(parameters: EstimateFeesPublishMetadataParams): Promise<FeesClass> {
+    async estimateFeesPublishMetadata(parameters: EstimateFeesPublishMetadataParams): Promise<FeesClass> {
         return await this.nodeApi.fees.estimateWithoutStorage({
-            origin: this.currentAddress?.address || "",
+            origin: this.currentAddress.address,
             submittable: this.publishMetadataSubmittable(parameters)
         });
     }
@@ -1459,6 +1471,9 @@ export class AuthenticatedLocClient extends LocClient {
     async acknowledgeMetadata(parameters: { locId: UUID } & AckMetadataParams): Promise<void> {
         const { locId, nameHash } = parameters;
 
+        const fees = await this.estimateFeesAcknowledgeMetadata(parameters);
+        await this.ensureEnoughFunds(fees);
+
         try {
             await this.backend().put(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash.toHex() }/pre-ack`);
         } catch(e) {
@@ -1474,7 +1489,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     async estimateFeesAcknowledgeMetadata(parameters: { locId: UUID } & RefMetadataParams): Promise<FeesClass> {
         return await this.nodeApi.fees.estimateWithoutStorage({
-            origin: this.currentAddress?.address || "",
+            origin: this.currentAddress.address,
             submittable: this.acknowledgeMetadataSubmittable(parameters)
         });
     }
@@ -1506,6 +1521,9 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async publishLink(parameters: PublishLinkParams): Promise<void> {
+        const fees = await this.estimateFeesPublishLink(parameters);
+        await this.ensureEnoughFunds(fees);
+
         try {
             await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/links/${ parameters.link.id.toString() }/pre-publish-ack`);
         } catch(e) {
@@ -1535,6 +1553,9 @@ export class AuthenticatedLocClient extends LocClient {
 
     async acknowledgeLink(parameters: { locId: UUID } & AckLinkParams): Promise<void> {
         const { locId, target } = parameters;
+
+        const fees = await this.estimateFeesAcknowledgeLink(parameters);
+        await this.ensureEnoughFunds(fees);
 
         try {
             await this.backend().put(`/api/loc-request/${ locId.toString() }/links/${ target.toString() }/pre-ack`);
@@ -1617,13 +1638,18 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async openTransactionLoc(parameters: OpenPolkadotLocParams & BlockchainSubmissionParams ) {
-        const { locId, signer, callback } = parameters
+        const { locId, signer, callback } = parameters;
+
+        const fees = await this.estimateFeesOpenTransactionLoc(parameters);
+        await this.ensureEnoughFunds(fees);
+
+        await this.openLoc({ locId });
+
         await signer.signAndSend({
             signerId: this.currentAddress.address,
             submittable: this.openTransactionLocSubmittable(parameters),
             callback,
         });
-        await this.openLoc({ locId });
     }
 
     private openTransactionLocSubmittable(parameters: OpenPolkadotLocParams): SubmittableExtrinsic {
@@ -1744,13 +1770,18 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async openIdentityLoc(parameters: OpenPolkadotLocParams & BlockchainSubmissionParams ) {
-        const { locId, signer, callback } = parameters
+        const { locId, signer, callback } = parameters;
+
+        const fees = await this.estimateFeesOpenIdentityLoc(parameters);
+        await this.ensureEnoughFunds(fees);
+
+        await this.openLoc({ locId });
+
         await signer.signAndSend({
             signerId: this.currentAddress.address,
             submittable: this.openIdentityLocSubmittable(parameters),
             callback,
         });
-        await this.openLoc({ locId });
     }
 
     private openIdentityLocSubmittable(parameters: OpenPolkadotLocParams): SubmittableExtrinsic {
@@ -1831,13 +1862,18 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async openCollectionLoc(parameters: { valueFee: bigint } & OpenPolkadotLocParams & OpenCollectionLocParams) {
-        const { locId, signer, callback } = parameters
+        const { locId, signer, callback } = parameters;
+
+        const fees = await this.estimateFeesOpenCollectionLoc(parameters);
+        await this.ensureEnoughFunds(fees);
+
+        await this.openLoc({ locId });
+
         await signer.signAndSend({
             signerId: this.currentAddress.address,
             submittable: this.openCollectionLocSubmittable(parameters),
             callback,
         });
-        await this.openLoc({ locId });
     }
 
     private openCollectionLocSubmittable(parameters: { valueFee: bigint } & OpenPolkadotLocParams & EstimateFeesOpenCollectionLocParams): SubmittableExtrinsic {
@@ -1860,7 +1896,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     async estimateFeesOpenCollectionLoc(parameters: { valueFee: bigint } & OpenPolkadotLocParams & EstimateFeesOpenCollectionLocParams) {
         return await this.nodeApi.fees.estimateCreateLoc({
-            origin: this.currentAddress?.address || "",
+            origin: this.currentAddress.address,
             submittable: this.openCollectionLocSubmittable(parameters),
             locType: 'Collection',
             valueFee: parameters.valueFee,
@@ -1881,17 +1917,23 @@ export class AuthenticatedLocClient extends LocClient {
             );
         }
 
-        await parameters.signer.signAndSend({
-            signerId: this.currentAddress.address,
+        const fees = await this.nodeApi.fees.estimateWithoutStorage({
+            origin: this.currentAddress.address,
             submittable,
-            callback: parameters.callback,
         });
+        await this.ensureEnoughFunds(fees);
 
         try {
             await this.backend().post(`/api/loc-request/${ parameters.locId.toString() }/close`);
         } catch(e) {
             throw newBackendError(e);
         }
+
+        await parameters.signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable,
+            callback: parameters.callback,
+        });
     }
 
     async voidLoc(parameters: { locId: UUID } & VoidParams): Promise<void> {
@@ -1908,11 +1950,12 @@ export class AuthenticatedLocClient extends LocClient {
                 this.nodeApi.adapters.toLocId(locId),
             );
         }
-        await signer.signAndSend({
-            signerId: this.currentAddress.address,
+
+        const fees = await this.nodeApi.fees.estimateWithoutStorage({
+            origin: this.currentAddress.address,
             submittable,
-            callback
         });
+        await this.ensureEnoughFunds(fees);
 
         try {
             await this.backend().post(`/api/loc-request/${ locId.toString() }/void`, {
@@ -1921,6 +1964,12 @@ export class AuthenticatedLocClient extends LocClient {
         } catch(e) {
             throw newBackendError(e);
         }
+
+        await signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable,
+            callback
+        });
     }
 
     async nominateIssuer(parameters: { locId: UUID, requester: string } & BlockchainSubmissionParams) {

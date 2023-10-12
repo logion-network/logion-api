@@ -214,7 +214,7 @@ describe("Balance", () => {
                     .returns(asRecovered.object());
 
                 nodeApi.setup(instance => instance.queries.getAccountData(recoveredAddress))
-                    .returnsAsync({ available: "200", reserved: "0", total: "200" });
+                    .returnsAsync({ available: 200n, reserved: 0n, total: 200n });
 
                 setupFetchTransactions(axiosFactory, [], recoveredAddress);
             },

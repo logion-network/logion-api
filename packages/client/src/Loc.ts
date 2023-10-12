@@ -1585,7 +1585,7 @@ export class OpenLoc extends EditableRequest {
     async estimateFeesPublishMetadata(parameters: { nameHash: Hash }): Promise<FeesClass> {
         const client = this.locSharedState.client;
         const metadata = this.findMetadata(parameters.nameHash, "REVIEW_ACCEPTED");
-        return client.estimatePublishMetadata(metadata);
+        return client.estimateFeesPublishMetadata(metadata);
     }
 
     async acknowledgeMetadata(parameters: AckMetadataParams): Promise<OpenLoc> {

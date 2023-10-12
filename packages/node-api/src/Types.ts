@@ -6,9 +6,9 @@ import { ApiPromise } from "@polkadot/api";
 import { Hash } from './Hash.js';
 
 export interface TypesAccountData {
-    available: string,
-    reserved: string,
-    total: string,
+    available: bigint,
+    reserved: bigint,
+    total: bigint,
 }
 
 export interface LocItemParams {
