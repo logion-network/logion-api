@@ -2,8 +2,8 @@ import {
     State,
     initRequesterBalance,
     TEST_LOGION_CLIENT_CONFIG,
-    LegalOfficerWorker,
     DIRECT_REQUESTER_ADDRESS,
+    findWithLegalOfficerClient,
 } from "./Utils.js";
 import { ALICE } from "../test/Utils.js";
 import {
@@ -15,12 +15,13 @@ import {
     AddMetadataParams,
     AddLinkParams,
     MergedLink,
-    LocData
+    LocData,
+    OpenLoc
 } from "../src/index.js";
-import { UUID } from "@logion/node-api";
+import { Hash, UUID } from "@logion/node-api";
 
 export async function openIdentityLoc(state: State): Promise<UUID> {
-    const { directRequesterAccount, signer, alice } = state;
+    const { directRequesterAccount, signer, alice, aliceAccount } = state;
     const client = state.client.withCurrentAddress(directRequesterAccount);
     let locsState = await client.locsState();
 
@@ -52,10 +53,15 @@ export async function openIdentityLoc(state: State): Promise<UUID> {
     });
     checkData(openLoc.data(), items);
 
-    const legalOfficer = new LegalOfficerWorker(alice, state);
-    await legalOfficer.acknowledgeMetadata(openLoc.locId, items.metadata);
-    await legalOfficer.acknowledgeFiles(openLoc.locId, items.files);
-    await legalOfficer.closeLoc(openLoc.locId);
+    const aliceClient = state.client.withCurrentAddress(aliceAccount);
+    let aliceOpenLoc = await findWithLegalOfficerClient(aliceClient, openLoc) as OpenLoc;
+    for (let item of items.metadata) {
+        aliceOpenLoc = await aliceOpenLoc.legalOfficer.acknowledgeMetadata({ signer, nameHash: Hash.of(item.name) });
+    }
+    for (let item of items.files) {
+        aliceOpenLoc = await aliceOpenLoc.legalOfficer.acknowledgeFile({ signer, hash: item.file.contentHash });
+    }
+    await aliceOpenLoc.legalOfficer.close({ signer });
 
     return openLoc.locId;
 }

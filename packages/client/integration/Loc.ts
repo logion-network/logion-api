@@ -20,7 +20,7 @@ import {
     HashString
 } from "../src/index.js";
 
-import { State, TEST_LOGION_CLIENT_CONFIG, initRequesterBalance, LegalOfficerWorker } from "./Utils.js";
+import { State, TEST_LOGION_CLIENT_CONFIG, findWithLegalOfficerClient, initRequesterBalance } from "./Utils.js";
 
 export async function requestTransactionLoc(state: State, linkTarget: UUID) {
     const { alice, aliceAccount, newAccount, signer } = state;
@@ -312,34 +312,34 @@ export async function collectionLocWithUpload(state: State) {
     const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
 
-    const legalOfficer = new LegalOfficerWorker(alice, state);
-
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, newAccount.address);
 
     const logionClassificationLocRequest = await locsState.requestTransactionLoc({
         legalOfficerAddress: alice.address,
         description: "This is the Logion Classification LOC",
         draft: false,
-    });
-    await legalOfficer.acceptLoc(logionClassificationLocRequest.locId);
-
+    }) as PendingRequest;
+    
+    const aliceClient = client.withCurrentAddress(aliceAccount);
+    let aliceLogionClassificationLocRequest = await findWithLegalOfficerClient(aliceClient, logionClassificationLocRequest) as PendingRequest;
+    const aliceLogionClassificationAcceptedRequest = await aliceLogionClassificationLocRequest.legalOfficer.accept({ signer }) as AcceptedRequest;
     const logionClassificationAcceptedRequest = await logionClassificationLocRequest.refresh() as AcceptedRequest;
     const logionClassificationOpenLoc = await logionClassificationAcceptedRequest.open({ signer });
-
-    await legalOfficer.closeLoc(logionClassificationAcceptedRequest.locId);
+    const aliceLogionClassificationOpenLoc = await aliceLogionClassificationAcceptedRequest.refresh() as OpenLoc;
+    await aliceLogionClassificationOpenLoc.legalOfficer.close({ signer });
 
     locsState = logionClassificationOpenLoc.locsState();
     const creativeCommonsLocRequest = await locsState.requestTransactionLoc({
         legalOfficerAddress: alice.address,
         description: "This is the LOC acting usage of CreativeCommons on logion",
         draft: false,
-    });
-    await legalOfficer.acceptLoc(creativeCommonsLocRequest.locId);
-
+    }) as PendingRequest;
+    const aliceCreativeCommonsLocRequest = await findWithLegalOfficerClient(aliceClient, creativeCommonsLocRequest) as PendingRequest;
+    const aliceCreativeCommonsAcceptedRequest = await aliceCreativeCommonsLocRequest.legalOfficer.accept({ signer }) as AcceptedRequest;
     const creativeCommonsAcceptedRequest = await creativeCommonsLocRequest.refresh() as AcceptedRequest;
     const creativeCommonsOpenLoc = await creativeCommonsAcceptedRequest.open({ signer });
-
-    await legalOfficer.closeLoc(creativeCommonsAcceptedRequest.locId);
+    const aliceCreativeCommonsOpenLoc = await aliceCreativeCommonsAcceptedRequest.refresh() as OpenLoc;
+    await aliceCreativeCommonsOpenLoc.legalOfficer.close({ signer });
 
     locsState = creativeCommonsOpenLoc.locsState();
     const pendingRequest = await locsState.requestCollectionLoc({
@@ -349,9 +349,7 @@ export async function collectionLocWithUpload(state: State) {
         valueFee: 100n,
     });
 
-    const aliceClient = client.withCurrentAddress(aliceAccount);
-    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, locTypes: ["Collection"], statuses: ["REVIEW_PENDING"] } });
-    let alicePendingRequest = aliceLocs.findById(pendingRequest.locId) as PendingRequest;
+    let alicePendingRequest = await findWithLegalOfficerClient(aliceClient, pendingRequest) as PendingRequest;
     let aliceAcceptedLoc = await alicePendingRequest.legalOfficer.accept();
 
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
@@ -464,8 +462,7 @@ export async function collectionLocWithUpload(state: State) {
 
 export async function identityLoc(state: State) {
 
-    const { alice, newAccount, signer } = state;
-    const legalOfficer = new LegalOfficerWorker(alice, state);
+    const { alice, aliceAccount, newAccount, signer } = state;
     const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
 
@@ -493,20 +490,21 @@ export async function identityLoc(state: State) {
     locsState = pendingRequest.locsState();
     expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REVIEW_PENDING");
 
-    await legalOfficer.acceptLoc(pendingRequest.locId);
+    const aliceClient = state.client.withCurrentAddress(aliceAccount);
+    const alicePendingRequest = await findWithLegalOfficerClient(aliceClient, pendingRequest) as PendingRequest;
+    const aliceAcceptedRequest = await alicePendingRequest.legalOfficer.accept({ signer }) as AcceptedRequest;
+    expect(aliceAcceptedRequest.data().status).toBe("REVIEW_ACCEPTED");
 
     const acceptedRequest = await pendingRequest.refresh() as AcceptedRequest;
-    expect(acceptedRequest.data().status).toBe("REVIEW_ACCEPTED");
-
     const openLoc = await acceptedRequest.open({ signer });
     expect(openLoc.data().status).toBe("OPEN");
 
-    await legalOfficer.closeLoc(acceptedRequest.locId);
+    const aliceOpenLoc = await aliceAcceptedRequest.refresh() as OpenLoc;
+    await aliceOpenLoc.legalOfficer.close({ signer });
 }
 
 export async function otherIdentityLoc(state: State): Promise<UUID> {
     const { alice, aliceAccount, ethereumAccount, signer } = state;
-    const legalOfficer = new LegalOfficerWorker(alice, state);
 
     const sponsorshipId = new UUID();
     const aliceClient = state.client.withCurrentAddress(aliceAccount);
@@ -538,13 +536,14 @@ export async function otherIdentityLoc(state: State): Promise<UUID> {
         },
         draft: false,
         sponsorshipId,
-    });
+    }) as PendingRequest;
 
     locsState = pendingRequest.locsState();
     expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REVIEW_PENDING");
 
-    await legalOfficer.acceptAndOpenLoc(pendingRequest.locId);
-    await legalOfficer.closeLoc(pendingRequest.locId);
+    const alicePendingRequest = await findWithLegalOfficerClient(aliceClient, pendingRequest) as PendingRequest;
+    const aliceOpenRequest = await alicePendingRequest.legalOfficer.accept({ signer }) as OpenLoc;
+    await aliceOpenRequest.legalOfficer.close({ signer });
 
     return pendingRequest.locId;
 }
