@@ -1,4 +1,4 @@
-import { buildApiClass, UUID, Currency, Numbers, ValidAccountId, Hash } from "@logion/node-api";
+import { buildApiClass, Currency, Numbers, ValidAccountId } from "@logion/node-api";
 import { Keyring } from "@polkadot/api";
 import FormData from "form-data";
 
@@ -11,9 +11,7 @@ import {
     ISubmittableResult,
     LogionClient,
     LegalOfficerClass,
-    PendingRequest,
-    OpenLoc,
-    AddFileParams
+    LocRequestState
 } from "../src/index.js";
 import { ALICE, BOB, CHARLIE } from "../test/Utils.js";
 import { requireDefined } from "../src/assertions.js";
@@ -139,52 +137,12 @@ export async function tearDown(state: State) {
     return state.client.disconnect();
 }
 
-export class LegalOfficerWorker {
-
-    legalOfficer: LegalOfficerClass;
-    state: State;
-
-    constructor(legalOfficer: LegalOfficerClass, state: State) {
-        this.legalOfficer = legalOfficer;
-        this.state = state;
+export async function findWithLegalOfficerClient(client: LogionClient, loc: LocRequestState): Promise<LocRequestState> {
+    if(!client.currentAddress) {
+        throw new Error("Client must be authenticated");
     }
-
-    async acceptLoc(id: UUID) {
-        const legalOfficerClient = this.state.client.withCurrentAddress(this.state.client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot"));
-        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
-        const loc = locsState.findById(id) as PendingRequest;
-        await loc.legalOfficer.accept();
-    }
-
-    async acceptAndOpenLoc(id: UUID) {
-        const legalOfficerClient = this.state.client.withCurrentAddress(this.state.client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot"));
-        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
-        const loc = locsState.findById(id) as PendingRequest;
-        await loc.legalOfficer.accept({ signer: this.state.signer });
-    }
-
-    async closeLoc(id: UUID) {
-        const legalOfficerClient = this.state.client.withCurrentAddress(this.state.client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot"));
-        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
-        const loc = locsState.findById(id) as OpenLoc;
-        await loc.legalOfficer.close({ signer: this.state.signer });
-    }
-
-    async acknowledgeMetadata(id: UUID, metadata: { name: string }[]) {
-        const legalOfficerClient = this.state.client.withCurrentAddress(this.state.client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot"));
-        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
-        let loc = locsState.findById(id) as OpenLoc;
-        for (let item of metadata) {
-            loc = await loc.legalOfficer.acknowledgeMetadata({ signer: this.state.signer, nameHash: Hash.of(item.name) });
-        }
-    }
-
-    async acknowledgeFiles(id: UUID, files: AddFileParams[]) {
-        const legalOfficerClient = this.state.client.withCurrentAddress(this.state.client.logionApi.queries.getValidAccountId(this.legalOfficer.address, "Polkadot"));
-        const locsState = await legalOfficerClient.locsState({ spec: { ownerAddress: this.legalOfficer.address, locTypes: ["Collection", "Identity", "Transaction"], statuses: ["CLOSED", "REVIEW_PENDING", "OPEN"] }});
-        let loc = locsState.findById(id) as OpenLoc;
-        for (let item of files) {
-            loc = await loc.legalOfficer.acknowledgeFile({ signer: this.state.signer, hash: item.file.contentHash });
-        }
-    }
+    const locType = loc.data().locType;
+    const locStatus = loc.data().status;
+    let aliceLocs = await client.locsState({ spec: { ownerAddress: client.currentAddress.address, locTypes: [locType], statuses: [locStatus] } });
+    return aliceLocs.findById(loc.locId);
 }
