@@ -1343,18 +1343,17 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async publishFile(parameters: PublishFileParams): Promise<void> {
+        try {
+            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/files/${ parameters.file.hash.toHex() }/pre-publish-ack`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
 
         await parameters.signer.signAndSend({
             signerId: this.currentAddress.address,
             submittable: this.publishFileSubmittable(parameters),
             callback: parameters.callback,
         });
-
-        try {
-            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/files/${ parameters.file.hash.toHex() }/confirm`);
-        } catch(e) {
-            throw newBackendError(e);
-        }
     }
 
     async estimateFeesPublishFile(parameters: EstimateFeesPublishFileParams): Promise<FeesClass> {
@@ -1374,17 +1373,17 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async acknowledgeFile(parameters: { locId: UUID } & AckFileParams): Promise<void> {
+        try {
+            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/files/${ parameters.hash.toHex() }/pre-ack`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+
         await parameters.signer.signAndSend({
             signerId: this.currentAddress.address,
             submittable: this.acknowledgeFileSubmittable(parameters),
             callback: parameters.callback,
         });
-
-        try {
-            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/files/${ parameters.hash.toHex() }/confirm-acknowledged`);
-        } catch(e) {
-            throw newBackendError(e);
-        }
     }
 
     async estimateFeesAcknowledgeFile(parameters: { locId: UUID } & RefFileParams): Promise<FeesClass> {
@@ -1424,17 +1423,17 @@ export class AuthenticatedLocClient extends LocClient {
         const { name } = parameters.metadata;
         const nameHash = Hash.of(name);
 
+        try {
+            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/metadata/${ nameHash.toHex() }/pre-publish-ack`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+
         await parameters.signer.signAndSend({
             signerId: this.currentAddress.address,
             submittable: this.publishMetadataSubmittable(parameters),
             callback: parameters.callback,
         });
-    
-        try {
-            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/metadata/${ nameHash.toHex() }/confirm`);
-        } catch(e) {
-            throw newBackendError(e);
-        }
     }
 
     async estimatePublishMetadata(parameters: EstimateFeesPublishMetadataParams): Promise<FeesClass> {
@@ -1460,17 +1459,17 @@ export class AuthenticatedLocClient extends LocClient {
     async acknowledgeMetadata(parameters: { locId: UUID } & AckMetadataParams): Promise<void> {
         const { locId, nameHash } = parameters;
 
+        try {
+            await this.backend().put(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash.toHex() }/pre-ack`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+
         await parameters.signer.signAndSend({
             signerId: this.currentAddress.address,
             submittable: this.acknowledgeMetadataSubmittable(parameters),
             callback: parameters.callback,
         });
-
-        try {
-            await this.backend().put(`/api/loc-request/${ locId.toString() }/metadata/${ nameHash.toHex() }/confirm-acknowledged`);
-        } catch(e) {
-            throw newBackendError(e);
-        }
     }
 
     async estimateFeesAcknowledgeMetadata(parameters: { locId: UUID } & RefMetadataParams): Promise<FeesClass> {
@@ -1507,18 +1506,17 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async publishLink(parameters: PublishLinkParams): Promise<void> {
+        try {
+            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/links/${ parameters.link.id.toString() }/pre-publish-ack`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
 
         await parameters.signer.signAndSend({
             signerId: this.currentAddress.address,
             submittable: this.publishLinkSubmittable(parameters),
             callback: parameters.callback,
         });
-
-        try {
-            await this.backend().put(`/api/loc-request/${ parameters.locId.toString() }/links/${ parameters.link.id.toString() }/confirm`);
-        } catch(e) {
-            throw newBackendError(e);
-        }
     }
 
     private publishLinkSubmittable(parameters: EstimateFeesPublishLinkParams): SubmittableExtrinsic {
@@ -1538,17 +1536,17 @@ export class AuthenticatedLocClient extends LocClient {
     async acknowledgeLink(parameters: { locId: UUID } & AckLinkParams): Promise<void> {
         const { locId, target } = parameters;
 
+        try {
+            await this.backend().put(`/api/loc-request/${ locId.toString() }/links/${ target.toString() }/pre-ack`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+
         await parameters.signer.signAndSend({
             signerId: this.currentAddress.address,
             submittable: this.acknowledgeLinkSubmittable(parameters),
             callback: parameters.callback,
         });
-
-        try {
-            await this.backend().put(`/api/loc-request/${ locId.toString() }/links/${ target.toString() }/confirm-acknowledged`);
-        } catch(e) {
-            throw newBackendError(e);
-        }
     }
 
     async estimateFeesAcknowledgeLink(parameters: { locId: UUID } & RefLinkParams): Promise<FeesClass> {
