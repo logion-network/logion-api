@@ -1,4 +1,4 @@
-import { web3AccountsSubscribe, web3Enable, web3EnablePromise, web3Accounts } from '@polkadot/extension-dapp';
+import { web3Enable, web3EnablePromise, web3Accounts } from '@polkadot/extension-dapp';
 import initMetaMask from "@polkadot/extension-compat-metamask/bundle";
 import { InjectedAccountWithMeta, InjectedExtension } from '@polkadot/extension-inject/types';
 
@@ -13,7 +13,7 @@ export type InjectedAccountsConsumer = (accounts: InjectedAccount[]) => void;
 
 export type InjectedAccountsConsumerRegister = (consumer: InjectedAccountsConsumer) => void;
 
-export async function enableExtensions(appName: string, extensions?: string[]): Promise<InjectedAccountsConsumerRegister> {
+export async function getAccounts(appName: string, extensions?: string[]): Promise<InjectedAccount[]> {
     const extensionsList =
         web3EnablePromise === null ?
         await web3Enable(appName) :
@@ -21,7 +21,7 @@ export async function enableExtensions(appName: string, extensions?: string[]): 
     if (extensionsList === null || extensionsList.length === 0) {
         throw new Error("Failed to detect any web3 extensions");
     }
-    return consumer => web3AccountsSubscribe(consumer, { extensions });
+    return web3Accounts({ extensions });
 }
 
 export const META_MASK_NAME = "Web3Source";
