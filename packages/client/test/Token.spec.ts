@@ -178,6 +178,16 @@ describe("Token", () => {
             });
         });
 
+        it("validates valid PSP34 token with ID 0", () => {
+            psp34Types.forEach(type => {
+                testValid({
+                    type,
+                    issuance: 1n,
+                    id: '{"contract":"XyNVZ92vFrYf4rCj8EoAXMRWRG7okRy7gxhn167HaYQZqTc","id":{ "U32": 0 }}',
+                });
+            });
+        });
+
         it("invalidates PSP34 token with invalid JSON", () => {
             psp34Types.forEach(type => {
                 testInvalid({
@@ -234,7 +244,27 @@ describe("Token", () => {
                     type,
                     issuance: 1n,
                     id: '{"contract":"XyNVZ92vFrYf4rCj8EoAXMRWRG7okRy7gxhn167HaYQZqTc","id": {}}',
-                }, "token ID's 'id' object is missing a value for U8, U16, U32, U64, U128 or Bytes");
+                }, "token ID's 'id' object has wrong schema, should contain exactly one field with key being one of U8, U16, U32, U64, U128 or Bytes");
+            });
+        });
+
+        it("invalidates PSP34 token with ambiguous ID", () => {
+            psp34Types.forEach(type => {
+                testInvalid({
+                    type,
+                    issuance: 1n,
+                    id: '{"contract":"XyNVZ92vFrYf4rCj8EoAXMRWRG7okRy7gxhn167HaYQZqTc","id":{ "U32": 0, "U64": 0 }}',
+                }, "token ID's 'id' object has wrong schema, should contain exactly one field with key being one of U8, U16, U32, U64, U128 or Bytes");
+            });
+        });
+
+        it("invalidates PSP34 token with invalid token ID", () => {
+            psp34Types.forEach(type => {
+                testInvalid({
+                    type,
+                    issuance: 1n,
+                    id: '{"contract":"XyNVZ92vFrYf4rCj8EoAXMRWRG7okRy7gxhn167HaYQZqTc","id":{ "U32": "abc" }}',
+                }, "token ID's 'id' object has an invalid value for U8, U16, U32, U64, U128 or Bytes");
             });
         });
     });

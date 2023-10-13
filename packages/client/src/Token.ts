@@ -230,15 +230,21 @@ export function validatePsp34TokenId(tokenId: string): TokenValidationResult {
                 error: "token ID's 'id' field is not an object",
             };
         }
-        if(!idObject.id.U8
-            && !idObject.id.U16
-            && !idObject.id.U32
-            && !idObject.id.U64
-            && !idObject.id.U128
-            && !idObject.id.Bytes) {
+        if(Object.keys(idObject.id).length !== 1) {
             return {
                 valid: false,
-                error: "token ID's 'id' object is missing a value for U8, U16, U32, U64, U128 or Bytes",
+                error: "token ID's 'id' object has wrong schema, should contain exactly one field with key being one of U8, U16, U32, U64, U128 or Bytes",
+            };
+        }
+        if(!isAnyNumber(idObject.id.U8)
+            && !isAnyNumber(idObject.id.U16)
+            && !isAnyNumber(idObject.id.U32)
+            && !isAnyNumber(idObject.id.U64)
+            && !isAnyNumber(idObject.id.U128)
+            && !isHex(idObject.id.Bytes)) {
+            return {
+                valid: false,
+                error: "token ID's 'id' object has an invalid value for U8, U16, U32, U64, U128 or Bytes",
             };
         }
 
@@ -249,4 +255,10 @@ export function validatePsp34TokenId(tokenId: string): TokenValidationResult {
             error: "token ID is not valid JSON",
         };
     }
+}
+
+function isAnyNumber(value: any): boolean {
+    return typeof value === "number"
+        || (typeof value === "string" && /[0-9]+/.test(value))
+    ;
 }
