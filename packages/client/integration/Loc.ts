@@ -46,10 +46,10 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID) {
     const nameHash = Hash.of(metadataName);
     draftRequest = await draftRequest.addMetadata({
         name: metadataName,
-        value: "Some value"
+        value: "Some invalid value"
     }) as DraftRequest;
     expect(draftRequest.data().metadata[0].name.validValue()).toBe(metadataName);
-    expect(draftRequest.data().metadata[0].value.validValue()).toBe("Some value");
+    expect(draftRequest.data().metadata[0].value.validValue()).toBe("Some invalid value");
     expect(draftRequest.data().metadata[0].addedOn).toBeUndefined();
     expect(draftRequest.data().metadata[0].status).toBe("DRAFT");
 
@@ -77,19 +77,28 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID) {
     const aliceClient = state.client.withCurrentAddress(aliceAccount);
     let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, statuses: [ "REVIEW_PENDING", "OPEN" ], locTypes: [ "Transaction" ] } });
     let alicePendingLoc = aliceLocs.findById(pendingRequest.data().id) as PendingRequest;
+    alicePendingLoc = await alicePendingLoc.legalOfficer.reviewMetadata({ nameHash, decision: "REJECT", rejectReason: "Invalid value" });
     let aliceRejectedLoc = await alicePendingLoc.legalOfficer.reject("Because.") as RejectedRequest;
     let rejectedRequest = await pendingRequest.refresh() as RejectedRequest;
     expect(rejectedRequest).toBeInstanceOf(RejectedRequest);
     expect(rejectedRequest.data().metadata[0].status).toBe("REVIEW_REJECTED");
-    expect(rejectedRequest.data().links[0].status).toBe("REVIEW_REJECTED");
+    expect(rejectedRequest.data().links[0].status).toBe("REVIEW_PENDING");
 
     draftRequest = await rejectedRequest.rework();
     expect(draftRequest).toBeInstanceOf(DraftRequest);
-    expect(draftRequest.data().metadata[0].status).toBe("DRAFT");
-    expect(draftRequest.data().links[0].status).toBe("DRAFT");
+    expect(draftRequest.data().metadata[0].status).toBe("REVIEW_REJECTED");
+    expect(draftRequest.data().links[0].status).toBe("REVIEW_PENDING");
+    draftRequest = await draftRequest.deleteMetadata({ nameHash }) as DraftRequest;
+    draftRequest = await draftRequest.addMetadata({
+        name: metadataName,
+        value: "Some value"
+    }) as DraftRequest;
     pendingRequest = await draftRequest.submit();
+    expect(pendingRequest.data().metadata[0].status).toBe("REVIEW_PENDING");
 
     alicePendingLoc = await aliceRejectedLoc.refresh() as PendingRequest;
+    alicePendingLoc = await alicePendingLoc.legalOfficer.reviewMetadata({ nameHash, decision: "ACCEPT" });
+    expect(alicePendingLoc.data().metadata[0].status).toBe("REVIEW_ACCEPTED");
     let aliceAcceptedLoc = await alicePendingLoc.legalOfficer.accept({ signer }) as AcceptedRequest;
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
     expect(acceptedLoc).toBeInstanceOf(AcceptedRequest);
@@ -97,10 +106,7 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID) {
     checkData(locsState.acceptedRequests["Transaction"][0].data(), "REVIEW_ACCEPTED");
 
     let openLoc = await acceptedLoc.open({ signer });
-    let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
-
     expect(openLoc).toBeInstanceOf(OpenLoc);
-    expect(openLoc.data().metadata[0].status).toBe("REVIEW_PENDING");
 
     locsState = openLoc.locsState();
     checkData(locsState.openLocs["Transaction"][0].data(), "OPEN");
@@ -128,6 +134,7 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID) {
     openLoc = await openLoc.requestFileReview({ hash }) as OpenLoc;
     expect(openLoc.data().files[0].status).toBe("REVIEW_PENDING");
 
+    let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
     aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewFile({ hash, decision: "ACCEPT" }) as OpenLoc;
     expect(aliceOpenLoc.data().files[0].status).toBe("REVIEW_ACCEPTED");
     await waitFor<OnchainLocState>({
@@ -147,23 +154,6 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID) {
     expect(aliceOpenLoc.data().files[0].status).toBe("ACKNOWLEDGED");
 
     // Continue with metadata
-    aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
-    aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewMetadata({ nameHash, decision: "REJECT", rejectReason: "Because" }) as OpenLoc;
-    expect(aliceOpenLoc.data().metadata[0].status).toBe("REVIEW_REJECTED");
-    expect(aliceOpenLoc.data().metadata[0].rejectReason).toBe("Because");
-    await waitFor<OnchainLocState>({
-        producer: async state => state ? await state.refresh() : aliceOpenLoc,
-        predicate: state => state.data().metadata[0].reviewedOn !== undefined,
-    });
-    openLoc = await openLoc.refresh() as OpenLoc;
-    openLoc = await openLoc.deleteMetadata({ nameHash }) as OpenLoc;
-    openLoc = await openLoc.addMetadata({
-        name: metadataName,
-        value: "Some value"
-    }) as OpenLoc;
-    openLoc = await openLoc.requestMetadataReview({ nameHash }) as OpenLoc;
-    aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
-    aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewMetadata({ nameHash, decision: "ACCEPT" }) as OpenLoc;
     openLoc = await openLoc.refresh() as OpenLoc;
     openLoc = await openLoc.publishMetadata({ nameHash, signer });
     expect(openLoc.data().metadata[0].status).toBe("PUBLISHED");
