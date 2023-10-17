@@ -257,7 +257,7 @@ export function validatePsp34TokenId(tokenId: string): TokenValidationResult {
     }
 }
 
-function isAnyNumber(value: any): boolean {
+function isAnyNumber(value: any): boolean { // eslint-disable-line @typescript-eslint/no-explicit-any
     return typeof value === "number"
         || (typeof value === "string" && /[0-9]+/.test(value))
     ;

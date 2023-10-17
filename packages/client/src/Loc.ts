@@ -1031,13 +1031,15 @@ export abstract class LocRequestState extends State {
     }
 }
 
-export abstract class LegalOfficerLocRequestCommands {
+export interface LegalOfficerCommandsConstructorArgs {
+    locId: UUID;
+    client: AuthenticatedLocClient;
+    request: LocRequestState;
+}
 
-    constructor(args: {
-        locId: UUID,
-        client: AuthenticatedLocClient,
-        request: LocRequestState,
-    }) {
+export class LegalOfficerCommands {
+
+    constructor(args: LegalOfficerCommandsConstructorArgs) {
         this.locId = args.locId;
         this.client = args.client;
         this.request = args.request;
@@ -1048,6 +1050,22 @@ export abstract class LegalOfficerLocRequestCommands {
     protected client: AuthenticatedLocClient;
 
     protected request: LocRequestState;
+}
+
+export interface LegalOfficerRestrictedDeliveryCommands {
+    setCollectionFileRestrictedDelivery(params: {
+        hash: Hash,
+        restrictedDelivery: boolean,
+    }): Promise<LocRequestState>;
+}
+
+export class LegalOfficerRestrictedDeliveryCommandsImpl
+extends LegalOfficerCommands
+implements LegalOfficerRestrictedDeliveryCommands {
+
+    constructor(args: LegalOfficerCommandsConstructorArgs) {
+        super(args);
+    }
 
     async setCollectionFileRestrictedDelivery(params: {
         hash: Hash,
@@ -1151,45 +1169,46 @@ export abstract class EditableRequest extends LocRequestState {
         });
         return await this.refresh() as EditableRequest;
     }
-
-    get legalOfficer(): LegalOfficerEditableRequestCommands {
-        return new LegalOfficerEditableRequestCommands({
-            locId: this.locId,
-            client: this.locSharedState.client,
-            request: this,
-        });
-    }
 }
 
-/**
- * Encapsulated calls can be used only by a Logion Legal Officer.
- */
-export class LegalOfficerEditableRequestCommands extends LegalOfficerLocRequestCommands {
+export type ReviewableRequest = OpenLoc | PendingRequest;
 
-    async reviewFile(params: ReviewFileParams): Promise<EditableRequest> {
+export interface LegalOfficeReviewCommands {
+
+    reviewFile(params: ReviewFileParams): Promise<ReviewableRequest>;
+    reviewMetadata(params: ReviewMetadataParams): Promise<ReviewableRequest>;
+    reviewLink(params: ReviewLinkParams): Promise<ReviewableRequest>;
+}
+
+export class LegalOfficeReviewCommandsImpl extends LegalOfficerCommands implements LegalOfficeReviewCommands {
+
+    constructor(args: LegalOfficerCommandsConstructorArgs) {
+        super(args);
+    }
+
+    async reviewFile(params: ReviewFileParams): Promise<ReviewableRequest> {
         await this.client.reviewFile({
             ...params,
             locId: this.locId,
         });
-        return await this.request.refresh() as EditableRequest;
+        return await this.request.refresh() as ReviewableRequest;
     }
 
-    async reviewMetadata(params: ReviewMetadataParams): Promise<EditableRequest> {
+    async reviewMetadata(params: ReviewMetadataParams): Promise<ReviewableRequest> {
         await this.client.reviewMetadata({
             ...params,
             locId: this.locId,
         });
-        return await this.request.refresh() as EditableRequest;
+        return await this.request.refresh() as ReviewableRequest;
     }
 
-    async reviewLink(params: ReviewLinkParams): Promise<EditableRequest> {
+    async reviewLink(params: ReviewLinkParams): Promise<ReviewableRequest> {
         await this.client.reviewLink({
             ...params,
             locId: this.locId,
         });
-        return await this.request.refresh() as EditableRequest;
+        return await this.request.refresh() as ReviewableRequest;
     }
-
 }
 
 export interface IdenfyVerificationCreation {
@@ -1267,23 +1286,16 @@ export class PendingRequest extends LocRequestState {
     }
 }
 
-export class LegalOfficerPendingRequestCommands {
+export class LegalOfficerPendingRequestCommands
+extends LegalOfficerCommands
+implements LegalOfficeReviewCommands {
 
-    constructor(args: {
-        locId: UUID,
-        client: AuthenticatedLocClient,
-        request: PendingRequest,
-    }) {
-        this.locId = args.locId;
-        this.client = args.client;
-        this.request = args.request;
+    constructor(args: LegalOfficerCommandsConstructorArgs) {
+        super(args);
+        this.reviewCommands = new LegalOfficeReviewCommandsImpl(args);
     }
 
-    private readonly locId: UUID;
-
-    private client: AuthenticatedLocClient;
-
-    private request: PendingRequest;
+    private reviewCommands: LegalOfficeReviewCommands;
 
     async reject(reason: string): Promise<RejectedRequest> {
         await this.client.rejectLoc({
@@ -1345,6 +1357,18 @@ export class LegalOfficerPendingRequestCommands {
             // thus there is no fees.
             return undefined;
         }
+    }
+
+    reviewFile(params: ReviewFileParams): Promise<PendingRequest> {
+        return this.reviewCommands.reviewFile(params) as Promise<PendingRequest>;
+    }
+
+    reviewMetadata(params: ReviewMetadataParams): Promise<PendingRequest> {
+        return this.reviewCommands.reviewMetadata(params) as Promise<PendingRequest>;
+    }
+
+    reviewLink(params: ReviewLinkParams): Promise<PendingRequest> {
+        return this.reviewCommands.reviewLink(params) as Promise<PendingRequest>;
     }
 }
 
@@ -1663,7 +1687,7 @@ export class OpenLoc extends EditableRequest {
         });
     }
 
-    override get legalOfficer(): LegalOfficerOpenRequestCommands {
+    get legalOfficer(): LegalOfficerOpenRequestCommands {
         return new LegalOfficerOpenRequestCommands({
             locId: this.locId,
             client: this.locSharedState.client,
@@ -1676,23 +1700,25 @@ export class OpenLoc extends EditableRequest {
  * Encapsulated calls can be used only by a Logion Legal Officer.
  */
 export class LegalOfficerOpenRequestCommands
-extends LegalOfficerEditableRequestCommands
-implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCommands<OpenLoc> {
+extends LegalOfficerCommands
+implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCommands<OpenLoc>, LegalOfficerRestrictedDeliveryCommands {
 
-    constructor(args: {
-        locId: UUID,
-        client: AuthenticatedLocClient,
-        request: EditableRequest,
-    }) {
+    constructor(args: LegalOfficerCommandsConstructorArgs) {
         super(args);
 
         this.legalOfficerNonVoidedCommands = new LegalOfficerNonVoidedCommandsImpl(args);
         this.legalOfficerLocWithSelectableIssuersCommands = new LegalOfficerLocWithSelectableIssuersCommandsImpl(args);
+        this.reviewCommands = new LegalOfficeReviewCommandsImpl(args);
+        this.restrictedDeliveryCommands = new LegalOfficerRestrictedDeliveryCommandsImpl(args);
     }
 
     private legalOfficerNonVoidedCommands: LegalOfficerNonVoidedCommands;
 
     private legalOfficerLocWithSelectableIssuersCommands: LegalOfficerLocWithSelectableIssuersCommands<OpenLoc>;
+
+    private reviewCommands: LegalOfficeReviewCommands;
+
+    private restrictedDeliveryCommands: LegalOfficerRestrictedDeliveryCommands;
 
     async acknowledgeFile(parameters: AckFileParams): Promise<OpenLoc> {
         const file = this.request.data().files.find(file => file.hash.equalTo(parameters.hash) && file.status === "PUBLISHED");
@@ -1788,13 +1814,29 @@ implements LegalOfficerNonVoidedCommands, LegalOfficerLocWithSelectableIssuersCo
     async unselectIssuer(params: SelectUnselectIssuerParams): Promise<OpenLoc> {
         return this.legalOfficerLocWithSelectableIssuersCommands.unselectIssuer(params);
     }
+
+    reviewFile(params: ReviewFileParams): Promise<ReviewableRequest> {
+        return this.reviewCommands.reviewFile(params);
+    }
+
+    reviewMetadata(params: ReviewMetadataParams): Promise<ReviewableRequest> {
+        return this.reviewCommands.reviewMetadata(params);
+    }
+
+    reviewLink(params: ReviewLinkParams): Promise<ReviewableRequest> {
+        return this.reviewCommands.reviewLink(params);
+    }
+
+    setCollectionFileRestrictedDelivery(params: { hash: Hash; restrictedDelivery: boolean; }): Promise<LocRequestState> {
+        return this.restrictedDeliveryCommands.setCollectionFileRestrictedDelivery(params);
+    }
 }
 
 export interface LegalOfficerNonVoidedCommands {
     voidLoc(params: VoidParams): Promise<VoidedLoc | VoidedCollectionLoc>;
 }
 
-export class LegalOfficerNonVoidedCommandsImpl extends LegalOfficerLocRequestCommands implements LegalOfficerNonVoidedCommands {
+export class LegalOfficerNonVoidedCommandsImpl extends LegalOfficerCommands implements LegalOfficerNonVoidedCommands {
 
     async voidLoc(params: VoidParams): Promise<VoidedLoc | VoidedCollectionLoc> {
         await this.client.voidLoc({
@@ -1812,7 +1854,7 @@ export interface LegalOfficerLocWithSelectableIssuersCommands<T extends LocReque
 }
 
 export class LegalOfficerLocWithSelectableIssuersCommandsImpl<T extends LocRequestState>
-extends LegalOfficerLocRequestCommands
+extends LegalOfficerCommands
 implements LegalOfficerLocWithSelectableIssuersCommands<T> {
 
     async getVerifiedIssuers(): Promise<VerifiedIssuerWithSelect[]> {
@@ -2141,19 +2183,18 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
 
 export class LegalOfficerClosedCollectionLocCommands
 extends LegalOfficerNonVoidedCommandsImpl
-implements LegalOfficerLocWithSelectableIssuersCommands<ClosedCollectionLoc> {
+implements LegalOfficerLocWithSelectableIssuersCommands<ClosedCollectionLoc>, LegalOfficerRestrictedDeliveryCommands {
 
-    constructor(args: {
-        locId: UUID,
-        client: AuthenticatedLocClient,
-        request: ClosedCollectionLoc,
-    }) {
+    constructor(args: LegalOfficerCommandsConstructorArgs) {
         super(args);
 
         this.legalOfficerLocWithSelectableIssuersCommands = new LegalOfficerLocWithSelectableIssuersCommandsImpl(args);
+        this.restrictedDeliveryCommands = new LegalOfficerRestrictedDeliveryCommandsImpl(args);
     }
 
     private legalOfficerLocWithSelectableIssuersCommands: LegalOfficerLocWithSelectableIssuersCommands<ClosedCollectionLoc>;
+
+    private restrictedDeliveryCommands: LegalOfficerRestrictedDeliveryCommandsImpl;
 
     async getVerifiedIssuers(): Promise<VerifiedIssuerWithSelect[]> {
         return this.legalOfficerLocWithSelectableIssuersCommands.getVerifiedIssuers();
@@ -2165,6 +2206,13 @@ implements LegalOfficerLocWithSelectableIssuersCommands<ClosedCollectionLoc> {
 
     async unselectIssuer(params: SelectUnselectIssuerParams): Promise<ClosedCollectionLoc> {
         return this.legalOfficerLocWithSelectableIssuersCommands.unselectIssuer(params);
+    }
+
+    setCollectionFileRestrictedDelivery(params: {
+        hash: Hash,
+        restrictedDelivery: boolean,
+    }): Promise<LocRequestState> {
+        return this.restrictedDeliveryCommands.setCollectionFileRestrictedDelivery(params);
     }
 }
 
