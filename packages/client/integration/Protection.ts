@@ -192,7 +192,7 @@ async function createAndCloseIdentityLoc(
     });
     await signer.signAndSend({
         signerId: legalOfficerAddress,
-        submittable: api.polkadot.tx.logionLoc.close(api.adapters.toLocId(identityLocId))
+        submittable: api.polkadot.tx.logionLoc.close(api.adapters.toLocId(identityLocId), null, false)
     });
     return identityLocId;
 }
