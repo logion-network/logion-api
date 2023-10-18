@@ -270,11 +270,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * See [`Pallet::close`].
        **/
-      close: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>]>;
-      /**
-       * See [`Pallet::close_and_seal`].
-       **/
-      closeAndSeal: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, seal: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256]>;
+      close: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, seal: Option<H256> | null | Uint8Array | H256 | string, autoAck: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, Option<H256>, bool]>;
       /**
        * See [`Pallet::create_collection_loc`].
        **/
