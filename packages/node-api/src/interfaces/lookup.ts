@@ -1444,15 +1444,7 @@ export default {
         restrictedDelivery: 'bool',
         termsAndConditions: 'Vec<PalletLogionLocTermsAndConditionsElement>',
       },
-      add_collection_item_with_terms_and_conditions: {
-        collectionLocId: 'Compact<u128>',
-        itemId: 'H256',
-        itemDescription: 'H256',
-        itemFiles: 'Vec<PalletLogionLocCollectionItemFile>',
-        itemToken: 'Option<PalletLogionLocCollectionItemToken>',
-        restrictedDelivery: 'bool',
-        termsAndConditions: 'Vec<PalletLogionLocTermsAndConditionsElement>',
-      },
+      __Unused13: 'Null',
       nominate_issuer: {
         issuer: 'AccountId32',
         identityLocId: 'Compact<u128>',

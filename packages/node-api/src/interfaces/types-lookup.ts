@@ -1581,16 +1581,6 @@ declare module '@polkadot/types/lookup' {
       readonly restrictedDelivery: bool;
       readonly termsAndConditions: Vec<PalletLogionLocTermsAndConditionsElement>;
     } & Struct;
-    readonly isAddCollectionItemWithTermsAndConditions: boolean;
-    readonly asAddCollectionItemWithTermsAndConditions: {
-      readonly collectionLocId: Compact<u128>;
-      readonly itemId: H256;
-      readonly itemDescription: H256;
-      readonly itemFiles: Vec<PalletLogionLocCollectionItemFile>;
-      readonly itemToken: Option<PalletLogionLocCollectionItemToken>;
-      readonly restrictedDelivery: bool;
-      readonly termsAndConditions: Vec<PalletLogionLocTermsAndConditionsElement>;
-    } & Struct;
     readonly isNominateIssuer: boolean;
     readonly asNominateIssuer: {
       readonly issuer: AccountId32;
@@ -1650,7 +1640,7 @@ declare module '@polkadot/types/lookup' {
       readonly seal: Option<H256>;
       readonly autoAck: bool;
     } & Struct;
-    readonly type: 'CreatePolkadotIdentityLoc' | 'CreateLogionIdentityLoc' | 'CreatePolkadotTransactionLoc' | 'CreateLogionTransactionLoc' | 'CreateCollectionLoc' | 'AddMetadata' | 'AddFile' | 'AddLink' | 'MakeVoid' | 'MakeVoidAndReplace' | 'AddCollectionItem' | 'AddCollectionItemWithTermsAndConditions' | 'NominateIssuer' | 'DismissIssuer' | 'SetIssuerSelection' | 'AddTokensRecord' | 'CreateOtherIdentityLoc' | 'Sponsor' | 'WithdrawSponsorship' | 'AcknowledgeMetadata' | 'AcknowledgeFile' | 'AcknowledgeLink' | 'Close';
+    readonly type: 'CreatePolkadotIdentityLoc' | 'CreateLogionIdentityLoc' | 'CreatePolkadotTransactionLoc' | 'CreateLogionTransactionLoc' | 'CreateCollectionLoc' | 'AddMetadata' | 'AddFile' | 'AddLink' | 'MakeVoid' | 'MakeVoidAndReplace' | 'AddCollectionItem' | 'NominateIssuer' | 'DismissIssuer' | 'SetIssuerSelection' | 'AddTokensRecord' | 'CreateOtherIdentityLoc' | 'Sponsor' | 'WithdrawSponsorship' | 'AcknowledgeMetadata' | 'AcknowledgeFile' | 'AcknowledgeLink' | 'Close';
   }
 
   /** @name PalletLogionLocItemsParams (162) */
