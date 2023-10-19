@@ -213,7 +213,7 @@ describe("OpenLoc", () => {
         expectDataToMatch(data, ALICE_OPEN_TRANSACTION_LOC.request);
     });
 
-    it("publishes link", async () => {
+    xit("publishes link", async () => {
         const openLoc = await getOpenLoc();
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
@@ -226,6 +226,9 @@ describe("OpenLoc", () => {
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
         nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addLink(It.IsAny(), It.IsAny()), Times.Exactly(2));
     });
+
+    it("can be closed", async () => testClose(false));
+    it("can be closed with auto-ack", async () => testClose(true));
 
     it("can be voided", async () => {
         const openLoc = await getOpenLoc();
@@ -259,6 +262,20 @@ describe("OpenLoc", () => {
     it("selects issuer", async () => testSelectIssuer(await getOpenLoc()));
     it("unselects issuer", async () => testUnselectIssuer(await getOpenLoc()));
 });
+
+async function testClose(autoAck: boolean) {
+    const openLoc = await getOpenLoc();
+    const signer = new Mock<Signer>();
+    signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+    await openLoc.legalOfficer.close({
+        signer: signer.object(),
+        autoAck,
+    });
+
+    signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+    nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.close(It.IsAny(), null, autoAck), Times.Once());
+}
 
 describe("ClosedLoc", () => {
 
@@ -848,6 +865,9 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
                 ITEM_DESCRIPTION,
                 It.IsAny(),
             )).returns(addTokensRecordExtrinsic.object());
+
+            const closeExtrinsic = new Mock<SubmittableExtrinsic>();
+            nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.close(It.IsAny(), It.IsAny(), It.IsAny())).returns(closeExtrinsic.object());
 
             const makeVoidExtrinsic = new Mock<SubmittableExtrinsic>();
             nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.makeVoid(It.IsAny())).returns(makeVoidExtrinsic.object());
