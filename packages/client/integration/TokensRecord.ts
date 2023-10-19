@@ -31,7 +31,7 @@ export async function tokensRecords(state: State) {
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
 
     aliceOpenLoc = await aliceOpenLoc.legalOfficer.selectIssuer({ issuer: ISSUER_ADDRESS, signer });
-    await aliceOpenLoc.legalOfficer.close({ signer });
+    await aliceOpenLoc.legalOfficer.close({ signer, autoAck: false });
 
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, ISSUER_ADDRESS);
 

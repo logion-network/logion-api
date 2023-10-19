@@ -18,7 +18,7 @@ import {
     LocData,
     OpenLoc
 } from "../src/index.js";
-import { Hash, UUID } from "@logion/node-api";
+import { UUID } from "@logion/node-api";
 
 export async function openIdentityLoc(state: State): Promise<UUID> {
     const { directRequesterAccount, signer, alice, aliceAccount } = state;
@@ -55,13 +55,7 @@ export async function openIdentityLoc(state: State): Promise<UUID> {
 
     const aliceClient = state.client.withCurrentAddress(aliceAccount);
     let aliceOpenLoc = await findWithLegalOfficerClient(aliceClient, openLoc) as OpenLoc;
-    for (let item of items.metadata) {
-        aliceOpenLoc = await aliceOpenLoc.legalOfficer.acknowledgeMetadata({ signer, nameHash: Hash.of(item.name) });
-    }
-    for (let item of items.files) {
-        aliceOpenLoc = await aliceOpenLoc.legalOfficer.acknowledgeFile({ signer, hash: item.file.contentHash });
-    }
-    await aliceOpenLoc.legalOfficer.close({ signer });
+    await aliceOpenLoc.legalOfficer.close({ signer, autoAck: true });
 
     return openLoc.locId;
 }

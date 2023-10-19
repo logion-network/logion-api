@@ -1904,9 +1904,9 @@ export class AuthenticatedLocClient extends LocClient {
         });
     }
 
-    async close(parameters: { locId: UUID, seal?: string } & BlockchainSubmissionParams): Promise<void> {
+    async close(parameters: { locId: UUID, seal?: string, autoAck: boolean } & BlockchainSubmissionParams): Promise<void> {
         const seal = parameters.seal || null;
-        const autoAck = false; // TODO temporarily hard-coded to keep previous behaviour.
+        const autoAck = parameters.autoAck;
         const submittable = this.nodeApi.polkadot.tx.logionLoc.close(
             this.nodeApi.adapters.toLocId(parameters.locId),
             seal,
@@ -1920,7 +1920,7 @@ export class AuthenticatedLocClient extends LocClient {
         await this.ensureEnoughFunds(fees);
 
         try {
-            await this.backend().post(`/api/loc-request/${ parameters.locId.toString() }/close`);
+            await this.backend().post(`/api/loc-request/${ parameters.locId.toString() }/close`, { autoAck });
         } catch(e) {
             throw newBackendError(e);
         }

@@ -1018,16 +1018,19 @@ export abstract class LocRequestState extends State {
         return downloadFile(this.owner.buildAxiosToNode(), `/api/loc-request/${ this.request.id }/files/${ hash.toHex() }`);
     }
 
-    isRequester(): boolean {
-        return this.request.requesterAddress && this.locSharedState.currentAddress?.equals(this.request.requesterAddress) || false;
+    isRequester(account?: ValidAccountId): boolean {
+        const candidate = account !== undefined ? account : this.locSharedState.currentAddress;
+        return this.request.requesterAddress && candidate?.equals(this.request.requesterAddress) || false;
     }
 
-    isOwner(): boolean {
-        return this.locSharedState.currentAddress?.type === "Polkadot" && this.locSharedState.currentAddress?.address === this.request.ownerAddress;
+    isOwner(account?: ValidAccountId): boolean {
+        const candidate = account !== undefined ? account : this.locSharedState.currentAddress;
+        return candidate?.type === "Polkadot" && candidate?.address === this.request.ownerAddress;
     }
 
-    isVerifiedIssuer(): boolean {
-        return this.locSharedState.currentAddress?.type === "Polkadot" && (this.locIssuers.issuers.find(issuer => issuer.address === this.locSharedState.currentAddress?.address) !== undefined);
+    isVerifiedIssuer(account?: ValidAccountId): boolean {
+        const candidate = account !== undefined ? account : this.locSharedState.currentAddress;
+        return candidate?.type === "Polkadot" && (this.locIssuers.issuers.find(issuer => issuer.address === candidate?.address) !== undefined);
     }
 }
 
@@ -1774,14 +1777,11 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
         return this.client.estimateFeesAcknowledgeLink({ locId: this.locId, ...parameters })
     }
 
-    async close(parameters: BlockchainSubmissionParams): Promise<ClosedLoc | ClosedCollectionLoc> {
-        const file = this.request.data().files.find(file => file.status !== "ACKNOWLEDGED");
-        if(file) {
-            throw new Error("All files have not been acknowledged yet");
-        }
-        const metadata = this.request.data().metadata.find(metadata => metadata.status !== "ACKNOWLEDGED");
-        if(metadata) {
-            throw new Error("All metadata have not been acknowledged yet");
+    async close(parameters: CloseLocParams): Promise<ClosedLoc | ClosedCollectionLoc> {
+        if(parameters.autoAck) {
+            this.ensureAllItemsAcknowledgedAtLeastByVerifiedIssuer();
+        } else {
+            this.ensureAllItemsAcknowledged();
         }
 
         const seal = this.request.data().seal;
@@ -1789,6 +1789,7 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
             ...parameters,
             locId: this.locId,
             seal,
+            autoAck: parameters.autoAck,
         });
 
         const state = await this.request.refresh();
@@ -1796,6 +1797,43 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
             return state as ClosedCollectionLoc;
         } else {
             return state as ClosedLoc;
+        }
+    }
+
+    private ensureAllItemsAcknowledgedAtLeastByVerifiedIssuer() {
+        const data = this.request.data();
+        const file = data.files.find(file => !this.isAcknowledgedByAtLeastVerifiedIssuer(file));
+        if(file) {
+            throw new Error("All files have not been acknowledged yet");
+        }
+        const metadata = data.metadata.find(metadata => !this.isAcknowledgedByAtLeastVerifiedIssuer(metadata));
+        if(metadata) {
+            throw new Error("All metadata have not been acknowledged yet");
+        }
+        const link = data.links.find(link => !this.isAcknowledgedByAtLeastVerifiedIssuer(link));
+        if(link) {
+            throw new Error("All links have not been acknowledged yet");
+        }
+    }
+
+    private isAcknowledgedByAtLeastVerifiedIssuer(item: ItemLifecycle & { submitter: ValidAccountId }) {
+        return item.status === "ACKNOWLEDGED"
+            || item.status === "PUBLISHED" && (item.acknowledgedByVerifiedIssuer || this.request.isRequester(item.submitter) || this.request.isOwner(item.submitter));
+    }
+
+    private ensureAllItemsAcknowledged() {
+        const data = this.request.data();
+        const file = data.files.find(file => file.status !== "ACKNOWLEDGED");
+        if(file) {
+            throw new Error("All files have not been acknowledged yet");
+        }
+        const metadata = data.metadata.find(metadata => metadata.status !== "ACKNOWLEDGED");
+        if(metadata) {
+            throw new Error("All metadata have not been acknowledged yet");
+        }
+        const link = data.links.find(link => link.status !== "ACKNOWLEDGED");
+        if(link) {
+            throw new Error("All links have not been acknowledged yet");
         }
     }
 
@@ -1830,6 +1868,10 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
     setCollectionFileRestrictedDelivery(params: { hash: Hash; restrictedDelivery: boolean; }): Promise<LocRequestState> {
         return this.restrictedDeliveryCommands.setCollectionFileRestrictedDelivery(params);
     }
+}
+
+export interface CloseLocParams extends BlockchainSubmissionParams {
+    autoAck: boolean;
 }
 
 export interface LegalOfficerNonVoidedCommands {

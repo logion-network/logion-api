@@ -44,7 +44,7 @@ export async function verifiedIssuer(state: State) {
     await acceptedIdentityLoc.open({ signer });
 
     const aliceOpen = await aliceAccepted.refresh() as OpenLoc;
-    let aliceClosed = await aliceOpen.legalOfficer.close({ signer }) as ClosedLoc;
+    let aliceClosed = await aliceOpen.legalOfficer.close({ signer, autoAck: false }) as ClosedLoc;
     aliceClosed = await aliceClosed.legalOfficer.nominateIssuer({ signer });
 
     const requesterClient = state.client.withCurrentAddress(newAccount);
