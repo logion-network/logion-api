@@ -223,7 +223,7 @@ declare module '@polkadot/api-base/types/storage' {
        **/
       verifiedIssuersByLocMap: AugmentedQuery<ApiType, (arg1: u128 | AnyNumber | Uint8Array, arg2: AccountId32 | string | Uint8Array) => Observable<Option<Null>>, [u128, AccountId32]> & QueryableStorageEntry<ApiType, [u128, AccountId32]>;
       /**
-       * Verified Issuers by guardian
+       * Verified Issuers by owner
        **/
       verifiedIssuersMap: AugmentedQuery<ApiType, (arg1: AccountId32 | string | Uint8Array, arg2: AccountId32 | string | Uint8Array) => Observable<Option<PalletLogionLocVerifiedIssuer>>, [AccountId32, AccountId32]> & QueryableStorageEntry<ApiType, [AccountId32, AccountId32]>;
       /**

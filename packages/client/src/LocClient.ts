@@ -493,7 +493,7 @@ export class ClientToken {
             type: type as TokenType,
             issuance: this.issuance,
         };
-    }    
+    }
 }
 
 export interface ClientItemFile {
@@ -1905,17 +1905,13 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async close(parameters: { locId: UUID, seal?: string } & BlockchainSubmissionParams): Promise<void> {
-        let submittable: SubmittableExtrinsic;
-        if(parameters.seal) {
-            submittable = this.nodeApi.polkadot.tx.logionLoc.closeAndSeal(
-                this.nodeApi.adapters.toLocId(parameters.locId),
-                parameters.seal,
-            );
-        } else {
-            submittable = this.nodeApi.polkadot.tx.logionLoc.close(
-                this.nodeApi.adapters.toLocId(parameters.locId),
-            );
-        }
+        const seal = parameters.seal || null;
+        const autoAck = false; // TODO temporarily hard-coded to keep previous behaviour.
+        const submittable = this.nodeApi.polkadot.tx.logionLoc.close(
+            this.nodeApi.adapters.toLocId(parameters.locId),
+            seal,
+            autoAck,
+        );
 
         const fees = await this.nodeApi.fees.estimateWithoutStorage({
             origin: this.currentAddress.address,

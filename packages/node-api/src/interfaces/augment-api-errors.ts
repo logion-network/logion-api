@@ -234,7 +234,7 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       AlreadyExists: AugmentedError<ApiType>;
       /**
-       * Issuer has already been nominated by the guardian
+       * Issuer has already been nominated by the owner
        **/
       AlreadyNominated: AugmentedError<ApiType>;
       /**
@@ -255,9 +255,13 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       CannotAddRecord: AugmentedError<ApiType>;
       /**
-       * There is still at least one Unacknowledged Item (Metadata or File)
+       * There is still at least one Item (Metadata, Link or File) unacknowledged by LOC owner
        **/
-      CannotCloseUnacknowledged: AugmentedError<ApiType>;
+      CannotCloseUnacknowledgedByOwner: AugmentedError<ApiType>;
+      /**
+       * There is still at least one Item (Metadata, Link or File) unacknowledged by verified issuer
+       **/
+      CannotCloseUnacknowledgedByVerifiedIssuer: AugmentedError<ApiType>;
       /**
        * The sponsorship cannot be used for creating the new LOC
        **/
@@ -363,7 +367,7 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       NotFound: AugmentedError<ApiType>;
       /**
-       * Issuer is not nominated by the guardian
+       * Issuer is not nominated by the owner
        **/
       NotNominated: AugmentedError<ApiType>;
       /**

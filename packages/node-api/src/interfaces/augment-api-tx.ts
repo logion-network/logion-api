@@ -248,10 +248,6 @@ declare module '@polkadot/api-base/types/submittable' {
        **/
       addCollectionItem: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, itemId: H256 | string | Uint8Array, itemDescription: H256 | string | Uint8Array, itemFiles: Vec<PalletLogionLocCollectionItemFile> | (PalletLogionLocCollectionItemFile | { name?: any; contentType?: any; size_?: any; hash_?: any } | string | Uint8Array)[], itemToken: Option<PalletLogionLocCollectionItemToken> | null | Uint8Array | PalletLogionLocCollectionItemToken | { tokenType?: any; tokenId?: any; tokenIssuance?: any } | string, restrictedDelivery: bool | boolean | Uint8Array, termsAndConditions: Vec<PalletLogionLocTermsAndConditionsElement> | (PalletLogionLocTermsAndConditionsElement | { tcType?: any; tcLoc?: any; details?: any } | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, H256, Vec<PalletLogionLocCollectionItemFile>, Option<PalletLogionLocCollectionItemToken>, bool, Vec<PalletLogionLocTermsAndConditionsElement>]>;
       /**
-       * See [`Pallet::add_collection_item_with_terms_and_conditions`].
-       **/
-      addCollectionItemWithTermsAndConditions: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, itemId: H256 | string | Uint8Array, itemDescription: H256 | string | Uint8Array, itemFiles: Vec<PalletLogionLocCollectionItemFile> | (PalletLogionLocCollectionItemFile | { name?: any; contentType?: any; size_?: any; hash_?: any } | string | Uint8Array)[], itemToken: Option<PalletLogionLocCollectionItemToken> | null | Uint8Array | PalletLogionLocCollectionItemToken | { tokenType?: any; tokenId?: any; tokenIssuance?: any } | string, restrictedDelivery: bool | boolean | Uint8Array, termsAndConditions: Vec<PalletLogionLocTermsAndConditionsElement> | (PalletLogionLocTermsAndConditionsElement | { tcType?: any; tcLoc?: any; details?: any } | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, H256, Vec<PalletLogionLocCollectionItemFile>, Option<PalletLogionLocCollectionItemToken>, bool, Vec<PalletLogionLocTermsAndConditionsElement>]>;
-      /**
        * See [`Pallet::add_file`].
        **/
       addFile: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, file: PalletLogionLocFileParams | { hash_?: any; nature?: any; submitter?: any; size_?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, PalletLogionLocFileParams]>;
@@ -270,11 +266,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * See [`Pallet::close`].
        **/
-      close: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>]>;
-      /**
-       * See [`Pallet::close_and_seal`].
-       **/
-      closeAndSeal: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, seal: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256]>;
+      close: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, seal: Option<H256> | null | Uint8Array | H256 | string, autoAck: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, Option<H256>, bool]>;
       /**
        * See [`Pallet::create_collection_loc`].
        **/
