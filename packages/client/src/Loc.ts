@@ -1778,11 +1778,7 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
     }
 
     async close(parameters: CloseLocParams): Promise<ClosedLoc | ClosedCollectionLoc> {
-        if(parameters.autoAck) {
-            this.ensureAllItemsAcknowledgedAtLeastByVerifiedIssuer();
-        } else {
-            this.ensureAllItemsAcknowledged();
-        }
+        this.ensureCanClose(parameters.autoAck);
 
         const seal = this.request.data().seal;
         await this.client.close({
@@ -1800,41 +1796,38 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
         }
     }
 
-    private ensureAllItemsAcknowledgedAtLeastByVerifiedIssuer() {
-        const data = this.request.data();
-        const file = data.files.find(file => !this.isAcknowledgedByAtLeastVerifiedIssuer(file));
-        if(file) {
-            throw new Error("All files have not been acknowledged yet");
-        }
-        const metadata = data.metadata.find(metadata => !this.isAcknowledgedByAtLeastVerifiedIssuer(metadata));
-        if(metadata) {
-            throw new Error("All metadata have not been acknowledged yet");
-        }
-        const link = data.links.find(link => !this.isAcknowledgedByAtLeastVerifiedIssuer(link));
-        if(link) {
-            throw new Error("All links have not been acknowledged yet");
+    ensureCanClose(autoAck: boolean) {
+        if(!this.canClose(autoAck)) {
+            throw new Error(autoAck ? "Cannot close, all items must have been published and acked by Verified Issuer (if relevant)" : "Cannot close, all items must have been published.");
         }
     }
 
-    private isAcknowledgedByAtLeastVerifiedIssuer(item: ItemLifecycle & { submitter: ValidAccountId }) {
+    canClose(autoAck: boolean): boolean {
+        if(autoAck) {
+            return this.canAutoAck();
+        } else {
+            return this.isAllItemsAcknowledged();
+        }
+    }
+
+    canAutoAck() {
+        return this.isNoItem(item => !this.isAcknowledgedByVerifiedIssuerIfNeeded(item));
+    }
+
+    private isAcknowledgedByVerifiedIssuerIfNeeded(item: ItemLifecycle & { submitter: ValidAccountId }) {
         return item.status === "ACKNOWLEDGED"
             || item.status === "PUBLISHED" && (item.acknowledgedByVerifiedIssuer || this.request.isRequester(item.submitter) || this.request.isOwner(item.submitter));
     }
 
-    private ensureAllItemsAcknowledged() {
+    private isNoItem(predicate: (item: ItemLifecycle & { submitter: ValidAccountId }) => boolean): boolean {
         const data = this.request.data();
-        const file = data.files.find(file => file.status !== "ACKNOWLEDGED");
-        if(file) {
-            throw new Error("All files have not been acknowledged yet");
-        }
-        const metadata = data.metadata.find(metadata => metadata.status !== "ACKNOWLEDGED");
-        if(metadata) {
-            throw new Error("All metadata have not been acknowledged yet");
-        }
-        const link = data.links.find(link => link.status !== "ACKNOWLEDGED");
-        if(link) {
-            throw new Error("All links have not been acknowledged yet");
-        }
+        return data.files.find(predicate) === undefined
+            && data.metadata.find(predicate) === undefined
+            && data.links.find(predicate) === undefined;
+    }
+
+    private isAllItemsAcknowledged() {
+        return this.isNoItem(item => item.status !== "ACKNOWLEDGED");
     }
 
     async voidLoc(params: VoidParams): Promise<VoidedLoc | VoidedCollectionLoc> {
