@@ -25,7 +25,11 @@ async function createClosedLoc(args: { alice: IKeyringPair, requester: IKeyringP
         null,
         api.adapters.emptyPalletLogionLocItemsParams(),
     ));
-    await signAndSend(alice, api.polkadot.tx.logionLoc.close(api.adapters.toLocId(locId)));
+    await signAndSend(alice, api.polkadot.tx.logionLoc.close(
+        api.adapters.toLocId(locId),
+        null,
+        false,
+    ));
 
     return locId;
 }

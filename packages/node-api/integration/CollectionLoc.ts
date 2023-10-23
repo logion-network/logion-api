@@ -25,7 +25,9 @@ export async function createCollectionLocLimitedInSizeTest() {
 export async function closeCollectionLocTest() {
     const { api, alice } = await setup();
     const closeExtrinsic = api.polkadot.tx.logionLoc.close(
-        api.adapters.toLocId(COLLECTION_LOC_ID)
+        api.adapters.toLocId(COLLECTION_LOC_ID),
+        null,
+        false,
     );
     await signAndSend(alice, closeExtrinsic);
     const loc = await api.queries.getLegalOfficerCase(COLLECTION_LOC_ID);

@@ -18,7 +18,11 @@ export async function verifiedIssuers() {
         ),
     );
     await signAndSendBatch(alice, [
-        api.polkadot.tx.logionLoc.close(issuerIdentityLocId.toDecimalString()),
+        api.polkadot.tx.logionLoc.close(
+            issuerIdentityLocId.toDecimalString(),
+            null,
+            false,
+        ),
         api.polkadot.tx.logionLoc.nominateIssuer(ISSUER, issuerIdentityLocId.toDecimalString()),
     ]);
     await signAndSend(requester,
@@ -94,7 +98,11 @@ export async function verifiedIssuers() {
         api.polkadot.tx.logionLoc.acknowledgeMetadata(collectionLocId.toDecimalString(), api.adapters.toH256(Hash.of("TestIssuer"))),
         api.polkadot.tx.logionLoc.acknowledgeFile(collectionLocId.toDecimalString(), api.adapters.toH256(Hash.of("TestRequester"))),
         api.polkadot.tx.logionLoc.acknowledgeFile(collectionLocId.toDecimalString(), api.adapters.toH256(Hash.of("TestIssuer"))),
-        api.polkadot.tx.logionLoc.close(collectionLocId.toDecimalString()),
+        api.polkadot.tx.logionLoc.close(
+            collectionLocId.toDecimalString(),
+            null,
+            false,
+        ),
     ]);
 
     expect((await api.polkadot.query.logionLoc.verifiedIssuersMap(ALICE, ISSUER)).isSome).toBe(true);
