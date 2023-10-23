@@ -19,6 +19,7 @@ export * from './LocClient.js';
 export * from './LogionClient.js';
 export * from './Mime.js';
 export * from './NetworkState.js';
+export * from './PSP34.js';
 export * from './Polling.js';
 export * from './Public.js';
 export * from './Recovery.js';
