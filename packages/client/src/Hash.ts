@@ -51,6 +51,12 @@ const HASH_OF_EMPTY = Hash.of("");
 
 export class HashOrContent {
 
+    static fromHashAndSize(hash: Hash, size: bigint): HashOrContent {
+        const instance = new HashOrContent({ hash });
+        instance._size = size;
+        return instance;
+    }
+
     static fromHash(hash: Hash): HashOrContent {
         return new HashOrContent({ hash });
     }
@@ -139,11 +145,7 @@ export class HashOrContent {
     }
 
     get size() {
-        if(!this._content) {
-            throw new Error("No content available to compute the size of");
-        }
-        this.ensureFinalized();
-        return requireDefined(this._size);
+        return requireDefined(this._size, () => Error("No content available to compute the size of"));
     }
 
     async data(): Promise<UploadableData> {

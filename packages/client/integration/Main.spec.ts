@@ -3,7 +3,16 @@ import { enablesProtection, requestsProtectionAndCancel } from "./Protection.js"
 import { transferAndCannotPayFees, transfers, transferWithInsufficientFunds } from "./Balance.js";
 import { providesVault } from "./Vault.js";
 import { recoverLostAccount, recoverLostVault, requestRecoveryAndCancel, requestRecoveryWithResubmit } from "./Recovery.js";
-import { requestTransactionLoc, collectionLoc, collectionLocWithUpload, identityLoc, otherIdentityLoc, logionIdentityLoc, transactionLocWithCustomLegalFee } from "./Loc.js";
+import {
+    requestTransactionLoc,
+    collectionLoc,
+    collectionLocWithUpload,
+    identityLoc,
+    otherIdentityLoc,
+    logionIdentityLoc,
+    transactionLocWithCustomLegalFee,
+    openTransactionLocWithAutoPublish
+} from "./Loc.js";
 import { verifiedIssuer } from "./VerifiedIssuer.js";
 import { tokensRecords } from "./TokensRecord.js";
 import { fees } from "./Fees.js";
@@ -76,8 +85,9 @@ describe("Logion SDK", () => {
     });
 
     it("provides Other Identity LOC, requests a Transaction LOC and link it to the Identity LOC", async () => {
-        const linkTarget = await otherIdentityLoc(state);
-        await requestTransactionLoc(state, linkTarget);
+        const identityLocLink = await otherIdentityLoc(state);
+        const transactionLocLink = await requestTransactionLoc(state, identityLocLink);
+        await openTransactionLocWithAutoPublish(state, [ identityLocLink, transactionLocLink ]);
     });
 
     it("requests a Transaction LOC with custom legal fee", async () => {

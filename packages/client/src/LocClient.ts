@@ -1729,13 +1729,15 @@ export class AuthenticatedLocClient extends LocClient {
         return undefined;
     }
 
-    async openTransactionLoc(parameters: OpenPolkadotLocParams & BlockchainSubmissionParams ) {
-        const { locId, signer, callback } = parameters;
+    async openTransactionLoc(parameters: OpenPolkadotLocParams & BlockchainSubmissionParams & AutoPublish, requirePreOpen = true) {
+        const { locId, signer, callback, autoPublish } = parameters;
 
         const fees = await this.estimateFeesOpenTransactionLoc(parameters);
         await this.ensureEnoughFunds(fees);
 
-        await this.openLoc({ locId });
+        if (requirePreOpen) {
+            await this.openLoc({ locId, autoPublish });
+        }
 
         try {
             await signer.signAndSend({
@@ -1806,10 +1808,12 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    private async openLoc(args: { locId: UUID }) {
+    private async openLoc(args: { locId: UUID } & AutoPublish) {
         const axios = this.backend();
         try {
-            await axios.post(`/api/loc-request/${ args.locId.toString() }/open`);
+            await axios.post(`/api/loc-request/${ args.locId.toString() }/open`, {
+                autoPublish: args.autoPublish
+            });
         } catch(e) {
             throw newBackendError(e);
         }
@@ -1874,13 +1878,15 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async openIdentityLoc(parameters: OpenPolkadotLocParams & BlockchainSubmissionParams ) {
-        const { locId, signer, callback } = parameters;
+    async openIdentityLoc(parameters: OpenPolkadotLocParams & BlockchainSubmissionParams & AutoPublish, requirePreOpen = true) {
+        const { locId, signer, callback, autoPublish } = parameters;
 
         const fees = await this.estimateFeesOpenIdentityLoc(parameters);
         await this.ensureEnoughFunds(fees);
 
-        await this.openLoc({ locId });
+        if (requirePreOpen) {
+            await this.openLoc({ locId, autoPublish });
+        }
 
         try {
             await signer.signAndSend({
@@ -1970,13 +1976,15 @@ export class AuthenticatedLocClient extends LocClient {
         await this.acceptLoc(parameters);
     }
 
-    async openCollectionLoc(parameters: { valueFee: bigint } & OpenPolkadotLocParams & OpenCollectionLocParams) {
-        const { locId, signer, callback } = parameters;
+    async openCollectionLoc(parameters: { valueFee: bigint } & OpenPolkadotLocParams & OpenCollectionLocParams & AutoPublish, requirePreOpen = true) {
+        const { locId, signer, callback, autoPublish } = parameters;
 
         const fees = await this.estimateFeesOpenCollectionLoc(parameters);
         await this.ensureEnoughFunds(fees);
 
-        await this.openLoc({ locId });
+        if (requirePreOpen) {
+            await this.openLoc({ locId, autoPublish });
+        }
 
         try {
             await signer.signAndSend({
@@ -2288,4 +2296,8 @@ export interface EstimateFeesIdentityTransactionLocParams {
 }
 
 export interface AcceptIdentityLocParams extends EstimateFeesIdentityTransactionLocParams, Partial<BlockchainSubmissionParams> {
+}
+
+export interface AutoPublish {
+    autoPublish: boolean;
 }

@@ -27,7 +27,7 @@ export async function tokensRecords(state: State) {
     let aliceAcceptedLoc = await alicePendingRequest.legalOfficer.accept();
 
     let acceptedLoc = await collectionLoc.refresh() as AcceptedRequest;
-    await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
+    await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer, autoPublish: false });
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
 
     aliceOpenLoc = await aliceOpenLoc.legalOfficer.selectIssuer({ issuer: ISSUER_ADDRESS, signer });
