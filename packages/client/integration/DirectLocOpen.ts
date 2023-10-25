@@ -16,7 +16,8 @@ import {
     AddLinkParams,
     MergedLink,
     LocData,
-    OpenLoc
+    OpenLoc,
+    waitFor
 } from "../src/index.js";
 import { UUID } from "@logion/node-api";
 
@@ -76,7 +77,17 @@ export async function openTransactionLoc(state: State, linkedLoc: UUID): Promise
         signer,
     });
     checkData(openLoc.data(), items);
+    await waitFor<OpenLoc>({
+        predicate: loc => allItemsHaveAddedOn(loc.data()),
+        producer: () => openLoc.refresh() as Promise<OpenLoc>,
+    });
     return openLoc.locId;
+}
+
+function allItemsHaveAddedOn(loc: LocData) {
+    return loc.metadata.find(item => item.addedOn === undefined) === undefined
+        && loc.files.find(item => item.addedOn === undefined) === undefined
+        && loc.links.find(item => item.addedOn === undefined) === undefined;
 }
 
 export async function openCollectionLoc(state: State, linkedLoc1: UUID, linkedLoc2: UUID): Promise<void> {
