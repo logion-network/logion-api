@@ -1356,6 +1356,7 @@ export class AuthenticatedLocClient extends LocClient {
             });
         } catch(e) {
             await this.cancelPrePublishFile(parameters);
+            throw e;
         }
     }
 
@@ -1408,6 +1409,7 @@ export class AuthenticatedLocClient extends LocClient {
             });
         } catch(e) {
             await this.cancelPreAcknowledgeFile(parameters);
+            throw e;
         }
     }
 
@@ -1477,6 +1479,7 @@ export class AuthenticatedLocClient extends LocClient {
             });
         } catch(e) {
             await this.cancelPrePublishMetadata({ locId: parameters.locId, nameHash });
+            throw e;
         }
     }
 
@@ -1530,6 +1533,7 @@ export class AuthenticatedLocClient extends LocClient {
             });
         } catch(e) {
             await this.cancelPreAcknowledgeMetadata(parameters);
+            throw e;
         }
     }
 
@@ -1596,6 +1600,7 @@ export class AuthenticatedLocClient extends LocClient {
             });
         } catch(e) {
             await this.cancelPrePublishLink(parameters);
+            throw e;
         }
     }
 
@@ -1643,6 +1648,7 @@ export class AuthenticatedLocClient extends LocClient {
             });
         } catch(e) {
             await this.cancelPreAcknowledgeLink(parameters);
+            throw e;
         }
     }
 
@@ -1747,6 +1753,7 @@ export class AuthenticatedLocClient extends LocClient {
             });
         } catch(e) {
             this.cancelOpenLoc({ locId });
+            throw e;
         }
     }
 
@@ -1896,6 +1903,7 @@ export class AuthenticatedLocClient extends LocClient {
             });
         } catch(e) {
             await this.cancelOpenLoc({ locId });
+            throw e;
         }
     }
 
@@ -1994,6 +2002,7 @@ export class AuthenticatedLocClient extends LocClient {
             });
         } catch(e) {
             await this.cancelOpenLoc({ locId });
+            throw e;
         }
     }
 
@@ -2050,6 +2059,7 @@ export class AuthenticatedLocClient extends LocClient {
             });
         } catch(e) {
             await this.cancelPreClose(parameters);
+            throw e;
         }
     }
 
