@@ -87,11 +87,13 @@ export class FeesEstimator {
         locType: LocType,
         valueFee?: bigint,
         legalFee?: bigint,
+        storageSize?: bigint,
     }): Promise<Fees> {
-        const { locType, valueFee } = params;
+        const { locType, valueFee, storageSize } = params;
         const inclusionFee = await this.estimateInclusionFee(params.origin, params.submittable);
         const legalFee = params.legalFee !== undefined ? params.legalFee : await this.estimateLegalFee({ locType });
-        return new Fees({ inclusionFee, legalFee, valueFee });
+        const storageFee = storageSize !== undefined ? await this.estimateStorageFee({ numOfEntries: 1n, totSize: storageSize }) : undefined;
+        return new Fees({ inclusionFee, legalFee, valueFee, storageFee });
     }
 
     async estimateCertificateFee(params: { tokenIssuance: bigint }): Promise<bigint> {
