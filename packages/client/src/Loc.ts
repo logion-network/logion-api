@@ -54,6 +54,7 @@ import {
     ReviewLinkParams,
     ItemsParams,
     ItemLifecycle as BackendItemLifecycle,
+    AutoPublish,
 } from "./LocClient.js";
 import { SharedState, getLegalOfficer } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -64,7 +65,7 @@ import { TokensRecord as TokensRecordClass } from "./TokensRecord.js";
 import { downloadFile, TypedFile } from "./Http.js";
 import { requireDefined } from "./assertions.js";
 import { Fees } from "./Fees.js";
-import { HashString } from "./Hash.js";
+import { HashString, HashOrContent } from "./Hash.js";
 import { DateTime } from "luxon";
 import { fromIsoString } from "./DateTimeUtil.js";
 
@@ -406,13 +407,15 @@ export class LocsState extends State {
         if (params.locType === "Identity") {
             await client.openIdentityLoc({
                 ...params,
-                locId
-            });
+                locId,
+                autoPublish: false,
+            }, false);
         } else if (params.locType === "Transaction") {
             await client.openTransactionLoc({
                 ...params,
-                locId
-            });
+                locId,
+                autoPublish: false,
+            }, false);
         } else if (params.locType === "Collection") {
             await client.openCollectionLoc({
                 collectionCanUpload: requireDefined(params.collectionCanUpload),
@@ -420,7 +423,8 @@ export class LocsState extends State {
                 collectionMaxSize: params.collectionMaxSize,
                 valueFee: requireDefined(params.valueFee),
                 ...params, locId,
-            });
+                autoPublish: false,
+            }, false);
         }
         const loc = await client.getLoc({ locId });
         return (await new OpenLoc(locSharedState, request, loc, EMPTY_LOC_ISSUERS).refresh()) as OpenLoc;
@@ -518,7 +522,7 @@ export class LocsState extends State {
 
     /**
      * Tells if current user is a Verified Issuer.
-     * 
+     *
      * @returns True if it is, false otherwise.
      */
     get isVerifiedIssuer(): boolean {
@@ -1400,16 +1404,19 @@ export class AcceptedRequest extends ReviewedRequest {
         return newLocsState.findById(this.locId) as AcceptedRequest;
     }
 
-    async open(parameters: BlockchainSubmissionParams): Promise<OpenLoc> {
+    async open(parameters: BlockchainSubmissionParams & AutoPublish): Promise<OpenLoc> {
+        const { autoPublish } = parameters;
         if (this.request.locType === "Transaction") {
             await this.locSharedState.client.openTransactionLoc({
-                ...this.checkOpenParams(),
-                ...parameters
+                ...this.checkOpenParams(autoPublish),
+                ...parameters,
+                autoPublish,
             })
         } else if (this.request.locType === "Identity") {
             await this.locSharedState.client.openIdentityLoc({
-                ...this.checkOpenParams(),
-                ...parameters
+                ...this.checkOpenParams(autoPublish),
+                ...parameters,
+                autoPublish,
             })
         } else {
             throw Error("Collection LOCs are opened with openCollection()");
@@ -1417,7 +1424,7 @@ export class AcceptedRequest extends ReviewedRequest {
         return await this.refresh() as OpenLoc
     }
 
-    private checkOpenParams(): OpenPolkadotLocParams {
+    private checkOpenParams(autoPublish: boolean): OpenPolkadotLocParams {
         const requesterAddress = this.request.requesterAddress;
         if (requesterAddress === undefined || requesterAddress?.type !== "Polkadot") {
             throw Error("Only Polkadot requester can open LOC");
@@ -1426,31 +1433,67 @@ export class AcceptedRequest extends ReviewedRequest {
             locId: this.locId,
             legalOfficerAddress: this.owner.address,
             legalFee: this.request.legalFee !== undefined ? BigInt(this.request.legalFee) : undefined,
-            metadata: [],
-            files: [],
-            links: [],
+            metadata: this.toAddMetadataParams(autoPublish),
+            files: this.toAddFileParams(autoPublish),
+            links: this.toAddLinkParams(autoPublish),
         }
     }
 
-    async estimateFeesOpen(): Promise<FeesClass> {
+    private toAddMetadataParams(autoPublish: boolean): AddMetadataParams[] {
+        if (autoPublish) {
+            return this.request.metadata.filter(item => item.status === "REVIEW_ACCEPTED").map(item => ({
+                name: item.name,
+                value: item.value,
+            }));
+        } else {
+            return [];
+        }
+    }
+
+    private toAddFileParams(autoPublish: boolean): AddFileParams[] {
+        if (autoPublish) {
+            return this.request.files.filter(item => item.status === "REVIEW_ACCEPTED").map(item => ({
+                file: HashOrContent.fromHashAndSize(Hash.fromHex(item.hash), BigInt(item.size)),
+                fileName: item.name,
+                nature: item.nature,
+            }));
+        } else {
+            return [];
+        }
+    }
+
+    private toAddLinkParams(autoPublish: boolean): AddLinkParams[] {
+        if (autoPublish) {
+            return this.request.links.filter(item => item.status === "REVIEW_ACCEPTED").map(item => ({
+                target: new UUID(item.target),
+                nature: item.nature,
+            }));
+        } else {
+            return [];
+        }
+    }
+
+    async estimateFeesOpen(autoPublish: boolean): Promise<FeesClass> {
         if (this.request.locType === "Transaction") {
-            return this.locSharedState.client.estimateFeesOpenTransactionLoc(this.checkOpenParams())
+            return this.locSharedState.client.estimateFeesOpenTransactionLoc(this.checkOpenParams(autoPublish))
         } else if (this.request.locType === "Identity") {
-            return this.locSharedState.client.estimateFeesOpenIdentityLoc(this.checkOpenParams())
+            return this.locSharedState.client.estimateFeesOpenIdentityLoc(this.checkOpenParams(autoPublish))
         } else {
             throw Error("Collection LOCs fees are estimated with estimateFeesOpenCollection()");
         }
     }
 
-    async openCollection(parameters: OpenCollectionLocParams): Promise<OpenLoc> {
+    async openCollection(parameters: OpenCollectionLocParams & AutoPublish): Promise<OpenLoc> {
+        const { autoPublish } = parameters;
         await this.locSharedState.client.openCollectionLoc({
-            ...this.checkOpenCollectionParams(),
-            ...parameters
+            ...this.checkOpenCollectionParams(autoPublish),
+            ...parameters,
+            autoPublish,
         });
         return await this.refresh() as OpenLoc;
     }
 
-    private checkOpenCollectionParams(): OpenPolkadotLocParams & { valueFee: bigint } {
+    private checkOpenCollectionParams(autoPublish: boolean): OpenPolkadotLocParams & { valueFee: bigint } {
         const requesterAddress = this.request.requesterAddress;
         if (requesterAddress === undefined || requesterAddress?.type !== "Polkadot") {
             throw Error("Only Polkadot requester can open, or estimate fees of, a Collection LOC");
@@ -1465,18 +1508,18 @@ export class AcceptedRequest extends ReviewedRequest {
                 legalOfficerAddress: this.owner.address,
                 valueFee: BigInt(valueFee),
                 legalFee: this.request.legalFee !== undefined ? BigInt(this.request.legalFee) : undefined,
-                metadata: [],
-                files: [],
-                links: [],
+                metadata: this.toAddMetadataParams(autoPublish),
+                files: this.toAddFileParams(autoPublish),
+                links: this.toAddLinkParams(autoPublish),
             }
         } else {
             throw Error("Other LOCs are opened/estimated with open()/estimateFeesOpen()");
         }
     }
 
-    async estimateFeesOpenCollection(parameters: EstimateFeesOpenCollectionLocParams): Promise<FeesClass> {
+    async estimateFeesOpenCollection(parameters: EstimateFeesOpenCollectionLocParams & AutoPublish): Promise<FeesClass> {
         return this.locSharedState.client.estimateFeesOpenCollectionLoc({
-            ...this.checkOpenCollectionParams(),
+            ...this.checkOpenCollectionParams(parameters.autoPublish),
             ...parameters
         });
     }
@@ -1896,7 +1939,7 @@ implements LegalOfficerLocWithSelectableIssuersCommands<T> {
         const allVerifiedIssuers = await this.client.getLegalOfficerVerifiedIssuers();
         const locData = this.request.data();
         const selectedIssuers = locData.issuers;
-    
+
         return allVerifiedIssuers
             .filter(issuer => issuer.address !== locData.requesterAddress?.address)
             .map(issuer => {
@@ -1985,13 +2028,13 @@ export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommands
         if(!data.requesterAddress || data.requesterAddress.type !== "Polkadot") {
             throw new Error("Identity LOC has no Polkadot requester");
         }
-    
+
         await this.client.nominateIssuer({
             ...params,
             locId: data.id,
             requester: data.requesterAddress.address,
         });
-    
+
         return await this.request.refresh() as ClosedLoc;
     }
 
@@ -2004,12 +2047,12 @@ export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommands
         if(!data.requesterAddress || data.requesterAddress.type !== "Polkadot") {
             throw new Error("Identity LOC has no Polkadot requester");
         }
-    
+
         await this.client.dismissIssuer({
             ...params,
             requester: data.requesterAddress.address,
         });
-    
+
         return await this.request.refresh() as ClosedLoc;
     }
 

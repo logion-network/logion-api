@@ -41,7 +41,7 @@ export async function verifiedIssuer(state: State) {
     const aliceAccepted = await alicePending.legalOfficer.accept();
 
     const acceptedIdentityLoc = await pendingRequest.refresh() as AcceptedRequest;
-    await acceptedIdentityLoc.open({ signer });
+    await acceptedIdentityLoc.open({ signer, autoPublish: false });
 
     const aliceOpen = await aliceAccepted.refresh() as OpenLoc;
     let aliceClosed = await aliceOpen.legalOfficer.close({ signer, autoAck: false }) as ClosedLoc;
@@ -61,7 +61,7 @@ export async function verifiedIssuer(state: State) {
     const aliceAcceptedTransaction = await alicePendingTransation.legalOfficer.accept() as AcceptedRequest;
 
     let acceptedLoc = await pendingLocRequest.refresh() as AcceptedRequest;
-    let openLoc = await acceptedLoc.open({ signer });
+    let openLoc = await acceptedLoc.open({ signer, autoPublish: false });
 
     let aliceOpenTransaction = await aliceAcceptedTransaction.refresh() as OpenLoc;
     aliceOpenTransaction = await aliceOpenTransaction.legalOfficer.selectIssuer({

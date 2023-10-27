@@ -22,7 +22,7 @@ import {
 
 import { State, TEST_LOGION_CLIENT_CONFIG, findWithLegalOfficerClient, initRequesterBalance } from "./Utils.js";
 
-export async function requestTransactionLoc(state: State, linkTarget: UUID) {
+export async function requestTransactionLoc(state: State, linkTarget: UUID): Promise<UUID> {
     const { alice, aliceAccount, newAccount, signer } = state;
     const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
@@ -105,7 +105,7 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID) {
     locsState = acceptedLoc.locsState();
     checkData(locsState.acceptedRequests["Transaction"][0].data(), "REVIEW_ACCEPTED");
 
-    let openLoc = await acceptedLoc.open({ signer });
+    let openLoc = await acceptedLoc.open({ signer, autoPublish: false });
     expect(openLoc).toBeInstanceOf(OpenLoc);
 
     locsState = openLoc.locsState();
@@ -193,6 +193,105 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID) {
     // Close LOC
     const closedLoc = await aliceOpenLoc.legalOfficer.close({ signer, autoAck: false });
     expect(closedLoc).toBeInstanceOf(ClosedLoc);
+
+    return closedLoc.locId;
+}
+
+export async function openTransactionLocWithAutoPublish(state: State, linkTargets: UUID[]) {
+    const { alice, aliceAccount, newAccount, signer } = state;
+    const client = state.client.withCurrentAddress(newAccount);
+    let locsState = await client.locsState();
+
+    // Create DRAFT LOC
+    let draftRequest = await locsState.requestTransactionLoc({
+        legalOfficerAddress: alice.address,
+        description: "This is a Transaction LOC",
+        draft: true,
+    }) as DraftRequest;
+
+    expect(draftRequest).toBeInstanceOf(DraftRequest);
+
+    locsState = draftRequest.locsState();
+    checkData(locsState.draftRequests["Transaction"][0].data(), "DRAFT");
+    checkData(draftRequest.data(), "DRAFT");
+    expect(draftRequest.data().legalFee).toBeUndefined();
+
+    // Add Metadata
+    const metadataName = "Some name";
+    const nameHash = Hash.of(metadataName);
+    draftRequest = await draftRequest.addMetadata({
+        name: metadataName,
+        value: "Some invalid value"
+    }) as DraftRequest;
+    expect(draftRequest.data().metadata[0].name.validValue()).toBe(metadataName);
+    expect(draftRequest.data().metadata[0].value.validValue()).toBe("Some invalid value");
+    expect(draftRequest.data().metadata[0].addedOn).toBeUndefined();
+    expect(draftRequest.data().metadata[0].status).toBe("DRAFT");
+
+    // Add Links
+    const nature = "Some nature";
+    draftRequest = await draftRequest.addLink({
+        target: linkTargets[0],
+        nature,
+    }) as DraftRequest;
+    draftRequest = await draftRequest.addLink({
+        target: linkTargets[1],
+        nature,
+    }) as DraftRequest;
+    expect(draftRequest.data().links[0].addedOn).toBeUndefined();
+    expect(draftRequest.data().links[0].status).toBe("DRAFT");
+    expect(draftRequest.data().links[1].addedOn).toBeUndefined();
+    expect(draftRequest.data().links[1].status).toBe("DRAFT");
+
+    // Add files
+    draftRequest = await draftRequest.addFile({
+        fileName: "test.txt",
+        nature: "Some file nature",
+        file: HashOrContent.fromContent(Buffer.from("test0")),
+    }) as DraftRequest;
+    const hash0 = draftRequest.data().files[0].hash;
+    draftRequest = await draftRequest.addFile({
+        fileName: "test.txt",
+        nature: "Some file nature",
+        file: HashOrContent.fromContent(Buffer.from("test1")),
+    }) as DraftRequest;
+    const hash1 = draftRequest.data().files[1].hash;
+
+    // Submit LOC
+    let pendingRequest = await draftRequest.submit();
+    expect(pendingRequest).toBeInstanceOf(PendingRequest);
+
+    // Alic accepts some items
+    const aliceClient = state.client.withCurrentAddress(aliceAccount);
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, statuses: [ "REVIEW_PENDING", "OPEN" ], locTypes: [ "Transaction" ] } });
+    let alicePendingLoc = aliceLocs.findById(pendingRequest.data().id) as PendingRequest;
+    // metadata
+    alicePendingLoc = await alicePendingLoc.legalOfficer.reviewMetadata({ nameHash, decision: "ACCEPT" });
+    expect(alicePendingLoc.data().metadata[0].status).toBe("REVIEW_ACCEPTED");
+    // links: only the first link is accepted.
+    alicePendingLoc = await alicePendingLoc.legalOfficer.reviewLink({ target: linkTargets[0], decision: "ACCEPT" });
+    expect(alicePendingLoc.data().links[0].status).toBe("REVIEW_ACCEPTED");
+    // files
+    alicePendingLoc = await alicePendingLoc.legalOfficer.reviewFile({ hash: hash0, decision: "ACCEPT" });
+    expect(alicePendingLoc.data().files[0].status).toBe("REVIEW_ACCEPTED");
+    alicePendingLoc = await alicePendingLoc.legalOfficer.reviewFile({ hash: hash1, decision: "ACCEPT" });
+    expect(alicePendingLoc.data().files[1].status).toBe("REVIEW_ACCEPTED");
+
+    await alicePendingLoc.legalOfficer.accept({ signer });
+
+    let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
+    let openLoc = await acceptedLoc.open({ signer, autoPublish: true });
+    expect(openLoc).toBeInstanceOf(OpenLoc);
+
+    expect(openLoc.data().metadata[0].status).toBe("PUBLISHED");
+    expect(openLoc.data().links[0].status).toBe("PUBLISHED");
+    expect(openLoc.data().links[1].status).toBe("REVIEW_PENDING");
+    expect(openLoc.data().files[0].status).toBe("PUBLISHED");
+    expect(openLoc.data().files[1].status).toBe("PUBLISHED");
+
+    locsState = openLoc.locsState();
+    checkData(locsState.openLocs["Transaction"][0].data(), "OPEN");
+    checkData(openLoc.data(), "OPEN");
 }
 
 function checkData(data: LocData, locRequestStatus: LocRequestStatus) {
@@ -223,7 +322,7 @@ export async function transactionLocWithCustomLegalFee(state: State) {
     let alicePendingLoc = aliceLocs.findById(pendingRequest.data().id) as PendingRequest;
     await alicePendingLoc.legalOfficer.accept({ signer }) as AcceptedRequest;
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
-    let openLoc = await acceptedLoc.open({ signer });
+    let openLoc = await acceptedLoc.open({ signer, autoPublish: false });
 
     expect(openLoc.data().legalFee).toBe(0n);
 }
@@ -259,7 +358,7 @@ export async function collectionLoc(state: State) {
     locsState = acceptedLoc.locsState();
     expect(locsState.acceptedRequests["Collection"][0].data().status).toBe("REVIEW_ACCEPTED");
 
-    let openLoc = await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
+    let openLoc = await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer, autoPublish: false });
     expect(openLoc.data().valueFee).toBe(100n);
     expect(openLoc.data().legalFee).toBe(0n);
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
@@ -306,12 +405,12 @@ export async function collectionLocWithUpload(state: State) {
         description: "This is the Logion Classification LOC",
         draft: false,
     }) as PendingRequest;
-    
+
     const aliceClient = client.withCurrentAddress(aliceAccount);
     let aliceLogionClassificationLocRequest = await findWithLegalOfficerClient(aliceClient, logionClassificationLocRequest) as PendingRequest;
     const aliceLogionClassificationAcceptedRequest = await aliceLogionClassificationLocRequest.legalOfficer.accept({ signer }) as AcceptedRequest;
     const logionClassificationAcceptedRequest = await logionClassificationLocRequest.refresh() as AcceptedRequest;
-    const logionClassificationOpenLoc = await logionClassificationAcceptedRequest.open({ signer });
+    const logionClassificationOpenLoc = await logionClassificationAcceptedRequest.open({ signer, autoPublish: false });
     const aliceLogionClassificationOpenLoc = await aliceLogionClassificationAcceptedRequest.refresh() as OpenLoc;
     await aliceLogionClassificationOpenLoc.legalOfficer.close({ signer, autoAck: false });
 
@@ -324,7 +423,7 @@ export async function collectionLocWithUpload(state: State) {
     const aliceCreativeCommonsLocRequest = await findWithLegalOfficerClient(aliceClient, creativeCommonsLocRequest) as PendingRequest;
     const aliceCreativeCommonsAcceptedRequest = await aliceCreativeCommonsLocRequest.legalOfficer.accept({ signer }) as AcceptedRequest;
     const creativeCommonsAcceptedRequest = await creativeCommonsLocRequest.refresh() as AcceptedRequest;
-    const creativeCommonsOpenLoc = await creativeCommonsAcceptedRequest.open({ signer });
+    const creativeCommonsOpenLoc = await creativeCommonsAcceptedRequest.open({ signer, autoPublish: false });
     const aliceCreativeCommonsOpenLoc = await aliceCreativeCommonsAcceptedRequest.refresh() as OpenLoc;
     await aliceCreativeCommonsOpenLoc.legalOfficer.close({ signer, autoAck: false });
 
@@ -340,7 +439,7 @@ export async function collectionLocWithUpload(state: State) {
     let aliceAcceptedLoc = await alicePendingRequest.legalOfficer.accept();
 
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
-    let openLoc = await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer });
+    let openLoc = await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer, autoPublish: false });
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
 
     await aliceOpenLoc.legalOfficer.close({ signer, autoAck: false });
@@ -483,7 +582,7 @@ export async function identityLoc(state: State) {
     expect(aliceAcceptedRequest.data().status).toBe("REVIEW_ACCEPTED");
 
     const acceptedRequest = await pendingRequest.refresh() as AcceptedRequest;
-    const openLoc = await acceptedRequest.open({ signer });
+    const openLoc = await acceptedRequest.open({ signer, autoPublish: false });
     expect(openLoc.data().status).toBe("OPEN");
 
     const aliceOpenLoc = await aliceAcceptedRequest.refresh() as OpenLoc;
