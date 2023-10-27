@@ -1410,13 +1410,11 @@ export class AcceptedRequest extends ReviewedRequest {
             await this.locSharedState.client.openTransactionLoc({
                 ...this.checkOpenParams(autoPublish),
                 ...parameters,
-                autoPublish,
             })
         } else if (this.request.locType === "Identity") {
             await this.locSharedState.client.openIdentityLoc({
                 ...this.checkOpenParams(autoPublish),
                 ...parameters,
-                autoPublish,
             })
         } else {
             throw Error("Collection LOCs are opened with openCollection()");
@@ -1424,7 +1422,7 @@ export class AcceptedRequest extends ReviewedRequest {
         return await this.refresh() as OpenLoc
     }
 
-    private checkOpenParams(autoPublish: boolean): OpenPolkadotLocParams {
+    private checkOpenParams(autoPublish: boolean): OpenPolkadotLocParams & AutoPublish {
         const requesterAddress = this.request.requesterAddress;
         if (requesterAddress === undefined || requesterAddress?.type !== "Polkadot") {
             throw Error("Only Polkadot requester can open LOC");
@@ -1436,6 +1434,7 @@ export class AcceptedRequest extends ReviewedRequest {
             metadata: this.toAddMetadataParams(autoPublish),
             files: this.toAddFileParams(autoPublish),
             links: this.toAddLinkParams(autoPublish),
+            autoPublish,
         }
     }
 
@@ -1473,7 +1472,8 @@ export class AcceptedRequest extends ReviewedRequest {
         }
     }
 
-    async estimateFeesOpen(autoPublish: boolean): Promise<FeesClass> {
+    async estimateFeesOpen(parameters: AutoPublish): Promise<FeesClass> {
+        const { autoPublish } = parameters;
         if (this.request.locType === "Transaction") {
             return this.locSharedState.client.estimateFeesOpenTransactionLoc(this.checkOpenParams(autoPublish))
         } else if (this.request.locType === "Identity") {
@@ -1488,12 +1488,11 @@ export class AcceptedRequest extends ReviewedRequest {
         await this.locSharedState.client.openCollectionLoc({
             ...this.checkOpenCollectionParams(autoPublish),
             ...parameters,
-            autoPublish,
         });
         return await this.refresh() as OpenLoc;
     }
 
-    private checkOpenCollectionParams(autoPublish: boolean): OpenPolkadotLocParams & { valueFee: bigint } {
+    private checkOpenCollectionParams(autoPublish: boolean): OpenPolkadotLocParams & { valueFee: bigint } & AutoPublish {
         const requesterAddress = this.request.requesterAddress;
         if (requesterAddress === undefined || requesterAddress?.type !== "Polkadot") {
             throw Error("Only Polkadot requester can open, or estimate fees of, a Collection LOC");
@@ -1511,6 +1510,7 @@ export class AcceptedRequest extends ReviewedRequest {
                 metadata: this.toAddMetadataParams(autoPublish),
                 files: this.toAddFileParams(autoPublish),
                 links: this.toAddLinkParams(autoPublish),
+                autoPublish,
             }
         } else {
             throw Error("Other LOCs are opened/estimated with open()/estimateFeesOpen()");

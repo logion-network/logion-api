@@ -1757,6 +1757,13 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
+    private storageSize(autoPublish: boolean, files: AddFileParams[]): bigint | undefined {
+        if (!autoPublish || files.length === 0) {
+            return undefined;
+        }
+        return files.map(file => file.file.size).reduce((a, b) => a + b);
+    }
+
     private openTransactionLocSubmittable(parameters: OpenPolkadotLocParams): SubmittableExtrinsic {
         const { locId, legalOfficerAddress, metadata, files, links } = parameters;
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
@@ -1771,12 +1778,14 @@ export class AuthenticatedLocClient extends LocClient {
         );
     }
 
-    async estimateFeesOpenTransactionLoc(parameters: OpenPolkadotLocParams): Promise<FeesClass> {
+    async estimateFeesOpenTransactionLoc(parameters: OpenPolkadotLocParams & AutoPublish): Promise<FeesClass> {
+        const storageSize = this.storageSize(parameters.autoPublish, parameters.files);
         return await this.nodeApi.fees.estimateCreateLoc({
             origin: this.currentAddress?.address || "",
             submittable: this.openTransactionLocSubmittable(parameters),
             locType: 'Transaction',
             legalFee: parameters.legalFee,
+            storageSize,
         });
     }
 
@@ -1946,12 +1955,14 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async estimateFeesOpenIdentityLoc(parameters: OpenPolkadotLocParams) {
+    async estimateFeesOpenIdentityLoc(parameters: OpenPolkadotLocParams & AutoPublish) {
+        const storageSize = this.storageSize(parameters.autoPublish, parameters.files);
         return await this.nodeApi.fees.estimateCreateLoc({
             origin: this.currentAddress?.address || "",
             submittable: this.openIdentityLocSubmittable(parameters),
             locType: 'Identity',
             legalFee: parameters.legalFee,
+            storageSize,
         });
     }
 
@@ -2024,13 +2035,15 @@ export class AuthenticatedLocClient extends LocClient {
         );
     }
 
-    async estimateFeesOpenCollectionLoc(parameters: { valueFee: bigint } & OpenPolkadotLocParams & EstimateFeesOpenCollectionLocParams) {
+    async estimateFeesOpenCollectionLoc(parameters: { valueFee: bigint } & OpenPolkadotLocParams & EstimateFeesOpenCollectionLocParams & AutoPublish) {
+        const storageSize = this.storageSize(parameters.autoPublish, parameters.files);
         return await this.nodeApi.fees.estimateCreateLoc({
             origin: this.currentAddress.address,
             submittable: this.openCollectionLocSubmittable(parameters),
             locType: 'Collection',
             valueFee: parameters.valueFee,
             legalFee: parameters.legalFee,
+            storageSize,
         });
     }
 

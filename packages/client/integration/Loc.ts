@@ -253,7 +253,7 @@ export async function openTransactionLocWithAutoPublish(state: State, linkTarget
     draftRequest = await draftRequest.addFile({
         fileName: "test.txt",
         nature: "Some file nature",
-        file: HashOrContent.fromContent(Buffer.from("test1")),
+        file: HashOrContent.fromContent(Buffer.from("test123")),
     }) as DraftRequest;
     const hash1 = draftRequest.data().files[1].hash;
 
@@ -280,6 +280,10 @@ export async function openTransactionLocWithAutoPublish(state: State, linkTarget
     await alicePendingLoc.legalOfficer.accept({ signer });
 
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
+
+    const fees = await acceptedLoc.estimateFeesOpen({ autoPublish: true });
+    expect(fees.storageFee).toEqual(1200000000000n);
+
     let openLoc = await acceptedLoc.open({ signer, autoPublish: true });
     expect(openLoc).toBeInstanceOf(OpenLoc);
 
