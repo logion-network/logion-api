@@ -170,10 +170,7 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID) {
     aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewLink({ target: linkTarget, decision: "REJECT", rejectReason }) as OpenLoc;
     expect(aliceOpenLoc.data().links[0].status).toBe("REVIEW_REJECTED");
     expect(aliceOpenLoc.data().links[0].rejectReason).toBe(rejectReason);
-    await waitFor<OnchainLocState>({
-        producer: async state => state ? await state.refresh() : aliceOpenLoc,
-        predicate: state => state.data().links[0].reviewedOn !== undefined,
-    });
+    expect(aliceOpenLoc.data().links[0].reviewedOn).toBeDefined();
     openLoc = await openLoc.refresh() as OpenLoc;
     openLoc = await openLoc.deleteLink({ target: linkTarget }) as OpenLoc;
     openLoc = await openLoc.addLink({
