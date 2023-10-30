@@ -1,13 +1,14 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "out": "docs/api",
-  "plugin": ["typedoc-plugin-markdown", "typedoc-plugin-resolve-crossmodule-references"],
+  "plugin": ["typedoc-plugin-markdown"],
   "excludeExternals": false,
   "entryPointStrategy": "packages",
   "entryPoints": [
     "../packages/client",
     "../packages/crossmint",
     "../packages/extension",
+    "../packages/multiversx",
     "../packages/node-api"
   ],
   "readme": "src/API.md",

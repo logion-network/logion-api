@@ -70,9 +70,5 @@
   "engines": {
     "node": ">=18"
   },
-  "typedoc": {
-    "entryPoint": "./src/index.ts",
-    "displayName": "Node API"
-  },
   "type": "module"
 }

@@ -1,0 +1,6 @@
+{
+  "name": "Client",
+  "entryPoints": [
+    "./src/index.ts"
+  ]
+}

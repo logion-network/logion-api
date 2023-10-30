@@ -1,0 +1,6 @@
+{
+  "name": "Extension",
+  "entryPoints": [
+    "./src/index.ts"
+  ]
+}

@@ -44,9 +44,5 @@
   "engines": {
     "node": ">=16"
   },
-  "stableVersion": "0.1.0",
-  "typedoc": {
-    "entryPoint": "./src/index.ts",
-    "displayName": "Extension"
-  }
+  "stableVersion": "0.1.0"
 }
