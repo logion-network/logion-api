@@ -1,0 +1,6 @@
+{
+  "name": "Node API",
+  "entryPoints": [
+    "./src/index.ts"
+  ]
+}
