@@ -874,21 +874,35 @@ export class AuthenticatedLocClient extends LocClient {
 
         await file.finalize();
 
-        const formData = this.componentFactory.buildFormData();
-        formData.append('file', await file.data(), fileName);
-        formData.append('nature', nature);
-        formData.append('hash', file.contentHash.toHex());
-        formData.append('direct', String(direct));
-
-        try {
-            await this.backend().post(
-                `/api/loc-request/${ locId.toString() }/files`,
-                formData,
-                { headers: { "Content-Type": "multipart/form-data" } }
-            );
-        } catch(e) {
-            throw newBackendError(e);
-        }
+        const uploader = this.componentFactory.buildFileUploader();
+        await uploader.upload({
+            endpoint: `${ this.legalOfficer.node }/api/loc-request/${ locId.toString() }/files`,
+            files: [
+                {
+                    file: file.content,
+                    name: fileName,
+                    field: "file",
+                }
+            ],
+            fields: [
+                {
+                    name: "nature",
+                    value: nature,
+                },
+                {
+                    name: "hash",
+                    value: file.contentHash.toHex(),
+                },
+                {
+                    name: "direct",
+                    value: String(direct),
+                }
+            ],
+            headers: {
+                "Content-Type": "multipart/form-data",
+                'Authorization': `Bearer ${this.legalOfficer.token}`,
+            }
+        });
     }
 
     async deleteFile(parameters: RefFileParams & FetchParameters): Promise<void> {
@@ -1075,18 +1089,27 @@ export class AuthenticatedLocClient extends LocClient {
 
         await file.hashOrContent.finalize(); // Ensure validity
 
-        const formData = this.componentFactory.buildFormData();
-        formData.append('file', await file.hashOrContent.data(), file.name);
-        formData.append('hash', file.hashOrContent.contentHash.toHex());
-        try {
-            await this.backend().post(
-                `/api/collection/${ locId.toString() }/${ itemId.toHex() }/files`,
-                formData,
-                { headers: { "Content-Type": "multipart/form-data" } }
-            );
-        } catch(e) {
-            throw newBackendError(e);
-        }
+        const uploader = this.componentFactory.buildFileUploader();
+        await uploader.upload({
+            endpoint: `${ this.legalOfficer.node }/api/collection/${ locId.toString() }/${ itemId.toHex() }/files`,
+            files: [
+                {
+                    file: file.hashOrContent.content,
+                    name: file.name,
+                    field: "file",
+                }
+            ],
+            fields: [
+                {
+                    name: "hash",
+                    value: file.hashOrContent.contentHash.toHex(),
+                },
+            ],
+            headers: {
+                "Content-Type": "multipart/form-data",
+                'Authorization': `Bearer ${this.legalOfficer.token}`,
+            }
+        });
     }
 
     private validTokenOrThrow(itemToken: ItemTokenWithRestrictedType) {
@@ -1301,18 +1324,27 @@ export class AuthenticatedLocClient extends LocClient {
 
         await file.hashOrContent.finalize(); // Ensure validity
 
-        const formData = this.componentFactory.buildFormData();
-        formData.append('file', await file.hashOrContent.data(), file.name);
-        formData.append('hash', file.hashOrContent.contentHash.toHex());
-        try {
-            await this.backend().post(
-                `/api/records/${ locId.toString() }/${ recordId.toHex() }/files`,
-                formData,
-                { headers: { "Content-Type": "multipart/form-data" } }
-            );
-        } catch(e) {
-            throw newBackendError(e);
-        }
+        const uploader = this.componentFactory.buildFileUploader();
+        await uploader.upload({
+            endpoint: `${ this.legalOfficer.node }/api/records/${ locId.toString() }/${ recordId.toHex() }/files`,
+            files: [
+                {
+                    file: file.hashOrContent.content,
+                    name: file.name,
+                    field: "file",
+                }
+            ],
+            fields: [
+                {
+                    name: "hash",
+                    value: file.hashOrContent.contentHash.toHex(),
+                },
+            ],
+            headers: {
+                "Content-Type": "multipart/form-data",
+                'Authorization': `Bearer ${this.legalOfficer.token}`,
+            }
+        });
     }
 
     override async getTokensRecordDeliveries(parameters: GetTokensRecordDeliveriesRequest): Promise<ItemDeliveries> {

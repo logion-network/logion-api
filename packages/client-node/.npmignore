@@ -1,0 +1,13 @@
+/test/**
+/integration/**
+/src/**
+/scripts/**
+docker-compose.yml
+front_config.js
+front_web*.conf
+jasmine*.json
+tsconfig*.json
+/config/**
+.eslintrc.json
+typedoc.json
+typescript.js

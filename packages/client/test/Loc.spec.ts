@@ -34,6 +34,8 @@ import {
     SharedState,
     FormDataLike,
     LegalOfficerClass,
+    FileUploader,
+    FileUploadParameters,
 } from "../src/index.js";
 import {
     ALICE,
@@ -47,7 +49,7 @@ import {
     buildValidPolkadotAccountId,
     ItIsUuid,
     mockCodecWithToString,
-    mockCodecWithToBigInt
+    MOCK_FILE
 } from "./Utils.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
 import {
@@ -442,17 +444,14 @@ describe("ClosedCollectionLoc", () => {
             itemFile: new ItemFileWithContent({
                 name: "test.txt",
                 contentType: MimeType.from("text/plain"),
-                hashOrContent: HashOrContent.fromContent(Buffer.from("test")),
+                hashOrContent: HashOrContent.fromContent(MOCK_FILE),
             }),
         });
 
-        aliceAxiosMock.verify(instance => instance.post(
-                `/api/collection/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/${ ITEM_ID.toHex() }/files`,
-                It.IsAny(),
-                It.Is((options: AxiosRequestConfig<FormDataLike>) => options.headers !== undefined && options.headers["Content-Type"] === "multipart/form-data")
-            ),
-            Times.Once(),
-        );
+        uploaderMock.verify(instance => instance.upload(It.Is<FileUploadParameters>(params => 
+            params.endpoint.endsWith(`/api/collection/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/${ ITEM_ID.toHex() }/files`)
+            && params.headers["Content-Type"] === "multipart/form-data"
+        )),Times.Once());
     });
 
     it("checks file hash", async () => {
@@ -502,17 +501,14 @@ describe("ClosedCollectionLoc", () => {
             file: new ItemFileWithContent({
                 name: "test.txt",
                 contentType: MimeType.from("text/plain"),
-                hashOrContent: HashOrContent.fromContent(Buffer.from("test")),
+                hashOrContent: HashOrContent.fromContent(MOCK_FILE),
             }),
         });
 
-        aliceAxiosMock.verify(instance => instance.post(
-                `/api/records/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/${ RECORD_ID.toHex() }/files`,
-                It.IsAny(),
-                It.Is((options: AxiosRequestConfig<FormDataLike>) => options.headers !== undefined && options.headers["Content-Type"] === "multipart/form-data")
-            ),
-            Times.Once(),
-        );
+        uploaderMock.verify(instance => instance.upload(It.Is<FileUploadParameters>(params => 
+            params.endpoint.endsWith(`/api/records/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/${ RECORD_ID.toHex() }/files`)
+            && params.headers["Content-Type"] === "multipart/form-data"
+        )),Times.Once());
     });
 
     it("can be voided", async () => {
@@ -657,13 +653,14 @@ const RECORD_DESCRIPTION = "Some record description";
 const RECORD_FILES: ItemFileWithContent[] = [new ItemFileWithContent({
     name: "test.txt",
     contentType: MimeType.from("text/plain"),
-    hashOrContent: HashOrContent.fromContent(Buffer.from("test")),
+    hashOrContent: HashOrContent.fromContent(MOCK_FILE),
 })];
 
 let aliceAxiosMock: Mock<AxiosInstance>;
 let bobAxiosMock: Mock<AxiosInstance>;
 let charlieAxiosMock: Mock<AxiosInstance>;
 let nodeApiMock: Mock<LogionNodeApiClass>;
+let uploaderMock: Mock<FileUploader>;
 
 async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<SharedState> {
     const currentAddress = isVerifiedIssuer ? ISSUER : REQUESTER;
@@ -680,10 +677,11 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
     return await buildTestAuthenticatedSharedSate(
         (factory: TestConfigFactory) => {
             factory.setupDefaultNetworkState();
-            factory.setupDefaultFormDataFactory();
+            factory.setupFileUploaderMock();
             factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
 
             const axiosFactoryMock = factory.setupAxiosFactoryMock();
+            uploaderMock = factory.setupFileUploaderMock();
 
             aliceAxiosMock = new Mock<AxiosInstance>();
             const aliceRequests: LocRequest[] = [
@@ -991,19 +989,16 @@ async function testAddMetadata(editable: EditableRequest) {
 
 async function testAddFile(editable: EditableRequest) {
     let newState = await editable.addFile({
-        file: HashOrContent.fromContent(Buffer.from("test")),
+        file: HashOrContent.fromContent(MOCK_FILE),
         fileName: "test.txt",
         nature: "Some nature",
     });
 
     expect(newState).toBeInstanceOf(EditableRequest);
-    aliceAxiosMock.verify(instance => instance.post(
-            `/api/loc-request/${ editable.locId }/files`,
-            It.IsAny(),
-            It.Is((options: AxiosRequestConfig<FormDataLike>) => options.headers !== undefined && options.headers["Content-Type"] === "multipart/form-data")
-        ),
-        Times.Once(),
-    );
+    uploaderMock.verify(instance => instance.upload(It.Is<FileUploadParameters>(params =>
+        params.endpoint.endsWith(`/api/loc-request/${ editable.locId }/files`)
+        && params.headers["Content-Type"] === "multipart/form-data"
+    )), Times.Once());
 }
 
 async function testDeleteMetadata(editable: EditableRequest) {

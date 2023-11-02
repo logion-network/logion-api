@@ -1,6 +1,6 @@
 {
   "name": "@logion/extension",
-  "version": "0.7.1",
+  "version": "0.7.2-1",
   "description": "logion SDK for Polkadot JS extension",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
@@ -8,7 +8,8 @@
   "scripts": {
     "build": "yarn lint && tsc",
     "lint": "yarn eslint src/**",
-    "test": "echo 'Nothing to test for the moment'"
+    "test": "echo 'Nothing to test for the moment'",
+    "clean": "rm -rf dist"
   },
   "repository": {
     "type": "git",
@@ -21,15 +22,19 @@
   "author": "Logion Team",
   "license": "Apache-2.0",
   "dependencies": {
-    "@logion/client": "workspace:^",
+    "@logion/client-browser": "workspace:^",
     "@polkadot/extension-compat-metamask": "^0.46.5",
     "@polkadot/extension-dapp": "^0.46.5"
+  },
+  "peerDependencies": {
+    "@logion/client-browser": "workspace:^"
   },
   "bugs": {
     "url": "https://github.com/logion-network/logion-api/issues"
   },
   "homepage": "https://github.com/logion-network/logion-api/packages/extension#readme",
   "devDependencies": {
+    "@logion/client-browser": "workspace:^",
     "@tsconfig/node18": "^1.0.1",
     "@types/node": "^18.6.1",
     "@typescript-eslint/eslint-plugin": "^6.9.1",

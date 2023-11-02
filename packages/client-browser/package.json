@@ -1,0 +1,51 @@
+{
+  "name": "@logion/client-browser",
+  "version": "0.1.0-1",
+  "description": "logion SDK for client applications running in a browser",
+  "main": "dist/index.js",
+  "packageManager": "yarn@3.2.0",
+  "type": "module",
+  "scripts": {
+    "build": "yarn lint && tsc -p tsconfig.json",
+    "lint": "yarn eslint src/**",
+    "test": "NODE_OPTIONS=--loader=ts-node/esm jasmine --config=jasmine.json",
+    "clean": "rm -rf dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logion-network/logion-api.git",
+    "directory": "packages/client-browser"
+  },
+  "keywords": [
+    "logion",
+    "api",
+    "client",
+    "browser"
+  ],
+  "author": "Logion Team",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@logion/client": "workspace:^"
+  },
+  "bugs": {
+    "url": "https://github.com/logion-network/logion-api/issues"
+  },
+  "homepage": "https://github.com/logion-network/logion-api/packages/client-browser#readme",
+  "devDependencies": {
+    "@tsconfig/node18": "^1.0.1",
+    "@types/jasmine": "^4.0.3",
+    "@types/node": "^18.6.1",
+    "@typescript-eslint/eslint-plugin": "^6.9.1",
+    "@typescript-eslint/parser": "^6.9.1",
+    "eslint": "^8.20.0",
+    "jasmine": "^4.3.0",
+    "jasmine-spec-reporter": "^7.0.0",
+    "moq.ts": "^9.0.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "stableVersion": "0.1.0"
+}

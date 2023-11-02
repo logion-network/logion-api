@@ -28,7 +28,8 @@
     "integration-test": "docker-compose up -d && NODE_OPTIONS=--loader=ts-node/esm jasmine --config=jasmine-integration.json ; docker-compose down",
     "generate:defs-meta": "yarn generate:defs && yarn generate:meta",
     "generate:defs": "node --loader ts-node/esm ../../node_modules/.bin/polkadot-types-from-defs --endpoint ws://localhost:9944 --input ./src/interfaces/ --package @logion/node-api/dist/interfaces",
-    "generate:meta": "node --loader ts-node/esm ../../node_modules/.bin/polkadot-types-from-chain --endpoint ws://localhost:9944 --output ./src/interfaces/ --package @logion/node-api/dist/interfaces"
+    "generate:meta": "node --loader ts-node/esm ../../node_modules/.bin/polkadot-types-from-chain --endpoint ws://localhost:9944 --output ./src/interfaces/ --package @logion/node-api/dist/interfaces",
+    "clean": "rm -rf dist"
   },
   "repository": {
     "type": "git",
@@ -54,6 +55,7 @@
   },
   "homepage": "https://github.com/logion-network/logion-api/packages/node-api#readme",
   "devDependencies": {
+    "@logion/client-browser": "workspace:^",
     "@polkadot/typegen": "^10.10.1",
     "@tsconfig/node18": "^1.0.1",
     "@types/jasmine": "^4.0.3",

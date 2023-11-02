@@ -15,7 +15,7 @@ export interface SignRawParameters {
     resource: string;
     operation: string;
     signedOn: DateTime;
-    attributes: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+    attributes: string[];
 }
 
 export type SignatureType = "POLKADOT" | "ETHEREUM" | "CROSSMINT_ETHEREUM" | "MULTIVERSX";
@@ -188,11 +188,19 @@ export class KeyringSigner extends BaseSigner {
     }
 }
 
-export function hashAttributes(attributes: any[]): string { // eslint-disable-line @typescript-eslint/no-explicit-any
+export function hashAttributes(attributes: string[]): string {
     const digest = new Hash();
     for (let i = 0; i < attributes.length; i++) {
-        const bytes = new TextEncoder().encode(attributes[i]);
+        const bytes = encodeString(attributes[i]);
         digest.update(bytes);
     }
     return base64Encode(digest.digest());
+}
+
+function encodeString(str: string): Uint8Array {
+    const bytes = new Uint8Array(str.length);
+    for (let i = 0; i < str.length; ++i) {
+        bytes[i] = str.charCodeAt(i);
+    }
+    return bytes;
 }

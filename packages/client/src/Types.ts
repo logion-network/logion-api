@@ -69,9 +69,9 @@ export class LegalOfficerClass implements LegalOfficer {
     readonly name: string;
     readonly nodeId: string;
     readonly region: Region;
+    readonly token: string | undefined;
 
     private axiosFactory: AxiosFactory;
-    private token: string | undefined;
     private config: BackendConfig | undefined;
 
     buildAxiosToNode(): AxiosInstance {
