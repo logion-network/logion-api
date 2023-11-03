@@ -1,51 +1,6 @@
-import { Hash as Hasher } from 'fast-sha256';
-import { FileLike, UploadableData } from "./ComponentFactory.js";
 import { Hash } from "@logion/node-api";
 import { requireDefined } from './assertions.js';
-
-export interface HashAndSize {
-    hash: Hash;
-    size: bigint;
-}
-
-export async function hashBlob(file: Blob): Promise<HashAndSize> {
-    const unknownStream: any = file.stream(); // eslint-disable-line @typescript-eslint/no-explicit-any
-    const reader = unknownStream.getReader();
-    const digest = new Hasher();
-    let size = 0n;
-    let chunk: {done: boolean, value: Buffer} = await reader.read();
-    while(!chunk.done) {
-        size = size + BigInt(chunk.value.length);
-        digest.update(chunk.value);
-        chunk = await reader.read();
-    }
-    return {
-        hash: Hash.fromDigest(digest),
-        size,
-    };
-}
-
-export function hashBuffer(buffer: Buffer): Hash {
-    const digest = new Hasher();
-    digest.update(buffer);
-    return Hash.fromDigest(digest);
-}
-
-export async function hashStream(stream: NodeJS.ReadableStream): Promise<HashAndSize> {
-    return new Promise<HashAndSize>((resolve, reject) => {
-        const digest = new Hasher();
-        let size = 0n;
-        stream.on("data", data => {
-            size = size + BigInt(data.length);
-            digest.update(data);
-        });
-        stream.on("end", () => resolve({
-            hash: Hash.fromDigest(digest),
-            size
-        }));
-        stream.on("error", reject);
-    });
-}
+import { File, HashAndSize } from "./ComponentFactory.js";
 
 const HASH_OF_EMPTY = Hash.of("");
 
@@ -61,17 +16,17 @@ export class HashOrContent {
         return new HashOrContent({ hash });
     }
 
-    static fromContent(content: FileLike): HashOrContent {
+    static fromContent(content: File): HashOrContent {
         return new HashOrContent({ content });
     }
 
-    static async fromContentFinalized(fileContent: FileLike): Promise<HashOrContent> {
+    static async fromContentFinalized(fileContent: File): Promise<HashOrContent> {
         const content = new HashOrContent({ content: fileContent });
         await content.finalize();
         return content;
     }
 
-    constructor(parameters: { hash?: Hash, content?: FileLike }) {
+    constructor(parameters: { hash?: Hash, content?: File }) {
         if(!parameters.hash && !parameters.content) {
             throw new Error("Either of hash or content must be defined");
         }
@@ -82,7 +37,7 @@ export class HashOrContent {
 
     private _hash?: Hash;
 
-    private _content?: FileLike;
+    private _content?: File;
 
     private finalized: boolean;
 
@@ -121,62 +76,16 @@ export class HashOrContent {
     }
 
     private async hashContent(): Promise<HashAndSize> {
-        if(isBlob(this._content)) {
-            return hashBlob(this._content as Blob);
-        } else if(isBuffer(this._content)) {
-            const buffer = this._content as Buffer;
-            return {
-                hash: hashBuffer(buffer),
-                size: BigInt(buffer.length)
-            };
-        } else if(typeof this._content === "string") {
-            return hashStream(await buildStream(this._content as string));
-        } else {
-            throw new Error(`Unsupported content type: ${ typeof this._content }`);
-        }
+        return this.content.getHashAndSize();
     }
 
     get content() {
-        if(!this._content) {
-            throw new Error("No content available");
-        }
-        this.ensureFinalized();
-        return requireDefined(this._content);
+        return requireDefined(this._content, () => new Error("No content available"));
     }
 
     get size() {
-        return requireDefined(this._size, () => Error("No content available to compute the size of"));
+        return requireDefined(this._size, () => new Error("No content available to compute the size of"));
     }
-
-    async data(): Promise<UploadableData> {
-        if(!this._content) {
-            throw new Error("No content available");
-        }
-        this.ensureFinalized();
-        if(typeof this._content === "string") {
-            return await buildStream(this._content as string);
-        } else {
-            return requireDefined(this._content);
-        }
-    }
-}
-
-function isBlob(obj: any): boolean { // eslint-disable-line @typescript-eslint/no-explicit-any
-    return obj
-        && obj.stream
-        && typeof obj.stream === 'function';
-}
-
-function isBuffer(obj: any): boolean { // eslint-disable-line @typescript-eslint/no-explicit-any
-    return obj
-        && obj.constructor
-        && typeof obj.constructor.isBuffer === 'function'
-        && obj.constructor.isBuffer(obj);
-}
-
-async function buildStream(path: string): Promise<NodeJS.ReadableStream> {
-    const fs = await import('fs');
-    return fs.createReadStream(path);
 }
 
 export class HashString {

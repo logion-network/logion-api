@@ -15,11 +15,14 @@ import {
     SuccessfulSubmission,
     LegalOfficerClass,
     Signer,
-    SignParameters
+    SignParameters,
+    FileUploader,
+    HashAndSize,
+    File
 } from "../src/index.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
 import { It, Mock } from "moq.ts";
-import { AccountType, AnyAccountId, LogionNodeApiClass, UUID, ValidAccountId } from "@logion/node-api";
+import { AccountType, AnyAccountId, Hash, LogionNodeApiClass, UUID, ValidAccountId } from "@logion/node-api";
 
 export const ALICE: LegalOfficer = {
     name: "Alice",
@@ -83,6 +86,7 @@ export function buildAliceAndBobTokens(api: LogionNodeApiClass, expirationDateTi
 export const LOGION_CLIENT_CONFIG: LogionClientConfig = {
     rpcEndpoints: [ "wss://rpc.logion.network" ],
     directoryEndpoint: DIRECTORY_ENDPOINT,
+    buildFileUploader: () => new Mock<FileUploader>().object(),
 }
 
 export function buildTestConfig(setupComponentFactory: (factory: TestConfigFactory) => void): LogionClientConfig {
@@ -249,3 +253,17 @@ export function mockSigner(args: {
     ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
     return signer;
 }
+
+export const MOCK_FILE_HASH = Hash.fromHex("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
+
+export class MockFile extends File {
+
+    async getHashAndSize(): Promise<HashAndSize> {
+        return {
+            hash: MOCK_FILE_HASH,
+            size: 4n,
+        }
+    }
+}
+
+export const MOCK_FILE = new MockFile();

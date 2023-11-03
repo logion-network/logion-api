@@ -4,7 +4,7 @@ import { LogionNodeApiClass, UUID, ValidAccountId } from "@logion/node-api";
 
 import { AccountTokens } from "./AuthenticationClient.js";
 import { BalanceState, getBalanceState } from "./Balance.js";
-import { ComponentFactory, DefaultComponentFactory } from "./ComponentFactory.js";
+import { ComponentFactory, buildComponentFactory } from "./ComponentFactory.js";
 import { DirectoryClient } from "./DirectoryClient.js";
 import { initMultiSourceHttpClientState, MultiSourceHttpClient, Token } from "./Http.js";
 import { getInitialState, ProtectionState } from "./Recovery.js";
@@ -374,16 +374,9 @@ export class LogionClient {
 }
 
 function getComponentFactory(config: LogionClientConfig): ComponentFactory {
-    let componentFactory: ComponentFactory;
     if("__componentFactory" in config) {
-        componentFactory = (config as any)["__componentFactory"]; // eslint-disable-line @typescript-eslint/no-explicit-any
+        return (config as any)["__componentFactory"]; // eslint-disable-line @typescript-eslint/no-explicit-any
     } else {
-        componentFactory = DefaultComponentFactory;
+        return buildComponentFactory(config.buildFileUploader);
     }
-
-    if(config.formDataLikeFactory !== undefined) {
-        componentFactory.buildFormData = config.formDataLikeFactory;
-    }
-
-    return componentFactory
 }

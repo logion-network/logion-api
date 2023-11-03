@@ -3,7 +3,7 @@ import { LogionNodeApiClass, ValidAccountId } from "@logion/node-api";
 import { AccountTokens } from "./AuthenticationClient.js";
 import { AxiosFactory } from "./AxiosFactory.js";
 import { findOrThrow } from "./Collections.js";
-import { ComponentFactory, FormDataLike } from "./ComponentFactory.js";
+import { ComponentFactory, FileUploader } from "./ComponentFactory.js";
 import { DirectoryClient } from "./DirectoryClient.js";
 import { Endpoint, Token } from "./Http.js";
 import { NetworkState } from "./NetworkState.js";
@@ -12,7 +12,7 @@ import { LegalOfficerClass } from "./Types.js";
 export interface LogionClientConfig {
     rpcEndpoints: string[];
     directoryEndpoint: string;
-    formDataLikeFactory?: () => FormDataLike;
+    buildFileUploader: () => FileUploader;
 }
 
 export interface LegalOfficerEndpoint extends Endpoint {

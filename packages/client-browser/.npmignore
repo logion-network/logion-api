@@ -1,0 +1,6 @@
+/test/**
+/src/**
+jasmine*.json
+tsconfig*.json
+.eslintrc.json
+typedoc.json

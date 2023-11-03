@@ -21,7 +21,8 @@ import {
     buildTestConfig,
     LOGION_CLIENT_CONFIG,
     buildValidPolkadotAccountId,
-    buildSimpleNodeApi
+    buildSimpleNodeApi,
+    MOCK_FILE
 } from './Utils.js';
 import { Hash, LogionNodeApiClass } from '@logion/node-api';
 
@@ -201,7 +202,7 @@ describe("ItemFileWithContent", () => {
         const item = new ItemFileWithContent({
             name: "test.txt",
             contentType: MimeType.from("text/plain"),
-            hashOrContent: HashOrContent.fromContent(Buffer.from("test")),
+            hashOrContent: HashOrContent.fromContent(MOCK_FILE),
         });
         await item.finalize();
         expect(item.size).toBe(4n);
@@ -211,7 +212,7 @@ describe("ItemFileWithContent", () => {
         const item = new ItemFileWithContent({
             name: "test.txt",
             contentType: MimeType.from("text/plain"),
-            hashOrContent: HashOrContent.fromContent(Buffer.from("test")),
+            hashOrContent: HashOrContent.fromContent(MOCK_FILE),
             size: 4n,
         });
         await item.finalize();
@@ -222,7 +223,7 @@ describe("ItemFileWithContent", () => {
         const item = new ItemFileWithContent({
             name: "test.txt",
             contentType: MimeType.from("text/plain"),
-            hashOrContent: HashOrContent.fromContent(Buffer.from("test")),
+            hashOrContent: HashOrContent.fromContent(MOCK_FILE),
             size: 5n,
         });
         await expectAsync(item.finalize()).toBeRejected();

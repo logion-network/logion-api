@@ -1,17 +1,17 @@
-import { CollectionItem, LogionNodeApiClass, UUID } from "@logion/node-api";
-import FormData from "form-data";
+import { LogionNodeApiClass } from "@logion/node-api";
 import { IMock, IPresetBuilder, It, Mock, Times } from "moq.ts";
 import { IExpression } from "moq.ts/lib/reflector/expression-reflector";
 import {
     AuthenticationClient,
     AxiosFactory,
     ComponentFactory,
-    DefaultComponentFactory,
     DirectoryClient,
     LogionClientConfig,
     LegalOfficer,
     LegalOfficerClass,
     requireDefined,
+    CoreComponentFactoryInstance,
+    FileUploader,
 } from "../src/index.js";
 import { buildValidAccountId, mockCodecWithToBigInt, mockCodecWithToHex } from "./Utils.js";
 
@@ -28,11 +28,11 @@ export class TestConfigFactory {
     }
 
     setupDefaultAxiosInstanceFactory() {
-        this._componentFactory.setup(instance => instance.buildAxiosFactory).returns(DefaultComponentFactory.buildAxiosFactory);
+        this._componentFactory.setup(instance => instance.buildAxiosFactory).returns(CoreComponentFactoryInstance.buildAxiosFactory);
     }
 
     setupDefaultNetworkState() {
-        this._componentFactory.setup(instance => instance.buildNetworkState).returns(DefaultComponentFactory.buildNetworkState);
+        this._componentFactory.setup(instance => instance.buildNetworkState).returns(CoreComponentFactoryInstance.buildNetworkState);
     }
 
     setupNodeApiMock(config: LogionClientConfig): Mock<LogionNodeApiClass> {
@@ -88,8 +88,11 @@ export class TestConfigFactory {
         return this._componentFactory.verify(expression, times);
     }
 
-    setupDefaultFormDataFactory() {
-        this._componentFactory.setup(instance => instance.buildFormData()).returns(new FormData());
+    setupFileUploaderMock(): Mock<FileUploader> {
+        const uploader = new Mock<FileUploader>();
+        uploader.setup(instance => instance.upload(It.IsAny())).returns(Promise.resolve());
+        this._componentFactory.setup(instance => instance.buildFileUploader()).returns(uploader.object());
+        return uploader;
     }
 
     buildLegalOfficerClasses(legalOfficers: LegalOfficer[]) {
