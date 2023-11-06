@@ -34,6 +34,8 @@ export async function verifiedIssuers() {
             true,
             0,
             null,
+            0,
+            0,
             api.adapters.emptyPalletLogionLocItemsParams(),
         ),
     );

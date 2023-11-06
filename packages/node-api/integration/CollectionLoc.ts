@@ -11,6 +11,8 @@ export async function createCollectionLocLimitedInSizeTest() {
         false,
         0,
         null,
+        0,
+        0,
         api.adapters.emptyPalletLogionLocItemsParams(),
     );
     await signAndSend(requester, createExtrinsic);
@@ -36,7 +38,7 @@ export async function closeCollectionLocTest() {
 
 export async function addCollectionItemTest() {
     const { api, requester } = await setup();
-    
+
     const item1Id = Hash.fromHex("0x5b2ef8140cfcf72237f2182b9f5eb05eb643a26f9a823e5e804d5543976a4fb9");
     const addItem1Extrinsic = api.polkadot.tx.logionLoc.addCollectionItem(
         api.adapters.toLocId(COLLECTION_LOC_ID),

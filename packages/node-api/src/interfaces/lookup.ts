@@ -575,7 +575,9 @@ export default {
       SponsorshipWithdrawn: '(u128,AccountId32,PalletLogionLocSupportedAccountId)',
       LegalFeeWithdrawn: '(AccountId32,LogionSharedBeneficiary,u128)',
       CertificateFeeWithdrawn: '(AccountId32,u128)',
-      ValueFeeWithdrawn: '(AccountId32,u128)'
+      ValueFeeWithdrawn: '(AccountId32,u128)',
+      CollectionItemFeeWithdrawn: '(AccountId32,u128,LogionSharedBeneficiary,u128)',
+      TokensRecordFeeWithdrawn: '(AccountId32,u128,LogionSharedBeneficiary,u128)'
     }
   },
   /**
@@ -601,7 +603,7 @@ export default {
    **/
   LogionSharedBeneficiary: {
     _enum: {
-      Treasury: 'Null',
+      Other: 'Null',
       LegalOfficer: 'AccountId32'
     }
   },
@@ -1412,6 +1414,8 @@ export default {
         collectionCanUpload: 'bool',
         valueFee: 'u128',
         legalFee: 'Option<u128>',
+        collectionItemFee: 'u128',
+        tokensRecordFee: 'u128',
         items: 'PalletLogionLocItemsParams',
       },
       add_metadata: {
@@ -1797,7 +1801,9 @@ export default {
     seal: 'Option<H256>',
     sponsorshipId: 'Option<u128>',
     valueFee: 'u128',
-    legalFee: 'Option<u128>'
+    legalFee: 'Option<u128>',
+    collectionItemFee: 'u128',
+    tokensRecordFee: 'u128'
   },
   /**
    * Lookup208: pallet_logion_loc::Requester<sp_core::crypto::AccountId32, LocId, primitive_types::H160>
@@ -1894,7 +1900,7 @@ export default {
    * Lookup227: pallet_logion_loc::pallet::StorageVersion
    **/
   PalletLogionLocStorageVersion: {
-    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize', 'V11EnableEthereumSubmitter', 'V12Sponsorship', 'V13AcknowledgeItems', 'V14HashLocPublicData', 'V15AddTokenIssuance', 'V16MoveTokenIssuance', 'V17HashItemRecordPublicData', 'V18AddValueFee', 'V19AcknowledgeItemsByIssuer', 'V20AddCustomLegalFee', 'V21EnableRequesterLinks']
+    _enum: ['V1', 'V2MakeLocVoid', 'V3RequesterEnum', 'V4ItemSubmitter', 'V5Collection', 'V6ItemUpload', 'V7ItemToken', 'V8AddSeal', 'V9TermsAndConditions', 'V10AddLocFileSize', 'V11EnableEthereumSubmitter', 'V12Sponsorship', 'V13AcknowledgeItems', 'V14HashLocPublicData', 'V15AddTokenIssuance', 'V16MoveTokenIssuance', 'V17HashItemRecordPublicData', 'V18AddValueFee', 'V19AcknowledgeItemsByIssuer', 'V20AddCustomLegalFee', 'V21EnableRequesterLinks', 'V22AddRecurrentFees']
   },
   /**
    * Lookup228: pallet_logion_loc::pallet::Error<T>
