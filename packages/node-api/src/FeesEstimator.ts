@@ -10,12 +10,16 @@ export class Fees {
         legalFee?: bigint,
         certificateFee?: bigint,
         valueFee?: bigint,
+        collectionItemFee?: bigint,
+        tokensRecordFee?: bigint,
     }) {
         this.inclusionFee = params.inclusionFee;
         this.storageFee = params.storageFee;
         this.legalFee = params.legalFee;
         this.certificateFee = params.certificateFee;
         this.valueFee = params.valueFee;
+        this.collectionItemFee = params.collectionItemFee;
+        this.tokensRecordFee = params.tokensRecordFee;
     }
 
     readonly inclusionFee: bigint;
@@ -23,6 +27,8 @@ export class Fees {
     readonly legalFee?: bigint;
     readonly certificateFee?: bigint;
     readonly valueFee?: bigint;
+    readonly collectionItemFee?: bigint;
+    readonly tokensRecordFee?: bigint;
 
     get totalFee(): bigint {
         return this.inclusionFee
@@ -30,6 +36,8 @@ export class Fees {
             + (this.legalFee || 0n)
             + (this.certificateFee || 0n)
             + (this.valueFee || 0n)
+            + (this.collectionItemFee || 0n)
+            + (this.tokensRecordFee || 0n)
         ;
     }
 }
@@ -108,16 +116,35 @@ export class FeesEstimator {
         numOfEntries: bigint,
         totSize: bigint,
         tokenIssuance: bigint | undefined,
+        collectionItemFee: bigint;
     }): Promise<Fees> {
-        const { origin, submittable, numOfEntries, totSize } = params;
+        const { origin, submittable, numOfEntries, totSize, collectionItemFee } = params;
         const tokenIssuance = params.tokenIssuance || 0n;
         const inclusionFee = await this.estimateInclusionFee(origin, submittable);
-        const storageFee = await this.estimateStorageFee({ numOfEntries, totSize })
-        const certificateFee = await this.estimateCertificateFee({ tokenIssuance })
+        const storageFee = await this.estimateStorageFee({ numOfEntries, totSize });
+        const certificateFee = await this.estimateCertificateFee({ tokenIssuance });
         return new Fees({
             inclusionFee,
             storageFee,
             certificateFee,
+            collectionItemFee,
+        });
+    }
+
+    async estimateAddTokensRecord(params: {
+        origin: string,
+        submittable: SubmittableExtrinsic,
+        numOfEntries: bigint,
+        totSize: bigint,
+        tokensRecordFee: bigint;
+    }): Promise<Fees> {
+        const { origin, submittable, numOfEntries, totSize, tokensRecordFee } = params;
+        const inclusionFee = await this.estimateInclusionFee(origin, submittable);
+        const storageFee = await this.estimateStorageFee({ numOfEntries, totSize });
+        return new Fees({
+            inclusionFee,
+            storageFee,
+            tokensRecordFee,
         });
     }
 
