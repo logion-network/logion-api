@@ -132,6 +132,8 @@ export interface LegalOfficerCaseOf extends Struct {
   readonly sponsorship_id: Option<SponsorshipId>;
   readonly value_fee: Balance;
   readonly legal_fee: Option<Balance>;
+  readonly collection_item_fee: Balance;
+  readonly tokens_record_fee: Balance;
 }
 
 /** @name LegalOfficerCaseSummary */
