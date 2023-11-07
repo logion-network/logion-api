@@ -107,6 +107,8 @@ export async function openCollectionLoc(state: State, linkedLoc1: UUID, linkedLo
         collectionCanUpload: false,
         collectionMaxSize: 200,
         valueFee: 13000n,
+        collectionItemFee: 7000n,
+        tokensRecordFee: 6000n,
         signer
     });
     checkCollectionData(openLoc.data(), items);
@@ -116,7 +118,9 @@ function checkCollectionData(data: LocData, items: ItemsParams) {
     expect(data.collectionCanUpload).toBeFalse();
     expect(data.collectionMaxSize).toEqual(200);
     expect(data.collectionLastBlockSubmission).toBeUndefined();
-    expect(data.valueFee).toEqual(13000n);
+    expect(data.fees.valueFee).toEqual(13000n);
+    expect(data.fees.collectionItemFee).toEqual(7000n);
+    expect(data.fees.tokensRecordFee).toEqual(6000n);
 
     checkData(data, items);
 }
@@ -125,7 +129,7 @@ function checkData(data: LocData, items: ItemsParams) {
     expect(data.status).toEqual("OPEN")
     const locType = data.locType;
     expect(data.description).toEqual(`Direct ${ locType }`)
-    expect(data.legalFee).toEqual(15n)
+    expect(data.fees.legalFee).toEqual(15n)
     expect(data.template).toEqual("a-template")
     expect(data.requesterLocId).toBeUndefined();
     expect(data.requesterAddress?.address).toEqual(DIRECT_REQUESTER_ADDRESS);

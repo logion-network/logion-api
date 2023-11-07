@@ -35,7 +35,6 @@ import {
     AckFileParams,
     ReviewMetadataParams,
     AckMetadataParams,
-    OpenCollectionLocParams,
     AddLinkParams,
     VoidParams,
     VerifiedIssuer,
@@ -55,6 +54,7 @@ import {
     ItemsParams,
     ItemLifecycle as BackendItemLifecycle,
     AutoPublish,
+    CollectionLimits,
 } from "./LocClient.js";
 import { SharedState, getLegalOfficer } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -98,8 +98,7 @@ export interface LocData extends LocVerifiedIssuers {
     voteId?: string;
     template?: string;
     sponsorshipId?: UUID;
-    valueFee?: bigint;
-    legalFee?: bigint;
+    fees: LocFees;
 }
 
 interface ItemLifecycle {
@@ -138,6 +137,13 @@ export interface MergedMetadataItem extends ItemLifecycle {
     value: HashString;
     fees?: Fees;
     submitter: ValidAccountId;
+}
+
+export interface LocFees {
+    valueFee?: bigint;
+    legalFee?: bigint;
+    collectionItemFee?: bigint;
+    tokensRecordFee?: bigint;    
 }
 
 export class LocsState extends State {
@@ -332,8 +338,12 @@ export class LocsState extends State {
             draft,
             template,
             sponsorshipId: sponsorshipId?.toString(),
-            valueFee: params.valueFee?.toString(),
-            legalFee: params.legalFee?.toString(),
+            fees: {
+                legalFee: params.legalFee?.toString(),
+                valueFee: params.valueFee?.toString(),
+                collectionItemFee: params.collectionItemFee?.toString(),
+                tokensRecordFee: params.tokensRecordFee?.toString(),
+            }
         });
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
         if(draft) {
@@ -386,8 +396,12 @@ export class LocsState extends State {
             userPostalAddress,
             company,
             template,
-            valueFee: params.valueFee?.toString(),
-            legalFee: params.legalFee?.toString(),
+            fees: {
+                legalFee: params.legalFee?.toString(),
+                valueFee: params.valueFee?.toString(),
+                collectionItemFee: params.collectionItemFee?.toString(),
+                tokensRecordFee: params.tokensRecordFee?.toString(),
+            },
             metadata,
             links: links.map(link => ({
                 target: link.target.toString(),
@@ -422,6 +436,8 @@ export class LocsState extends State {
                 collectionLastBlockSubmission: params.collectionLastBlockSubmission,
                 collectionMaxSize: params.collectionMaxSize,
                 valueFee: requireDefined(params.valueFee),
+                collectionItemFee: requireDefined(params.collectionItemFee),
+                tokensRecordFee: requireDefined(params.tokensRecordFee),
                 ...params, locId,
                 autoPublish: false,
             }, false);
@@ -598,7 +614,11 @@ export class LegalOfficerLocsStateCommands {
             userPostalAddress,
             company,
             template,
-            valueFee: "0",
+            fees: {
+                valueFee: "0",
+                collectionItemFee: "0",
+                tokensRecordFee: "0",
+            }
         });
 
         const locId = new UUID(request.id);
@@ -676,8 +696,9 @@ export interface CreateCollectionLocParams extends CreateLocParams, EstimateFees
 
 export interface CreateCollectionLocRequestParams extends CreateLocRequestParams {
     valueFee: bigint;
+    collectionItemFee: bigint;
+    tokensRecordFee: bigint;
 }
-
 
 interface CreateAnyLocParams extends CreateLocParams, Partial<HasIdentity>, Partial<EstimateFeesOpenCollectionLocParams> {
     locType: LocType;
@@ -855,8 +876,12 @@ export abstract class LocRequestState extends State {
             links: request.links.map(item => LocRequestState.mergeLink(api, item)),
             voteId: request.voteId ? request.voteId : undefined,
             sponsorshipId: request.sponsorshipId ? new UUID(request.sponsorshipId) : undefined,
-            valueFee: request.valueFee !== undefined ? BigInt(request.valueFee) : undefined,
-            legalFee: request.legalFee !== undefined ? BigInt(request.legalFee) : undefined,
+            fees: {
+                valueFee: request.fees?.valueFee !== undefined ? BigInt(request.fees.valueFee) : undefined,
+                legalFee: request.fees?.legalFee !== undefined ? BigInt(request.fees.legalFee) : undefined,
+                collectionItemFee: request.fees?.collectionItemFee !== undefined ? BigInt(request.fees.collectionItemFee) : undefined,
+                tokensRecordFee: request.fees?.tokensRecordFee !== undefined ? BigInt(request.fees.tokensRecordFee) : undefined,
+            }
         };
     }
 
@@ -883,6 +908,12 @@ export abstract class LocRequestState extends State {
             iDenfy: request.iDenfy,
             voteId: request.voteId ? request.voteId : undefined,
             template: request.template,
+            fees: {
+                valueFee: loc.valueFee,
+                legalFee: loc.legalFee,
+                collectionItemFee: loc.collectionItemFee,
+                tokensRecordFee: loc.tokensRecordFee,
+            }
         };
 
         if(data.voidInfo && request.voidInfo) {
@@ -1430,7 +1461,7 @@ export class AcceptedRequest extends ReviewedRequest {
         return {
             locId: this.locId,
             legalOfficerAddress: this.owner.address,
-            legalFee: this.request.legalFee !== undefined ? BigInt(this.request.legalFee) : undefined,
+            legalFee: this.request.fees?.legalFee !== undefined ? BigInt(this.request.fees?.legalFee) : undefined,
             metadata: this.toAddMetadataParams(autoPublish),
             files: this.toAddFileParams(autoPublish),
             links: this.toAddLinkParams(autoPublish),
@@ -1483,7 +1514,7 @@ export class AcceptedRequest extends ReviewedRequest {
         }
     }
 
-    async openCollection(parameters: OpenCollectionLocParams & AutoPublish): Promise<OpenLoc> {
+    async openCollection(parameters: CollectionLimits & BlockchainSubmissionParams & AutoPublish): Promise<OpenLoc> {
         const { autoPublish } = parameters;
         await this.locSharedState.client.openCollectionLoc({
             ...this.checkOpenCollectionParams(autoPublish),
@@ -1492,21 +1523,32 @@ export class AcceptedRequest extends ReviewedRequest {
         return await this.refresh() as OpenLoc;
     }
 
-    private checkOpenCollectionParams(autoPublish: boolean): OpenPolkadotLocParams & { valueFee: bigint } & AutoPublish {
+    private checkOpenCollectionParams(autoPublish: boolean): OpenPolkadotLocParams & { valueFee: bigint, collectionItemFee: bigint, tokensRecordFee: bigint } & AutoPublish {
         const requesterAddress = this.request.requesterAddress;
         if (requesterAddress === undefined || requesterAddress?.type !== "Polkadot") {
             throw Error("Only Polkadot requester can open, or estimate fees of, a Collection LOC");
         }
-        const valueFee = this.request.valueFee;
+        const legalFee = this.request.fees?.legalFee;
+        const valueFee = this.request.fees?.valueFee;
         if(!valueFee) {
             throw new Error("Missing value fee");
+        }
+        const collectionItemFee = this.request.fees?.collectionItemFee;
+        if(!collectionItemFee) {
+            throw new Error("Missing collection item fee");
+        }
+        const tokensRecordFee = this.request.fees?.tokensRecordFee;
+        if(!tokensRecordFee) {
+            throw new Error("Missing tokens record fee");
         }
         if (this.request.locType === "Collection") {
             return {
                 locId: this.locId,
                 legalOfficerAddress: this.owner.address,
                 valueFee: BigInt(valueFee),
-                legalFee: this.request.legalFee !== undefined ? BigInt(this.request.legalFee) : undefined,
+                collectionItemFee: BigInt(collectionItemFee),
+                tokensRecordFee: BigInt(tokensRecordFee),
+                legalFee: legalFee !== undefined ? BigInt(legalFee) : undefined,
                 metadata: this.toAddMetadataParams(autoPublish),
                 files: this.toAddFileParams(autoPublish),
                 links: this.toAddLinkParams(autoPublish),

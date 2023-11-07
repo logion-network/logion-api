@@ -1,24 +1,31 @@
-import { UUID, Adapters, Hash } from "../src/index.js";
+import { UUID, Hash } from "../src/index.js";
 import { setup, signAndSend, ALICE } from "./Util.js";
 
 export async function createCollectionLocLimitedInSizeTest() {
     const { api, requester } = await setup();
+    const collectionMaxSize = 100;
+    const valueFee = 100n;
+    const collectionItemFee = 50n;
+    const tokensRecordFee = 30n;
     const createExtrinsic = api.polkadot.tx.logionLoc.createCollectionLoc(
         api.adapters.toLocId(COLLECTION_LOC_ID),
         ALICE,
         null,
-        100,
+        collectionMaxSize,
         false,
-        0,
+        valueFee,
         null,
-        0,
-        0,
+        collectionItemFee,
+        tokensRecordFee,
         api.adapters.emptyPalletLogionLocItemsParams(),
     );
     await signAndSend(requester, createExtrinsic);
     const loc = await api.queries.getLegalOfficerCase(COLLECTION_LOC_ID);
     expect(loc?.locType).toBe("Collection");
-    expect(loc?.collectionMaxSize).toBe(100);
+    expect(loc?.collectionMaxSize).toBe(collectionMaxSize);
+    expect(loc?.valueFee).toBe(valueFee);
+    expect(loc?.collectionItemFee).toBe(collectionItemFee);
+    expect(loc?.tokensRecordFee).toBe(tokensRecordFee);
 
     const map = await api.batch.locs([ COLLECTION_LOC_ID ]).getLocs();
     expect(map[COLLECTION_LOC_ID.toDecimalString()]).toBeDefined();

@@ -247,6 +247,12 @@ function mockPolkadotApiForLogionLoc() {
                         valueFee: {
                             toBigInt: () => DEFAULT_LOC.valueFee,
                         },
+                        collectionItemFee: {
+                            toBigInt: () => DEFAULT_LOC.collectionItemFee,
+                        },
+                        tokensRecordFee: {
+                            toBigInt: () => DEFAULT_LOC.tokensRecordFee,
+                        },
                         legalFee: {
                             isSome: true,
                             unwrap: () => ({ toBigInt: () => DEFAULT_LOC.valueFee }),
@@ -316,6 +322,8 @@ export const DEFAULT_LOC: LegalOfficerCase = {
     collectionCanUpload: false,
     seal: "0x917ec227fc39f3eba7dc3546d714f4146bcbeb496a909316723ada32008de3c8",
     valueFee: 0n,
+    collectionItemFee: 0n,
+    tokensRecordFee: 0n,
     legalFee: 2000n,
 }
 
