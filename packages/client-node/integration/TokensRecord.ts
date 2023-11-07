@@ -15,13 +15,14 @@ export async function tokensRecords(state: State) {
     const { client, alice, aliceAccount, newAccount, issuerAccount, signer } = state;
 
     const userClient = state.client.withCurrentAddress(newAccount);
+    const tokensRecordFee = 50n;
     let collectionLoc: LocRequestState = await (await userClient.locsState()).requestCollectionLoc({
         legalOfficerAddress: alice.address,
         description: "Some LOC with records",
         draft: false,
         valueFee: 100n,
         collectionItemFee: 50n,
-        tokensRecordFee: 50n,
+        tokensRecordFee,
     });
     const collectionLocId = collectionLoc.locId;
     const aliceClient = client.withCurrentAddress(aliceAccount);
@@ -43,6 +44,18 @@ export async function tokensRecords(state: State) {
 
     const recordId = Hash.of("record-id");
     const recordDescription = "Some tokens record";
+    const estimatedFees = await closedCollectionLoc.estimateFeesAddTokensRecord({
+        recordId,
+        description: recordDescription,
+        files: [
+            new ItemFileWithContent({
+                name: "report.txt",
+                contentType: MimeType.from("text/plain"),
+                hashOrContent: HashOrContent.fromContent(new NodeFile("integration/test.txt")),
+            })
+        ],
+    });
+    expect(estimatedFees.tokensRecordFee).toBe(tokensRecordFee);
     closedCollectionLoc = await closedCollectionLoc.addTokensRecord({
         recordId,
         description: recordDescription,

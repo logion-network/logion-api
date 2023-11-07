@@ -55,6 +55,7 @@ import {
     ItemLifecycle as BackendItemLifecycle,
     AutoPublish,
     CollectionLimits,
+    EstimateFeesAddTokensRecordParams,
 } from "./LocClient.js";
 import { SharedState, getLegalOfficer } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -2239,9 +2240,14 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
 
     async estimateFeesAddCollectionItem(parameters: EstimateFeesAddCollectionItemParams): Promise<FeesClass> {
         const client = this.locSharedState.client;
+        const collectionItemFee = this.data().fees.collectionItemFee;
+        if(collectionItemFee === undefined) {
+            throw new Error("Collection item fee not set");
+        }
         return client.estimateFeesAddCollectionItem({
             locId: this.locId,
-            ...parameters
+            collectionItemFee,
+            ...parameters,
         })
     }
 
@@ -2268,6 +2274,19 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
             ...parameters
         })
         return this.getCurrentStateOrThrow() as ClosedCollectionLoc;
+    }
+
+    async estimateFeesAddTokensRecord(parameters: EstimateFeesAddTokensRecordParams): Promise<FeesClass> {
+        const client = this.locSharedState.client;
+        const tokensRecordFee = this.data().fees.tokensRecordFee;
+        if(tokensRecordFee === undefined) {
+            throw new Error("Collection item fee not set");
+        }
+        return client.estimateFeesAddTokensRecord({
+            locId: this.locId,
+            tokensRecordFee,
+            ...parameters,
+        })
     }
 
     async uploadTokensRecordFile(parameters: UploadTokensRecordFileParams): Promise<ClosedCollectionLoc> {

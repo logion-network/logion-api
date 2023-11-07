@@ -340,12 +340,13 @@ export async function collectionLoc(state: State) {
 
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, newAccount.address);
 
+    const collectionItemFee = 50n;
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficerAddress: alice.address,
         description: "This is a Collection LOC",
         draft: false,
         valueFee: 100n,
-        collectionItemFee: 50n,
+        collectionItemFee,
         tokensRecordFee: 50n,
         legalFee: 0n,
     });
@@ -387,6 +388,11 @@ export async function collectionLoc(state: State) {
 
     const itemId = Hash.of("first-collection-item");
     const itemDescription = "First collection item";
+    const estimatedFees = await closedLoc.estimateFeesAddCollectionItem({
+        itemId,
+        itemDescription,
+    });
+    expect(estimatedFees.collectionItemFee).toBe(collectionItemFee);
     closedLoc = await closedLoc.addCollectionItem({
         itemId,
         itemDescription,

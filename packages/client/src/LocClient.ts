@@ -332,7 +332,11 @@ export interface VerifiedIssuerIdentity {
     selected?: boolean;
 }
 
-export interface AddTokensRecordParams extends  BlockchainSubmissionParams {
+export interface AddTokensRecordParams extends EstimateFeesAddTokensRecordParams, BlockchainSubmissionParams {
+    
+}
+
+export interface EstimateFeesAddTokensRecordParams {
     recordId: Hash,
     description: string,
     files: ItemFileWithContent[],
@@ -949,8 +953,7 @@ export class AuthenticatedLocClient extends LocClient {
         } = parameters;
 
         const termsAndConditions = this.termsAndConditions(parameters);
-
-        const submittable = await this.addCollectionItemSubmittable(parameters, termsAndConditions);
+        const submittable = await this.addCollectionItemSubmittable(parameters, termsAndConditions); // finalizes files
 
         await this.submitItemPublicData(locId, {
             itemId: itemId.toHex(),
@@ -1054,12 +1057,12 @@ export class AuthenticatedLocClient extends LocClient {
         );
     }
 
-    async estimateFeesAddCollectionItem(parameters: EstimateFeesAddCollectionItemParams & FetchParameters): Promise<FeesClass> {
-        const { itemFiles, itemToken, } = parameters;
+    async estimateFeesAddCollectionItem(parameters: EstimateFeesAddCollectionItemParams & FetchParameters & { collectionItemFee: bigint }): Promise<FeesClass> {
+        const { itemFiles, itemToken, collectionItemFee } = parameters;
         const termsAndConditions = this.termsAndConditions(parameters);
         const submittable = await this.addCollectionItemSubmittable(parameters, termsAndConditions);
         const numOfEntries = itemFiles ? BigInt(itemFiles.length) : 0n;
-        const totSize = itemFiles ? BigInt(itemFiles.length) : 0n;
+        const totSize = itemFiles ? itemFiles.map(file => file.size).reduce((cur, prev) => cur + prev, 0n) : 0n;
         const tokenIssuance = itemToken?.issuance;
         return await this.nodeApi.fees.estimateAddCollectionItem({
             origin: this.currentAddress?.address || "",
@@ -1067,6 +1070,7 @@ export class AuthenticatedLocClient extends LocClient {
             numOfEntries,
             totSize,
             tokenIssuance,
+            collectionItemFee,
         })
     }
 
@@ -1258,18 +1262,7 @@ export class AuthenticatedLocClient extends LocClient {
             files,
         } = parameters;
 
-        const chainItemFiles: TypesTokensRecordFile[] = [];
-        for(const itemFile of files) {
-            await itemFile.finalize(); // Ensure hash and size
-        }
-        for(const itemFile of files) {
-            chainItemFiles.push({
-                name: Hash.of(itemFile.name),
-                contentType: Hash.of(itemFile.contentType.mimeType),
-                hash: itemFile.hashOrContent.contentHash,
-                size: itemFile.size.toString(),
-            });
-        }
+        const submittable = await this.addTokensRecordSubmittable(parameters); // finalizes files
 
         await this.submitRecordPublicData(locId, {
             recordId: recordId.toHex(),
@@ -1281,12 +1274,6 @@ export class AuthenticatedLocClient extends LocClient {
             description,
         });
 
-        const submittable = this.nodeApi.polkadot.tx.logionLoc.addTokensRecord(
-            this.nodeApi.adapters.toLocId(locId),
-            this.nodeApi.adapters.toH256(recordId),
-            this.nodeApi.adapters.toH256(Hash.of(description)),
-            this.nodeApi.adapters.newTokensRecordFileVec(chainItemFiles),
-        );
         try {
             await signer.signAndSend({
                 signerId: this.currentAddress.address,
@@ -1303,6 +1290,35 @@ export class AuthenticatedLocClient extends LocClient {
                 await this.uploadTokensRecordFile({ locId, recordId, file });
             }
         }
+    }
+
+    private async addTokensRecordSubmittable(parameters: EstimateFeesAddTokensRecordParams & FetchParameters) {
+        const {
+            recordId,
+            description,
+            locId,
+            files,
+        } = parameters;
+
+        const chainItemFiles: TypesTokensRecordFile[] = [];
+        for(const itemFile of files) {
+            await itemFile.finalize(); // Ensure hash and size
+        }
+        for(const itemFile of files) {
+            chainItemFiles.push({
+                name: Hash.of(itemFile.name),
+                contentType: Hash.of(itemFile.contentType.mimeType),
+                hash: itemFile.hashOrContent.contentHash,
+                size: itemFile.size.toString(),
+            });
+        }
+
+        return this.nodeApi.polkadot.tx.logionLoc.addTokensRecord(
+            this.nodeApi.adapters.toLocId(locId),
+            this.nodeApi.adapters.toH256(recordId),
+            this.nodeApi.adapters.toH256(Hash.of(description)),
+            this.nodeApi.adapters.newTokensRecordFileVec(chainItemFiles),
+        );
     }
 
     private async submitRecordPublicData(locId: UUID, record: CreateOffchainTokensRecord) {
@@ -1322,6 +1338,20 @@ export class AuthenticatedLocClient extends LocClient {
         } catch(e) {
             throw newBackendError(e);
         }
+    }
+
+    async estimateFeesAddTokensRecord(parameters: EstimateFeesAddTokensRecordParams & FetchParameters & { tokensRecordFee: bigint }): Promise<FeesClass> {
+        const { files, tokensRecordFee } = parameters;
+        const submittable = await this.addTokensRecordSubmittable(parameters);
+        const numOfEntries = files ? BigInt(files.length) : 0n;
+        const totSize = files ? files.map(file => file.size).reduce((cur, prev) => cur + prev, 0n) : 0n;
+        return await this.nodeApi.fees.estimateAddTokensRecord({
+            origin: this.currentAddress?.address || "",
+            submittable,
+            numOfEntries,
+            totSize,
+            tokensRecordFee,
+        })
     }
 
     async uploadTokensRecordFile(parameters: { locId: UUID, recordId: Hash, file: ItemFileWithContent }) {
