@@ -165,14 +165,13 @@ describe("FeesEstimator", () => {
             submittable: submittable.object(),
             numOfEntries: 5n,
             totSize: 5n,
-            tokenIssuance: 5n,
             tokensRecordFee: expectedTokensRecord,
         });
 
         expect(fees.inclusionFee).toBe(expectedInclusionFee);
         expect(fees.storageFee).toBe(expectedStorageFee);
         expect(fees.legalFee).toBeUndefined();
-        expect(fees.certificateFee).toBe(expectedCertificateFee);
+        expect(fees.certificateFee).toBeUndefined();
         expect(fees.valueFee).toBeUndefined();
         expect(fees.tokensRecordFee).toBe(expectedTokensRecord);
         expect(fees.collectionItemFee).toBeUndefined();
