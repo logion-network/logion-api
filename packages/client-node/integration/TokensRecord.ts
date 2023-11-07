@@ -20,6 +20,8 @@ export async function tokensRecords(state: State) {
         description: "Some LOC with records",
         draft: false,
         valueFee: 100n,
+        collectionItemFee: 50n,
+        tokensRecordFee: 50n,
     });
     const collectionLocId = collectionLoc.locId;
     const aliceClient = client.withCurrentAddress(aliceAccount);

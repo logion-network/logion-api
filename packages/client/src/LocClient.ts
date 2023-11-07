@@ -149,8 +149,7 @@ export interface LocRequest {
     selectedIssuers: VerifiedIssuerIdentity[];
     template?: string;
     sponsorshipId?: string;
-    valueFee?: string;
-    legalFee?: string;
+    fees?: BackendLocFees;
 }
 
 export interface IdenfyVerificationSession {
@@ -279,8 +278,14 @@ export interface BaseLoc {
     userPostalAddress?: PostalAddress;
     company?: string;
     template?: string;
+    fees?: BackendLocFees;
+}
+
+export interface BackendLocFees {
     valueFee?: string;
     legalFee?: string;
+    collectionItemFee?: string;
+    tokensRecordFee?: string;
 }
 
 export interface ItemsParams {
@@ -2027,7 +2032,7 @@ export class AuthenticatedLocClient extends LocClient {
         await this.acceptLoc(parameters);
     }
 
-    async openCollectionLoc(parameters: { valueFee: bigint } & OpenPolkadotLocParams & OpenCollectionLocParams & AutoPublish, requirePreOpen = true) {
+    async openCollectionLoc(parameters: OpenPolkadotLocParams & OpenCollectionLocParams & AutoPublish, requirePreOpen = true) {
         const { locId, signer, callback, autoPublish } = parameters;
 
         const fees = await this.estimateFeesOpenCollectionLoc(parameters);
@@ -2049,10 +2054,8 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    private openCollectionLocSubmittable(parameters: { valueFee: bigint } & OpenPolkadotLocParams & EstimateFeesOpenCollectionLocParams): SubmittableExtrinsic {
-        const { locId, legalOfficerAddress, metadata, files, links } = parameters
-        const collectionItemFee = 0; // TODO pass user-supplied value
-        const tokensRecordFee = 0; // TODO pass user-supplied value
+    private openCollectionLocSubmittable(parameters: OpenPolkadotLocParams & EstimateFeesOpenCollectionLocParams): SubmittableExtrinsic {
+        const { locId, legalOfficerAddress, metadata, files, links, collectionItemFee, tokensRecordFee } = parameters;
         return this.nodeApi.polkadot.tx.logionLoc.createCollectionLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficerAddress,
@@ -2306,11 +2309,16 @@ export interface OpenPolkadotLocParams {
     links: AddLinkParams[],
 }
 
-export interface EstimateFeesOpenCollectionLocParams {
+export interface CollectionLimits {
     collectionLastBlockSubmission?: bigint;
     collectionMaxSize?: number;
     collectionCanUpload: boolean;
-    valueFee?: bigint;
+}
+
+export interface EstimateFeesOpenCollectionLocParams extends CollectionLimits {
+    valueFee: bigint;
+    collectionItemFee: bigint;
+    tokensRecordFee: bigint;
 }
 
 export interface OpenCollectionLocParams extends EstimateFeesOpenCollectionLocParams, BlockchainSubmissionParams {

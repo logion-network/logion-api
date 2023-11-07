@@ -40,7 +40,7 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID): Pro
     locsState = draftRequest.locsState();
     checkData(locsState.draftRequests["Transaction"][0].data(), "DRAFT");
     checkData(draftRequest.data(), "DRAFT");
-    expect(draftRequest.data().legalFee).toBeUndefined();
+    expect(draftRequest.data().fees.legalFee).toBeUndefined();
 
     // Add Metadata
     const metadataName = "Some name";
@@ -215,7 +215,7 @@ export async function openTransactionLocWithAutoPublish(state: State, linkTarget
     locsState = draftRequest.locsState();
     checkData(locsState.draftRequests["Transaction"][0].data(), "DRAFT");
     checkData(draftRequest.data(), "DRAFT");
-    expect(draftRequest.data().legalFee).toBeUndefined();
+    expect(draftRequest.data().fees.legalFee).toBeUndefined();
 
     // Add Metadata
     const metadataName = "Some name";
@@ -318,7 +318,7 @@ export async function transactionLocWithCustomLegalFee(state: State) {
     }) as DraftRequest;
 
     expect(draftRequest).toBeInstanceOf(DraftRequest);
-    expect(draftRequest.data().legalFee).toBe(0n);
+    expect(draftRequest.data().fees.legalFee).toBe(0n);
 
     // Open LOC
     let pendingRequest = await draftRequest.submit();
@@ -329,7 +329,7 @@ export async function transactionLocWithCustomLegalFee(state: State) {
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
     let openLoc = await acceptedLoc.open({ signer, autoPublish: false });
 
-    expect(openLoc.data().legalFee).toBe(0n);
+    expect(openLoc.data().fees.legalFee).toBe(0n);
 }
 
 export async function collectionLoc(state: State) {
@@ -345,10 +345,14 @@ export async function collectionLoc(state: State) {
         description: "This is a Collection LOC",
         draft: false,
         valueFee: 100n,
+        collectionItemFee: 50n,
+        tokensRecordFee: 50n,
         legalFee: 0n,
     });
-    expect(pendingRequest.data().valueFee).toBe(100n);
-    expect(pendingRequest.data().legalFee).toBe(0n);
+    expect(pendingRequest.data().fees.valueFee).toBe(100n);
+    expect(pendingRequest.data().fees.collectionItemFee).toBe(50n);
+    expect(pendingRequest.data().fees.tokensRecordFee).toBe(50n);
+    expect(pendingRequest.data().fees.legalFee).toBe(0n);
 
     locsState = pendingRequest.locsState();
     expect(locsState.pendingRequests["Collection"][0].data().status).toBe("REVIEW_PENDING");
@@ -363,9 +367,16 @@ export async function collectionLoc(state: State) {
     locsState = acceptedLoc.locsState();
     expect(locsState.acceptedRequests["Collection"][0].data().status).toBe("REVIEW_ACCEPTED");
 
-    let openLoc = await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer, autoPublish: false });
-    expect(openLoc.data().valueFee).toBe(100n);
-    expect(openLoc.data().legalFee).toBe(0n);
+    let openLoc = await acceptedLoc.openCollection({
+        collectionMaxSize: 100,
+        collectionCanUpload: true,
+        autoPublish: false,
+        signer,
+    });
+    expect(openLoc.data().fees.valueFee).toBe(100n);
+    expect(openLoc.data().fees.collectionItemFee).toBe(50n);
+    expect(openLoc.data().fees.tokensRecordFee).toBe(50n);
+    expect(openLoc.data().fees.legalFee).toBe(0n);
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
 
     let aliceClosedLoc = await aliceOpenLoc.legalOfficer.close({ signer, autoAck: false });
@@ -438,13 +449,20 @@ export async function collectionLocWithUpload(state: State) {
         description: "This is a Collection LOC with upload",
         draft: false,
         valueFee: 100n,
+        collectionItemFee: 50n,
+        tokensRecordFee: 50n,
     });
 
     let alicePendingRequest = await findWithLegalOfficerClient(aliceClient, pendingRequest) as PendingRequest;
     let aliceAcceptedLoc = await alicePendingRequest.legalOfficer.accept();
 
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
-    let openLoc = await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer, autoPublish: false });
+    let openLoc = await acceptedLoc.openCollection({
+        collectionMaxSize: 100,
+        collectionCanUpload: true,
+        autoPublish: false,
+        signer,
+    });
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
 
     await aliceOpenLoc.legalOfficer.close({ signer, autoAck: false });

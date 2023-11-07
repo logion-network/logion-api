@@ -134,6 +134,8 @@ export class Adapters {
             sponsorshipId: rawLoc.sponsorshipId.isSome ? this.fromSponsorshipId(rawLoc.sponsorshipId.unwrap()) : undefined,
             valueFee: rawLoc.valueFee.toBigInt(),
             legalFee: rawLoc.legalFee.isSome ? rawLoc.legalFee.unwrap().toBigInt() : undefined,
+            collectionItemFee: rawLoc.collectionItemFee.toBigInt(),
+            tokensRecordFee: rawLoc.tokensRecordFee.toBigInt(),
         };
     }
 

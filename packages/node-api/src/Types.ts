@@ -65,6 +65,8 @@ export interface LegalOfficerCase {
     seal?: string;
     sponsorshipId?: UUID;
     valueFee: bigint;
+    collectionItemFee: bigint;
+    tokensRecordFee: bigint;
     legalFee?: bigint;
 }
 
