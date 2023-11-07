@@ -2051,6 +2051,8 @@ export class AuthenticatedLocClient extends LocClient {
 
     private openCollectionLocSubmittable(parameters: { valueFee: bigint } & OpenPolkadotLocParams & EstimateFeesOpenCollectionLocParams): SubmittableExtrinsic {
         const { locId, legalOfficerAddress, metadata, files, links } = parameters
+        const collectionItemFee = 0; // TODO pass user-supplied value
+        const tokensRecordFee = 0; // TODO pass user-supplied value
         return this.nodeApi.polkadot.tx.logionLoc.createCollectionLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficerAddress,
@@ -2059,6 +2061,8 @@ export class AuthenticatedLocClient extends LocClient {
             parameters.collectionCanUpload,
             parameters.valueFee,
             parameters.legalFee === undefined ? null : parameters.legalFee,
+            collectionItemFee,
+            tokensRecordFee,
             this.nodeApi.adapters.toPalletLogionLocItemsParams({
                 metadata: metadata.map(item => this.toMetadataItemParams(item)),
                 files: files.map(item => this.toFileParams(item)),

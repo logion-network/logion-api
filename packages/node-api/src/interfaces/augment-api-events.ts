@@ -253,6 +253,10 @@ declare module '@polkadot/api-base/types/events' {
        **/
       CertificateFeeWithdrawn: AugmentedEvent<ApiType, [AccountId32, u128]>;
       /**
+       * Issued when Collection Item Fee is withdrawn. [payerAccountId, fee, beneficiary, amountReceived]
+       **/
+      CollectionItemFeeWithdrawn: AugmentedEvent<ApiType, [AccountId32, u128, LogionSharedBeneficiary, u128]>;
+      /**
        * Issued when an item was added to a collection. [locId, collectionItemId]
        **/
       ItemAdded: AugmentedEvent<ApiType, [u128, H256]>;
@@ -284,6 +288,10 @@ declare module '@polkadot/api-base/types/events' {
        * Issued when File Storage Fee is withdrawn. [payerAccountId, storageFee]
        **/
       StorageFeeWithdrawn: AugmentedEvent<ApiType, [AccountId32, u128]>;
+      /**
+       * Issued when Token Record Fee is withdrawn. [payerAccountId, fee, beneficiary, amountReceived]
+       **/
+      TokensRecordFeeWithdrawn: AugmentedEvent<ApiType, [AccountId32, u128, LogionSharedBeneficiary, u128]>;
       /**
        * Issued when Value Fee is withdrawn. [payerAccountId, storageFee]
        **/

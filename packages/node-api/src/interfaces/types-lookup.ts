@@ -649,7 +649,11 @@ declare module '@polkadot/types/lookup' {
     readonly asCertificateFeeWithdrawn: ITuple<[AccountId32, u128]>;
     readonly isValueFeeWithdrawn: boolean;
     readonly asValueFeeWithdrawn: ITuple<[AccountId32, u128]>;
-    readonly type: 'LocCreated' | 'LocClosed' | 'LocVoid' | 'ItemAdded' | 'StorageFeeWithdrawn' | 'SponsorshipCreated' | 'SponsorshipWithdrawn' | 'LegalFeeWithdrawn' | 'CertificateFeeWithdrawn' | 'ValueFeeWithdrawn';
+    readonly isCollectionItemFeeWithdrawn: boolean;
+    readonly asCollectionItemFeeWithdrawn: ITuple<[AccountId32, u128, LogionSharedBeneficiary, u128]>;
+    readonly isTokensRecordFeeWithdrawn: boolean;
+    readonly asTokensRecordFeeWithdrawn: ITuple<[AccountId32, u128, LogionSharedBeneficiary, u128]>;
+    readonly type: 'LocCreated' | 'LocClosed' | 'LocVoid' | 'ItemAdded' | 'StorageFeeWithdrawn' | 'SponsorshipCreated' | 'SponsorshipWithdrawn' | 'LegalFeeWithdrawn' | 'CertificateFeeWithdrawn' | 'ValueFeeWithdrawn' | 'CollectionItemFeeWithdrawn' | 'TokensRecordFeeWithdrawn';
   }
 
   /** @name PalletLogionLocSupportedAccountId (56) */
@@ -671,10 +675,10 @@ declare module '@polkadot/types/lookup' {
 
   /** @name LogionSharedBeneficiary (60) */
   interface LogionSharedBeneficiary extends Enum {
-    readonly isTreasury: boolean;
+    readonly isOther: boolean;
     readonly isLegalOfficer: boolean;
     readonly asLegalOfficer: AccountId32;
-    readonly type: 'Treasury' | 'LegalOfficer';
+    readonly type: 'Other' | 'LegalOfficer';
   }
 
   /** @name PalletVerifiedRecoveryEvent (61) */
@@ -1545,6 +1549,8 @@ declare module '@polkadot/types/lookup' {
       readonly collectionCanUpload: bool;
       readonly valueFee: u128;
       readonly legalFee: Option<u128>;
+      readonly collectionItemFee: u128;
+      readonly tokensRecordFee: u128;
       readonly items: PalletLogionLocItemsParams;
     } & Struct;
     readonly isAddMetadata: boolean;
@@ -1985,6 +1991,8 @@ declare module '@polkadot/types/lookup' {
     readonly sponsorshipId: Option<u128>;
     readonly valueFee: u128;
     readonly legalFee: Option<u128>;
+    readonly collectionItemFee: u128;
+    readonly tokensRecordFee: u128;
   }
 
   /** @name PalletLogionLocRequester (208) */
@@ -2092,7 +2100,8 @@ declare module '@polkadot/types/lookup' {
     readonly isV19AcknowledgeItemsByIssuer: boolean;
     readonly isV20AddCustomLegalFee: boolean;
     readonly isV21EnableRequesterLinks: boolean;
-    readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance' | 'V16MoveTokenIssuance' | 'V17HashItemRecordPublicData' | 'V18AddValueFee' | 'V19AcknowledgeItemsByIssuer' | 'V20AddCustomLegalFee' | 'V21EnableRequesterLinks';
+    readonly isV22AddRecurrentFees: boolean;
+    readonly type: 'V1' | 'V2MakeLocVoid' | 'V3RequesterEnum' | 'V4ItemSubmitter' | 'V5Collection' | 'V6ItemUpload' | 'V7ItemToken' | 'V8AddSeal' | 'V9TermsAndConditions' | 'V10AddLocFileSize' | 'V11EnableEthereumSubmitter' | 'V12Sponsorship' | 'V13AcknowledgeItems' | 'V14HashLocPublicData' | 'V15AddTokenIssuance' | 'V16MoveTokenIssuance' | 'V17HashItemRecordPublicData' | 'V18AddValueFee' | 'V19AcknowledgeItemsByIssuer' | 'V20AddCustomLegalFee' | 'V21EnableRequesterLinks' | 'V22AddRecurrentFees';
   }
 
   /** @name PalletLogionLocError (228) */

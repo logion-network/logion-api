@@ -49,6 +49,8 @@ export default {
             sponsorship_id: "Option<SponsorshipId>",
             value_fee: "Balance",
             legal_fee: "Option<Balance>",
+            collection_item_fee: "Balance",
+            tokens_record_fee: "Balance",
         },
         MetadataItemParams: {
             name: "Hash",

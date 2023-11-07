@@ -248,13 +248,13 @@ export async function openTransactionLocWithAutoPublish(state: State, linkTarget
     draftRequest = await draftRequest.addFile({
         fileName: "test.txt",
         nature: "Some file nature",
-        file: HashOrContent.fromContent(new NodeFile("test0.txt")),
+        file: HashOrContent.fromContent(new NodeFile("integration/test0.txt")),
     }) as DraftRequest;
     const hash0 = draftRequest.data().files[0].hash;
     draftRequest = await draftRequest.addFile({
         fileName: "test.txt",
         nature: "Some file nature",
-        file: HashOrContent.fromContent(new NodeFile("test123.txt")),
+        file: HashOrContent.fromContent(new NodeFile("integration/test123.txt")),
     }) as DraftRequest;
     const hash1 = draftRequest.data().files[1].hash;
 
