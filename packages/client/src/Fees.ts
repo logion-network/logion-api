@@ -19,7 +19,7 @@ export interface Fees {
     /** @description Tokens record fee (if applicable) */
     tokensRecord?: string;
     /** @description Total fee */
-    total?: string;
+    total: string;
 }
 
 export function toFeesClass(fees: Fees | undefined): FeesClass | undefined {
