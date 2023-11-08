@@ -12,7 +12,13 @@ export interface Fees {
     legal?: string;
     /** @description Certificate fee (if applicable) */
     certificate?: string;
-    /** @description Total fee (inclusion + storage) */
+    /** @description Value fee (if applicable) */
+    value?: string;
+    /** @description Collection item fee (if applicable) */
+    collectionItem?: string;
+    /** @description Tokens record fee (if applicable) */
+    tokensRecord?: string;
+    /** @description Total fee */
     total: string;
 }
 
@@ -23,6 +29,9 @@ export function toFeesClass(fees: Fees | undefined): FeesClass | undefined {
             storageFee: fees.storage ? BigInt(fees.storage) : undefined,
             legalFee: fees.legal ? BigInt(fees.legal) : undefined,
             certificateFee: fees.certificate ? BigInt(fees.certificate) : undefined,
+            valueFee: fees.value ? BigInt(fees.value) : undefined,
+            collectionItemFee: fees.collectionItem ? BigInt(fees.collectionItem) : undefined,
+            tokensRecordFee: fees.tokensRecord ? BigInt(fees.tokensRecord) : undefined,
         });
     } else {
         return undefined;

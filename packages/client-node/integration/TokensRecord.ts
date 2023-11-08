@@ -6,7 +6,7 @@ import {
     LocRequestState,
     MimeType,
     PendingRequest,
-    AcceptedRequest, OpenLoc
+    AcceptedRequest, OpenLoc, waitFor, BalanceState
 } from "@logion/client";
 import { initRequesterBalance, State, TEST_LOGION_CLIENT_CONFIG, ISSUER_ADDRESS } from "./Utils.js";
 import { NodeFile } from "../src/index.js";
@@ -68,6 +68,14 @@ export async function tokensRecords(state: State) {
         ],
         signer: state.signer,
     });
+    await expectAsync(waitFor<BalanceState>({
+        producer: balanceState => balanceState ? balanceState.refresh() : userClient.balanceState(),
+        predicate: balanceState => balanceState.transactions.length > 0 && balanceState.transactions[0].fees.tokensRecord === tokensRecordFee.toString(),
+    })).toBeResolved();
+    await expectAsync(waitFor<BalanceState>({
+        producer: balanceState => balanceState ? balanceState.refresh() : aliceClient.balanceState(),
+        predicate: balanceState => balanceState.transactions.length > 0 && balanceState.transactions[0].type === "TOKENS_RECORD_FEE",
+    })).toBeResolved();
 
     const record = await closedCollectionLoc.getTokensRecord({ recordId });
     expect(record?.id).toEqual(recordId);
