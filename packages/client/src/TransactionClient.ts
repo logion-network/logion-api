@@ -12,7 +12,18 @@ interface FetchTransactionsSpecification {
 
 export type TransferDirection = "Sent" | "Received" | "None"
 
-export type TransactionType = "EXTRINSIC" | "VAULT_OUT" | "LEGAL_FEE" | "STORAGE_FEE" | "OTHER_FEES";
+// Must remain in sync with type in https://github.com/logion-network/logion-backend-ts/blob/main/src/logion/controllers/components.ts
+export type TransactionType = "EXTRINSIC"
+    | "VAULT_OUT"
+    | "LEGAL_FEE"
+    | "STORAGE_FEE"
+    | "CERTIFICATE_FEE"
+    | "OTHER_FEES"
+    | "VALUE_FEE"
+    | "RESERVE"
+    | "COLLECTION_ITEM_FEE"
+    | "TOKENS_RECORD_FEE"
+;
 
 export interface Transaction {
     id: string,

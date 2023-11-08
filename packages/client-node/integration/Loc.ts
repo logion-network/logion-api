@@ -17,7 +17,8 @@ import {
     waitFor,
     OnchainLocState,
     AcceptedRequest,
-    HashString
+    HashString,
+    BalanceState
 } from "@logion/client";
 
 import { State, TEST_LOGION_CLIENT_CONFIG, findWithLegalOfficerClient, initRequesterBalance } from "./Utils.js";
@@ -398,6 +399,14 @@ export async function collectionLoc(state: State) {
         itemDescription,
         signer: state.signer
     });
+    await expectAsync(waitFor<BalanceState>({
+        producer: balanceState => balanceState ? balanceState.refresh() : client.balanceState(),
+        predicate: balanceState => balanceState.transactions.length > 0 && balanceState.transactions[0].fees.collectionItem === collectionItemFee.toString(),
+    })).toBeResolved();
+    await expectAsync(waitFor<BalanceState>({
+        producer: balanceState => balanceState ? balanceState.refresh() : aliceClient.balanceState(),
+        predicate: balanceState => balanceState.transactions.length > 0 && balanceState.transactions[0].type === "COLLECTION_ITEM_FEE",
+    })).toBeResolved();
 
     const item = await closedLoc.getCollectionItem({ itemId });
     expect(item!.id).toBe(itemId);
