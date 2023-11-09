@@ -69,6 +69,7 @@ export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, 
         selectedIssuers: [],
         fees: {
             valueFee: "0",
+            legalFee: "0",
             collectionItemFee: "0",
             tokensRecordFee: "0",
         }
@@ -98,6 +99,7 @@ export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType
         voidInfo,
         collectionCanUpload: false,
         valueFee: locType === "Collection" ? 100n : 0n,
+        legalFee: locType === "Identity" ? 160n : 2000n,
         collectionItemFee: locType === "Collection" ? 50n : 0n,
         tokensRecordFee: locType === "Collection" ? 40n : 0n,
     };
