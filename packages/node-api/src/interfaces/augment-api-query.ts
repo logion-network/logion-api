@@ -119,6 +119,28 @@ declare module '@polkadot/api-base/types/storage' {
        **/
       [key: string]: QueryableStorageEntry<ApiType>;
     };
+    communityTreasury: {
+      /**
+       * Proposal indices that have been approved but not yet awarded.
+       **/
+      approvals: AugmentedQuery<ApiType, () => Observable<Vec<u32>>, []> & QueryableStorageEntry<ApiType, []>;
+      /**
+       * The amount which has been reported as inactive to Currency.
+       **/
+      deactivated: AugmentedQuery<ApiType, () => Observable<u128>, []> & QueryableStorageEntry<ApiType, []>;
+      /**
+       * Number of proposals that have been made.
+       **/
+      proposalCount: AugmentedQuery<ApiType, () => Observable<u32>, []> & QueryableStorageEntry<ApiType, []>;
+      /**
+       * Proposals that have been made.
+       **/
+      proposals: AugmentedQuery<ApiType, (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<PalletTreasuryProposal>>, [u32]> & QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * Generic query
+       **/
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
     grandpa: {
       /**
        * The number of changes (both in terms of keys and underlying economic responsibilities)
@@ -231,29 +253,33 @@ declare module '@polkadot/api-base/types/storage' {
        **/
       [key: string]: QueryableStorageEntry<ApiType>;
     };
-    multisig: {
+    logionTreasury: {
       /**
-       * The set of open multisig operations.
+       * Proposal indices that have been approved but not yet awarded.
        **/
-      multisigs: AugmentedQuery<ApiType, (arg1: AccountId32 | string | Uint8Array, arg2: U8aFixed | string | Uint8Array) => Observable<Option<PalletMultisigMultisig>>, [AccountId32, U8aFixed]> & QueryableStorageEntry<ApiType, [AccountId32, U8aFixed]>;
+      approvals: AugmentedQuery<ApiType, () => Observable<Vec<u32>>, []> & QueryableStorageEntry<ApiType, []>;
+      /**
+       * The amount which has been reported as inactive to Currency.
+       **/
+      deactivated: AugmentedQuery<ApiType, () => Observable<u128>, []> & QueryableStorageEntry<ApiType, []>;
+      /**
+       * Number of proposals that have been made.
+       **/
+      proposalCount: AugmentedQuery<ApiType, () => Observable<u32>, []> & QueryableStorageEntry<ApiType, []>;
+      /**
+       * Proposals that have been made.
+       **/
+      proposals: AugmentedQuery<ApiType, (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<PalletTreasuryProposal>>, [u32]> & QueryableStorageEntry<ApiType, [u32]>;
       /**
        * Generic query
        **/
       [key: string]: QueryableStorageEntry<ApiType>;
     };
-    nodeAuthorization: {
+    multisig: {
       /**
-       * The additional adapative connections of each node.
+       * The set of open multisig operations.
        **/
-      additionalConnections: AugmentedQuery<ApiType, (arg: OpaquePeerId | string | Uint8Array) => Observable<BTreeSet<OpaquePeerId>>, [OpaquePeerId]> & QueryableStorageEntry<ApiType, [OpaquePeerId]>;
-      /**
-       * A map that maintains the ownership of each node.
-       **/
-      owners: AugmentedQuery<ApiType, (arg: OpaquePeerId | string | Uint8Array) => Observable<Option<AccountId32>>, [OpaquePeerId]> & QueryableStorageEntry<ApiType, [OpaquePeerId]>;
-      /**
-       * The set of well known nodes. This is stored sorted (just by value).
-       **/
-      wellKnownNodes: AugmentedQuery<ApiType, () => Observable<BTreeSet<OpaquePeerId>>, []> & QueryableStorageEntry<ApiType, []>;
+      multisigs: AugmentedQuery<ApiType, (arg1: AccountId32 | string | Uint8Array, arg2: U8aFixed | string | Uint8Array) => Observable<Option<PalletMultisigMultisig>>, [AccountId32, U8aFixed]> & QueryableStorageEntry<ApiType, [AccountId32, U8aFixed]>;
       /**
        * Generic query
        **/
@@ -435,28 +461,6 @@ declare module '@polkadot/api-base/types/storage' {
     transactionPayment: {
       nextFeeMultiplier: AugmentedQuery<ApiType, () => Observable<u128>, []> & QueryableStorageEntry<ApiType, []>;
       storageVersion: AugmentedQuery<ApiType, () => Observable<PalletTransactionPaymentReleases>, []> & QueryableStorageEntry<ApiType, []>;
-      /**
-       * Generic query
-       **/
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
-    treasury: {
-      /**
-       * Proposal indices that have been approved but not yet awarded.
-       **/
-      approvals: AugmentedQuery<ApiType, () => Observable<Vec<u32>>, []> & QueryableStorageEntry<ApiType, []>;
-      /**
-       * The amount which has been reported as inactive to Currency.
-       **/
-      deactivated: AugmentedQuery<ApiType, () => Observable<u128>, []> & QueryableStorageEntry<ApiType, []>;
-      /**
-       * Number of proposals that have been made.
-       **/
-      proposalCount: AugmentedQuery<ApiType, () => Observable<u32>, []> & QueryableStorageEntry<ApiType, []>;
-      /**
-       * Proposals that have been made.
-       **/
-      proposals: AugmentedQuery<ApiType, (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<PalletTreasuryProposal>>, [u32]> & QueryableStorageEntry<ApiType, [u32]>;
       /**
        * Generic query
        **/

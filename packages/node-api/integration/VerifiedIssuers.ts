@@ -13,7 +13,7 @@ export async function verifiedIssuers() {
         api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
             issuerIdentityLocId.toDecimalString(),
             ALICE,
-            null,
+            10,
             api.adapters.emptyPalletLogionLocItemsParams(),
         ),
     );
@@ -33,7 +33,7 @@ export async function verifiedIssuers() {
             200,
             true,
             0,
-            null,
+            0,
             0,
             0,
             api.adapters.emptyPalletLogionLocItemsParams(),

@@ -97,6 +97,43 @@ declare module '@polkadot/api-base/types/consts' {
        **/
       [key: string]: Codec;
     };
+    communityTreasury: {
+      /**
+       * Percentage of spare funds (if any) that are burnt per spend period.
+       **/
+      burn: Permill & AugmentedConst<ApiType>;
+      /**
+       * The maximum number of approvals that can wait in the spending queue.
+       * 
+       * NOTE: This parameter is also used within the Bounties Pallet extension if enabled.
+       **/
+      maxApprovals: u32 & AugmentedConst<ApiType>;
+      /**
+       * The treasury's pallet id, used for deriving its sovereign account ID.
+       **/
+      palletId: FrameSupportPalletId & AugmentedConst<ApiType>;
+      /**
+       * Fraction of a proposal's value that should be bonded in order to place the proposal.
+       * An accepted proposal gets these back. A rejected proposal does not.
+       **/
+      proposalBond: Permill & AugmentedConst<ApiType>;
+      /**
+       * Maximum amount of funds that should be placed in a deposit for making a proposal.
+       **/
+      proposalBondMaximum: Option<u128> & AugmentedConst<ApiType>;
+      /**
+       * Minimum amount of funds that should be placed in a deposit for making a proposal.
+       **/
+      proposalBondMinimum: u128 & AugmentedConst<ApiType>;
+      /**
+       * Period between successive spends.
+       **/
+      spendPeriod: u32 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
     grandpa: {
       /**
        * Max Authorities in use
@@ -115,6 +152,43 @@ declare module '@polkadot/api-base/types/consts' {
        * can be zero.
        **/
       maxSetIdSessionEntries: u64 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
+    logionTreasury: {
+      /**
+       * Percentage of spare funds (if any) that are burnt per spend period.
+       **/
+      burn: Permill & AugmentedConst<ApiType>;
+      /**
+       * The maximum number of approvals that can wait in the spending queue.
+       * 
+       * NOTE: This parameter is also used within the Bounties Pallet extension if enabled.
+       **/
+      maxApprovals: u32 & AugmentedConst<ApiType>;
+      /**
+       * The treasury's pallet id, used for deriving its sovereign account ID.
+       **/
+      palletId: FrameSupportPalletId & AugmentedConst<ApiType>;
+      /**
+       * Fraction of a proposal's value that should be bonded in order to place the proposal.
+       * An accepted proposal gets these back. A rejected proposal does not.
+       **/
+      proposalBond: Permill & AugmentedConst<ApiType>;
+      /**
+       * Maximum amount of funds that should be placed in a deposit for making a proposal.
+       **/
+      proposalBondMaximum: Option<u128> & AugmentedConst<ApiType>;
+      /**
+       * Minimum amount of funds that should be placed in a deposit for making a proposal.
+       **/
+      proposalBondMinimum: u128 & AugmentedConst<ApiType>;
+      /**
+       * Period between successive spends.
+       **/
+      spendPeriod: u32 & AugmentedConst<ApiType>;
       /**
        * Generic const
        **/
@@ -140,20 +214,6 @@ declare module '@polkadot/api-base/types/consts' {
        * The maximum amount of signatories allowed in the multisig.
        **/
       maxSignatories: u32 & AugmentedConst<ApiType>;
-      /**
-       * Generic const
-       **/
-      [key: string]: Codec;
-    };
-    nodeAuthorization: {
-      /**
-       * The maximum length in bytes of PeerId
-       **/
-      maxPeerIdLength: u32 & AugmentedConst<ApiType>;
-      /**
-       * The maximum number of well known nodes that are allowed to set
-       **/
-      maxWellKnownNodes: u32 & AugmentedConst<ApiType>;
       /**
        * Generic const
        **/
@@ -271,43 +331,6 @@ declare module '@polkadot/api-base/types/consts' {
        * transactions.
        **/
       operationalFeeMultiplier: u8 & AugmentedConst<ApiType>;
-      /**
-       * Generic const
-       **/
-      [key: string]: Codec;
-    };
-    treasury: {
-      /**
-       * Percentage of spare funds (if any) that are burnt per spend period.
-       **/
-      burn: Permill & AugmentedConst<ApiType>;
-      /**
-       * The maximum number of approvals that can wait in the spending queue.
-       * 
-       * NOTE: This parameter is also used within the Bounties Pallet extension if enabled.
-       **/
-      maxApprovals: u32 & AugmentedConst<ApiType>;
-      /**
-       * The treasury's pallet id, used for deriving its sovereign account ID.
-       **/
-      palletId: FrameSupportPalletId & AugmentedConst<ApiType>;
-      /**
-       * Fraction of a proposal's value that should be bonded in order to place the proposal.
-       * An accepted proposal gets these back. A rejected proposal does not.
-       **/
-      proposalBond: Permill & AugmentedConst<ApiType>;
-      /**
-       * Maximum amount of funds that should be placed in a deposit for making a proposal.
-       **/
-      proposalBondMaximum: Option<u128> & AugmentedConst<ApiType>;
-      /**
-       * Minimum amount of funds that should be placed in a deposit for making a proposal.
-       **/
-      proposalBondMinimum: u128 & AugmentedConst<ApiType>;
-      /**
-       * Period between successive spends.
-       **/
-      spendPeriod: u32 & AugmentedConst<ApiType>;
       /**
        * Generic const
        **/

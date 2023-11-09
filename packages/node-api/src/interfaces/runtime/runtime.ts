@@ -16,14 +16,6 @@ export const runtime: DefinitionsCall = {
                     }],
                     type: "Balance",
                 },
-                query_legal_fee: {
-                    description: "Query expected legal fees for creating a LOC",
-                    params: [{
-                        name: "locType",
-                        type: "LocType",
-                    }],
-                    type: "Balance",
-                },
                 query_certificate_fee: {
                     description: "Query expected certificate fees for creating a Collection Item",
                     params: [{

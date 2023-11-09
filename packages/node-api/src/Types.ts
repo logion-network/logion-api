@@ -26,7 +26,7 @@ export interface LocItemAck {
 }
 
 export interface MetadataItem extends MetadataItemParams, LocItemAck {
-    
+
 }
 
 export interface FileParams extends LocItemParams {
@@ -36,7 +36,7 @@ export interface FileParams extends LocItemParams {
 }
 
 export interface File extends FileParams, LocItemAck {
-    
+
 }
 
 export interface LinkParams extends LocItemParams {
@@ -67,7 +67,7 @@ export interface LegalOfficerCase {
     valueFee: bigint;
     collectionItemFee: bigint;
     tokensRecordFee: bigint;
-    legalFee?: bigint;
+    legalFee: bigint;
 }
 
 export type LocType = 'Transaction' | 'Collection' | 'Identity';
@@ -169,10 +169,10 @@ export class AnyAccountId implements AccountId {
 
     /**
      * Developers should not construct directly this object but call logionApi.queries.getValidAccountId(address, type).
-     * 
-     * @param api 
-     * @param address 
-     * @param type 
+     *
+     * @param api
+     * @param address
+     * @param type
      */
     constructor(api: ApiPromise, address: string, type: AccountType) {
         this.api = api;
@@ -238,7 +238,7 @@ export class AnyAccountId implements AccountId {
         return accountIdToKey(this);
     }
 
-    static parseKey(api: ApiPromise, key: string): AnyAccountId { 
+    static parseKey(api: ApiPromise, key: string): AnyAccountId {
         if(key.startsWith(POLKADOT_PREFIX)) {
             return new AnyAccountId(api, key.substring(POLKADOT_PREFIX.length), "Polkadot");
         } else if(key.startsWith(ETHEREUM_PREFIX)) {
@@ -286,7 +286,7 @@ export class ValidAccountId implements AccountId {
         return accountIdToKey(this);
     }
 
-    static parseKey(api: ApiPromise, key: string): ValidAccountId { 
+    static parseKey(api: ApiPromise, key: string): ValidAccountId {
         return AnyAccountId.parseKey(api, key).toValidAccountId();
     }
 

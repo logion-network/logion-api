@@ -133,7 +133,7 @@ export class Adapters {
             seal: rawLoc.seal.isSome ? rawLoc.seal.unwrap().toHex() : undefined,
             sponsorshipId: rawLoc.sponsorshipId.isSome ? this.fromSponsorshipId(rawLoc.sponsorshipId.unwrap()) : undefined,
             valueFee: rawLoc.valueFee.toBigInt(),
-            legalFee: rawLoc.legalFee.isSome ? rawLoc.legalFee.unwrap().toBigInt() : undefined,
+            legalFee: rawLoc.legalFee.toBigInt(),
             collectionItemFee: rawLoc.collectionItemFee.toBigInt(),
             tokensRecordFee: rawLoc.tokensRecordFee.toBigInt(),
         };
@@ -141,24 +141,24 @@ export class Adapters {
 
     static toJsonCall(genericCall: CallBase<AnyTuple, FunctionMetadataLatest>): TypesJsonCall {
         const args: {[index: string]: AnyJson} = {};
-    
+
         for (let i = 0; i < genericCall.args.length; ++i) {
             const arg = genericCall.args[i];
             const meta = genericCall.meta.fields[i];
             args[meta.name.unwrap().toString()] = arg.toHuman(true);
         }
-    
+
         return {
             section: genericCall.section,
             method: genericCall.method,
             args,
         };
     }
-    
+
     static isJsonObject(anyJson: AnyJson): anyJson is TypesJsonObject {
         return typeof anyJson === "object";
     }
-    
+
     static asJsonObject(anyJson: AnyJson): TypesJsonObject {
         if(Adapters.isJsonObject(anyJson)) {
             return anyJson;
@@ -166,11 +166,11 @@ export class Adapters {
             throw new Error("Not an object");
         }
     }
-    
+
     static isString(anyJson: AnyJson): anyJson is string {
         return typeof anyJson === "string";
     }
-    
+
     static asString(anyJson: AnyJson): string {
         if(Adapters.isString(anyJson)) {
             return anyJson;
@@ -178,11 +178,11 @@ export class Adapters {
             throw new Error("Not a string");
         }
     }
-    
+
     static isArray(anyJson: AnyJson): anyJson is AnyJson[] {
         return anyJson instanceof Array;
     }
-    
+
     static asArray(anyJson: AnyJson): AnyJson[] {
         if(Adapters.isArray(anyJson)) {
             return anyJson;
@@ -190,11 +190,11 @@ export class Adapters {
             throw new Error("Not an array");
         }
     }
-    
+
     static isHexString(anyJson: AnyJson): anyJson is HexString {
         return typeof anyJson === "string" && anyJson.startsWith("0x");
     }
-    
+
     static asHexString(anyJson: AnyJson): HexString {
         if(Adapters.isHexString(anyJson)) {
             return anyJson;
@@ -202,11 +202,11 @@ export class Adapters {
             throw new Error("Not a string");
         }
     }
-    
+
     static isNumberString(anyJson: AnyJson): anyJson is string {
         return typeof anyJson === "string";
     }
-    
+
     static asBigInt(anyJson: AnyJson): bigint {
         if(Adapters.isString(anyJson)) {
             return BigInt(anyJson.replaceAll(",", ""));
@@ -214,14 +214,14 @@ export class Adapters {
             throw new Error("Not a string");
         }
     }
-    
+
     static isJsonCall(anyJson: AnyJson): anyJson is TypesJsonCall {
         return Adapters.isJsonObject(anyJson)
             && "section" in anyJson && Adapters.isString(anyJson.section)
             && "method" in anyJson && Adapters.isString(anyJson.method)
             && "args" in anyJson && Adapters.isJsonObject(anyJson.args);
     }
-    
+
     static asJsonCall(anyJson: AnyJson): TypesJsonCall {
         if(Adapters.isJsonCall(anyJson)) {
             return anyJson;
@@ -594,7 +594,7 @@ export class Adapters {
             const opaquePeerId = legalOfficerData.asHost.nodeId.unwrap();
             nodeId = base58Encode(opaquePeerId);
         }
-    
+
         let baseUrl: string | undefined;
         if(legalOfficerData.asHost.baseUrl.isSome) {
             const urlBytes = legalOfficerData.asHost.baseUrl.unwrap();
@@ -602,7 +602,7 @@ export class Adapters {
         }
 
         const region = this.fromLogionNodeRuntimeRegion(legalOfficerData.asHost.region);
-    
+
         return { baseUrl, nodeId, region };
     }
 

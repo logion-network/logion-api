@@ -12,11 +12,11 @@ export async function storageFees() {
 
 export async function legalFees() {
     const { api } = await setup();
-    const identityLocFee = await api.fees.estimateLegalFee({ locType: "Identity"});
+    const identityLocFee = api.fees.getDefaultLegalFee({ locType: "Identity"});
     expect(identityLocFee).toEqual(Currency.toCanonicalAmount(Currency.nLgnt(160n)));
-    const transactionLocFee = await api.fees.estimateLegalFee({ locType: "Transaction"});
+    const transactionLocFee = api.fees.getDefaultLegalFee({ locType: "Transaction"});
     expect(transactionLocFee).toEqual(Currency.toCanonicalAmount(Currency.nLgnt(2000n)));
-    const collectionLocFee = await api.fees.estimateLegalFee({ locType: "Collection"});
+    const collectionLocFee = api.fees.getDefaultLegalFee({ locType: "Collection"});
     expect(collectionLocFee).toEqual(Currency.toCanonicalAmount(Currency.nLgnt(2000n)));
 }
 

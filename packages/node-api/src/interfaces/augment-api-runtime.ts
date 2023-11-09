@@ -107,10 +107,6 @@ declare module '@polkadot/api-base/types/calls' {
        **/
       queryFileStorageFee: AugmentedCall<ApiType, (numOfEntries: u32 | AnyNumber | Uint8Array, totSize: u32 | AnyNumber | Uint8Array) => Observable<Balance>>;
       /**
-       * Query expected legal fees for creating a LOC
-       **/
-      queryLegalFee: AugmentedCall<ApiType, (locType: LocType | 'Transaction' | 'Identity' | 'Collection' | number | Uint8Array) => Observable<Balance>>;
-      /**
        * Generic call
        **/
       [key: string]: DecoratedCallBase<ApiType>;

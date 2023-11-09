@@ -2,6 +2,8 @@ import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types.js";
 import { LocType } from "./Types.js";
 
+const LGNT: bigint = 1_000_000_000_000_000_000n;
+
 export class Fees {
 
     constructor(params: {
@@ -75,10 +77,13 @@ export class FeesEstimator {
         return fee.toBigInt();
     }
 
-    async estimateLegalFee(params: { locType: LocType }): Promise<bigint> {
+    getDefaultLegalFee(params: { locType: LocType }): bigint {
         const { locType } = params;
-        const fee = await this.api.call.feesApi.queryLegalFee(locType);
-        return fee.toBigInt();
+        if (locType === "Identity") {
+            return 160n * LGNT;
+        } else {
+            return 2000n * LGNT;
+        }
     }
 
     async estimateWithoutStorage(params: {
@@ -99,7 +104,7 @@ export class FeesEstimator {
     }): Promise<Fees> {
         const { locType, valueFee, storageSize } = params;
         const inclusionFee = await this.estimateInclusionFee(params.origin, params.submittable);
-        const legalFee = params.legalFee !== undefined ? params.legalFee : await this.estimateLegalFee({ locType });
+        const legalFee = params.legalFee !== undefined ? params.legalFee : this.getDefaultLegalFee({ locType });
         const storageFee = storageSize !== undefined ? await this.estimateStorageFee({ numOfEntries: 1n, totSize: storageSize }) : undefined;
         return new Fees({ inclusionFee, legalFee, valueFee, storageFee });
     }

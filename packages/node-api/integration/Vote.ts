@@ -22,7 +22,7 @@ async function createClosedLoc(args: { alice: IKeyringPair, requester: IKeyringP
     await signAndSend(requester, api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
         api.adapters.toLocId(locId),
         ALICE,
-        null,
+        10,
         api.adapters.emptyPalletLogionLocItemsParams(),
     ));
     await signAndSend(alice, api.polkadot.tx.logionLoc.close(

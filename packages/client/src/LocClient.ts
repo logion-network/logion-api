@@ -333,7 +333,7 @@ export interface VerifiedIssuerIdentity {
 }
 
 export interface AddTokensRecordParams extends EstimateFeesAddTokensRecordParams, BlockchainSubmissionParams {
-    
+
 }
 
 export interface EstimateFeesAddTokensRecordParams {
@@ -1833,10 +1833,13 @@ export class AuthenticatedLocClient extends LocClient {
 
     private openTransactionLocSubmittable(parameters: OpenPolkadotLocParams): SubmittableExtrinsic {
         const { locId, legalOfficerAddress, metadata, files, links } = parameters;
+        const legalFee = parameters.legalFee === undefined ?
+            this.nodeApi.fees.getDefaultLegalFee({ locType: "Transaction" }) :
+            parameters.legalFee;
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficerAddress,
-            parameters.legalFee === undefined ? null : parameters.legalFee,
+            legalFee,
             this.nodeApi.adapters.toPalletLogionLocItemsParams({
                 metadata: metadata.map(item => this.toMetadataItemParams(item)),
                 files: files.map(item => this.toFileParams(item)),
@@ -1939,6 +1942,7 @@ export class AuthenticatedLocClient extends LocClient {
                     this.nodeApi.adapters.toLocId(locId),
                     this.nodeApi.adapters.toPalletLogionLocOtherAccountId(otherAccountId),
                     this.nodeApi.adapters.toSponsorshipId(sponsorshipId),
+                    this.nodeApi.fees.getDefaultLegalFee({ locType: "Identity" }),
                 );
             }
         } else {
@@ -1985,10 +1989,13 @@ export class AuthenticatedLocClient extends LocClient {
 
     private openIdentityLocSubmittable(parameters: OpenPolkadotLocParams): SubmittableExtrinsic {
         const { locId, legalOfficerAddress, metadata, files, links } = parameters
+        const legalFee = parameters.legalFee === undefined ?
+            this.nodeApi.fees.getDefaultLegalFee({ locType: "Identity" }) :
+            parameters.legalFee;
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficerAddress,
-            parameters.legalFee === undefined ? null : parameters.legalFee,
+            legalFee,
             this.nodeApi.adapters.toPalletLogionLocItemsParams({
                 metadata: metadata.map(item => this.toMetadataItemParams(item)),
                 files: files.map(item => this.toFileParams(item)),
@@ -2086,6 +2093,9 @@ export class AuthenticatedLocClient extends LocClient {
 
     private openCollectionLocSubmittable(parameters: OpenPolkadotLocParams & EstimateFeesOpenCollectionLocParams): SubmittableExtrinsic {
         const { locId, legalOfficerAddress, metadata, files, links, collectionItemFee, tokensRecordFee } = parameters;
+        const legalFee = parameters.legalFee === undefined ?
+            this.nodeApi.fees.getDefaultLegalFee({ locType: "Collection" }) :
+            parameters.legalFee;
         return this.nodeApi.polkadot.tx.logionLoc.createCollectionLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficerAddress,
@@ -2093,7 +2103,7 @@ export class AuthenticatedLocClient extends LocClient {
             parameters.collectionMaxSize || null,
             parameters.collectionCanUpload,
             parameters.valueFee,
-            parameters.legalFee === undefined ? null : parameters.legalFee,
+            legalFee,
             collectionItemFee,
             tokensRecordFee,
             this.nodeApi.adapters.toPalletLogionLocItemsParams({

@@ -146,6 +146,33 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       [key: string]: AugmentedError<ApiType>;
     };
+    communityTreasury: {
+      /**
+       * The spend origin is valid but the amount it is allowed to spend is lower than the
+       * amount to be spent.
+       **/
+      InsufficientPermission: AugmentedError<ApiType>;
+      /**
+       * Proposer's balance is too low.
+       **/
+      InsufficientProposersBalance: AugmentedError<ApiType>;
+      /**
+       * No proposal or bounty at that index.
+       **/
+      InvalidIndex: AugmentedError<ApiType>;
+      /**
+       * Proposal has not been approved.
+       **/
+      ProposalNotApproved: AugmentedError<ApiType>;
+      /**
+       * Too many approvals in the queue.
+       **/
+      TooManyApprovals: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       **/
+      [key: string]: AugmentedError<ApiType>;
+    };
     grandpa: {
       /**
        * Attempt to signal GRANDPA change with one already pending.
@@ -423,6 +450,33 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       [key: string]: AugmentedError<ApiType>;
     };
+    logionTreasury: {
+      /**
+       * The spend origin is valid but the amount it is allowed to spend is lower than the
+       * amount to be spent.
+       **/
+      InsufficientPermission: AugmentedError<ApiType>;
+      /**
+       * Proposer's balance is too low.
+       **/
+      InsufficientProposersBalance: AugmentedError<ApiType>;
+      /**
+       * No proposal or bounty at that index.
+       **/
+      InvalidIndex: AugmentedError<ApiType>;
+      /**
+       * Proposal has not been approved.
+       **/
+      ProposalNotApproved: AugmentedError<ApiType>;
+      /**
+       * Too many approvals in the queue.
+       **/
+      TooManyApprovals: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       **/
+      [key: string]: AugmentedError<ApiType>;
+    };
     multisig: {
       /**
        * Call is already approved by this signatory.
@@ -480,44 +534,6 @@ declare module '@polkadot/api-base/types/errors' {
        * A different timepoint was given to the multisig operation that is underway.
        **/
       WrongTimepoint: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       **/
-      [key: string]: AugmentedError<ApiType>;
-    };
-    nodeAuthorization: {
-      /**
-       * The node is already claimed by a user.
-       **/
-      AlreadyClaimed: AugmentedError<ApiType>;
-      /**
-       * The node is already joined in the list.
-       **/
-      AlreadyJoined: AugmentedError<ApiType>;
-      /**
-       * The node hasn't been claimed yet.
-       **/
-      NotClaimed: AugmentedError<ApiType>;
-      /**
-       * The node doesn't exist in the list.
-       **/
-      NotExist: AugmentedError<ApiType>;
-      /**
-       * You are not the owner of the node.
-       **/
-      NotOwner: AugmentedError<ApiType>;
-      /**
-       * The PeerId is too long.
-       **/
-      PeerIdTooLong: AugmentedError<ApiType>;
-      /**
-       * No permisson to perform specific operation.
-       **/
-      PermissionDenied: AugmentedError<ApiType>;
-      /**
-       * Too many well known nodes.
-       **/
-      TooManyNodes: AugmentedError<ApiType>;
       /**
        * Generic error
        **/
@@ -658,33 +674,6 @@ declare module '@polkadot/api-base/types/errors' {
        * and the new runtime.
        **/
       SpecVersionNeedsToIncrease: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       **/
-      [key: string]: AugmentedError<ApiType>;
-    };
-    treasury: {
-      /**
-       * The spend origin is valid but the amount it is allowed to spend is lower than the
-       * amount to be spent.
-       **/
-      InsufficientPermission: AugmentedError<ApiType>;
-      /**
-       * Proposer's balance is too low.
-       **/
-      InsufficientProposersBalance: AugmentedError<ApiType>;
-      /**
-       * No proposal or bounty at that index.
-       **/
-      InvalidIndex: AugmentedError<ApiType>;
-      /**
-       * Proposal has not been approved.
-       **/
-      ProposalNotApproved: AugmentedError<ApiType>;
-      /**
-       * Too many approvals in the queue.
-       **/
-      TooManyApprovals: AugmentedError<ApiType>;
       /**
        * Generic error
        **/

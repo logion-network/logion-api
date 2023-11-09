@@ -8,7 +8,7 @@ export async function createTransactionLocTest() {
     const createLocExtrinsic = api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
         api.adapters.toLocId(TRANSACTION_LOC_ID),
         ALICE,
-        null,
+        10,
         api.adapters.emptyPalletLogionLocItemsParams(),
     );
     const createOtherLocExtrinsic = api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
