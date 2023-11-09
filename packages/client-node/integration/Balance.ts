@@ -55,7 +55,7 @@ export function checkCoinBalance(balance: CoinBalance, expectedValue: string) {
 }
 
 export function formatBalance(balance: CoinBalance): string {
-    return `${balance.balance.coefficient.toInteger()}.${balance.balance.coefficient.toFixedPrecisionDecimals(2)}${balance.balance.prefix.symbol}`;
+    return `${balance.total.coefficient.toInteger()}.${balance.total.coefficient.toFixedPrecisionDecimals(2)}${balance.total.prefix.symbol}`;
 }
 
 export async function transferAndCannotPayFees(state: State) {
