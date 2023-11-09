@@ -8,7 +8,6 @@ import '@polkadot/api-base/types/events';
 import type { ApiTypes, AugmentedEvent } from '@polkadot/api-base/types';
 import type { Bytes, Null, Option, Result, U8aFixed, Vec, bool, u128, u32, u64, u8 } from '@polkadot/types-codec';
 import type { ITuple } from '@polkadot/types-codec/types';
-import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, H256 } from '@polkadot/types/interfaces/runtime';
 import type { FrameSupportDispatchDispatchInfo, FrameSupportTokensMiscBalanceStatus, LogionSharedBeneficiary, PalletLogionLocSupportedAccountId, PalletLogionVoteBallot, PalletMultisigTimepoint, SpConsensusGrandpaAppPublic, SpRuntimeDispatchError } from '@polkadot/types/lookup';
 
@@ -211,6 +210,48 @@ declare module '@polkadot/api-base/types/events' {
        **/
       [key: string]: AugmentedEvent<ApiType>;
     };
+    communityTreasury: {
+      /**
+       * Some funds have been allocated.
+       **/
+      Awarded: AugmentedEvent<ApiType, [proposalIndex: u32, award: u128, account: AccountId32], { proposalIndex: u32, award: u128, account: AccountId32 }>;
+      /**
+       * Some of our funds have been burnt.
+       **/
+      Burnt: AugmentedEvent<ApiType, [burntFunds: u128], { burntFunds: u128 }>;
+      /**
+       * Some funds have been deposited.
+       **/
+      Deposit: AugmentedEvent<ApiType, [value: u128], { value: u128 }>;
+      /**
+       * New proposal.
+       **/
+      Proposed: AugmentedEvent<ApiType, [proposalIndex: u32], { proposalIndex: u32 }>;
+      /**
+       * A proposal was rejected; funds were slashed.
+       **/
+      Rejected: AugmentedEvent<ApiType, [proposalIndex: u32, slashed: u128], { proposalIndex: u32, slashed: u128 }>;
+      /**
+       * Spending has finished; this is the amount that rolls over until next spend.
+       **/
+      Rollover: AugmentedEvent<ApiType, [rolloverBalance: u128], { rolloverBalance: u128 }>;
+      /**
+       * A new spend proposal has been approved.
+       **/
+      SpendApproved: AugmentedEvent<ApiType, [proposalIndex: u32, amount: u128, beneficiary: AccountId32], { proposalIndex: u32, amount: u128, beneficiary: AccountId32 }>;
+      /**
+       * We have ended a spend period and will now allocate funds.
+       **/
+      Spending: AugmentedEvent<ApiType, [budgetRemaining: u128], { budgetRemaining: u128 }>;
+      /**
+       * The inactive funds of the pallet have been updated.
+       **/
+      UpdatedInactive: AugmentedEvent<ApiType, [reactivated: u128, deactivated: u128], { reactivated: u128, deactivated: u128 }>;
+      /**
+       * Generic event
+       **/
+      [key: string]: AugmentedEvent<ApiType>;
+    };
     grandpa: {
       /**
        * New authority set has been applied.
@@ -301,6 +342,48 @@ declare module '@polkadot/api-base/types/events' {
        **/
       [key: string]: AugmentedEvent<ApiType>;
     };
+    logionTreasury: {
+      /**
+       * Some funds have been allocated.
+       **/
+      Awarded: AugmentedEvent<ApiType, [proposalIndex: u32, award: u128, account: AccountId32], { proposalIndex: u32, award: u128, account: AccountId32 }>;
+      /**
+       * Some of our funds have been burnt.
+       **/
+      Burnt: AugmentedEvent<ApiType, [burntFunds: u128], { burntFunds: u128 }>;
+      /**
+       * Some funds have been deposited.
+       **/
+      Deposit: AugmentedEvent<ApiType, [value: u128], { value: u128 }>;
+      /**
+       * New proposal.
+       **/
+      Proposed: AugmentedEvent<ApiType, [proposalIndex: u32], { proposalIndex: u32 }>;
+      /**
+       * A proposal was rejected; funds were slashed.
+       **/
+      Rejected: AugmentedEvent<ApiType, [proposalIndex: u32, slashed: u128], { proposalIndex: u32, slashed: u128 }>;
+      /**
+       * Spending has finished; this is the amount that rolls over until next spend.
+       **/
+      Rollover: AugmentedEvent<ApiType, [rolloverBalance: u128], { rolloverBalance: u128 }>;
+      /**
+       * A new spend proposal has been approved.
+       **/
+      SpendApproved: AugmentedEvent<ApiType, [proposalIndex: u32, amount: u128, beneficiary: AccountId32], { proposalIndex: u32, amount: u128, beneficiary: AccountId32 }>;
+      /**
+       * We have ended a spend period and will now allocate funds.
+       **/
+      Spending: AugmentedEvent<ApiType, [budgetRemaining: u128], { budgetRemaining: u128 }>;
+      /**
+       * The inactive funds of the pallet have been updated.
+       **/
+      UpdatedInactive: AugmentedEvent<ApiType, [reactivated: u128, deactivated: u128], { reactivated: u128, deactivated: u128 }>;
+      /**
+       * Generic event
+       **/
+      [key: string]: AugmentedEvent<ApiType>;
+    };
     multisig: {
       /**
        * A multisig operation has been approved by someone.
@@ -318,49 +401,6 @@ declare module '@polkadot/api-base/types/events' {
        * A new multisig operation has begun.
        **/
       NewMultisig: AugmentedEvent<ApiType, [approving: AccountId32, multisig: AccountId32, callHash: U8aFixed], { approving: AccountId32, multisig: AccountId32, callHash: U8aFixed }>;
-      /**
-       * Generic event
-       **/
-      [key: string]: AugmentedEvent<ApiType>;
-    };
-    nodeAuthorization: {
-      /**
-       * The given claim was removed by its owner.
-       **/
-      ClaimRemoved: AugmentedEvent<ApiType, [peerId: OpaquePeerId, who: AccountId32], { peerId: OpaquePeerId, who: AccountId32 }>;
-      /**
-       * The allowed connections were added to a node.
-       **/
-      ConnectionsAdded: AugmentedEvent<ApiType, [peerId: OpaquePeerId, allowedConnections: Vec<OpaquePeerId>], { peerId: OpaquePeerId, allowedConnections: Vec<OpaquePeerId> }>;
-      /**
-       * The allowed connections were removed from a node.
-       **/
-      ConnectionsRemoved: AugmentedEvent<ApiType, [peerId: OpaquePeerId, allowedConnections: Vec<OpaquePeerId>], { peerId: OpaquePeerId, allowedConnections: Vec<OpaquePeerId> }>;
-      /**
-       * The given well known node was added.
-       **/
-      NodeAdded: AugmentedEvent<ApiType, [peerId: OpaquePeerId, who: AccountId32], { peerId: OpaquePeerId, who: AccountId32 }>;
-      /**
-       * The given node was claimed by a user.
-       **/
-      NodeClaimed: AugmentedEvent<ApiType, [peerId: OpaquePeerId, who: AccountId32], { peerId: OpaquePeerId, who: AccountId32 }>;
-      /**
-       * The given well known node was removed.
-       **/
-      NodeRemoved: AugmentedEvent<ApiType, [peerId: OpaquePeerId], { peerId: OpaquePeerId }>;
-      /**
-       * The given well known nodes were reset.
-       **/
-      NodesReset: AugmentedEvent<ApiType, [nodes: Vec<ITuple<[OpaquePeerId, AccountId32]>>], { nodes: Vec<ITuple<[OpaquePeerId, AccountId32]>> }>;
-      /**
-       * The given well known node was swapped; first item was removed,
-       * the latter was added.
-       **/
-      NodeSwapped: AugmentedEvent<ApiType, [removed: OpaquePeerId, added: OpaquePeerId], { removed: OpaquePeerId, added: OpaquePeerId }>;
-      /**
-       * The node was transferred to another account.
-       **/
-      NodeTransferred: AugmentedEvent<ApiType, [peerId: OpaquePeerId, target: AccountId32], { peerId: OpaquePeerId, target: AccountId32 }>;
       /**
        * Generic event
        **/
@@ -461,48 +501,6 @@ declare module '@polkadot/api-base/types/events' {
        * has been paid by `who`.
        **/
       TransactionFeePaid: AugmentedEvent<ApiType, [who: AccountId32, actualFee: u128, tip: u128], { who: AccountId32, actualFee: u128, tip: u128 }>;
-      /**
-       * Generic event
-       **/
-      [key: string]: AugmentedEvent<ApiType>;
-    };
-    treasury: {
-      /**
-       * Some funds have been allocated.
-       **/
-      Awarded: AugmentedEvent<ApiType, [proposalIndex: u32, award: u128, account: AccountId32], { proposalIndex: u32, award: u128, account: AccountId32 }>;
-      /**
-       * Some of our funds have been burnt.
-       **/
-      Burnt: AugmentedEvent<ApiType, [burntFunds: u128], { burntFunds: u128 }>;
-      /**
-       * Some funds have been deposited.
-       **/
-      Deposit: AugmentedEvent<ApiType, [value: u128], { value: u128 }>;
-      /**
-       * New proposal.
-       **/
-      Proposed: AugmentedEvent<ApiType, [proposalIndex: u32], { proposalIndex: u32 }>;
-      /**
-       * A proposal was rejected; funds were slashed.
-       **/
-      Rejected: AugmentedEvent<ApiType, [proposalIndex: u32, slashed: u128], { proposalIndex: u32, slashed: u128 }>;
-      /**
-       * Spending has finished; this is the amount that rolls over until next spend.
-       **/
-      Rollover: AugmentedEvent<ApiType, [rolloverBalance: u128], { rolloverBalance: u128 }>;
-      /**
-       * A new spend proposal has been approved.
-       **/
-      SpendApproved: AugmentedEvent<ApiType, [proposalIndex: u32, amount: u128, beneficiary: AccountId32], { proposalIndex: u32, amount: u128, beneficiary: AccountId32 }>;
-      /**
-       * We have ended a spend period and will now allocate funds.
-       **/
-      Spending: AugmentedEvent<ApiType, [budgetRemaining: u128], { budgetRemaining: u128 }>;
-      /**
-       * The inactive funds of the pallet have been updated.
-       **/
-      UpdatedInactive: AugmentedEvent<ApiType, [reactivated: u128, deactivated: u128], { reactivated: u128, deactivated: u128 }>;
       /**
        * Generic event
        **/

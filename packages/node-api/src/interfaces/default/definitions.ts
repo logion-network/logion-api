@@ -48,7 +48,7 @@ export default {
             seal: "Option<Hash>",
             sponsorship_id: "Option<SponsorshipId>",
             value_fee: "Balance",
-            legal_fee: "Option<Balance>",
+            legal_fee: "Balance",
             collection_item_fee: "Balance",
             tokens_record_fee: "Balance",
         },

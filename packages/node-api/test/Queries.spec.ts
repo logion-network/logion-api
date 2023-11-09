@@ -12,24 +12,24 @@ describe("Queries", () => {
 
         const logionApi = new LogionNodeApiClass(api);
         const data = await logionApi.queries.getAccountData(accountId);
-    
+
         expect(data.available).toBe(32n);
         expect(data.reserved).toBe(10n);
     });
-    
+
     it("Getting balances", async () => {
         const accountId = "accountId";
         const api = mockPolkadotApiWithAccountData(accountId);
 
         const logionApi = new LogionNodeApiClass(api);
         const data = await logionApi.queries.getCoinBalances(accountId);
-    
+
         expect(data[0].total).toEqual(new Numbers.PrefixedNumber("42", Numbers.ATTO));
         expect(data[0].available).toEqual(new Numbers.PrefixedNumber("32", Numbers.ATTO));
         expect(data[0].reserved).toEqual(new Numbers.PrefixedNumber("10", Numbers.ATTO));
         expect(data[0].coin.id).toBe("lgnt");
         expect(data[0].level).toBe(0.42000000000000004);
-    
+
         expect(data[1].total).toEqual(new Numbers.PrefixedNumber("0", Numbers.NONE));
         expect(data[1].available).toEqual(new Numbers.PrefixedNumber("0", Numbers.NONE));
         expect(data[1].reserved).toEqual(new Numbers.PrefixedNumber("0", Numbers.NONE));
@@ -257,8 +257,7 @@ function mockPolkadotApiForLogionLoc() {
                             toBigInt: () => DEFAULT_LOC.tokensRecordFee,
                         },
                         legalFee: {
-                            isSome: true,
-                            unwrap: () => ({ toBigInt: () => DEFAULT_LOC.valueFee }),
+                            toBigInt: () => DEFAULT_LOC.valueFee,
                         }
                     })
                 }),

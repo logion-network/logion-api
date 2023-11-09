@@ -5,6 +5,7 @@ export async function createCollectionLocLimitedInSizeTest() {
     const { api, requester } = await setup();
     const collectionMaxSize = 100;
     const valueFee = 100n;
+    const legalFee = 200n;
     const collectionItemFee = 50n;
     const tokensRecordFee = 30n;
     const createExtrinsic = api.polkadot.tx.logionLoc.createCollectionLoc(
@@ -14,7 +15,7 @@ export async function createCollectionLocLimitedInSizeTest() {
         collectionMaxSize,
         false,
         valueFee,
-        null,
+        legalFee,
         collectionItemFee,
         tokensRecordFee,
         api.adapters.emptyPalletLogionLocItemsParams(),
@@ -24,6 +25,7 @@ export async function createCollectionLocLimitedInSizeTest() {
     expect(loc?.locType).toBe("Collection");
     expect(loc?.collectionMaxSize).toBe(collectionMaxSize);
     expect(loc?.valueFee).toBe(valueFee);
+    expect(loc?.legalFee).toBe(legalFee);
     expect(loc?.collectionItemFee).toBe(collectionItemFee);
     expect(loc?.tokensRecordFee).toBe(tokensRecordFee);
 

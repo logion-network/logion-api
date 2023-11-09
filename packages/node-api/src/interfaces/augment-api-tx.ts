@@ -8,7 +8,6 @@ import '@polkadot/api-base/types/submittable';
 import type { ApiTypes, AugmentedSubmittable, SubmittableExtrinsic, SubmittableExtrinsicFunction } from '@polkadot/api-base/types';
 import type { Bytes, Compact, Option, U8aFixed, Vec, bool, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
-import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, Call, H256, MultiAddress } from '@polkadot/types/interfaces/runtime';
 import type { LogionNodeRuntimeOpaqueSessionKeys, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFileParams, PalletLogionLocItemsParams, PalletLogionLocLocLinkParams, PalletLogionLocMetadataItemParams, PalletLogionLocOtherAccountId, PalletLogionLocSupportedAccountId, PalletLogionLocTermsAndConditionsElement, PalletLogionLocTokensRecordFile, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
 
@@ -194,6 +193,32 @@ declare module '@polkadot/api-base/types/submittable' {
        **/
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
+    communityTreasury: {
+      /**
+       * See [`Pallet::approve_proposal`].
+       **/
+      approveProposal: AugmentedSubmittable<(proposalId: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u32>]>;
+      /**
+       * See [`Pallet::propose_spend`].
+       **/
+      proposeSpend: AugmentedSubmittable<(value: Compact<u128> | AnyNumber | Uint8Array, beneficiary: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, MultiAddress]>;
+      /**
+       * See [`Pallet::reject_proposal`].
+       **/
+      rejectProposal: AugmentedSubmittable<(proposalId: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u32>]>;
+      /**
+       * See [`Pallet::remove_approval`].
+       **/
+      removeApproval: AugmentedSubmittable<(proposalId: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u32>]>;
+      /**
+       * See [`Pallet::spend`].
+       **/
+      spend: AugmentedSubmittable<(amount: Compact<u128> | AnyNumber | Uint8Array, beneficiary: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, MultiAddress]>;
+      /**
+       * Generic tx
+       **/
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
     grandpa: {
       /**
        * See [`Pallet::note_stalled`].
@@ -270,7 +295,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * See [`Pallet::create_collection_loc`].
        **/
-      createCollectionLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, legalOfficer: AccountId32 | string | Uint8Array, collectionLastBlockSubmission: Option<u32> | null | Uint8Array | u32 | AnyNumber, collectionMaxSize: Option<u32> | null | Uint8Array | u32 | AnyNumber, collectionCanUpload: bool | boolean | Uint8Array, valueFee: u128 | AnyNumber | Uint8Array, legalFee: Option<u128> | null | Uint8Array | u128 | AnyNumber, collectionItemFee: u128 | AnyNumber | Uint8Array, tokensRecordFee: u128 | AnyNumber | Uint8Array, items: PalletLogionLocItemsParams | { metadata?: any; files?: any; links?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, Option<u32>, Option<u32>, bool, u128, Option<u128>, u128, u128, PalletLogionLocItemsParams]>;
+      createCollectionLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, legalOfficer: AccountId32 | string | Uint8Array, collectionLastBlockSubmission: Option<u32> | null | Uint8Array | u32 | AnyNumber, collectionMaxSize: Option<u32> | null | Uint8Array | u32 | AnyNumber, collectionCanUpload: bool | boolean | Uint8Array, valueFee: u128 | AnyNumber | Uint8Array, legalFee: u128 | AnyNumber | Uint8Array, collectionItemFee: u128 | AnyNumber | Uint8Array, tokensRecordFee: u128 | AnyNumber | Uint8Array, items: PalletLogionLocItemsParams | { metadata?: any; files?: any; links?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, Option<u32>, Option<u32>, bool, u128, u128, u128, u128, PalletLogionLocItemsParams]>;
       /**
        * See [`Pallet::create_logion_identity_loc`].
        **/
@@ -282,15 +307,15 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * See [`Pallet::create_other_identity_loc`].
        **/
-      createOtherIdentityLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, requesterAccountId: PalletLogionLocOtherAccountId | { Ethereum: any } | string | Uint8Array, sponsorshipId: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, PalletLogionLocOtherAccountId, Compact<u128>]>;
+      createOtherIdentityLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, requesterAccountId: PalletLogionLocOtherAccountId | { Ethereum: any } | string | Uint8Array, sponsorshipId: Compact<u128> | AnyNumber | Uint8Array, legalFee: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, PalletLogionLocOtherAccountId, Compact<u128>, u128]>;
       /**
        * See [`Pallet::create_polkadot_identity_loc`].
        **/
-      createPolkadotIdentityLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, legalOfficer: AccountId32 | string | Uint8Array, legalFee: Option<u128> | null | Uint8Array | u128 | AnyNumber, items: PalletLogionLocItemsParams | { metadata?: any; files?: any; links?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, Option<u128>, PalletLogionLocItemsParams]>;
+      createPolkadotIdentityLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, legalOfficer: AccountId32 | string | Uint8Array, legalFee: u128 | AnyNumber | Uint8Array, items: PalletLogionLocItemsParams | { metadata?: any; files?: any; links?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, u128, PalletLogionLocItemsParams]>;
       /**
        * See [`Pallet::create_polkadot_transaction_loc`].
        **/
-      createPolkadotTransactionLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, legalOfficer: AccountId32 | string | Uint8Array, legalFee: Option<u128> | null | Uint8Array | u128 | AnyNumber, items: PalletLogionLocItemsParams | { metadata?: any; files?: any; links?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, Option<u128>, PalletLogionLocItemsParams]>;
+      createPolkadotTransactionLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, legalOfficer: AccountId32 | string | Uint8Array, legalFee: u128 | AnyNumber | Uint8Array, items: PalletLogionLocItemsParams | { metadata?: any; files?: any; links?: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, u128, PalletLogionLocItemsParams]>;
       /**
        * See [`Pallet::dismiss_issuer`].
        **/
@@ -324,6 +349,32 @@ declare module '@polkadot/api-base/types/submittable' {
        **/
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
+    logionTreasury: {
+      /**
+       * See [`Pallet::approve_proposal`].
+       **/
+      approveProposal: AugmentedSubmittable<(proposalId: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u32>]>;
+      /**
+       * See [`Pallet::propose_spend`].
+       **/
+      proposeSpend: AugmentedSubmittable<(value: Compact<u128> | AnyNumber | Uint8Array, beneficiary: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, MultiAddress]>;
+      /**
+       * See [`Pallet::reject_proposal`].
+       **/
+      rejectProposal: AugmentedSubmittable<(proposalId: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u32>]>;
+      /**
+       * See [`Pallet::remove_approval`].
+       **/
+      removeApproval: AugmentedSubmittable<(proposalId: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u32>]>;
+      /**
+       * See [`Pallet::spend`].
+       **/
+      spend: AugmentedSubmittable<(amount: Compact<u128> | AnyNumber | Uint8Array, beneficiary: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, MultiAddress]>;
+      /**
+       * Generic tx
+       **/
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
     multisig: {
       /**
        * See [`Pallet::approve_as_multi`].
@@ -341,48 +392,6 @@ declare module '@polkadot/api-base/types/submittable' {
        * See [`Pallet::cancel_as_multi`].
        **/
       cancelAsMulti: AugmentedSubmittable<(threshold: u16 | AnyNumber | Uint8Array, otherSignatories: Vec<AccountId32> | (AccountId32 | string | Uint8Array)[], timepoint: PalletMultisigTimepoint | { height?: any; index?: any } | string | Uint8Array, callHash: U8aFixed | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u16, Vec<AccountId32>, PalletMultisigTimepoint, U8aFixed]>;
-      /**
-       * Generic tx
-       **/
-      [key: string]: SubmittableExtrinsicFunction<ApiType>;
-    };
-    nodeAuthorization: {
-      /**
-       * See [`Pallet::add_connections`].
-       **/
-      addConnections: AugmentedSubmittable<(node: OpaquePeerId | string | Uint8Array, connections: Vec<OpaquePeerId> | (OpaquePeerId | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, Vec<OpaquePeerId>]>;
-      /**
-       * See [`Pallet::add_well_known_node`].
-       **/
-      addWellKnownNode: AugmentedSubmittable<(node: OpaquePeerId | string | Uint8Array, owner: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, MultiAddress]>;
-      /**
-       * See [`Pallet::claim_node`].
-       **/
-      claimNode: AugmentedSubmittable<(node: OpaquePeerId | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId]>;
-      /**
-       * See [`Pallet::remove_claim`].
-       **/
-      removeClaim: AugmentedSubmittable<(node: OpaquePeerId | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId]>;
-      /**
-       * See [`Pallet::remove_connections`].
-       **/
-      removeConnections: AugmentedSubmittable<(node: OpaquePeerId | string | Uint8Array, connections: Vec<OpaquePeerId> | (OpaquePeerId | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, Vec<OpaquePeerId>]>;
-      /**
-       * See [`Pallet::remove_well_known_node`].
-       **/
-      removeWellKnownNode: AugmentedSubmittable<(node: OpaquePeerId | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId]>;
-      /**
-       * See [`Pallet::reset_well_known_nodes`].
-       **/
-      resetWellKnownNodes: AugmentedSubmittable<(nodes: Vec<ITuple<[OpaquePeerId, AccountId32]>> | ([OpaquePeerId | string | Uint8Array, AccountId32 | string | Uint8Array])[]) => SubmittableExtrinsic<ApiType>, [Vec<ITuple<[OpaquePeerId, AccountId32]>>]>;
-      /**
-       * See [`Pallet::swap_well_known_node`].
-       **/
-      swapWellKnownNode: AugmentedSubmittable<(remove: OpaquePeerId | string | Uint8Array, add: OpaquePeerId | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, OpaquePeerId]>;
-      /**
-       * See [`Pallet::transfer_node`].
-       **/
-      transferNode: AugmentedSubmittable<(node: OpaquePeerId | string | Uint8Array, owner: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [OpaquePeerId, MultiAddress]>;
       /**
        * Generic tx
        **/
@@ -509,32 +518,6 @@ declare module '@polkadot/api-base/types/submittable' {
        * See [`Pallet::set`].
        **/
       set: AugmentedSubmittable<(now: Compact<u64> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u64>]>;
-      /**
-       * Generic tx
-       **/
-      [key: string]: SubmittableExtrinsicFunction<ApiType>;
-    };
-    treasury: {
-      /**
-       * See [`Pallet::approve_proposal`].
-       **/
-      approveProposal: AugmentedSubmittable<(proposalId: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u32>]>;
-      /**
-       * See [`Pallet::propose_spend`].
-       **/
-      proposeSpend: AugmentedSubmittable<(value: Compact<u128> | AnyNumber | Uint8Array, beneficiary: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, MultiAddress]>;
-      /**
-       * See [`Pallet::reject_proposal`].
-       **/
-      rejectProposal: AugmentedSubmittable<(proposalId: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u32>]>;
-      /**
-       * See [`Pallet::remove_approval`].
-       **/
-      removeApproval: AugmentedSubmittable<(proposalId: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u32>]>;
-      /**
-       * See [`Pallet::spend`].
-       **/
-      spend: AugmentedSubmittable<(amount: Compact<u128> | AnyNumber | Uint8Array, beneficiary: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, MultiAddress]>;
       /**
        * Generic tx
        **/
