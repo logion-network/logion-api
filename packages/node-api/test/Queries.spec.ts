@@ -13,8 +13,8 @@ describe("Queries", () => {
         const logionApi = new LogionNodeApiClass(api);
         const data = await logionApi.queries.getAccountData(accountId);
     
-        expect(data.available).toBe(42n);
-        expect(data.reserved).toBe(0n);
+        expect(data.available).toBe(32n);
+        expect(data.reserved).toBe(10n);
     });
     
     it("Getting balances", async () => {
@@ -24,12 +24,15 @@ describe("Queries", () => {
         const logionApi = new LogionNodeApiClass(api);
         const data = await logionApi.queries.getCoinBalances(accountId);
     
-        const expected = new Numbers.PrefixedNumber("42", Numbers.ATTO);
-        expect(data[0].balance).toEqual(expected);
+        expect(data[0].total).toEqual(new Numbers.PrefixedNumber("42", Numbers.ATTO));
+        expect(data[0].available).toEqual(new Numbers.PrefixedNumber("32", Numbers.ATTO));
+        expect(data[0].reserved).toEqual(new Numbers.PrefixedNumber("10", Numbers.ATTO));
         expect(data[0].coin.id).toBe("lgnt");
         expect(data[0].level).toBe(0.42000000000000004);
     
-        expect(data[1].balance).toEqual(new Numbers.PrefixedNumber("0", Numbers.NONE));
+        expect(data[1].total).toEqual(new Numbers.PrefixedNumber("0", Numbers.NONE));
+        expect(data[1].available).toEqual(new Numbers.PrefixedNumber("0", Numbers.NONE));
+        expect(data[1].reserved).toEqual(new Numbers.PrefixedNumber("0", Numbers.NONE));
         expect(data[1].coin.id).toBe("dot");
         expect(data[1].level).toBe(1);
     });
@@ -126,11 +129,11 @@ function mockPolkadotApiWithAccountData(accountId: string) {
                 account: (id: string) => id === accountId ? {
                     data: {
                         free: {
-                            toBigInt: () => 42n,
+                            toBigInt: () => 32n,
                             add: () => new BN("42"),
                         },
                         reserved: {
-                            toBigInt: () => 0n
+                            toBigInt: () => 10n
                         }
                     }
                 }: undefined,

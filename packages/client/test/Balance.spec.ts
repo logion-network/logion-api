@@ -115,7 +115,8 @@ describe("Balance", () => {
                     symbol: "LGNT",
                 },
                 available: new Numbers.PrefixedNumber("300", Numbers.ATTO),
-                balance: new Numbers.PrefixedNumber("300", Numbers.ATTO),
+                total: new Numbers.PrefixedNumber("300", Numbers.ATTO),
+                reserved: new Numbers.PrefixedNumber("0", Numbers.ATTO),
                 level: 1,
             }
         ];
@@ -188,7 +189,8 @@ describe("Balance", () => {
                     symbol: "LGNT",
                 },
                 available: new Numbers.PrefixedNumber("100", Numbers.ATTO),
-                balance: new Numbers.PrefixedNumber("100", Numbers.ATTO),
+                total: new Numbers.PrefixedNumber("100", Numbers.ATTO),
+                reserved: new Numbers.PrefixedNumber("0", Numbers.ATTO),
                 level: 1,
             }
         ];
@@ -266,7 +268,8 @@ describe("Balance", () => {
                     symbol: "LGNT",
                 },
                 available: new Numbers.PrefixedNumber("200", Numbers.ATTO),
-                balance: new Numbers.PrefixedNumber("200", Numbers.ATTO),
+                total: new Numbers.PrefixedNumber("200", Numbers.ATTO),
+                reserved: new Numbers.PrefixedNumber("0", Numbers.ATTO),
                 level: 1,
             }
         ];
@@ -332,7 +335,8 @@ function setupFetchTransactions(axiosFactory: Mock<AxiosFactory>, transactions: 
 
 const COIN_BALANCE: CoinBalance = {
     coin: Queries.getCoin("lgnt"),
-    balance: Currency.nLgnt(100n),
+    total: Currency.nLgnt(100n),
     available: Currency.nLgnt(100n),
+    reserved: Currency.nLgnt(0n),
     level: 100,
 };

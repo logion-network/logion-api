@@ -25,8 +25,9 @@ export interface Coin {
 
 export interface CoinBalance {
     coin: Coin,
-    balance: Numbers.PrefixedNumber,
     available: Numbers.PrefixedNumber,
+    reserved: Numbers.PrefixedNumber,
+    total: Numbers.PrefixedNumber,
     level: number,
 }
 
@@ -71,28 +72,49 @@ export class Queries {
         const accountInfo = await this.api.query.system.account(accountId);
         const data = this.adapters.fromFrameSystemAccountInfo(accountInfo);
     
+        const logAvailable = Currency.toPrefixedNumberAmount(BigInt(data.available)).optimizeScale(3);
+        const logReserved = Currency.toPrefixedNumberAmount(BigInt(data.reserved)).optimizeScale(3);
         const logTotal = Currency.toPrefixedNumberAmount(BigInt(data.total)).optimizeScale(3);
         const logLevel = logTotal.scientificNumber.divideBy(ARTIFICIAL_MAX_BALANCE.convertTo(logTotal.prefix).scientificNumber).toNumber();
-        const logAvailable = Currency.toPrefixedNumberAmount(BigInt(data.available)).optimizeScale(3);
     
         return [
-            Queries.buildCoinBalance('lgnt', logTotal, logAvailable, logLevel),
+            Queries.buildCoinBalance({
+                coinId: 'lgnt',
+                available: logAvailable,
+                reserved: logReserved,
+                total: logTotal,
+                level: logLevel,
+            }),
             Queries.DOT_BALANCE
         ];
     }
 
-    static readonly DOT_BALANCE = Queries.buildCoinBalance('dot', new Numbers.PrefixedNumber("0", Numbers.NONE), new Numbers.PrefixedNumber("0", Numbers.NONE), 1);
+    static readonly DOT_BALANCE = Queries.buildCoinBalance({
+        coinId: 'dot',
+        available: new Numbers.PrefixedNumber("0", Numbers.NONE),
+        reserved: new Numbers.PrefixedNumber("0", Numbers.NONE),
+        total: new Numbers.PrefixedNumber("0", Numbers.NONE),
+        level: 1
+    });
 
-    private static buildCoinBalance(coinId: string, balance: Numbers.PrefixedNumber, available: Numbers.PrefixedNumber, level: number): CoinBalance {
+    private static buildCoinBalance(args: {
+        coinId: string,
+        available: Numbers.PrefixedNumber,
+        reserved: Numbers.PrefixedNumber,
+        total: Numbers.PrefixedNumber,
+        level: number,
+    }): CoinBalance {
+        const { coinId, total, reserved, available, level } = args;
         const coin = Queries.getCoin(coinId);
         return {
             coin,
-            balance,
             available,
+            reserved,
+            total,
             level,
         }
     }
-    
+
     static getCoin(coinId: string): Coin {
         if(coinId === 'dot') {
             return {
