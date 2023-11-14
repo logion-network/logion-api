@@ -20,7 +20,8 @@ const signer = new KeyringSigner(keyring);
 
 const client = await LogionClient.create({
     rpcEndpoints: [ 'wss://rpc01.logion.network' ], // A list of websocket endpoints
-    directoryEndpoint: 'https://directory.logion.network' // A logion directory
+    directoryEndpoint: 'https://directory.logion.network', // A logion directory
+    buildFileUploader: ..., // A zero-argument function returning an instance of file uploader
 });
 
 // Authenticate Alice
@@ -204,12 +205,12 @@ openLoc = await openLoc.addMetadata({
     name: "Some name",
     value: "Some value"
 });
-const file: File = /* Some uploaded file */;
-openLoc = (await openLoc.addFile({
+const file: File = ...; // Platform dependent, see plugins
+openLoc = await openLoc.addFile({
     fileName: "id.jpeg",
     nature: "ID",
     file,
-})).state;
+});
 
 // ... Wait for the LO to publish elements and close the LOC ...
 const closedLoc = await openLoc.refresh() as ClosedLoc;
@@ -237,10 +238,9 @@ const pendingRequest = await locsState.requestCollectionLoc({
 let closedLoc = await openLoc.refresh() as ClosedCollectionLoc;
 
 // Add an item to the collection LOC
-const itemId = "0xc53447c3d4e9d94d6f4ab926378c5b14bd66e28af619d4dcb066c862f8aeb455"; // SHA256 hash of "first-collection-item" (without the quotes)
+const itemId = Hash.of("first-collection-item"); // Hash is provided by @logion/node-api
 const itemDescription = "First collection item";
-const itemFileContent = "test";
-const itemFileHash = hash(itemFileContent);
+const file: File = ...; // Platform dependent, see plugins
 closedLoc = await closedLoc.addCollectionItem({
     itemId,
     itemDescription,
@@ -249,7 +249,7 @@ closedLoc = await closedLoc.addCollectionItem({
         new ItemFileWithContent({
             name: "test.txt",
             contentType: MimeType.from("text/plain"),
-            hashOrContent: HashOrContent.fromContent(Buffer.from(firstFileContent)), // Let SDK compute hash and size
+            hashOrContent: HashOrContent.fromContent(file), // Let SDK compute hash and size
         })
     ]
 });
