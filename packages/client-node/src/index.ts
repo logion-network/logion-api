@@ -1,4 +1,4 @@
-import { File, HashAndSize, AxiosFileUploader, FormDataLike } from "@logion/client";
+import { File, HashAndSize, AxiosFileUploader, FormDataLike, MimeType } from "@logion/client";
 import { Hash } from "@logion/node-api";
 import { Hash as Hasher } from 'fast-sha256';
 import FormData from "form-data";
@@ -6,8 +6,8 @@ import fs from "fs";
 
 export class NodeFile extends File {
 
-    constructor(path: string) {
-        super();
+    constructor(path: string, name: string, mimeType: MimeType) {
+        super(name, mimeType);
         this.path = path;
     }
 

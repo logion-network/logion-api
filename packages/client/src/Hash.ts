@@ -1,19 +1,21 @@
 import { Hash } from "@logion/node-api";
 import { requireDefined } from './assertions.js';
 import { File, HashAndSize } from "./ComponentFactory.js";
+import { MimeType } from "./Mime.js";
 
 const HASH_OF_EMPTY = Hash.of("");
 
+export interface FileDescription {
+    name: string;
+    hash: Hash;
+    size: bigint;
+    mimeType: MimeType;
+}
+
 export class HashOrContent {
 
-    static fromHashAndSize(hash: Hash, size: bigint): HashOrContent {
-        const instance = new HashOrContent({ hash });
-        instance._size = size;
-        return instance;
-    }
-
-    static fromHash(hash: Hash): HashOrContent {
-        return new HashOrContent({ hash });
+    static fromDescription(description: FileDescription): HashOrContent {
+        return new HashOrContent({ description });
     }
 
     static fromContent(content: File): HashOrContent {
@@ -26,13 +28,21 @@ export class HashOrContent {
         return content;
     }
 
-    constructor(parameters: { hash?: Hash, content?: File }) {
-        if(!parameters.hash && !parameters.content) {
-            throw new Error("Either of hash or content must be defined");
-        }
-        this._hash = parameters.hash;
+    constructor(parameters: { content?: File, description?: FileDescription }) {
         this._content = parameters.content;
         this.finalized = parameters.content === undefined;
+
+        if(parameters.content) {
+            this._name = parameters.content.name;
+            this._mimeType = parameters.content.mimeType;
+        } else if(parameters.description) {
+            this._hash = parameters.description?.hash;
+            this._name = parameters.description.name;
+            this._mimeType = parameters.description.mimeType;
+            this._size = parameters.description.size;
+        } else {
+            throw new Error("Either content or file description must be provided");
+        }
     }
 
     private _hash?: Hash;
@@ -42,6 +52,10 @@ export class HashOrContent {
     private finalized: boolean;
 
     private _size?: bigint;
+
+    private _mimeType: MimeType;
+
+    private _name: string;
 
     get hasContent() {
         return this._content !== undefined;
@@ -80,11 +94,19 @@ export class HashOrContent {
     }
 
     get content() {
-        return requireDefined(this._content, () => new Error("No content available"));
+        return requireDefined(this._content, () => new Error("Not finalized"));
     }
 
     get size() {
-        return requireDefined(this._size, () => new Error("No content available to compute the size of"));
+        return requireDefined(this._size, () => new Error("Not finalized"));
+    }
+
+    get mimeType() {
+        return this._mimeType;
+    }
+
+    get name() {
+        return this._name;
     }
 }
 

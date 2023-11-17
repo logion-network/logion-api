@@ -1,11 +1,11 @@
-import { File, FileUploadParameters, FileUploader, HashAndSize } from "@logion/client";
+import { AxiosFileUploader, File, FormDataLike, HashAndSize, MimeType } from "@logion/client";
 import { Hash } from "@logion/node-api";
 import RNFS from "react-native-fs";
 
 export class ReactNativeFsFile extends File {
 
-    constructor(path: string) {
-        super();
+    constructor(path: string, name: string, mimeType: MimeType) {
+        super(name, mimeType);
         this.path = path;
     }
 
@@ -25,31 +25,24 @@ export class ReactNativeFsFile extends File {
     }
 }
 
-export class ReactNativeFileUploader implements FileUploader {
+export class ReactNativeFileUploader extends AxiosFileUploader {
 
-    async upload(parameters: FileUploadParameters): Promise<void> {
-        const files: RNFS.UploadFileItem[] = parameters.files.map(file => ({
-            name: file.field,
-            filename: file.name,
-            filepath: this.getFilePath(file.file),
-            filetype: undefined as unknown as string,
-        }));
-        const fields: Record<string, string> = {};
-        parameters.fields.forEach(field => fields[field.name] = field.value);
-        const result = await RNFS.uploadFiles({
-            files,
-            toUrl: parameters.endpoint,
-            fields,
-            headers: parameters.headers,
-        }).promise;
-        if(result.statusCode < 200 || result.statusCode >= 300) {
-            throw new Error(`Upload failed with error ${ result.statusCode }`);
-        }
+    buildFormData(): FormDataLike {
+        return new FormData();
     }
 
-    private getFilePath(file: File): string {
+    async toFormDataValue(file: File): Promise<{ uri: string, type: string, name: string }> {
+        const reactNativeFile = this.ensureReactNativeFile(file);
+        return {
+            uri: `file://${ reactNativeFile.getPath() }`,
+            type: file.mimeType.mimeType,
+            name: file.name,
+        };
+    }
+
+    private ensureReactNativeFile(file: File): ReactNativeFsFile {
         if(file instanceof ReactNativeFsFile) {
-            return file.getPath();
+            return file;
         } else {
             throw new Error("Unexpected file type");
         }

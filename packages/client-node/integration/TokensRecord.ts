@@ -2,7 +2,6 @@ import { Hash } from "@logion/node-api";
 import {
     ClosedCollectionLoc,
     HashOrContent,
-    ItemFileWithContent,
     LocRequestState,
     MimeType,
     PendingRequest,
@@ -48,11 +47,7 @@ export async function tokensRecords(state: State) {
         recordId,
         description: recordDescription,
         files: [
-            new ItemFileWithContent({
-                name: "report.txt",
-                contentType: MimeType.from("text/plain"),
-                hashOrContent: HashOrContent.fromContent(new NodeFile("integration/test.txt")),
-            })
+            HashOrContent.fromContent(new NodeFile("integration/test.txt", "report.txt", MimeType.from("text/plain"))),
         ],
     });
     expect(estimatedFees.tokensRecordFee).toBe(tokensRecordFee);
@@ -60,11 +55,7 @@ export async function tokensRecords(state: State) {
         recordId,
         description: recordDescription,
         files: [
-            new ItemFileWithContent({
-                name: "report.txt",
-                contentType: MimeType.from("text/plain"),
-                hashOrContent: HashOrContent.fromContent(new NodeFile("integration/test.txt")),
-            })
+            HashOrContent.fromContent(new NodeFile("integration/test.txt", "report.txt", MimeType.from("text/plain"))),
         ],
         signer: state.signer,
     });

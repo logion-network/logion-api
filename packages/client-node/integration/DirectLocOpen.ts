@@ -18,7 +18,8 @@ import {
     MergedLink,
     LocData,
     OpenLoc,
-    waitFor
+    waitFor,
+    MimeType
 } from "@logion/client";
 import { UUID } from "@logion/node-api";
 
@@ -156,14 +157,12 @@ function provideItems(name: string, linkedLocs: UUID[]): ItemsParams {
     return {
         files: [
             {
-                fileName: `${ name }-1.txt`,
                 nature: "Some file nature",
-                file: HashOrContent.fromContent(new NodeFile(`integration/${ name }-1.txt`)),
+                file: HashOrContent.fromContent(new NodeFile(`integration/${ name }-1.txt`, `${ name }-1.txt`, MimeType.from("text/plain"))),
             },
             {
-                fileName: `${ name }-2.txt`,
                 nature: "Some other file nature",
-                file: HashOrContent.fromContent(new NodeFile(`integration/${ name }-2.txt`)),
+                file: HashOrContent.fromContent(new NodeFile(`integration/${ name }-2.txt`, `${ name }-2.txt`, MimeType.from("text/plain"))),
             },
         ],
         metadata: [
@@ -188,7 +187,7 @@ function checkFile(actual: MergedFile, expected: AddFileParams) {
     expect(actual.status).toEqual("PUBLISHED");
     expect(actual.submitter.address).toEqual(DIRECT_REQUESTER_ADDRESS);
     expect(actual.submitter.type).toEqual("Polkadot");
-    expect(actual.name).toEqual(expected.fileName);
+    expect(actual.name).toEqual(expected.file.content.name);
     expect(actual.nature.validValue()).toEqual(expected.nature);
     expect(actual.hash).toEqual(expected.file.contentHash);
 }

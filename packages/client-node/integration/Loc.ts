@@ -1,7 +1,6 @@
 import { UUID, Hash } from "@logion/node-api";
 import {
     HashOrContent,
-    ItemFileWithContent,
     MimeType,
     LocRequestStatus,
     OpenLoc,
@@ -116,9 +115,8 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID): Pro
 
     // Add file to open LOC
     openLoc = await openLoc.addFile({
-        fileName: "test.txt",
         nature: "Some file nature",
-        file: HashOrContent.fromContent(new NodeFile("integration/test.txt")),
+        file: HashOrContent.fromContent(new NodeFile("integration/test.txt", "test.txt", MimeType.from("text/plain"))),
     }) as OpenLoc;
     const hash = openLoc.data().files[0].hash;
     expect(hash.toHex()).toBe("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
@@ -247,15 +245,13 @@ export async function openTransactionLocWithAutoPublish(state: State, linkTarget
 
     // Add files
     draftRequest = await draftRequest.addFile({
-        fileName: "test.txt",
         nature: "Some file nature",
-        file: HashOrContent.fromContent(new NodeFile("integration/test0.txt")),
+        file: HashOrContent.fromContent(new NodeFile("integration/test0.txt", "test.txt", MimeType.from("text/plain"))),
     }) as DraftRequest;
     const hash0 = draftRequest.data().files[0].hash;
     draftRequest = await draftRequest.addFile({
-        fileName: "test.txt",
         nature: "Some file nature",
-        file: HashOrContent.fromContent(new NodeFile("integration/test123.txt")),
+        file: HashOrContent.fromContent(new NodeFile("integration/test123.txt", "test.txt", MimeType.from("text/plain"))),
     }) as DraftRequest;
     const hash1 = draftRequest.data().files[1].hash;
 
@@ -497,11 +493,7 @@ export async function collectionLocWithUpload(state: State) {
         itemDescription: firstItemDescription,
         signer: state.signer,
         itemFiles: [
-            new ItemFileWithContent({
-                name: "test.txt",
-                contentType: MimeType.from("text/plain"),
-                hashOrContent: HashOrContent.fromContent(new NodeFile("integration/test.txt")), // Let SDK compute hash and size
-            })
+            HashOrContent.fromContent(new NodeFile("integration/test.txt", "test.txt", MimeType.from("text/plain"))), // Let SDK compute hash and size
         ],
         itemToken: firstItemToken,
         restrictedDelivery: true,
@@ -535,19 +527,19 @@ export async function collectionLocWithUpload(state: State) {
 
     const secondItemId = Hash.of("second-collection-item");
     const secondItemDescription = "Second collection item";
-    const secondFile = new NodeFile("integration/test2.txt");
+    const secondFile = new NodeFile("integration/test2.txt", "test2.txt", MimeType.from("text/plain"));
     const secondFileHash = Hash.of("test2");
     closedLoc = await closedLoc.addCollectionItem({
         itemId: secondItemId,
         itemDescription: secondItemDescription,
         signer: state.signer,
         itemFiles: [
-            new ItemFileWithContent({
+            HashOrContent.fromDescription({
                 name: "test2.txt",
-                contentType: MimeType.from("text/plain"),
-                hashOrContent: HashOrContent.fromHash(secondFileHash), // No content, must upload later
+                mimeType: MimeType.from("text/plain"),
+                hash: secondFileHash, // No content, must upload later
                 size: 5n, // No content, must provide size
-            })
+            }),
         ],
         creativeCommons: new CreativeCommons(creativeCommonsLocRequest.locId, "BY-NC-SA")
     });
@@ -561,12 +553,7 @@ export async function collectionLocWithUpload(state: State) {
 
     closedLoc = await closedLoc.uploadCollectionItemFile({
         itemId: secondItemId,
-        itemFile: new ItemFileWithContent({
-            name: "test2.txt",
-            contentType: MimeType.from("text/plain"),
-            hashOrContent: new HashOrContent({ hash: secondFileHash, content: secondFile }), // Provide both hash and content to double-check
-            size: 5n, // Provide size to double-check with content
-        })
+        itemFile: HashOrContent.fromContent(secondFile),
     });
 
     const secondItemWithUpload = await closedLoc.getCollectionItem({ itemId: secondItemId });

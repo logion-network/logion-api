@@ -1,11 +1,11 @@
 import { Hash as Hasher } from 'fast-sha256';
-import { AxiosFileUploader, File, FormDataLike, HashAndSize } from "@logion/client";
+import { AxiosFileUploader, File, FormDataLike, HashAndSize, MimeType } from "@logion/client";
 import { Hash } from "@logion/node-api";
 
 export class BrowserFile extends File {
 
-    constructor(file: Blob) {
-        super();
+    constructor(file: Blob, name: string) {
+        super(name, MimeType.from(file.type));
         this.file = file;
     }
 
