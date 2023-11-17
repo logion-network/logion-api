@@ -295,10 +295,12 @@ declare module '@polkadot/api-base/types/consts' {
     };
     timestamp: {
       /**
-       * The minimum period between blocks. Beware that this is different to the *expected*
-       * period that the block production apparatus provides. Your chosen consensus system will
-       * generally work with this to determine a sensible block time. e.g. For Aura, it will be
-       * double this period on default settings.
+       * The minimum period between blocks.
+       * 
+       * Be aware that this is different to the *expected* period that the block production
+       * apparatus provides. Your chosen consensus system will generally work with this to
+       * determine a sensible block time. For example, in the Aura pallet it will be double this
+       * period on default settings.
        **/
       minimumPeriod: u64 & AugmentedConst<ApiType>;
       /**

@@ -131,7 +131,7 @@ async function transferTokens(config: LogionClientConfig, signer: Signer, source
     const api = await buildApiClass(config.rpcEndpoints);
     await signer.signAndSend({
         signerId: source,
-        submittable: api.polkadot.tx.balances.transfer(destination, amount)
+        submittable: api.polkadot.tx.balances.transferAllowDeath(destination, amount)
     });
 }
 

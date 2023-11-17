@@ -7,7 +7,7 @@ export async function verifiedIssuers() {
     const issuerIdentityLocId = new UUID();
     const collectionLocId = new UUID();
     await signAndSend(alice,
-        api.polkadot.tx.balances.transfer(ISSUER, Currency.toCanonicalAmount(Currency.nLgnt(200n))),
+        api.polkadot.tx.balances.transferAllowDeath(ISSUER, Currency.toCanonicalAmount(Currency.nLgnt(200n))),
     );
     await signAndSend(issuer,
         api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
