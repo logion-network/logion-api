@@ -32,7 +32,6 @@ import { Signer, SignCallback } from "./Signer.js";
 import { ComponentFactory } from "./ComponentFactory.js";
 import { newBackendError } from "./Error.js";
 import { HashOrContent, HashString } from "./Hash.js";
-import { MimeType } from "./Mime.js";
 import { validateToken, ItemTokenWithRestrictedType, TokenType } from "./Token.js";
 import {
     TermsAndConditionsElement,
@@ -179,68 +178,12 @@ export interface AddMetadataParams {
 
 export interface AddFileParams {
     file: HashOrContent,
-    fileName: string,
     nature: string,
 }
 
 export interface AddLinkParams {
     target: UUID;
     nature: string;
-}
-
-export class ItemFileWithContent {
-
-    constructor(parameters: {
-        name: string;
-        contentType: MimeType;
-        size?: bigint;
-        hashOrContent: HashOrContent;
-    }) {
-        this._name = parameters.name;
-        this._contentType = parameters.contentType;
-        this._hashOrContent = parameters.hashOrContent;
-        this._size = parameters.size;
-
-        if (!this._size && !this._hashOrContent.hasContent) {
-            throw new Error("File size must be provided if no content is");
-        }
-    }
-
-    private _name: string;
-    private _contentType: MimeType;
-    private _size?: bigint;
-    private _hashOrContent: HashOrContent;
-
-    async finalize() {
-        await this._hashOrContent.finalize();
-        if(this._hashOrContent.hasContent) {
-            const contentSize = this._hashOrContent.size;
-            if(!this._size) {
-                this._size = contentSize;
-            } else if(this._size !== contentSize) {
-                throw new Error(`Given size does not match content: got ${this._size}, should be ${contentSize}`);
-            }
-        }
-    }
-
-    get name() {
-        return this._name;
-    }
-
-    get contentType() {
-        return this._contentType;
-    }
-
-    get size() {
-        if(!this._size) {
-            throw new Error("Call finalize() first");
-        }
-        return this._size;
-    }
-
-    get hashOrContent() {
-        return this._hashOrContent;
-    }
 }
 
 export interface BlockchainSubmissionParams {
@@ -251,7 +194,7 @@ export interface BlockchainSubmissionParams {
 export interface EstimateFeesAddCollectionItemParams {
     itemId: Hash,
     itemDescription: string,
-    itemFiles?: ItemFileWithContent[],
+    itemFiles?: HashOrContent[],
     itemToken?: ItemTokenWithRestrictedType,
     restrictedDelivery?: boolean,
     logionClassification?: LogionClassification,
@@ -339,7 +282,7 @@ export interface AddTokensRecordParams extends EstimateFeesAddTokensRecordParams
 export interface EstimateFeesAddTokensRecordParams {
     recordId: Hash,
     description: string,
-    files: ItemFileWithContent[],
+    files: HashOrContent[],
 }
 
 export interface GetTokensRecordDeliveriesRequest {
@@ -879,7 +822,7 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async addFile(parameters: AddFileParams & FetchParameters & { direct: boolean }): Promise<void> {
-        const { file, fileName, nature, locId, direct } = parameters;
+        const { file, nature, locId, direct } = parameters;
 
         await file.finalize();
 
@@ -889,7 +832,6 @@ export class AuthenticatedLocClient extends LocClient {
             files: [
                 {
                     file: file.content,
-                    name: fileName,
                     field: "file",
                 }
             ],
@@ -959,8 +901,8 @@ export class AuthenticatedLocClient extends LocClient {
             itemId: itemId.toHex(),
             files: itemFiles?.map(file => ({
                 name: file.name,
-                contentType: file.contentType.mimeType,
-                hash: file.hashOrContent.contentHash.toHex(),
+                contentType: file.mimeType.mimeType,
+                hash: file.contentHash.toHex(),
             })) || [],
             termsAndConditions: termsAndConditions.map(element => ({
                 type: element.type,
@@ -986,7 +928,7 @@ export class AuthenticatedLocClient extends LocClient {
 
         if(itemFiles) {
             for(const file of itemFiles) {
-                if(file.hashOrContent.hasContent) {
+                if(file.hasContent) {
                     await this.uploadItemFile({ locId, itemId, file });
                 }
             }
@@ -1032,8 +974,8 @@ export class AuthenticatedLocClient extends LocClient {
             for(const itemFile of itemFiles) {
                 chainItemFiles.push({
                     name: Hash.of(itemFile.name),
-                    contentType: Hash.of(itemFile.contentType.mimeType),
-                    hash: itemFile.hashOrContent.contentHash,
+                    contentType: Hash.of(itemFile.mimeType.mimeType),
+                    hash: itemFile.contentHash,
                     size: itemFile.size,
                 });
             }
@@ -1093,25 +1035,24 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async uploadItemFile(parameters: { locId: UUID, itemId: Hash, file: ItemFileWithContent }) {
+    async uploadItemFile(parameters: { locId: UUID, itemId: Hash, file: HashOrContent }) {
         const { locId, itemId, file } = parameters;
 
-        await file.hashOrContent.finalize(); // Ensure validity
+        await file.finalize(); // Ensure validity
 
         const uploader = this.componentFactory.buildFileUploader();
         await uploader.upload({
             endpoint: `${ this.legalOfficer.node }/api/collection/${ locId.toString() }/${ itemId.toHex() }/files`,
             files: [
                 {
-                    file: file.hashOrContent.content,
-                    name: file.name,
+                    file: file.content,
                     field: "file",
                 }
             ],
             fields: [
                 {
                     name: "hash",
-                    value: file.hashOrContent.contentHash.toHex(),
+                    value: file.contentHash.toHex(),
                 },
             ],
             headers: {
@@ -1268,8 +1209,8 @@ export class AuthenticatedLocClient extends LocClient {
             recordId: recordId.toHex(),
             files: files?.map(file => ({
                 name: file.name,
-                contentType: file.contentType.mimeType,
-                hash: file.hashOrContent.contentHash.toHex(),
+                contentType: file.mimeType.mimeType,
+                hash: file.contentHash.toHex(),
             })) || [],
             description,
         });
@@ -1286,7 +1227,7 @@ export class AuthenticatedLocClient extends LocClient {
         }
 
         for(const file of files) {
-            if(file.hashOrContent.hasContent) {
+            if(file.hasContent) {
                 await this.uploadTokensRecordFile({ locId, recordId, file });
             }
         }
@@ -1307,8 +1248,8 @@ export class AuthenticatedLocClient extends LocClient {
         for(const itemFile of files) {
             chainItemFiles.push({
                 name: Hash.of(itemFile.name),
-                contentType: Hash.of(itemFile.contentType.mimeType),
-                hash: itemFile.hashOrContent.contentHash,
+                contentType: Hash.of(itemFile.mimeType.mimeType),
+                hash: itemFile.contentHash,
                 size: itemFile.size.toString(),
             });
         }
@@ -1354,25 +1295,24 @@ export class AuthenticatedLocClient extends LocClient {
         })
     }
 
-    async uploadTokensRecordFile(parameters: { locId: UUID, recordId: Hash, file: ItemFileWithContent }) {
+    async uploadTokensRecordFile(parameters: { locId: UUID, recordId: Hash, file: HashOrContent }) {
         const { locId, recordId, file } = parameters;
 
-        await file.hashOrContent.finalize(); // Ensure validity
+        await file.finalize(); // Ensure validity
 
         const uploader = this.componentFactory.buildFileUploader();
         await uploader.upload({
             endpoint: `${ this.legalOfficer.node }/api/records/${ locId.toString() }/${ recordId.toHex() }/files`,
             files: [
                 {
-                    file: file.hashOrContent.content,
-                    name: file.name,
+                    file: file.content,
                     field: "file",
                 }
             ],
             fields: [
                 {
                     name: "hash",
-                    value: file.hashOrContent.contentHash.toHex(),
+                    value: file.contentHash.toHex(),
                 },
             ],
             headers: {

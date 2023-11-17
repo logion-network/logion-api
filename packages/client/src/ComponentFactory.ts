@@ -7,6 +7,7 @@ import { LegalOfficerEndpoint } from "./SharedClient.js";
 import { LegalOfficerClass } from "./Types.js";
 import axios from "axios";
 import { newBackendError } from "./Error.js";
+import { MimeType } from "./Mime.js";
 
 export interface HashAndSize {
     hash: Hash;
@@ -14,6 +15,14 @@ export interface HashAndSize {
 }
 
 export abstract class File {
+
+    constructor(name: string, mimeType: MimeType) {
+        this.name = name;
+        this.mimeType = mimeType;
+    }
+
+    readonly name: string;
+    readonly mimeType: MimeType;
 
     abstract getHashAndSize(): Promise<HashAndSize>;
 }
@@ -27,7 +36,6 @@ export interface FileUploadParameters {
 
 export interface FileToUpload {
     file: File;
-    name: string;
     field: string;
 }
 
@@ -49,7 +57,7 @@ export abstract class AxiosFileUploader implements FileUploader {
     async upload(parameters: FileUploadParameters): Promise<void> {
         const formData = this.buildFormData();
         for(const file of parameters.files) {
-            formData.append(file.field, await this.toFormDataValue(file.file), file.name);
+            formData.append(file.field, await this.toFormDataValue(file.file), file.file.name);
         }
         for(const field of parameters.fields) {
             formData.append(field.name, field.value);

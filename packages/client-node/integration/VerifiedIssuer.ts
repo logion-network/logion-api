@@ -3,7 +3,7 @@ import {
     ClosedLoc,
     HashOrContent,
     AcceptedRequest,
-    PendingRequest, OpenLoc
+    PendingRequest, OpenLoc, MimeType
 } from "@logion/client";
 import { State, ISSUER_ADDRESS, initRequesterBalance, TEST_LOGION_CLIENT_CONFIG } from "./Utils.js";
 import { NodeFile } from "../src/index.js";
@@ -86,9 +86,8 @@ export async function verifiedIssuer(state: State) {
     }) as OpenLoc;
     openIssuerLoc = await openIssuerLoc.deleteMetadata({ nameHash: dataNameHash }) as OpenLoc;
 
-    const file = HashOrContent.fromContent(new NodeFile("integration/test.txt"));
+    const file = HashOrContent.fromContent(new NodeFile("integration/test.txt", "test.txt", MimeType.from("text/plain")));
     openIssuerLoc = await openIssuerLoc.addFile({
-        fileName: "test.txt",
         nature: "Some file nature",
         file,
     }) as OpenLoc;

@@ -7,7 +7,8 @@ const TEST_HASH = Hash.fromHex("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b82
 describe("BrowserFile", () => {
 
     it("gets hash and size", async () => {
-        const file = new BrowserFile(BLOB_MOCK);
+        const file = new BrowserFile(BLOB_MOCK, "test.txt");
+        expect(file.mimeType.mimeType).toBe("text/plain")
         const hashSize = await file.getHashAndSize();
         expect(hashSize.hash).toEqual(TEST_HASH);
         expect(hashSize.size).toBe(4n);
@@ -33,4 +34,6 @@ const STREAM_MOCK = new Mock<any>()
 const BLOB_MOCK = new Mock<Blob>()
     .setup(instance => instance.stream())
     .returns(STREAM_MOCK)
+    .setup(instance => instance.type)
+    .returns("text/plain")
     .object();

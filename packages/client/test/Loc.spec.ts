@@ -1,6 +1,6 @@
 import { Fees, Hash, LogionNodeApiClass, UUID, VerifiedIssuerType } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
-import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { AxiosInstance, AxiosResponse } from "axios";
 import { DateTime } from "luxon";
 import { It, Mock, Times } from "moq.ts";
 
@@ -8,7 +8,6 @@ import {
     AccountTokens,
     HashOrContent,
     LegalOfficer,
-    MimeType,
     ClosedCollectionLoc,
     ClosedLoc,
     LocData,
@@ -22,7 +21,6 @@ import {
     AddMetadataParams,
     FetchLocRequestSpecification,
     FetchParameters,
-    ItemFileWithContent,
     LocRequest,
     Signer,
     SignParameters,
@@ -32,7 +30,6 @@ import {
     EditableRequest,
     LogionClient,
     SharedState,
-    FormDataLike,
     LegalOfficerClass,
     FileUploader,
     FileUploadParameters,
@@ -441,11 +438,7 @@ describe("ClosedCollectionLoc", () => {
 
         await closedLoc.uploadCollectionItemFile({
             itemId: ITEM_ID,
-            itemFile: new ItemFileWithContent({
-                name: "test.txt",
-                contentType: MimeType.from("text/plain"),
-                hashOrContent: HashOrContent.fromContent(MOCK_FILE),
-            }),
+            itemFile: HashOrContent.fromContent(MOCK_FILE),
         });
 
         uploaderMock.verify(instance => instance.upload(It.Is<FileUploadParameters>(params => 
@@ -498,11 +491,7 @@ describe("ClosedCollectionLoc", () => {
 
         await closedLoc.uploadTokensRecordFile({
             recordId: RECORD_ID,
-            file: new ItemFileWithContent({
-                name: "test.txt",
-                contentType: MimeType.from("text/plain"),
-                hashOrContent: HashOrContent.fromContent(MOCK_FILE),
-            }),
+            file: HashOrContent.fromContent(MOCK_FILE),
         });
 
         uploaderMock.verify(instance => instance.upload(It.Is<FileUploadParameters>(params => 
@@ -650,11 +639,7 @@ const CREATIVE_COMMONS: CreativeCommons = new CreativeCommons(new UUID(), "BY-SA
 
 const RECORD_ID = Hash.fromHex("0x186bf67f32bb45187a1c50286dbd9adf8751874831aeba2a66760a74a9c898cc");
 const RECORD_DESCRIPTION = "Some record description";
-const RECORD_FILES: ItemFileWithContent[] = [new ItemFileWithContent({
-    name: "test.txt",
-    contentType: MimeType.from("text/plain"),
-    hashOrContent: HashOrContent.fromContent(MOCK_FILE),
-})];
+const RECORD_FILES: HashOrContent[] = [ HashOrContent.fromContent(MOCK_FILE) ];
 
 let aliceAxiosMock: Mock<AxiosInstance>;
 let bobAxiosMock: Mock<AxiosInstance>;
@@ -990,7 +975,6 @@ async function testAddMetadata(editable: EditableRequest) {
 async function testAddFile(editable: EditableRequest) {
     let newState = await editable.addFile({
         file: HashOrContent.fromContent(MOCK_FILE),
-        fileName: "test.txt",
         nature: "Some nature",
     });
 

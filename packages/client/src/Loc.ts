@@ -22,7 +22,6 @@ import {
     AddCollectionItemParams,
     LocRequestVoidInfo,
     LocRequestStatus,
-    ItemFileWithContent,
     AuthenticatedLocClient,
     FetchAllLocsParams,
     IdenfyVerificationSession,
@@ -69,6 +68,7 @@ import { Fees } from "./Fees.js";
 import { HashString, HashOrContent } from "./Hash.js";
 import { DateTime } from "luxon";
 import { fromIsoString } from "./DateTimeUtil.js";
+import { MimeType } from "./Mime.js";
 
 export interface LocData extends LocVerifiedIssuers {
     id: UUID
@@ -1484,8 +1484,12 @@ export class AcceptedRequest extends ReviewedRequest {
     private toAddFileParams(autoPublish: boolean): AddFileParams[] {
         if (autoPublish) {
             return this.request.files.filter(item => item.status === "REVIEW_ACCEPTED").map(item => ({
-                file: HashOrContent.fromHashAndSize(Hash.fromHex(item.hash), BigInt(item.size)),
-                fileName: item.name,
+                file: HashOrContent.fromDescription({
+                    name: item.name,
+                    hash: Hash.fromHex(item.hash),
+                    size: BigInt(item.size),
+                    mimeType: MimeType.from(item.contentType),
+                }),
                 nature: item.nature,
             }));
         } else {
@@ -2214,12 +2218,12 @@ abstract class ClosedOrVoidCollectionLoc extends LocRequestState {
 
 export interface UploadCollectionItemFileParams {
     itemId: Hash,
-    itemFile: ItemFileWithContent,
+    itemFile: HashOrContent,
 }
 
 export interface UploadTokensRecordFileParams {
     recordId: Hash,
-    file: ItemFileWithContent,
+    file: HashOrContent,
 }
 
 export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {

@@ -18,7 +18,9 @@ import {
     SignParameters,
     FileUploader,
     HashAndSize,
-    File
+    File,
+    MimeType,
+    FileDescription
 } from "../src/index.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
 import { It, Mock } from "moq.ts";
@@ -256,7 +258,18 @@ export function mockSigner(args: {
 
 export const MOCK_FILE_HASH = Hash.fromHex("0x9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
 
+export const MOCK_FILE_DESCRIPTION: FileDescription = {
+    name: "test.txt",
+    hash: MOCK_FILE_HASH,
+    mimeType: MimeType.from("text/plain"),
+    size: 4n,
+};
+
 export class MockFile extends File {
+
+    constructor() {
+        super(MOCK_FILE_DESCRIPTION.name, MOCK_FILE_DESCRIPTION.mimeType);
+    }
 
     async getHashAndSize(): Promise<HashAndSize> {
         return {
