@@ -11,14 +11,14 @@ export async function transfers(state: State) {
     const aliceClient = client.withCurrentAddress(aliceAccount)
     let aliceState = await aliceClient.balanceState();
 
-    checkBalance(aliceState, "99.99k");
+    checkBalance(aliceState, "100.00k");
     expect(aliceState.transactions.length).toBe(0);
     aliceState = await aliceState.transfer({
         signer,
         amount: new Numbers.PrefixedNumber("5", Numbers.KILO),
         destination: REQUESTER_ADDRESS
     });
-    checkBalance(aliceState, "94.99k");
+    checkBalance(aliceState, "95.00k");
     aliceState = await waitFor({
         producer: async state => state ? await state.refresh() : aliceState,
         predicate: state => state.transactions.length === 2,
@@ -41,7 +41,7 @@ export async function transfers(state: State) {
 
     // Alice checks her balance.
     aliceState = await aliceState.refresh();
-    checkBalance(aliceState, "96.99k");
+    checkBalance(aliceState, "97.00k");
 }
 
 export function checkBalance(balanceState: BalanceState, expectedValue: string) {
