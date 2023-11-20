@@ -86,8 +86,8 @@ describe("Logion SDK", () => {
 
     it("provides Other Identity LOC, requests a Transaction LOC and link it to the Identity LOC", async () => {
         const identityLocLink = await otherIdentityLoc(state);
-        const transactionLocLink = await requestTransactionLoc(state, identityLocLink);
-        await openTransactionLocWithAutoPublish(state, [ identityLocLink, transactionLocLink ]);
+        await requestTransactionLoc(state, identityLocLink);
+        await openTransactionLocWithAutoPublish(state, identityLocLink);
     });
 
     it("requests a Transaction LOC with custom legal fee", async () => {

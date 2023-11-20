@@ -100,6 +100,8 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID): Pro
     alicePendingLoc = await aliceRejectedLoc.refresh() as PendingRequest;
     alicePendingLoc = await alicePendingLoc.legalOfficer.reviewMetadata({ nameHash, decision: "ACCEPT" });
     expect(alicePendingLoc.data().metadata[0].status).toBe("REVIEW_ACCEPTED");
+    alicePendingLoc = await alicePendingLoc.legalOfficer.reviewLink({ target: linkTarget, decision: "ACCEPT" });
+    expect(alicePendingLoc.data().links[0].status).toBe("REVIEW_ACCEPTED");
     let aliceAcceptedLoc = await alicePendingLoc.legalOfficer.accept({ signer }) as AcceptedRequest;
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
     expect(acceptedLoc).toBeInstanceOf(AcceptedRequest);
@@ -165,21 +167,6 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID): Pro
     expect(aliceOpenLoc.data().metadata[0].status).toBe("ACKNOWLEDGED");
 
     // Continue with Link
-    aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
-    const rejectReason = "Because nature is not good";
-    aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewLink({ target: linkTarget, decision: "REJECT", rejectReason }) as OpenLoc;
-    expect(aliceOpenLoc.data().links[0].status).toBe("REVIEW_REJECTED");
-    expect(aliceOpenLoc.data().links[0].rejectReason).toBe(rejectReason);
-    expect(aliceOpenLoc.data().links[0].reviewedOn).toBeDefined();
-    openLoc = await openLoc.refresh() as OpenLoc;
-    openLoc = await openLoc.deleteLink({ target: linkTarget }) as OpenLoc;
-    openLoc = await openLoc.addLink({
-        target: linkTarget,
-        nature: "Better nature"
-    }) as OpenLoc;
-    openLoc = await openLoc.requestLinkReview({ target: linkTarget }) as OpenLoc;
-    aliceOpenLoc = await aliceOpenLoc.refresh() as OpenLoc;
-    aliceOpenLoc = await aliceOpenLoc.legalOfficer.reviewLink({ target: linkTarget, decision: "ACCEPT" }) as OpenLoc;
     openLoc = await openLoc.refresh() as OpenLoc;
     openLoc = await openLoc.publishLink({ target: linkTarget, signer });
     expect(openLoc.data().links[0].status).toBe("PUBLISHED");
@@ -197,7 +184,7 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID): Pro
     return closedLoc.locId;
 }
 
-export async function openTransactionLocWithAutoPublish(state: State, linkTargets: UUID[]) {
+export async function openTransactionLocWithAutoPublish(state: State, linkTarget: UUID) {
     const { alice, aliceAccount, newAccount, signer } = state;
     const client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
@@ -231,17 +218,11 @@ export async function openTransactionLocWithAutoPublish(state: State, linkTarget
     // Add Links
     const nature = "Some nature";
     draftRequest = await draftRequest.addLink({
-        target: linkTargets[0],
-        nature,
-    }) as DraftRequest;
-    draftRequest = await draftRequest.addLink({
-        target: linkTargets[1],
+        target: linkTarget,
         nature,
     }) as DraftRequest;
     expect(draftRequest.data().links[0].addedOn).toBeUndefined();
     expect(draftRequest.data().links[0].status).toBe("DRAFT");
-    expect(draftRequest.data().links[1].addedOn).toBeUndefined();
-    expect(draftRequest.data().links[1].status).toBe("DRAFT");
 
     // Add files
     draftRequest = await draftRequest.addFile({
@@ -259,15 +240,15 @@ export async function openTransactionLocWithAutoPublish(state: State, linkTarget
     let pendingRequest = await draftRequest.submit();
     expect(pendingRequest).toBeInstanceOf(PendingRequest);
 
-    // Alic accepts some items
+    // Alice accepts all items
     const aliceClient = state.client.withCurrentAddress(aliceAccount);
     let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, statuses: [ "REVIEW_PENDING", "OPEN" ], locTypes: [ "Transaction" ] } });
     let alicePendingLoc = aliceLocs.findById(pendingRequest.data().id) as PendingRequest;
     // metadata
     alicePendingLoc = await alicePendingLoc.legalOfficer.reviewMetadata({ nameHash, decision: "ACCEPT" });
     expect(alicePendingLoc.data().metadata[0].status).toBe("REVIEW_ACCEPTED");
-    // links: only the first link is accepted.
-    alicePendingLoc = await alicePendingLoc.legalOfficer.reviewLink({ target: linkTargets[0], decision: "ACCEPT" });
+    // links
+    alicePendingLoc = await alicePendingLoc.legalOfficer.reviewLink({ target: linkTarget, decision: "ACCEPT" });
     expect(alicePendingLoc.data().links[0].status).toBe("REVIEW_ACCEPTED");
     // files
     alicePendingLoc = await alicePendingLoc.legalOfficer.reviewFile({ hash: hash0, decision: "ACCEPT" });
@@ -287,7 +268,6 @@ export async function openTransactionLocWithAutoPublish(state: State, linkTarget
 
     expect(openLoc.data().metadata[0].status).toBe("PUBLISHED");
     expect(openLoc.data().links[0].status).toBe("PUBLISHED");
-    expect(openLoc.data().links[1].status).toBe("REVIEW_PENDING");
     expect(openLoc.data().files[0].status).toBe("PUBLISHED");
     expect(openLoc.data().files[1].status).toBe("PUBLISHED");
 
