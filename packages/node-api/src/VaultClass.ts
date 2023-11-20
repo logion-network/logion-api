@@ -82,7 +82,7 @@ export class Vault {
         cancelVaultTransfer: (parameters: CancelVaultOutTransferParameters): SubmittableExtrinsic => {
             const { amount, destination, block, index } = parameters;
             const actualAmount = Currency.toCanonicalAmount(amount);
-            const call = this.api.tx.balances.transfer(destination, actualAmount);
+            const call = this.api.tx.balances.transferAllowDeath(destination, actualAmount);
             const sortedLegalOfficers = [ ...this.legalOfficers ].sort();
             return this.api.tx.multisig.cancelAsMulti(Vault.THRESHOLD, sortedLegalOfficers, { height: block, index }, call.method.hash)
         },
@@ -92,7 +92,7 @@ export class Vault {
         amount: bigint,
         destination: string,
     ): Promise<{ submittable: SubmittableExtrinsic, weight: Weight }> {
-        const submittable = this.api.tx.balances.transfer(destination, amount);
+        const submittable = this.api.tx.balances.transferAllowDeath(destination, amount);
         const dispatchInfo = await submittable.paymentInfo(this.address);
         const weight = dispatchInfo.weight;
         return {

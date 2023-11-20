@@ -121,6 +121,7 @@ export default {
                 "V19AcknowledgeItemsByIssuer",
                 "V20AddCustomLegalFee",
                 "V21EnableRequesterLinks",
+                "V22AddRecurrentFees",
             ]
         },
         Requester: {
