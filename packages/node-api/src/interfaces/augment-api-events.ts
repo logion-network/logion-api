@@ -212,6 +212,14 @@ declare module '@polkadot/api-base/types/events' {
     };
     communityTreasury: {
       /**
+       * A new asset spend proposal has been approved.
+       **/
+      AssetSpendApproved: AugmentedEvent<ApiType, [index: u32, assetKind: u64, amount: u128, beneficiary: AccountId32, validFrom: u32, expireAt: u32], { index: u32, assetKind: u64, amount: u128, beneficiary: AccountId32, validFrom: u32, expireAt: u32 }>;
+      /**
+       * An approved spend was voided.
+       **/
+      AssetSpendVoided: AugmentedEvent<ApiType, [index: u32], { index: u32 }>;
+      /**
        * Some funds have been allocated.
        **/
       Awarded: AugmentedEvent<ApiType, [proposalIndex: u32, award: u128, account: AccountId32], { proposalIndex: u32, award: u128, account: AccountId32 }>;
@@ -223,6 +231,14 @@ declare module '@polkadot/api-base/types/events' {
        * Some funds have been deposited.
        **/
       Deposit: AugmentedEvent<ApiType, [value: u128], { value: u128 }>;
+      /**
+       * A payment happened.
+       **/
+      Paid: AugmentedEvent<ApiType, [index: u32, paymentId: Null], { index: u32, paymentId: Null }>;
+      /**
+       * A payment failed and can be retried.
+       **/
+      PaymentFailed: AugmentedEvent<ApiType, [index: u32, paymentId: Null], { index: u32, paymentId: Null }>;
       /**
        * New proposal.
        **/
@@ -243,6 +259,11 @@ declare module '@polkadot/api-base/types/events' {
        * We have ended a spend period and will now allocate funds.
        **/
       Spending: AugmentedEvent<ApiType, [budgetRemaining: u128], { budgetRemaining: u128 }>;
+      /**
+       * A spend was processed and removed from the storage. It might have been successfully
+       * paid or it may have expired.
+       **/
+      SpendProcessed: AugmentedEvent<ApiType, [index: u32], { index: u32 }>;
       /**
        * The inactive funds of the pallet have been updated.
        **/
@@ -344,6 +365,14 @@ declare module '@polkadot/api-base/types/events' {
     };
     logionTreasury: {
       /**
+       * A new asset spend proposal has been approved.
+       **/
+      AssetSpendApproved: AugmentedEvent<ApiType, [index: u32, assetKind: u64, amount: u128, beneficiary: AccountId32, validFrom: u32, expireAt: u32], { index: u32, assetKind: u64, amount: u128, beneficiary: AccountId32, validFrom: u32, expireAt: u32 }>;
+      /**
+       * An approved spend was voided.
+       **/
+      AssetSpendVoided: AugmentedEvent<ApiType, [index: u32], { index: u32 }>;
+      /**
        * Some funds have been allocated.
        **/
       Awarded: AugmentedEvent<ApiType, [proposalIndex: u32, award: u128, account: AccountId32], { proposalIndex: u32, award: u128, account: AccountId32 }>;
@@ -355,6 +384,14 @@ declare module '@polkadot/api-base/types/events' {
        * Some funds have been deposited.
        **/
       Deposit: AugmentedEvent<ApiType, [value: u128], { value: u128 }>;
+      /**
+       * A payment happened.
+       **/
+      Paid: AugmentedEvent<ApiType, [index: u32, paymentId: Null], { index: u32, paymentId: Null }>;
+      /**
+       * A payment failed and can be retried.
+       **/
+      PaymentFailed: AugmentedEvent<ApiType, [index: u32, paymentId: Null], { index: u32, paymentId: Null }>;
       /**
        * New proposal.
        **/
@@ -375,6 +412,11 @@ declare module '@polkadot/api-base/types/events' {
        * We have ended a spend period and will now allocate funds.
        **/
       Spending: AugmentedEvent<ApiType, [budgetRemaining: u128], { budgetRemaining: u128 }>;
+      /**
+       * A spend was processed and removed from the storage. It might have been successfully
+       * paid or it may have expired.
+       **/
+      SpendProcessed: AugmentedEvent<ApiType, [index: u32], { index: u32 }>;
       /**
        * The inactive funds of the pallet have been updated.
        **/
