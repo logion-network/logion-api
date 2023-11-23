@@ -2112,7 +2112,7 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async voidLoc(parameters: { locId: UUID } & VoidParams): Promise<void> {
-        const { locId, replacer, reason, signer, callback } = parameters;
+        const { locId, replacer, signer, callback } = parameters;
 
         let submittable;
         if(replacer) {
@@ -2132,6 +2132,22 @@ export class AuthenticatedLocClient extends LocClient {
         });
         await this.ensureEnoughFunds(fees);
 
+        await this.preVoid(parameters);
+
+        try {
+            await signer.signAndSend({
+                signerId: this.currentAddress.address,
+                submittable,
+                callback
+            });
+        } catch (e) {
+            await this.cancelPreVoid(parameters);
+            throw e;
+        }
+    }
+
+    private async preVoid(parameters: { locId: UUID, reason: string }) {
+        const { locId, reason } = parameters;
         try {
             await this.backend().post(`/api/loc-request/${ locId.toString() }/void`, {
                 reason
@@ -2139,12 +2155,15 @@ export class AuthenticatedLocClient extends LocClient {
         } catch(e) {
             throw newBackendError(e);
         }
+    }
 
-        await signer.signAndSend({
-            signerId: this.currentAddress.address,
-            submittable,
-            callback
-        });
+    private async cancelPreVoid(parameters: { locId: UUID }) {
+        const { locId } = parameters;
+        try {
+            await this.backend().delete(`/api/loc-request/${ locId.toString() }/void`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async nominateIssuer(parameters: { locId: UUID, requester: string } & BlockchainSubmissionParams) {
