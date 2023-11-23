@@ -178,6 +178,10 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID): Pro
     expect(aliceOpenLoc.data().links[0].status).toBe("ACKNOWLEDGED");
 
     // Close LOC
+    aliceOpenLoc = await waitFor<OpenLoc>({
+        producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : aliceOpenLoc.refresh() as Promise<OpenLoc>,
+        predicate: state => state.legalOfficer.canClose(false),
+    });
     const closedLoc = await aliceOpenLoc.legalOfficer.close({ signer, autoAck: false });
     expect(closedLoc).toBeInstanceOf(ClosedLoc);
 
@@ -357,6 +361,10 @@ export async function collectionLoc(state: State) {
     expect(openLoc.data().fees.legalFee).toBe(0n);
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
 
+    aliceOpenLoc = await waitFor<OpenLoc>({
+        producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : aliceOpenLoc.refresh() as Promise<OpenLoc>,
+        predicate: state => state.legalOfficer.canClose(false),
+    });
     let aliceClosedLoc = await aliceOpenLoc.legalOfficer.close({ signer, autoAck: false });
     expect(aliceClosedLoc).toBeInstanceOf(ClosedCollectionLoc);
 
@@ -418,7 +426,11 @@ export async function collectionLocWithUpload(state: State) {
     const aliceLogionClassificationAcceptedRequest = await aliceLogionClassificationLocRequest.legalOfficer.accept({ signer }) as AcceptedRequest;
     const logionClassificationAcceptedRequest = await logionClassificationLocRequest.refresh() as AcceptedRequest;
     const logionClassificationOpenLoc = await logionClassificationAcceptedRequest.open({ signer, autoPublish: false });
-    const aliceLogionClassificationOpenLoc = await aliceLogionClassificationAcceptedRequest.refresh() as OpenLoc;
+    let aliceLogionClassificationOpenLoc = await aliceLogionClassificationAcceptedRequest.refresh() as OpenLoc;
+    aliceLogionClassificationOpenLoc = await waitFor<OpenLoc>({
+        producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : aliceLogionClassificationOpenLoc.refresh() as Promise<OpenLoc>,
+        predicate: state => state.legalOfficer.canClose(false),
+    });
     await aliceLogionClassificationOpenLoc.legalOfficer.close({ signer, autoAck: false });
 
     locsState = logionClassificationOpenLoc.locsState();
@@ -431,7 +443,11 @@ export async function collectionLocWithUpload(state: State) {
     const aliceCreativeCommonsAcceptedRequest = await aliceCreativeCommonsLocRequest.legalOfficer.accept({ signer }) as AcceptedRequest;
     const creativeCommonsAcceptedRequest = await creativeCommonsLocRequest.refresh() as AcceptedRequest;
     const creativeCommonsOpenLoc = await creativeCommonsAcceptedRequest.open({ signer, autoPublish: false });
-    const aliceCreativeCommonsOpenLoc = await aliceCreativeCommonsAcceptedRequest.refresh() as OpenLoc;
+    let aliceCreativeCommonsOpenLoc = await aliceCreativeCommonsAcceptedRequest.refresh() as OpenLoc;
+    aliceCreativeCommonsOpenLoc = await waitFor<OpenLoc>({
+        producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : aliceCreativeCommonsOpenLoc.refresh() as Promise<OpenLoc>,
+        predicate: state => state.legalOfficer.canClose(false),
+    });
     await aliceCreativeCommonsOpenLoc.legalOfficer.close({ signer, autoAck: false });
 
     locsState = creativeCommonsOpenLoc.locsState();
@@ -455,7 +471,10 @@ export async function collectionLocWithUpload(state: State) {
         signer,
     });
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
-
+    aliceOpenLoc = await waitFor<OpenLoc>({
+        producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : aliceOpenLoc.refresh() as Promise<OpenLoc>,
+        predicate: state => state.legalOfficer.canClose(false),
+    });
     await aliceOpenLoc.legalOfficer.close({ signer, autoAck: false });
     let closedLoc = await openLoc.refresh() as ClosedCollectionLoc;
 
@@ -590,7 +609,11 @@ export async function identityLoc(state: State) {
     const openLoc = await acceptedRequest.open({ signer, autoPublish: false });
     expect(openLoc.data().status).toBe("OPEN");
 
-    const aliceOpenLoc = await aliceAcceptedRequest.refresh() as OpenLoc;
+    let aliceOpenLoc = await aliceAcceptedRequest.refresh() as OpenLoc;
+    aliceOpenLoc = await waitFor<OpenLoc>({
+        producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : aliceOpenLoc.refresh() as Promise<OpenLoc>,
+        predicate: state => state.legalOfficer.canClose(false),
+    });
     await aliceOpenLoc.legalOfficer.close({ signer, autoAck: false });
 }
 
@@ -633,7 +656,11 @@ export async function otherIdentityLoc(state: State): Promise<UUID> {
     expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REVIEW_PENDING");
 
     const alicePendingRequest = await findWithLegalOfficerClient(aliceClient, pendingRequest) as PendingRequest;
-    const aliceOpenRequest = await alicePendingRequest.legalOfficer.accept({ signer }) as OpenLoc;
+    let aliceOpenRequest = await alicePendingRequest.legalOfficer.accept({ signer }) as OpenLoc;
+    aliceOpenRequest = await waitFor<OpenLoc>({
+        producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : aliceOpenRequest.refresh() as Promise<OpenLoc>,
+        predicate: state => state.legalOfficer.canClose(false),
+    });
     await aliceOpenRequest.legalOfficer.close({ signer, autoAck: false });
 
     return pendingRequest.locId;
@@ -644,7 +671,7 @@ export async function logionIdentityLoc(state: State) {
     const client = state.client.withCurrentAddress(aliceAccount);
     let locsState = await client.locsState();
 
-    const openLogionIdentityLoc = await locsState.legalOfficer.createLoc({
+    let openLogionIdentityLoc = await locsState.legalOfficer.createLoc({
         description: "This is a Logion Identity LOC",
         userIdentity: {
             email: "john.doe@invalid.domain",
@@ -664,6 +691,10 @@ export async function logionIdentityLoc(state: State) {
     }) as OpenLoc;
     expect(openLogionIdentityLoc.data().status).toBe("OPEN");
 
+    openLogionIdentityLoc = await waitFor<OpenLoc>({
+        producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : openLogionIdentityLoc.refresh() as Promise<OpenLoc>,
+        predicate: state => state.legalOfficer.canClose(false),
+    });
     const closedLogionIdentityLoc = await openLogionIdentityLoc.legalOfficer.close({ signer, autoAck: false }) as ClosedLoc;
     expect(closedLogionIdentityLoc.data().status).toBe("CLOSED");
 

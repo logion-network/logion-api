@@ -33,6 +33,12 @@ import {
     LegalOfficerClass,
     FileUploader,
     FileUploadParameters,
+    LegalOfficerOpenRequestCommands,
+    AuthenticatedLocClient,
+    MergedMetadataItem,
+    MergedFile,
+    MergedLink,
+    HashString,
 } from "../src/index.js";
 import {
     ALICE,
@@ -590,6 +596,199 @@ describe("VoidedCollectionLoc", () => {
         expectDataToMatch(data, BOB_VOID_COLLECTION_LOC.request);
     });
 });
+
+describe("LegalOfficerOpenRequestCommands", () => {
+
+    it("can auto-ack and close with all timestamps in metadata (without VI)", () => testCanAutoAckClose({
+        metadata: [{
+            ...metadataItem,
+            ...allTimestampsRequester,
+        }] as MergedMetadataItem[],
+        files: [] as MergedFile[],
+        links: [] as MergedLink[],
+    } as unknown as LocData));
+
+    it("cannot auto-ack nor close with missing timestamps in metadata (without VI)", () => testCannotAutoAckClose({
+        metadata: [{
+            ...metadataItem,
+            ...missingTimestampsRequester,
+        }] as MergedMetadataItem[],
+        files: [] as MergedFile[],
+        links: [] as MergedLink[],
+    } as unknown as LocData));
+
+    it("can auto-ack and close with all timestamps in metadata (with VI)", () => testCanAutoAckClose({
+        metadata: [{
+            ...metadataItem,
+            ...allTimestampsVerifiedIssuer,
+        }] as MergedMetadataItem[],
+        files: [] as MergedFile[],
+        links: [] as MergedLink[],
+    } as unknown as LocData));
+
+    it("cannot auto-ack nor close with missing timestamps in metadata (with VI)", () => testCannotAutoAckClose({
+        metadata: [{
+            ...metadataItem,
+            ...missingTimestampsVerifiedIssuer,
+        }] as MergedMetadataItem[],
+        files: [] as MergedFile[],
+        links: [] as MergedLink[],
+    } as unknown as LocData));
+
+    it("can auto-ack and close with all timestamps in file (without VI)", () => testCanAutoAckClose({
+        metadata: [] as MergedMetadataItem[],
+        files: [{
+            ...file,
+            ...allTimestampsRequester,
+        }] as MergedFile[],
+        links: [] as MergedLink[],
+    } as unknown as LocData));
+
+    it("cannot auto-ack nor close with missing timestamps in file (without VI)", () => testCannotAutoAckClose({
+        metadata: [] as MergedMetadataItem[],
+        files: [{
+            ...file,
+            ...missingTimestampsRequester,
+        }] as MergedFile[],
+        links: [] as MergedLink[],
+    } as unknown as LocData));
+
+    it("can auto-ack and close with all timestamps in file (with VI)", () => testCanAutoAckClose({
+        metadata: [] as MergedMetadataItem[],
+        files: [{
+            ...file,
+            ...allTimestampsVerifiedIssuer,
+        }] as MergedFile[],
+        links: [] as MergedLink[],
+    } as unknown as LocData));
+
+    it("cannot auto-ack nor close with missing timestamps in file (with VI)", () => testCannotAutoAckClose({
+        metadata: [] as MergedMetadataItem[],
+        files: [{
+            ...file,
+            ...missingTimestampsVerifiedIssuer,
+        }] as MergedFile[],
+        links: [] as MergedLink[],
+    } as unknown as LocData));
+
+    it("can auto-ack and close with all timestamps in link (without VI)", () => testCanAutoAckClose({
+        metadata: [] as MergedMetadataItem[],
+        files: [] as MergedFile[],
+        links: [{
+            ...link,
+            ...allTimestampsRequester,
+        }] as MergedLink[],
+    } as unknown as LocData));
+
+    it("cannot auto-ack nor close with missing timestamps in link (without VI)", () => testCannotAutoAckClose({
+        metadata: [] as MergedMetadataItem[],
+        files: [] as MergedFile[],
+        links: [{
+            ...link,
+            ...missingTimestampsRequester,
+        }] as MergedLink[],
+    } as unknown as LocData));
+
+    it("can auto-ack and close with all timestamps in link (with VI)", () => testCanAutoAckClose({
+        metadata: [] as MergedMetadataItem[],
+        files: [] as MergedFile[],
+        links: [{
+            ...link,
+            ...allTimestampsVerifiedIssuer,
+        }] as MergedLink[],
+    } as unknown as LocData));
+
+    it("cannot auto-ack nor close with missing timestamps in link (with VI)", () => testCannotAutoAckClose({
+        metadata: [] as MergedMetadataItem[],
+        files: [] as MergedFile[],
+        links: [{
+            ...link,
+            ...missingTimestampsVerifiedIssuer,
+        }] as MergedLink[],
+    } as unknown as LocData));
+
+    const metadataItem = {
+        name: HashString.fromValue("Test"),
+        value: HashString.fromValue("Value"),
+        published: true,
+        status: "PUBLISHED",
+    };
+
+    const file = {
+        hash: Hash.of("content"),
+        nature: HashString.fromValue("Nature"),
+        name: "test.txt",
+        published: true,
+        status: "PUBLISHED",
+        restrictedDelivery: false,
+        size: 7n,
+        contentType: "text/plain",
+    };
+
+    const link = {
+        target: new UUID(),
+        nature: HashString.fromValue("Test"),
+        published: true,
+        status: "PUBLISHED",
+    };
+
+    const allTimestampsRequester = {
+        acknowledgedByOwner: false,
+        acknowledgedByVerifiedIssuer: false,
+        addedOn: DateTime.now(),
+        submitter: REQUESTER,
+    };
+
+    const allTimestampsVerifiedIssuer = {
+        acknowledgedByOwner: false,
+        acknowledgedByVerifiedIssuer: true,
+        acknowledgedByVerifiedIssuerOn: DateTime.now(),
+        addedOn: DateTime.now(),
+        submitter: ISSUER,
+    };
+
+    const missingTimestampsRequester = {
+        acknowledgedByOwner: true,
+        acknowledgedByVerifiedIssuer: false,
+        submitter: REQUESTER,
+    };
+
+    const missingTimestampsVerifiedIssuer = {
+        acknowledgedByOwner: true,
+        acknowledgedByOwnerOn: DateTime.now(),
+        acknowledgedByVerifiedIssuer: true,
+        submitter: ISSUER,
+    };
+});
+
+function testCanAutoAckClose(data: LocData) {
+    const commands = buildLegalOfficerOpenRequestCommands(data);
+    expect(commands.canAutoAck()).toBe(true);
+    expect(commands.canClose(true)).toBe(true);
+    expect(commands.canClose(false)).toBe(false);
+}
+
+function testCannotAutoAckClose(data: LocData) {
+    const commands = buildLegalOfficerOpenRequestCommands(data);
+    expect(commands.canAutoAck()).toBe(false);
+    expect(commands.canClose(true)).toBe(false);
+    expect(commands.canClose(false)).toBe(false);
+}
+
+function buildLegalOfficerOpenRequestCommands(data: LocData) {
+    const locId = new UUID();
+    const client = new Mock<AuthenticatedLocClient>();
+    const request = new Mock<OpenLoc>();
+    request.setup(instance => instance.data()).returns(data);
+    request.setup(instance => instance.isRequester).returns(account => account !== undefined && REQUESTER.equals(account));
+    request.setup(instance => instance.isOwner()).returns(false);
+    request.setup(instance => instance.isVerifiedIssuer).returns(account => account !== undefined && ISSUER.equals(account));
+    return new LegalOfficerOpenRequestCommands({
+        locId,
+        client: client.object(),
+        request: request.object(),
+    });
+}
 
 const client = new Mock<LogionClient>();
 
