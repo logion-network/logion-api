@@ -58,6 +58,10 @@ export async function openIdentityLoc(state: State): Promise<UUID> {
 
     const aliceClient = state.client.withCurrentAddress(aliceAccount);
     let aliceOpenLoc = await findWithLegalOfficerClient(aliceClient, openLoc) as OpenLoc;
+    aliceOpenLoc = await waitFor<OpenLoc>({
+        producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : aliceOpenLoc.refresh() as Promise<OpenLoc>,
+        predicate: state => state.legalOfficer.canClose(true),
+    });
     await aliceOpenLoc.legalOfficer.close({ signer, autoAck: true });
 
     return openLoc.locId;

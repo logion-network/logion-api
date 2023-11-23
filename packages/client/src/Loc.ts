@@ -1901,12 +1901,24 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
     }
 
     canAutoAck() {
-        return this.isNoItem(item => !this.isAcknowledgedByVerifiedIssuerIfNeeded(item));
+        return this.isNoItem(item => !this.isReadyForAutoAck(item));
     }
 
-    private isAcknowledgedByVerifiedIssuerIfNeeded(item: ItemLifecycle & { submitter: ValidAccountId }) {
+    private isReadyForAutoAck(item: ItemLifecycle & { submitter: ValidAccountId }) {
+        return this.isAcknowledgedOnChain(item)
+            || (this.isPublishedOnChain(item) && (!this.request.isVerifiedIssuer(item.submitter) || item.acknowledgedByVerifiedIssuerOn !== undefined));
+    }
+
+    private isAcknowledgedOnChain(item: ItemLifecycle & { submitter: ValidAccountId }) {
         return item.status === "ACKNOWLEDGED"
-            || item.status === "PUBLISHED" && (item.acknowledgedByVerifiedIssuer || this.request.isRequester(item.submitter) || this.request.isOwner(item.submitter));
+            && (
+                (this.request.isVerifiedIssuer(item.submitter) && item.acknowledgedByOwnerOn !== undefined && item.acknowledgedByVerifiedIssuerOn !== undefined)
+                || (!this.request.isVerifiedIssuer(item.submitter) && item.acknowledgedByOwnerOn !== undefined)
+            )
+    }
+
+    private isPublishedOnChain(item: ItemLifecycle & { submitter: ValidAccountId }) {
+        return item.status === "PUBLISHED" && item.addedOn !== undefined;
     }
 
     private isNoItem(predicate: (item: ItemLifecycle & { submitter: ValidAccountId }) => boolean): boolean {
@@ -1917,7 +1929,7 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
     }
 
     private isAllItemsAcknowledged() {
-        return this.isNoItem(item => item.status !== "ACKNOWLEDGED");
+        return this.isNoItem(item => !this.isAcknowledgedOnChain(item));
     }
 
     async voidLoc(params: VoidParams): Promise<VoidedLoc | VoidedCollectionLoc> {

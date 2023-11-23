@@ -19,6 +19,7 @@ export const EXISTING_FILE: LocFile = {
     contentType: "text/plain",
     size: "42",
     status: "ACKNOWLEDGED",
+    acknowledgedByOwnerOn: DateTime.now().toISO(),
 };
 
 export const EXISTING_ITEM_FILE_HASH = Hash.fromHex("0x8443d95fceccd27c0ca8d8c8d6c443ddc787afc234620a5548baf8c7b46aa277");
@@ -39,6 +40,7 @@ export const EXISTING_LINK: LocLink = {
     addedOn: DateTime.now().toISO(),
     submitter: REQUESTER,
     status: "ACKNOWLEDGED",
+    acknowledgedByOwnerOn: DateTime.now().toISO(),
 };
 
 export type LocAndRequest = {
