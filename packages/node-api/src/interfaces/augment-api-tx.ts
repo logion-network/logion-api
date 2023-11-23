@@ -6,7 +6,7 @@
 import '@polkadot/api-base/types/submittable';
 
 import type { ApiTypes, AugmentedSubmittable, SubmittableExtrinsic, SubmittableExtrinsicFunction } from '@polkadot/api-base/types';
-import type { Bytes, Compact, Option, U8aFixed, Vec, bool, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
+import type { Bytes, Compact, Null, Option, U8aFixed, Vec, bool, u128, u16, u32, u64 } from '@polkadot/types-codec';
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
 import type { AccountId32, Call, H256, MultiAddress } from '@polkadot/types/interfaces/runtime';
 import type { LogionNodeRuntimeOpaqueSessionKeys, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFileParams, PalletLogionLocItemsParams, PalletLogionLocLocLinkParams, PalletLogionLocMetadataItemParams, PalletLogionLocOtherAccountId, PalletLogionLocSupportedAccountId, PalletLogionLocTermsAndConditionsElement, PalletLogionLocTokensRecordFile, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
@@ -17,140 +17,6 @@ export type __SubmittableExtrinsicFunction<ApiType extends ApiTypes> = Submittab
 
 declare module '@polkadot/api-base/types/submittable' {
   interface AugmentedSubmittables<ApiType extends ApiTypes> {
-    assets: {
-      /**
-       * See [`Pallet::approve_transfer`].
-       **/
-      approveTransfer: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, delegate: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, amount: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress, Compact<u128>]>;
-      /**
-       * See [`Pallet::block`].
-       **/
-      block: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, who: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress]>;
-      /**
-       * See [`Pallet::burn`].
-       **/
-      burn: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, who: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, amount: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress, Compact<u128>]>;
-      /**
-       * See [`Pallet::cancel_approval`].
-       **/
-      cancelApproval: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, delegate: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress]>;
-      /**
-       * See [`Pallet::clear_metadata`].
-       **/
-      clearMetadata: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
-      /**
-       * See [`Pallet::create`].
-       **/
-      create: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, admin: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, minBalance: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress, u128]>;
-      /**
-       * See [`Pallet::destroy_accounts`].
-       **/
-      destroyAccounts: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
-      /**
-       * See [`Pallet::destroy_approvals`].
-       **/
-      destroyApprovals: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
-      /**
-       * See [`Pallet::finish_destroy`].
-       **/
-      finishDestroy: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
-      /**
-       * See [`Pallet::force_asset_status`].
-       **/
-      forceAssetStatus: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, owner: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, issuer: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, admin: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, freezer: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, minBalance: Compact<u128> | AnyNumber | Uint8Array, isSufficient: bool | boolean | Uint8Array, isFrozen: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress, MultiAddress, MultiAddress, MultiAddress, Compact<u128>, bool, bool]>;
-      /**
-       * See [`Pallet::force_cancel_approval`].
-       **/
-      forceCancelApproval: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, owner: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, delegate: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress, MultiAddress]>;
-      /**
-       * See [`Pallet::force_clear_metadata`].
-       **/
-      forceClearMetadata: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
-      /**
-       * See [`Pallet::force_create`].
-       **/
-      forceCreate: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, owner: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, isSufficient: bool | boolean | Uint8Array, minBalance: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress, bool, Compact<u128>]>;
-      /**
-       * See [`Pallet::force_set_metadata`].
-       **/
-      forceSetMetadata: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, name: Bytes | string | Uint8Array, symbol: Bytes | string | Uint8Array, decimals: u8 | AnyNumber | Uint8Array, isFrozen: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, Bytes, Bytes, u8, bool]>;
-      /**
-       * See [`Pallet::force_transfer`].
-       **/
-      forceTransfer: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, source: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, dest: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, amount: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress, MultiAddress, Compact<u128>]>;
-      /**
-       * See [`Pallet::freeze`].
-       **/
-      freeze: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, who: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress]>;
-      /**
-       * See [`Pallet::freeze_asset`].
-       **/
-      freezeAsset: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
-      /**
-       * See [`Pallet::mint`].
-       **/
-      mint: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, beneficiary: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, amount: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress, Compact<u128>]>;
-      /**
-       * See [`Pallet::refund`].
-       **/
-      refund: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, allowBurn: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, bool]>;
-      /**
-       * See [`Pallet::refund_other`].
-       **/
-      refundOther: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, who: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress]>;
-      /**
-       * See [`Pallet::set_metadata`].
-       **/
-      setMetadata: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, name: Bytes | string | Uint8Array, symbol: Bytes | string | Uint8Array, decimals: u8 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, Bytes, Bytes, u8]>;
-      /**
-       * See [`Pallet::set_min_balance`].
-       **/
-      setMinBalance: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, minBalance: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, u128]>;
-      /**
-       * See [`Pallet::set_team`].
-       **/
-      setTeam: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, issuer: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, admin: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, freezer: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress, MultiAddress, MultiAddress]>;
-      /**
-       * See [`Pallet::start_destroy`].
-       **/
-      startDestroy: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
-      /**
-       * See [`Pallet::thaw`].
-       **/
-      thaw: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, who: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress]>;
-      /**
-       * See [`Pallet::thaw_asset`].
-       **/
-      thawAsset: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
-      /**
-       * See [`Pallet::touch`].
-       **/
-      touch: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64]>;
-      /**
-       * See [`Pallet::touch_other`].
-       **/
-      touchOther: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, who: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress]>;
-      /**
-       * See [`Pallet::transfer`].
-       **/
-      transfer: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, target: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, amount: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress, Compact<u128>]>;
-      /**
-       * See [`Pallet::transfer_approved`].
-       **/
-      transferApproved: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, owner: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, destination: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, amount: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress, MultiAddress, Compact<u128>]>;
-      /**
-       * See [`Pallet::transfer_keep_alive`].
-       **/
-      transferKeepAlive: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, target: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array, amount: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress, Compact<u128>]>;
-      /**
-       * See [`Pallet::transfer_ownership`].
-       **/
-      transferOwnership: AugmentedSubmittable<(id: u64 | AnyNumber | Uint8Array, owner: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [u64, MultiAddress]>;
-      /**
-       * Generic tx
-       **/
-      [key: string]: SubmittableExtrinsicFunction<ApiType>;
-    };
     balances: {
       /**
        * See [`Pallet::force_set_balance`].
@@ -213,7 +79,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * See [`Pallet::spend`].
        **/
-      spend: AugmentedSubmittable<(assetKind: u64 | AnyNumber | Uint8Array, amount: Compact<u128> | AnyNumber | Uint8Array, beneficiary: AccountId32 | string | Uint8Array, validFrom: Option<u32> | null | Uint8Array | u32 | AnyNumber) => SubmittableExtrinsic<ApiType>, [u64, Compact<u128>, AccountId32, Option<u32>]>;
+      spend: AugmentedSubmittable<(assetKind: Null | null, amount: Compact<u128> | AnyNumber | Uint8Array, beneficiary: AccountId32 | string | Uint8Array, validFrom: Option<u32> | null | Uint8Array | u32 | AnyNumber) => SubmittableExtrinsic<ApiType>, [Null, Compact<u128>, AccountId32, Option<u32>]>;
       /**
        * See [`Pallet::spend_local`].
        **/
@@ -385,7 +251,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * See [`Pallet::spend`].
        **/
-      spend: AugmentedSubmittable<(assetKind: u64 | AnyNumber | Uint8Array, amount: Compact<u128> | AnyNumber | Uint8Array, beneficiary: AccountId32 | string | Uint8Array, validFrom: Option<u32> | null | Uint8Array | u32 | AnyNumber) => SubmittableExtrinsic<ApiType>, [u64, Compact<u128>, AccountId32, Option<u32>]>;
+      spend: AugmentedSubmittable<(assetKind: Null | null, amount: Compact<u128> | AnyNumber | Uint8Array, beneficiary: AccountId32 | string | Uint8Array, validFrom: Option<u32> | null | Uint8Array | u32 | AnyNumber) => SubmittableExtrinsic<ApiType>, [Null, Compact<u128>, AccountId32, Option<u32>]>;
       /**
        * See [`Pallet::spend_local`].
        **/
