@@ -15,44 +15,6 @@ export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>
 
 declare module '@polkadot/api-base/types/consts' {
   interface AugmentedConsts<ApiType extends ApiTypes> {
-    assets: {
-      /**
-       * The amount of funds that must be reserved when creating a new approval.
-       **/
-      approvalDeposit: u128 & AugmentedConst<ApiType>;
-      /**
-       * The amount of funds that must be reserved for a non-provider asset account to be
-       * maintained.
-       **/
-      assetAccountDeposit: u128 & AugmentedConst<ApiType>;
-      /**
-       * The basic amount of funds that must be reserved for an asset.
-       **/
-      assetDeposit: u128 & AugmentedConst<ApiType>;
-      /**
-       * The basic amount of funds that must be reserved when adding metadata to your asset.
-       **/
-      metadataDepositBase: u128 & AugmentedConst<ApiType>;
-      /**
-       * The additional funds that must be reserved for the number of bytes you store in your
-       * metadata.
-       **/
-      metadataDepositPerByte: u128 & AugmentedConst<ApiType>;
-      /**
-       * Max number of items to destroy per `destroy_accounts` and `destroy_approvals` call.
-       * 
-       * Must be configured to result in a weight that makes each call fit in a block.
-       **/
-      removeItemsLimit: u32 & AugmentedConst<ApiType>;
-      /**
-       * The maximum length of a name or symbol stored on-chain.
-       **/
-      stringLimit: u32 & AugmentedConst<ApiType>;
-      /**
-       * Generic const
-       **/
-      [key: string]: Codec;
-    };
     balances: {
       /**
        * The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!
@@ -113,6 +75,10 @@ declare module '@polkadot/api-base/types/consts' {
        **/
       palletId: FrameSupportPalletId & AugmentedConst<ApiType>;
       /**
+       * The period during which an approved treasury spend has to be claimed.
+       **/
+      payoutPeriod: u32 & AugmentedConst<ApiType>;
+      /**
        * Fraction of a proposal's value that should be bonded in order to place the proposal.
        * An accepted proposal gets these back. A rejected proposal does not.
        **/
@@ -172,6 +138,10 @@ declare module '@polkadot/api-base/types/consts' {
        * The treasury's pallet id, used for deriving its sovereign account ID.
        **/
       palletId: FrameSupportPalletId & AugmentedConst<ApiType>;
+      /**
+       * The period during which an approved treasury spend has to be claimed.
+       **/
+      payoutPeriod: u32 & AugmentedConst<ApiType>;
       /**
        * Fraction of a proposal's value that should be bonded in order to place the proposal.
        * An accepted proposal gets these back. A rejected proposal does not.

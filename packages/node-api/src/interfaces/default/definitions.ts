@@ -239,7 +239,7 @@ export default {
         },
         Beneficiary: {
             _enum: {
-                Treasury: null,
+                Other: null,
                 LegalOfficer: "AccountId",
             }
         },

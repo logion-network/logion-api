@@ -10,7 +10,7 @@ import type { BTreeSet, Bytes, Null, Option, Struct, U8aFixed, Vec, bool, u128, 
 import type { AnyNumber, ITuple } from '@polkadot/types-codec/types';
 import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, H256 } from '@polkadot/types/interfaces/runtime';
-import type { FrameSupportDispatchPerDispatchClassWeight, FrameSystemAccountInfo, FrameSystemEventRecord, FrameSystemLastRuntimeUpgradeInfo, FrameSystemPhase, LogionNodeRuntimeOpaqueSessionKeys, PalletAssetsApproval, PalletAssetsAssetAccount, PalletAssetsAssetDetails, PalletAssetsAssetMetadata, PalletBalancesAccountData, PalletBalancesBalanceLock, PalletBalancesIdAmount, PalletBalancesReserveData, PalletGrandpaStoredPendingChange, PalletGrandpaStoredState, PalletLoAuthorityListLegalOfficerData, PalletLoAuthorityListStorageVersion, PalletLogionLocCollectionItem, PalletLogionLocLegalOfficerCase, PalletLogionLocOtherAccountId, PalletLogionLocSponsorship, PalletLogionLocStorageVersion, PalletLogionLocTokensRecord, PalletLogionLocVerifiedIssuer, PalletLogionVoteVote, PalletMultisigMultisig, PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig, PalletTransactionPaymentReleases, PalletTreasuryProposal, SpConsensusAuraSr25519AppSr25519Public, SpCoreCryptoKeyTypeId, SpRuntimeDigest } from '@polkadot/types/lookup';
+import type { FrameSupportDispatchPerDispatchClassWeight, FrameSystemAccountInfo, FrameSystemEventRecord, FrameSystemLastRuntimeUpgradeInfo, FrameSystemPhase, LogionNodeRuntimeOpaqueSessionKeys, PalletBalancesAccountData, PalletBalancesBalanceLock, PalletBalancesIdAmount, PalletBalancesReserveData, PalletGrandpaStoredPendingChange, PalletGrandpaStoredState, PalletLoAuthorityListLegalOfficerData, PalletLoAuthorityListStorageVersion, PalletLogionLocCollectionItem, PalletLogionLocLegalOfficerCase, PalletLogionLocOtherAccountId, PalletLogionLocSponsorship, PalletLogionLocStorageVersion, PalletLogionLocTokensRecord, PalletLogionLocVerifiedIssuer, PalletLogionVoteVote, PalletMultisigMultisig, PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig, PalletTransactionPaymentReleases, PalletTreasuryProposal, PalletTreasurySpendStatus, SpConsensusAuraSr25519AppSr25519Public, SpCoreCryptoKeyTypeId, SpRuntimeDigest } from '@polkadot/types/lookup';
 import type { Observable } from '@polkadot/types/types';
 
 export type __AugmentedQuery<ApiType extends ApiTypes> = AugmentedQuery<ApiType, () => unknown>;
@@ -18,30 +18,6 @@ export type __QueryableStorageEntry<ApiType extends ApiTypes> = QueryableStorage
 
 declare module '@polkadot/api-base/types/storage' {
   interface AugmentedQueries<ApiType extends ApiTypes> {
-    assets: {
-      /**
-       * The holdings of a specific account for a specific asset.
-       **/
-      account: AugmentedQuery<ApiType, (arg1: u64 | AnyNumber | Uint8Array, arg2: AccountId32 | string | Uint8Array) => Observable<Option<PalletAssetsAssetAccount>>, [u64, AccountId32]> & QueryableStorageEntry<ApiType, [u64, AccountId32]>;
-      /**
-       * Approved balance transfers. First balance is the amount approved for transfer. Second
-       * is the amount of `T::Currency` reserved for storing this.
-       * First key is the asset ID, second key is the owner and third key is the delegate.
-       **/
-      approvals: AugmentedQuery<ApiType, (arg1: u64 | AnyNumber | Uint8Array, arg2: AccountId32 | string | Uint8Array, arg3: AccountId32 | string | Uint8Array) => Observable<Option<PalletAssetsApproval>>, [u64, AccountId32, AccountId32]> & QueryableStorageEntry<ApiType, [u64, AccountId32, AccountId32]>;
-      /**
-       * Details of an asset.
-       **/
-      asset: AugmentedQuery<ApiType, (arg: u64 | AnyNumber | Uint8Array) => Observable<Option<PalletAssetsAssetDetails>>, [u64]> & QueryableStorageEntry<ApiType, [u64]>;
-      /**
-       * Metadata of an asset.
-       **/
-      metadata: AugmentedQuery<ApiType, (arg: u64 | AnyNumber | Uint8Array) => Observable<PalletAssetsAssetMetadata>, [u64]> & QueryableStorageEntry<ApiType, [u64]>;
-      /**
-       * Generic query
-       **/
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
     aura: {
       /**
        * The current authority set.
@@ -136,6 +112,14 @@ declare module '@polkadot/api-base/types/storage' {
        * Proposals that have been made.
        **/
       proposals: AugmentedQuery<ApiType, (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<PalletTreasuryProposal>>, [u32]> & QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * The count of spends that have been made.
+       **/
+      spendCount: AugmentedQuery<ApiType, () => Observable<u32>, []> & QueryableStorageEntry<ApiType, []>;
+      /**
+       * Spends that have been approved and being processed.
+       **/
+      spends: AugmentedQuery<ApiType, (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<PalletTreasurySpendStatus>>, [u32]> & QueryableStorageEntry<ApiType, [u32]>;
       /**
        * Generic query
        **/
@@ -270,6 +254,14 @@ declare module '@polkadot/api-base/types/storage' {
        * Proposals that have been made.
        **/
       proposals: AugmentedQuery<ApiType, (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<PalletTreasuryProposal>>, [u32]> & QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * The count of spends that have been made.
+       **/
+      spendCount: AugmentedQuery<ApiType, () => Observable<u32>, []> & QueryableStorageEntry<ApiType, []>;
+      /**
+       * Spends that have been approved and being processed.
+       **/
+      spends: AugmentedQuery<ApiType, (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<PalletTreasurySpendStatus>>, [u32]> & QueryableStorageEntry<ApiType, [u32]>;
       /**
        * Generic query
        **/

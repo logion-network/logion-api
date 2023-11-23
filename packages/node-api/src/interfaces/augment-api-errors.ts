@@ -11,95 +11,6 @@ export type __AugmentedError<ApiType extends ApiTypes> = AugmentedError<ApiType>
 
 declare module '@polkadot/api-base/types/errors' {
   interface AugmentedErrors<ApiType extends ApiTypes> {
-    assets: {
-      /**
-       * The asset-account already exists.
-       **/
-      AlreadyExists: AugmentedError<ApiType>;
-      /**
-       * The asset is not live, and likely being destroyed.
-       **/
-      AssetNotLive: AugmentedError<ApiType>;
-      /**
-       * Invalid metadata given.
-       **/
-      BadMetadata: AugmentedError<ApiType>;
-      /**
-       * Invalid witness data given.
-       **/
-      BadWitness: AugmentedError<ApiType>;
-      /**
-       * Account balance must be greater than or equal to the transfer amount.
-       **/
-      BalanceLow: AugmentedError<ApiType>;
-      /**
-       * Callback action resulted in error
-       **/
-      CallbackFailed: AugmentedError<ApiType>;
-      /**
-       * The origin account is frozen.
-       **/
-      Frozen: AugmentedError<ApiType>;
-      /**
-       * The asset status is not the expected status.
-       **/
-      IncorrectStatus: AugmentedError<ApiType>;
-      /**
-       * The asset ID is already taken.
-       **/
-      InUse: AugmentedError<ApiType>;
-      /**
-       * The asset is a live asset and is actively being used. Usually emit for operations such
-       * as `start_destroy` which require the asset to be in a destroying state.
-       **/
-      LiveAsset: AugmentedError<ApiType>;
-      /**
-       * Minimum balance should be non-zero.
-       **/
-      MinBalanceZero: AugmentedError<ApiType>;
-      /**
-       * The account to alter does not exist.
-       **/
-      NoAccount: AugmentedError<ApiType>;
-      /**
-       * The asset-account doesn't have an associated deposit.
-       **/
-      NoDeposit: AugmentedError<ApiType>;
-      /**
-       * The signing account has no permission to do the operation.
-       **/
-      NoPermission: AugmentedError<ApiType>;
-      /**
-       * The asset should be frozen before the given operation.
-       **/
-      NotFrozen: AugmentedError<ApiType>;
-      /**
-       * No approval exists that would allow the transfer.
-       **/
-      Unapproved: AugmentedError<ApiType>;
-      /**
-       * Unable to increment the consumer reference counters on the account. Either no provider
-       * reference exists to allow a non-zero balance of a non-self-sufficient asset, or one
-       * fewer then the maximum number of consumers has been reached.
-       **/
-      UnavailableConsumer: AugmentedError<ApiType>;
-      /**
-       * The given asset ID is unknown.
-       **/
-      Unknown: AugmentedError<ApiType>;
-      /**
-       * The operation would result in funds being burned.
-       **/
-      WouldBurn: AugmentedError<ApiType>;
-      /**
-       * The source account would not survive the transfer and it needs to stay alive.
-       **/
-      WouldDie: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       **/
-      [key: string]: AugmentedError<ApiType>;
-    };
     balances: {
       /**
        * Beneficiary account must pre-exist.
@@ -148,6 +59,22 @@ declare module '@polkadot/api-base/types/errors' {
     };
     communityTreasury: {
       /**
+       * The payment has already been attempted.
+       **/
+      AlreadyAttempted: AugmentedError<ApiType>;
+      /**
+       * The spend is not yet eligible for payout.
+       **/
+      EarlyPayout: AugmentedError<ApiType>;
+      /**
+       * The balance of the asset kind is not convertible to the balance of the native asset.
+       **/
+      FailedToConvertBalance: AugmentedError<ApiType>;
+      /**
+       * The payment has neither failed nor succeeded yet.
+       **/
+      Inconclusive: AugmentedError<ApiType>;
+      /**
        * The spend origin is valid but the amount it is allowed to spend is lower than the
        * amount to be spent.
        **/
@@ -157,13 +84,25 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       InsufficientProposersBalance: AugmentedError<ApiType>;
       /**
-       * No proposal or bounty at that index.
+       * No proposal, bounty or spend at that index.
        **/
       InvalidIndex: AugmentedError<ApiType>;
+      /**
+       * The payout was not yet attempted/claimed.
+       **/
+      NotAttempted: AugmentedError<ApiType>;
+      /**
+       * There was some issue with the mechanism of payment.
+       **/
+      PayoutError: AugmentedError<ApiType>;
       /**
        * Proposal has not been approved.
        **/
       ProposalNotApproved: AugmentedError<ApiType>;
+      /**
+       * The spend has expired and cannot be claimed.
+       **/
+      SpendExpired: AugmentedError<ApiType>;
       /**
        * Too many approvals in the queue.
        **/
@@ -452,6 +391,22 @@ declare module '@polkadot/api-base/types/errors' {
     };
     logionTreasury: {
       /**
+       * The payment has already been attempted.
+       **/
+      AlreadyAttempted: AugmentedError<ApiType>;
+      /**
+       * The spend is not yet eligible for payout.
+       **/
+      EarlyPayout: AugmentedError<ApiType>;
+      /**
+       * The balance of the asset kind is not convertible to the balance of the native asset.
+       **/
+      FailedToConvertBalance: AugmentedError<ApiType>;
+      /**
+       * The payment has neither failed nor succeeded yet.
+       **/
+      Inconclusive: AugmentedError<ApiType>;
+      /**
        * The spend origin is valid but the amount it is allowed to spend is lower than the
        * amount to be spent.
        **/
@@ -461,13 +416,25 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       InsufficientProposersBalance: AugmentedError<ApiType>;
       /**
-       * No proposal or bounty at that index.
+       * No proposal, bounty or spend at that index.
        **/
       InvalidIndex: AugmentedError<ApiType>;
+      /**
+       * The payout was not yet attempted/claimed.
+       **/
+      NotAttempted: AugmentedError<ApiType>;
+      /**
+       * There was some issue with the mechanism of payment.
+       **/
+      PayoutError: AugmentedError<ApiType>;
       /**
        * Proposal has not been approved.
        **/
       ProposalNotApproved: AugmentedError<ApiType>;
+      /**
+       * The spend has expired and cannot be claimed.
+       **/
+      SpendExpired: AugmentedError<ApiType>;
       /**
        * Too many approvals in the queue.
        **/

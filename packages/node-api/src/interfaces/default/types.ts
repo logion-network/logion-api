@@ -48,10 +48,10 @@ export interface BallotStatus extends Enum {
 
 /** @name Beneficiary */
 export interface Beneficiary extends Enum {
-  readonly isTreasury: boolean;
+  readonly isOther: boolean;
   readonly isLegalOfficer: boolean;
   readonly asLegalOfficer: AccountId;
-  readonly type: 'Treasury' | 'LegalOfficer';
+  readonly type: 'Other' | 'LegalOfficer';
 }
 
 /** @name CollectionItem */
