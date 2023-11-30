@@ -324,11 +324,15 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
     }
 
     checkValidity() {
-        const { transferredRights } = this.parameters;
+        LogionClassification.staticCheckValidity(this.parameters);
+    }
+
+    static staticCheckValidity(parameters: LogionLicenseParameters) {
+        const { transferredRights } = parameters;
         const expirationSet: Condition = params => params.expiration !== undefined && params.expiration.length > 0;
         const regionalLimitSet: Condition = params => params.regionalLimit !== undefined && params.regionalLimit.length > 0;
         const oneAndOnlyOne = { min: 1, max: 1 };
-        new Validator(this.parameters)
+        new Validator(parameters)
             .allCodesValid()
             .allCountryCodesValid()
             .contains(oneAndOnlyOne, [ "PER-PRIV", "PER-PUB", "COM-NOMOD", "COM-MOD" ])
@@ -337,11 +341,11 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
             .mutuallyExclusive("TIME", "NOTIME")
             .codePresentForCondition("TIME", expirationSet, "Transferred right TIME must be set if and only if expiration is set")
             .codePresentForCondition("REG", regionalLimitSet, "Transferred right REG must be set if and only if a regional limit is set")
-            .validIsoDate(this.parameters.expiration)
+            .validIsoDate(parameters.expiration)
             .validOrThrow();
         if (transferredRights.includes("COM-NOMOD") ||
             transferredRights.includes("COM-MOD")) {
-            new Validator(this.parameters)
+            new Validator(parameters)
                 .contains(oneAndOnlyOne, ["REG", "WW"])
                 .contains(oneAndOnlyOne, ["TIME", "NOTIME"])
                 .validOrThrow("When using COM-NOMOD or COM-MOD: ")
@@ -361,6 +365,11 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
             throw new Error('Details do not contain a valid JSON. Expecting something like { "transferredRights": ["PER-PUB"] }');
         }
         return new LogionClassification(licenseLocId, parameters, checkValidity);
+    }
+
+    static validateDetails(details: string) {
+        const parameters = JSON.parse(details);
+        this.staticCheckValidity(parameters);
     }
 }
 
