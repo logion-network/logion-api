@@ -43,6 +43,12 @@ export class CreativeCommons extends AbstractTermsAndConditionsElement<CreativeC
         return new CreativeCommons(licenseLocId, details as CreativeCommonsCode);
     }
 
+    static validateDetails(details: string) {
+        if (!values.has(details as CreativeCommonsCode)) {
+            throw new Error(`Invalid parameters: ${ details }. Valid values are: ${ (Array.from(values)) }.`)
+        }
+    }
+
     get details(): string {
         return this.parameters;
     }
