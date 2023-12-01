@@ -324,10 +324,10 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
     }
 
     checkValidity() {
-        LogionClassification.staticCheckValidity(this.parameters);
+        LogionClassification.checkValidity(this.parameters);
     }
 
-    static staticCheckValidity(parameters: LogionLicenseParameters) {
+    static checkValidity(parameters: LogionLicenseParameters) {
         const { transferredRights } = parameters;
         const expirationSet: Condition = params => params.expiration !== undefined && params.expiration.length > 0;
         const regionalLimitSet: Condition = params => params.regionalLimit !== undefined && params.regionalLimit.length > 0;
@@ -369,7 +369,7 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
 
     static validateDetails(details: string) {
         const parameters = JSON.parse(details);
-        this.staticCheckValidity(parameters);
+        this.checkValidity(parameters);
     }
 }
 
