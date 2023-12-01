@@ -1,6 +1,6 @@
 import {
     AxiosFileUploader,
-    createLogionClientConfig,
+    createLogionClientConfig as createConfig,
     Environment,
     File,
     FormDataLike,
@@ -11,11 +11,9 @@ import {
 import { Hash } from "@logion/node-api";
 import RNFS from "react-native-fs";
 
-const buildFileUploader = () => new ReactNativeFileUploader();
-
-export const DEV: LogionClientConfig = createLogionClientConfig(Environment.DEV, buildFileUploader);
-export const TEST: LogionClientConfig = createLogionClientConfig(Environment.TEST, buildFileUploader);
-export const MVP: LogionClientConfig = createLogionClientConfig(Environment.MVP, buildFileUploader);
+export function createLogionClientConfig(env: Environment): LogionClientConfig {
+    return createConfig(env, () => new ReactNativeFileUploader())
+}
 
 export class ReactNativeFsFile extends File {
 

@@ -243,7 +243,7 @@ export const logionLicenseItems: Record<LogionTransferredRightCode, Record<Langu
  * Defines the parameters of a Logion Classification.
  * @group TermsAndConditions
  */
-export interface LogionLicenseParameters {
+export interface LogionClassificationParameters {
     /**
      * Transferred rights
      */
@@ -258,13 +258,13 @@ export interface LogionLicenseParameters {
     expiration?: string
 }
 
-type Condition = (_: LogionLicenseParameters) => boolean;
+type Condition = (_: LogionClassificationParameters) => boolean;
 
 /**
  * Provides a Logion Classification.
  * @group TermsAndConditions
  */
-export class LogionClassification extends AbstractTermsAndConditionsElement<LogionLicenseParameters> {
+export class LogionClassification extends AbstractTermsAndConditionsElement<LogionClassificationParameters> {
 
     /**
      * Constructs Terms and Conditions under Logion Classification.
@@ -281,7 +281,7 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
      *   expiration:"2022-09-23"})
      * ```
      */
-    constructor(licenseLocId: UUID, parameters: LogionLicenseParameters, checkValidity = true) {
+    constructor(licenseLocId: UUID, parameters: LogionClassificationParameters, checkValidity = true) {
         super('logion_classification', licenseLocId, parameters);
         if (checkValidity) {
             this.checkValidity();
@@ -327,7 +327,7 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
         LogionClassification.checkValidity(this.parameters);
     }
 
-    static checkValidity(parameters: LogionLicenseParameters) {
+    static checkValidity(parameters: LogionClassificationParameters) {
         const { transferredRights } = parameters;
         const expirationSet: Condition = params => params.expiration !== undefined && params.expiration.length > 0;
         const regionalLimitSet: Condition = params => params.regionalLimit !== undefined && params.regionalLimit.length > 0;
@@ -375,7 +375,7 @@ export class LogionClassification extends AbstractTermsAndConditionsElement<Logi
 
 class Validator {
 
-    constructor(private parameters: LogionLicenseParameters) {
+    constructor(private parameters: LogionClassificationParameters) {
     }
 
     private errors: string[] = [];

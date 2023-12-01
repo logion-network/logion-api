@@ -1,7 +1,7 @@
 import { Hash as Hasher } from 'fast-sha256';
 import {
     AxiosFileUploader,
-    createLogionClientConfig,
+    createLogionClientConfig as createConfig,
     Environment,
     File,
     FormDataLike,
@@ -11,11 +11,9 @@ import {
 } from "@logion/client";
 import { Hash } from "@logion/node-api";
 
-const buildFileUploader = () => new BrowserAxiosFileUploader();
-
-export const DEV: LogionClientConfig = createLogionClientConfig(Environment.DEV, buildFileUploader);
-export const TEST: LogionClientConfig = createLogionClientConfig(Environment.TEST, buildFileUploader);
-export const MVP: LogionClientConfig = createLogionClientConfig(Environment.MVP, buildFileUploader);
+export function createLogionClientConfig(env: Environment): LogionClientConfig {
+    return createConfig(env, () => new BrowserAxiosFileUploader())
+}
 
 export class BrowserFile extends File {
 

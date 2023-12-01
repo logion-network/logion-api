@@ -8,11 +8,14 @@ import { DirectoryClient } from "./DirectoryClient.js";
 import { Endpoint, Token } from "./Http.js";
 import { NetworkState } from "./NetworkState.js";
 import { LegalOfficerClass } from "./Types.js";
+import { UUID } from "@logion/node-api/dist/types/UUID";
 
 export interface LogionClientConfig {
     rpcEndpoints: string[];
     directoryEndpoint: string;
     buildFileUploader: () => FileUploader;
+    creativeCommonsLoc?: UUID;
+    logionClassificationLoc?: UUID;
 }
 
 export interface LegalOfficerEndpoint extends Endpoint {

@@ -1,6 +1,6 @@
 import {
     AxiosFileUploader,
-    createLogionClientConfig,
+    createLogionClientConfig as createConfig,
     Environment,
     File,
     FormDataLike,
@@ -13,11 +13,9 @@ import { Hash as Hasher } from 'fast-sha256';
 import FormData from "form-data";
 import fs from "fs";
 
-const buildFileUploader = () => new NodeAxiosFileUploader();
-
-export const DEV: LogionClientConfig = createLogionClientConfig(Environment.DEV, buildFileUploader);
-export const TEST: LogionClientConfig = createLogionClientConfig(Environment.TEST, buildFileUploader);
-export const MVP: LogionClientConfig = createLogionClientConfig(Environment.MVP, buildFileUploader);
+export function createLogionClientConfig(env: Environment): LogionClientConfig {
+    return createConfig(env, () => new NodeAxiosFileUploader())
+}
 
 export class NodeFile extends File {
 

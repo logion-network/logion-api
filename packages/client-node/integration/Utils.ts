@@ -73,8 +73,8 @@ export interface State {
     ethereumAccount: ValidAccountId,
 }
 
-export async function setupInitialState(): Promise<State> {
-    const anonymousClient = await LogionClient.create(TEST_LOGION_CLIENT_CONFIG);
+export async function setupInitialState(config: LogionClientConfig = TEST_LOGION_CLIENT_CONFIG): Promise<State> {
+    const anonymousClient = await LogionClient.create(config);
     const signer = buildSigner([
         REQUESTER_SECRET_SEED,
         DIRECT_REQUESTER_SECRET_SEED,
@@ -121,6 +121,14 @@ export async function setupInitialState(): Promise<State> {
         issuerAccount,
         ethereumAccount,
     };
+}
+
+export async function updateConfig(config: Partial<LogionClientConfig>): Promise<State> {
+    const newConfig: LogionClientConfig = {
+        ...TEST_LOGION_CLIENT_CONFIG,
+        ...config,
+    };
+    return setupInitialState(newConfig);
 }
 
 export async function initRequesterBalance(config: LogionClientConfig, signer: Signer, requester: string): Promise<void> {
