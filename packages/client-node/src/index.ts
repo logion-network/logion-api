@@ -2,10 +2,11 @@ import {
     AxiosFileUploader,
     createLogionClientConfig as createConfig,
     Environment,
+    EnvironmentString,
     File,
     FormDataLike,
     HashAndSize,
-    LogionClientConfig,
+    LogionClient as GenericLogionClient,
     MimeType,
 } from "@logion/client";
 import { Hash } from "@logion/node-api";
@@ -13,8 +14,11 @@ import { Hash as Hasher } from 'fast-sha256';
 import FormData from "form-data";
 import fs from "fs";
 
-export function createLogionClientConfig(env: Environment): LogionClientConfig {
-    return createConfig(env, () => new NodeAxiosFileUploader())
+export class LogionClient extends GenericLogionClient {
+
+    static async fromEnv(env: Environment | EnvironmentString): Promise<LogionClient> {
+        return GenericLogionClient.create(createConfig(env, () => new NodeAxiosFileUploader()))
+    }
 }
 
 export class NodeFile extends File {

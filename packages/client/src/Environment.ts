@@ -29,18 +29,13 @@ const configs: Record<Environment, Omit<LogionClientConfig, 'buildFileUploader'>
 
 export type EnvironmentString = keyof typeof Environment;
 
-export function validEnvironmentOrThrow(environmentString: EnvironmentString): Environment {
-    const env = Environment[environmentString];
-    if (env) {
-        return env
-    } else {
-        throw Error(`Invalid environment: [${ environmentString }]`);
+export function createLogionClientConfig(env: Environment | EnvironmentString, buildFileUploader: () => FileUploader): LogionClientConfig {
+    const config = configs[env];
+    if (!config) {
+        throw Error(`Invalid environment: [${ env }]`);
     }
-}
-
-export function createLogionClientConfig(env: Environment, buildFileUploader: () => FileUploader): LogionClientConfig {
     return {
-        ...configs[env],
+        ...config,
         buildFileUploader
     }
 }
