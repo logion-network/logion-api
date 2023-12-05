@@ -25,8 +25,8 @@ import {
     Signer,
     SignParameters,
     SpecificLicense,
-    LogionClassification,
-    CreativeCommons,
+    LogionClassificationParameters,
+    CreativeCommonsCode,
     EditableRequest,
     LogionClient,
     SharedState,
@@ -447,7 +447,7 @@ describe("ClosedCollectionLoc", () => {
             itemFile: HashOrContent.fromContent(MOCK_FILE),
         });
 
-        uploaderMock.verify(instance => instance.upload(It.Is<FileUploadParameters>(params => 
+        uploaderMock.verify(instance => instance.upload(It.Is<FileUploadParameters>(params =>
             params.endpoint.endsWith(`/api/collection/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/${ ITEM_ID.toHex() }/files`)
             && params.headers["Content-Type"] === "multipart/form-data"
         )),Times.Once());
@@ -500,7 +500,7 @@ describe("ClosedCollectionLoc", () => {
             file: HashOrContent.fromContent(MOCK_FILE),
         });
 
-        uploaderMock.verify(instance => instance.upload(It.Is<FileUploadParameters>(params => 
+        uploaderMock.verify(instance => instance.upload(It.Is<FileUploadParameters>(params =>
             params.endpoint.endsWith(`/api/records/${ ALICE_CLOSED_COLLECTION_LOC.request.id }/${ RECORD_ID.toHex() }/files`)
             && params.headers["Content-Type"] === "multipart/form-data"
         )),Times.Once());
@@ -833,8 +833,8 @@ const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem(ALICE_CLOSED_COLLEC
 const SPECIFIC_LICENSES: SpecificLicense[] = [
     new SpecificLicense(new UUID("61ccd87f-765c-4ab0-bd91-af68887515d4"), "")
 ];
-const LOGION_CLASSIFICATION: LogionClassification = new LogionClassification(new UUID(), { transferredRights: ["COM-MOD", "NOTIME", "WW"]});
-const CREATIVE_COMMONS: CreativeCommons = new CreativeCommons(new UUID(), "BY-SA");
+const LOGION_CLASSIFICATION: LogionClassificationParameters = { transferredRights: ["COM-MOD", "NOTIME", "WW"]};
+const CREATIVE_COMMONS: CreativeCommonsCode = "BY-SA";
 
 const RECORD_ID = Hash.fromHex("0x186bf67f32bb45187a1c50286dbd9adf8751874831aeba2a66760a74a9c898cc");
 const RECORD_DESCRIPTION = "Some record description";
@@ -981,7 +981,7 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
             nodeApiMock = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
 
             nodeApiMock.setup(instance => instance.queries.getLegalOfficerCase).returns(mockGetLegalOfficerCase(ALL_LOCS));
-            
+
             let verifiedIssuer: VerifiedIssuerType | undefined;
             const verifiedIssuerAddress = ALICE_CLOSED_IDENTITY_LOC_WITH_VERIFIED_ISSUER.loc.requesterAddress?.address || "";
             if(isVerifiedIssuer) {

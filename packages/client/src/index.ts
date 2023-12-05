@@ -11,6 +11,7 @@ export * from './CollectionItem.js';
 export * from './ComponentFactory.js';
 export * from './DateTimeUtil.js';
 export * from './DirectoryClient.js';
+export * from './Environment.js';
 export * from './Ethereum.js';
 export * from './Hash.js';
 export * from './Http.js';

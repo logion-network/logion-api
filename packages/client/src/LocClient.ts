@@ -24,7 +24,7 @@ import { AxiosInstance } from 'axios';
 
 import { UserIdentity, LegalOfficer, PostalAddress, LegalOfficerClass } from "./Types.js";
 import { NetworkState } from "./NetworkState.js";
-import { authenticatedCurrentAddress, LegalOfficerEndpoint, SharedState } from "./SharedClient.js";
+import { authenticatedCurrentAddress, LegalOfficerEndpoint, SharedState, LogionClientConfig } from "./SharedClient.js";
 import { AxiosFactory } from "./AxiosFactory.js";
 import { requireDefined } from "./assertions.js";
 import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays, Token } from "./Http.js";
@@ -40,7 +40,9 @@ import {
     SpecificLicense,
     CreativeCommons,
     OffchainTermsAndConditionsElement,
-    MergedTermsAndConditionsElement
+    MergedTermsAndConditionsElement,
+    LogionClassificationParameters,
+    CreativeCommonsCode
 } from "./license/index.js";
 import { CollectionDelivery, ItemDeliveries } from './Deliveries.js';
 import { Fees } from './Fees.js';
@@ -197,9 +199,9 @@ export interface EstimateFeesAddCollectionItemParams {
     itemFiles?: HashOrContent[],
     itemToken?: ItemTokenWithRestrictedType,
     restrictedDelivery?: boolean,
-    logionClassification?: LogionClassification,
+    logionClassification?: LogionClassificationParameters,
     specificLicenses?: SpecificLicense[],
-    creativeCommons?: CreativeCommons,
+    creativeCommons?: CreativeCommonsCode,
 }
 
 export interface AddCollectionItemParams extends EstimateFeesAddCollectionItemParams, BlockchainSubmissionParams {
@@ -307,6 +309,7 @@ export class LocMultiClient {
             token: token.value,
             nodeApi: sharedState.nodeApi,
             componentFactory: sharedState.componentFactory,
+            config: sharedState.config,
         });
     }
 
@@ -317,6 +320,7 @@ export class LocMultiClient {
         token: string,
         nodeApi: LogionNodeApiClass,
         componentFactory: ComponentFactory,
+        config: LogionClientConfig,
     }) {
         this.networkState = params.networkState;
         this.axiosFactory = params.axiosFactory;
@@ -324,19 +328,16 @@ export class LocMultiClient {
         this.token = params.token;
         this.nodeApi = params.nodeApi;
         this.componentFactory = params.componentFactory;
+        this.config = params.config;
     }
 
     private readonly networkState: NetworkState<LegalOfficerEndpoint>;
-
     private readonly axiosFactory: AxiosFactory;
-
     private readonly currentAddress: ValidAccountId;
-
     private readonly token: string;
-
     private readonly nodeApi: LogionNodeApiClass;
-
     private readonly componentFactory: ComponentFactory;
+    private readonly config: LogionClientConfig;
 
     newLocClient(legalOfficer: LegalOfficerClass) {
         return new AuthenticatedLocClient({
@@ -345,6 +346,7 @@ export class LocMultiClient {
             nodeApi: this.nodeApi,
             legalOfficer,
             componentFactory: this.componentFactory,
+            config: this.config,
         });
     }
 
@@ -753,6 +755,7 @@ export class AuthenticatedLocClient extends LocClient {
         nodeApi: LogionNodeApiClass,
         legalOfficer: LegalOfficerClass,
         componentFactory: ComponentFactory,
+        config: LogionClientConfig,
     }) {
         super({
             axiosFactory: params.axiosFactory,
@@ -761,10 +764,12 @@ export class AuthenticatedLocClient extends LocClient {
         });
         this.currentAddress = params.currentAddress;
         this.componentFactory = params.componentFactory;
+        this.config = params.config;
     }
 
     readonly currentAddress: ValidAccountId;
     private readonly componentFactory: ComponentFactory;
+    private readonly config: LogionClientConfig;
 
     async createLocRequest(request: CreateLocRequest): Promise<LocRequest> {
         try {
@@ -936,16 +941,19 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private termsAndConditions(parameters: EstimateFeesAddCollectionItemParams): TermsAndConditionsElement[] {
+        const { logionClassification, creativeCommons, specificLicenses } = parameters
         const termsAndConditions: TermsAndConditionsElement[] = [];
-        if (parameters.logionClassification && parameters.creativeCommons) {
+        if (logionClassification && creativeCommons) {
             throw new Error("Logion Classification and Creative Commons are mutually exclusive.");
-        } else if(parameters.logionClassification) {
-            termsAndConditions.push(parameters.logionClassification);
-        } else if (parameters.creativeCommons) {
-            termsAndConditions.push(parameters.creativeCommons);
+        } else if (logionClassification) {
+            const logionClassificationLoc = requireDefined(this.config.logionClassificationLoc, () => Error("Missing Logion Classification LOC ID in config"));
+            termsAndConditions.push(new LogionClassification(logionClassificationLoc, logionClassification));
+        } else if (creativeCommons) {
+            const creativeCommonsLoc = requireDefined(this.config.creativeCommonsLoc, () => Error("Missing Creative Commons LOC ID in config"));
+            termsAndConditions.push(new CreativeCommons(creativeCommonsLoc, creativeCommons));
         }
-        if(parameters.specificLicenses) {
-            parameters.specificLicenses.forEach(specific => termsAndConditions.push(specific));
+        if (specificLicenses) {
+            specificLicenses.forEach(specific => termsAndConditions.push(specific));
         }
         return termsAndConditions;
     }

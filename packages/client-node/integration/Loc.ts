@@ -8,8 +8,6 @@ import {
     LocData,
     ClosedCollectionLoc,
     ItemTokenWithRestrictedType,
-    LogionClassification,
-    CreativeCommons,
     DraftRequest,
     RejectedRequest,
     ClosedLoc,
@@ -17,10 +15,16 @@ import {
     OnchainLocState,
     AcceptedRequest,
     HashString,
-    BalanceState
+    BalanceState,
 } from "@logion/client";
 
-import { State, TEST_LOGION_CLIENT_CONFIG, findWithLegalOfficerClient, initRequesterBalance } from "./Utils.js";
+import {
+    State,
+    TEST_LOGION_CLIENT_CONFIG,
+    findWithLegalOfficerClient,
+    initRequesterBalance,
+    updateConfig
+} from "./Utils.js";
 import { NodeFile } from "../src/index.js";
 
 export async function requestTransactionLoc(state: State, linkTarget: UUID): Promise<UUID> {
@@ -410,7 +414,7 @@ export async function collectionLoc(state: State) {
 export async function collectionLocWithUpload(state: State) {
 
     const { alice, aliceAccount, newAccount, signer } = state;
-    const client = state.client.withCurrentAddress(newAccount);
+    let client = state.client.withCurrentAddress(newAccount);
     let locsState = await client.locsState();
 
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, newAccount.address);
@@ -421,7 +425,7 @@ export async function collectionLocWithUpload(state: State) {
         draft: false,
     }) as PendingRequest;
 
-    const aliceClient = client.withCurrentAddress(aliceAccount);
+    let aliceClient = client.withCurrentAddress(aliceAccount);
     let aliceLogionClassificationLocRequest = await findWithLegalOfficerClient(aliceClient, logionClassificationLocRequest) as PendingRequest;
     const aliceLogionClassificationAcceptedRequest = await aliceLogionClassificationLocRequest.legalOfficer.accept({ signer }) as AcceptedRequest;
     const logionClassificationAcceptedRequest = await logionClassificationLocRequest.refresh() as AcceptedRequest;
@@ -450,7 +454,14 @@ export async function collectionLocWithUpload(state: State) {
     });
     await aliceCreativeCommonsOpenLoc.legalOfficer.close({ signer, autoAck: false });
 
-    locsState = creativeCommonsOpenLoc.locsState();
+    state = await updateConfig({
+        logionClassificationLoc: logionClassificationOpenLoc.locId,
+        creativeCommonsLoc: creativeCommonsOpenLoc.locId,
+    })
+    client = state.client.withCurrentAddress(newAccount);
+    aliceClient = state.client.withCurrentAddress(aliceAccount);
+
+    locsState = await client.locsState();
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficerAddress: alice.address,
         description: "This is a Collection LOC with upload",
@@ -496,11 +507,11 @@ export async function collectionLocWithUpload(state: State) {
         ],
         itemToken: firstItemToken,
         restrictedDelivery: true,
-        logionClassification: new LogionClassification(logionClassificationLocRequest.locId, {
+        logionClassification: {
             regionalLimit: [ "BE", "FR", "LU" ],
             transferredRights: [ "PER-PRIV", "REG", "TIME" ],
             expiration: "2025-01-01",
-        }),
+        },
     });
 
     const firstItem = await closedLoc.getCollectionItem({ itemId: firstItemId });
@@ -540,7 +551,7 @@ export async function collectionLocWithUpload(state: State) {
                 size: 5n, // No content, must provide size
             }),
         ],
-        creativeCommons: new CreativeCommons(creativeCommonsLocRequest.locId, "BY-NC-SA")
+        creativeCommons: "BY-NC-SA",
     });
 
     const secondItemNoUpload = await closedLoc.getCollectionItem({ itemId: secondItemId });

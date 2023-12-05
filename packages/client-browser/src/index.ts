@@ -1,6 +1,23 @@
 import { Hash as Hasher } from 'fast-sha256';
-import { AxiosFileUploader, File, FormDataLike, HashAndSize, MimeType } from "@logion/client";
+import {
+    AxiosFileUploader,
+    createLogionClientConfig as createConfig,
+    Environment,
+    EnvironmentString,
+    File,
+    FormDataLike,
+    HashAndSize,
+    LogionClient as GenericLogionClient,
+    MimeType,
+} from "@logion/client";
 import { Hash } from "@logion/node-api";
+
+export class LogionClient extends GenericLogionClient {
+
+    static async fromEnv(env: Environment | EnvironmentString): Promise<LogionClient> {
+        return GenericLogionClient.create(createConfig(env, () => new BrowserAxiosFileUploader()))
+    }
+}
 
 export class BrowserFile extends File {
 
@@ -25,7 +42,7 @@ export class BrowserFile extends File {
         return {
             hash: Hash.fromDigest(digest),
             size,
-        };       
+        };
     }
 
     getBlob(): Blob {

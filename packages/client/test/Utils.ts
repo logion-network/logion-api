@@ -85,10 +85,15 @@ export function buildAliceAndBobTokens(api: LogionNodeApiClass, expirationDateTi
     });
 }
 
+export const CREATIVE_COMMONS_LOC_ID = new UUID();
+export const LOGION_CLASSIFICATION_LOC_ID = new UUID();
+
 export const LOGION_CLIENT_CONFIG: LogionClientConfig = {
     rpcEndpoints: [ "wss://rpc.logion.network" ],
     directoryEndpoint: DIRECTORY_ENDPOINT,
     buildFileUploader: () => new Mock<FileUploader>().object(),
+    creativeCommonsLoc: CREATIVE_COMMONS_LOC_ID,
+    logionClassificationLoc: LOGION_CLASSIFICATION_LOC_ID,
 }
 
 export function buildTestConfig(setupComponentFactory: (factory: TestConfigFactory) => void): LogionClientConfig {
