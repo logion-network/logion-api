@@ -1,10 +1,12 @@
 import { UUID } from "@logion/node-api";
 
+export const TERMS_AND_CONDITIONS_TYPES = [ "logion_classification", "specific_license", "CC4.0" ] as const;
+
 /**
  * Defines available Terms&Conditions types.
  * @group TermsAndConditions
  */
-export type TermsAndConditionsElementType = "logion_classification" | "specific_license" | "CC4.0";
+export type TermsAndConditionsElementType = typeof TERMS_AND_CONDITIONS_TYPES[number];
 
 /**
  * Common contract to all Terms and Conditions elements.
