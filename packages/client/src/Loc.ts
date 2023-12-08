@@ -2009,7 +2009,7 @@ implements LegalOfficerLocWithSelectableIssuersCommands<T> {
                         lastName: selected.lastName,
                         identityLocId: selected.identityLocId,
                         address: selected.address,
-                        selected: true,
+                        selected: selected.selected || false,
                     };
                 } else {
                     return {
@@ -2017,7 +2017,7 @@ implements LegalOfficerLocWithSelectableIssuersCommands<T> {
                         lastName: issuer.identity.lastName,
                         identityLocId: issuer.identityLocId,
                         address: issuer.address,
-                        selected: selected !== undefined,
+                        selected: selected?.selected || false,
                     };
                 }
             })
