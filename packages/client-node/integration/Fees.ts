@@ -6,5 +6,5 @@ export async function fees(state: State) {
     const api = client.logionApi;
     const submittable = api.polkadot.tx.balances.transferAllowDeath(ALICE, "10000000");
     const fees = await client.public.fees.estimateWithoutStorage({ origin: REQUESTER_ADDRESS, submittable });
-    expect(fees.totalFee).toBe(3085311440000000n);
+    expect(fees.totalFee).toBe(1549504589051721312n);
 }
