@@ -53,4 +53,8 @@ export class Hash {
     equalTo(other: Hash): boolean {
         return this.toHex() === other.toHex();
     }
+
+    toString(): string {
+        return this.toHex();
+    }
 }

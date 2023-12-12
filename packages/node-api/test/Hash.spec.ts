@@ -47,6 +47,11 @@ describe("Hash", () => {
     it("detects invalid array", () => {
         expect(Hash.isValidBytes(new Uint8Array([1, 2, 3]))).toBe(false);
     });
+
+    it("displays as expected", () => {
+        const hash = Hash.of(TEST_STRING);
+        expect(`${ hash }`).toEqual(EXPECTED_HEX);
+    })
 });
 
 const TEST_STRING = "test";
