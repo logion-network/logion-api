@@ -7,16 +7,13 @@ import {
     File,
     FormDataLike,
     HashAndSize,
-    LogionClient as GenericLogionClient,
+    LogionClient,
     MimeType,
 } from "@logion/client";
 import { Hash } from "@logion/node-api";
 
-export class LogionClient extends GenericLogionClient {
-
-    static async fromEnv(env: Environment | EnvironmentString): Promise<LogionClient> {
-        return GenericLogionClient.create(createConfig(env, () => new BrowserAxiosFileUploader()))
-    }
+export async function newLogionClient(env: Environment | EnvironmentString): Promise<LogionClient> {
+    return await LogionClient.create(createConfig(env, () => new BrowserAxiosFileUploader()))
 }
 
 export class BrowserFile extends File {

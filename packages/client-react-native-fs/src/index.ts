@@ -6,17 +6,14 @@ import {
     File,
     FormDataLike,
     HashAndSize,
-    LogionClient as GenericLogionClient,
+    LogionClient,
     MimeType,
 } from "@logion/client";
 import { Hash } from "@logion/node-api";
 import RNFS from "react-native-fs";
 
-export class LogionClient extends GenericLogionClient {
-
-    static async fromEnv(env: Environment | EnvironmentString): Promise<LogionClient> {
-        return GenericLogionClient.create(createConfig(env, () => new ReactNativeFileUploader()))
-    }
+export async function newLogionClient(env: Environment | EnvironmentString): Promise<LogionClient> {
+    return await LogionClient.create(createConfig(env, () => new ReactNativeFileUploader()))
 }
 
 export class ReactNativeFsFile extends File {
