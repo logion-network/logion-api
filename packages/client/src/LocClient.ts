@@ -1073,11 +1073,7 @@ export class AuthenticatedLocClient extends LocClient {
     private validTokenOrThrow(itemToken: ItemTokenWithRestrictedType) {
         const result = validateToken(this.nodeApi, itemToken);
         if(!result.valid) {
-            if(result.error) {
-                throw new Error("Given token definition is invalid");
-            } else {
-                throw new Error(`Given token definition is invalid: ${result.error}`);
-            }
+            throw new Error(`Given token definition is invalid: ${result.error}`);
         }
         if(itemToken.issuance < 1n) {
             throw new Error("Token must have an issuance >= 1");
