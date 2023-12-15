@@ -374,8 +374,10 @@ describe("ClosedCollectionLoc", () => {
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
         await closedLoc.addCollectionItem({
-            itemId: ITEM_ID,
-            itemDescription: ITEM_DESCRIPTION,
+            payload: {
+                itemId: ITEM_ID,
+                itemDescription: ITEM_DESCRIPTION,
+            },
             signer: signer.object(),
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
@@ -388,11 +390,13 @@ describe("ClosedCollectionLoc", () => {
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
         await closedLoc.addCollectionItem({
-            itemId: ITEM_ID,
-            itemDescription: ITEM_DESCRIPTION,
+            payload: {
+                itemId: ITEM_ID,
+                itemDescription: ITEM_DESCRIPTION,
+                logionClassification: LOGION_CLASSIFICATION,
+                specificLicenses: SPECIFIC_LICENSES,
+            },
             signer: signer.object(),
-            logionClassification: LOGION_CLASSIFICATION,
-            specificLicenses: SPECIFIC_LICENSES,
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
         nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
@@ -404,11 +408,13 @@ describe("ClosedCollectionLoc", () => {
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
         await closedLoc.addCollectionItem({
-            itemId: ITEM_ID,
-            itemDescription: ITEM_DESCRIPTION,
+            payload: {
+                itemId: ITEM_ID,
+                itemDescription: ITEM_DESCRIPTION,
+                specificLicenses: SPECIFIC_LICENSES,
+                creativeCommons: CREATIVE_COMMONS,
+            },
             signer: signer.object(),
-            specificLicenses: SPECIFIC_LICENSES,
-            creativeCommons: CREATIVE_COMMONS,
         });
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
         nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addCollectionItem(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
@@ -420,12 +426,14 @@ describe("ClosedCollectionLoc", () => {
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
         await expectAsync(closedLoc.addCollectionItem({
+            payload: {
                 itemId: ITEM_ID,
                 itemDescription: ITEM_DESCRIPTION,
-                signer: signer.object(),
                 logionClassification: LOGION_CLASSIFICATION,
                 specificLicenses: SPECIFIC_LICENSES,
                 creativeCommons: CREATIVE_COMMONS,
+            },
+            signer: signer.object(),
             })).toBeRejectedWithError("Logion Classification and Creative Commons are mutually exclusive.")
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Never());
     });

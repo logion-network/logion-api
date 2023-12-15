@@ -13,6 +13,7 @@ import { Vault } from './VaultClass.js';
 import { LocBatch } from './LocBatch.js';
 import { UUID } from './UUID.js';
 import { LegalOfficerCase, VerifiedIssuerType } from './Types.js';
+import { Batching } from "./Batching.js";
 
 function buildProvider(endpoint: string | string[]): WsProvider {
     let endpoints: string[];
@@ -32,12 +33,14 @@ export class LogionNodeApiClass {
         this.adapters = new Adapters(api);
         this.fees = new FeesEstimator(api);
         this.queries = new Queries(api, this.adapters);
+        this.batching = new Batching(api);
     }
 
     readonly polkadot: ApiPromise;
     readonly adapters: Adapters;
     readonly fees: FeesEstimator;
     readonly queries: Queries;
+    readonly batching: Batching;
     readonly time = {
         now: () => ChainTime.now(this.polkadot),
     }
@@ -49,7 +52,7 @@ export class LogionNodeApiClass {
     readonly batch = {
         /**
          * Builds a LocBatch instance.
-         * 
+         *
          * @param ids The LOCs to consider.
          * @param locs DEPRECATED - this parameter will be removed
          * @param availableVerifiedIssuers DEPRECATED - this parameter will be removed

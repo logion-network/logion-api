@@ -116,6 +116,7 @@ export function buildLogionNodeApiMock(): Mock<LogionNodeApiClass> {
     nodeApi.setup(instance => instance.adapters.toCollectionItemToken).returns(_token => ({} as any));
     nodeApi.setup(instance => instance.adapters.toCollectionItemFile).returns(_file => ({} as any));
     nodeApi.setup(instance => instance.adapters.toTermsAndConditionsElement).returns(_element => ({} as any));
+    nodeApi.setup(instance => instance.batching.batchAll).returns((submittables: any[]) => submittables[0]);
 
     return nodeApi;
 }

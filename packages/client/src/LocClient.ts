@@ -193,7 +193,15 @@ export interface BlockchainSubmissionParams {
     callback?: SignCallback;
 }
 
-export interface EstimateFeesAddCollectionItemParams {
+export interface BlockchainSubmission<T> extends BlockchainSubmissionParams {
+    payload: T;
+}
+
+export interface BlockchainBatchSubmission<T> extends BlockchainSubmissionParams {
+    payload: T[];
+}
+
+export interface AddCollectionItemParams {
     itemId: Hash,
     itemDescription: string,
     itemFiles?: HashOrContent[],
@@ -202,9 +210,6 @@ export interface EstimateFeesAddCollectionItemParams {
     logionClassification?: LogionClassificationParameters,
     specificLicenses?: SpecificLicense[],
     creativeCommons?: CreativeCommonsCode,
-}
-
-export interface AddCollectionItemParams extends EstimateFeesAddCollectionItemParams, BlockchainSubmissionParams {
 }
 
 export interface FetchLocRequestSpecification {
@@ -888,59 +893,79 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async addCollectionItem(parameters: AddCollectionItemParams & FetchParameters): Promise<void> {
-        const {
-            itemId,
-            itemDescription,
+    async addCollectionItem(parameters: BlockchainSubmission<AddCollectionItemParams & FetchParameters>): Promise<void> {
+        const { signer, callback, payload } = parameters;
+        return this.addCollectionItems({
             signer,
             callback,
-            locId,
-            itemFiles,
-            itemToken,
-        } = parameters;
+            payload: [ payload ],
+        })
+    }
 
-        const termsAndConditions = this.termsAndConditions(parameters);
-        const submittable = await this.addCollectionItemSubmittable(parameters, termsAndConditions); // finalizes files
+    async addCollectionItems(parameters: BlockchainBatchSubmission<AddCollectionItemParams & FetchParameters>): Promise<void> {
 
-        await this.submitItemPublicData(locId, {
-            itemId: itemId.toHex(),
-            files: itemFiles?.map(file => ({
-                name: file.name,
-                contentType: file.mimeType.mimeType,
-                hash: file.contentHash.toHex(),
-            })) || [],
-            termsAndConditions: termsAndConditions.map(element => ({
-                type: element.type,
-                details: element.details,
-            })),
-            description: itemDescription,
-            token: itemToken ? {
-                id: itemToken.id,
-                type: itemToken.type,
-            } : undefined,
-        });
+        const submittables: SubmittableExtrinsic[] = [];
 
+        for (const params of parameters.payload) {
+            const {
+                itemId,
+                itemDescription,
+                locId,
+                itemFiles,
+                itemToken,
+            } = params;
+
+            const termsAndConditions = this.termsAndConditions(params);
+
+            await this.submitItemPublicData(locId, {
+                itemId: itemId.toHex(),
+                files: itemFiles?.map(file => ({
+                    name: file.name,
+                    contentType: file.mimeType.mimeType,
+                    hash: file.contentHash.toHex(),
+                })) || [],
+                termsAndConditions: termsAndConditions.map(element => ({
+                    type: element.type,
+                    details: element.details,
+                })),
+                description: itemDescription,
+                token: itemToken ? {
+                    id: itemToken.id,
+                    type: itemToken.type,
+                } : undefined,
+            });
+
+            const submittable = await this.addCollectionItemSubmittable({ ...params, termsAndConditions }); // finalizes files
+            submittables.push(submittable);
+        }
+        const { signer, callback } = parameters;
         try {
             await signer.signAndSend({
                 signerId: this.currentAddress.address,
-                submittable,
+                submittable: this.nodeApi.batching.batchAll(submittables),
                 callback
             });
         } catch(e) {
-            await this.cancelItemPublicDataSubmission(locId, itemId);
+            for (const params of parameters.payload) {
+                const { locId, itemId } = params;
+                await this.cancelItemPublicDataSubmission(locId, itemId);
+            }
             throw e;
         }
 
-        if(itemFiles) {
-            for(const file of itemFiles) {
-                if(file.hasContent) {
-                    await this.uploadItemFile({ locId, itemId, file });
+        for (const params of parameters.payload) {
+            const { locId, itemId, itemFiles } = params;
+            if (itemFiles) {
+                for(const file of itemFiles) {
+                    if(file.hasContent) {
+                        await this.uploadItemFile({ locId, itemId, file });
+                    }
                 }
             }
         }
     }
 
-    private termsAndConditions(parameters: EstimateFeesAddCollectionItemParams): TermsAndConditionsElement[] {
+    private termsAndConditions(parameters: AddCollectionItemParams): TermsAndConditionsElement[] {
         const { logionClassification, creativeCommons, specificLicenses } = parameters
         const termsAndConditions: TermsAndConditionsElement[] = [];
         if (logionClassification && creativeCommons) {
@@ -958,7 +983,7 @@ export class AuthenticatedLocClient extends LocClient {
         return termsAndConditions;
     }
 
-    private async addCollectionItemSubmittable(parameters: EstimateFeesAddCollectionItemParams & FetchParameters, termsAndConditions: TermsAndConditionsElement[]): Promise<SubmittableExtrinsic> {
+    private async addCollectionItemSubmittable(parameters: AddCollectionItemParams & FetchParameters & { termsAndConditions: TermsAndConditionsElement[]}): Promise<SubmittableExtrinsic> {
         const {
             itemId,
             itemDescription,
@@ -966,6 +991,7 @@ export class AuthenticatedLocClient extends LocClient {
             itemFiles,
             itemToken,
             restrictedDelivery,
+            termsAndConditions,
         } = parameters;
 
         if(itemToken) {
@@ -1007,10 +1033,13 @@ export class AuthenticatedLocClient extends LocClient {
         );
     }
 
-    async estimateFeesAddCollectionItem(parameters: EstimateFeesAddCollectionItemParams & FetchParameters & { collectionItemFee: bigint }): Promise<FeesClass> {
+    async estimateFeesAddCollectionItem(parameters: AddCollectionItemParams & FetchParameters & { collectionItemFee: bigint }): Promise<FeesClass> {
         const { itemFiles, itemToken, collectionItemFee } = parameters;
         const termsAndConditions = this.termsAndConditions(parameters);
-        const submittable = await this.addCollectionItemSubmittable(parameters, termsAndConditions);
+        const submittable = await this.addCollectionItemSubmittable({
+            ...parameters,
+            termsAndConditions,
+        });
         const numOfEntries = itemFiles ? BigInt(itemFiles.length) : 0n;
         const totSize = itemFiles ? itemFiles.map(file => file.size).reduce((cur, prev) => cur + prev, 0n) : 0n;
         const tokenIssuance = itemToken?.issuance;

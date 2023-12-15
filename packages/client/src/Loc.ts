@@ -46,7 +46,6 @@ import {
     EstimateFeesPublishLinkParams,
     EstimateFeesOpenCollectionLocParams,
     OpenPolkadotLocParams,
-    EstimateFeesAddCollectionItemParams,
     RefLinkParams,
     AckLinkParams,
     ReviewLinkParams,
@@ -55,6 +54,8 @@ import {
     AutoPublish,
     CollectionLimits,
     EstimateFeesAddTokensRecordParams,
+    BlockchainSubmission,
+    BlockchainBatchSubmission,
 } from "./LocClient.js";
 import { SharedState, getLegalOfficer } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -144,7 +145,7 @@ export interface LocFees {
     valueFee?: bigint;
     legalFee?: bigint;
     collectionItemFee?: bigint;
-    tokensRecordFee?: bigint;    
+    tokensRecordFee?: bigint;
 }
 
 export class LocsState extends State {
@@ -2240,21 +2241,26 @@ export interface UploadTokensRecordFileParams {
 
 export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
 
-    async addCollectionItem(parameters: AddCollectionItemParams): Promise<ClosedCollectionLoc> {
+    async addCollectionItem(parameters: BlockchainSubmission<AddCollectionItemParams>): Promise<ClosedCollectionLoc> {
+        const { payload, signer, callback } = parameters;
         const client = this.locSharedState.client;
-        if(parameters.itemFiles
-            && parameters.itemFiles.length > 0
+        if(payload.itemFiles
+            && payload.itemFiles.length > 0
             && (!this.legalOfficerCase?.collectionCanUpload || false)) {
             throw new Error("This Collection LOC does not allow uploading files with items");
         }
         await client.addCollectionItem({
-            locId: this.locId,
-            ...parameters
+            signer,
+            callback,
+            payload: {
+                ...payload,
+                locId: this.locId,
+            }
         })
         return this.getCurrentStateOrThrow() as ClosedCollectionLoc;
     }
 
-    async estimateFeesAddCollectionItem(parameters: EstimateFeesAddCollectionItemParams): Promise<FeesClass> {
+    async estimateFeesAddCollectionItem(parameters: AddCollectionItemParams): Promise<FeesClass> {
         const client = this.locSharedState.client;
         const collectionItemFee = this.data().fees.collectionItemFee;
         if(collectionItemFee === undefined) {
@@ -2265,6 +2271,28 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
             collectionItemFee,
             ...parameters,
         })
+    }
+
+    async addCollectionItems(parameters: BlockchainBatchSubmission<AddCollectionItemParams>): Promise<ClosedCollectionLoc> {
+        const { signer, callback } = parameters;
+        const client = this.locSharedState.client;
+        const payload = parameters.payload.map(payload => {
+            if(payload.itemFiles
+                && payload.itemFiles.length > 0
+                && (!this.legalOfficerCase?.collectionCanUpload || false)) {
+                throw new Error("This Collection LOC does not allow uploading files with items");
+            }
+            return {
+                ...payload,
+                locId: this.locId,
+            }
+        })
+        await client.addCollectionItems({
+            signer,
+            callback,
+            payload,
+        })
+        return this.getCurrentStateOrThrow() as ClosedCollectionLoc;
     }
 
     async uploadCollectionItemFile(parameters: UploadCollectionItemFileParams): Promise<ClosedCollectionLoc> {
