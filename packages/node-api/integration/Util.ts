@@ -74,12 +74,11 @@ export function signAndSend(keypair: IKeyringPair, extrinsic: SubmittableExtrins
 }
 
 export async function signAndSendBatch(keypair: IKeyringPair, extrinsics: SubmittableExtrinsic[]): Promise<void> {
-    for(const extrinsic of extrinsics) {
-        try {
-            await signAndSend(keypair, extrinsic);
-        } catch(e) {
-            console.log(e);
-            throw e;
-        }
+    try {
+        const extrinsic = state.api.polkadot.tx.utility.batchAll(extrinsics);
+        await signAndSend(keypair, extrinsic);
+    } catch (e) {
+        console.log(e);
+        throw e;
     }
 }
