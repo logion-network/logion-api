@@ -22,7 +22,7 @@
       "peer_watch_interval": "5s",
       "mdns_interval": "0",
       "disable_repinning": false,
-      "peer_addresses": ["/dns4/client-node_ipfs-cluster1_1/tcp/9096/p2p/12D3KooWHpQ7R7EHsm5KrnPfbEvYAp9C4AD9J42EosATYtEbGzMw"]
+      "peer_addresses": ["/dns4/client-node-ipfs-cluster1-1/tcp/9096/p2p/12D3KooWHpQ7R7EHsm5KrnPfbEvYAp9C4AD9J42EosATYtEbGzMw"]
     },
     "consensus": {
       "crdt": {
@@ -77,7 +77,7 @@
     },
     "ipfs_connector": {
       "ipfshttp": {
-        "node_multiaddress": "/dns4/client-node_ipfs2_1/tcp/5001",
+        "node_multiaddress": "/dns4/client-node-ipfs2-1/tcp/5001",
         "connect_swarms_delay": "30s",
         "ipfs_request_timeout": "5m0s",
         "pin_timeout": "2m0s",
