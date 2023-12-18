@@ -383,8 +383,10 @@ export async function collectionLoc(state: State) {
     });
     expect(estimatedFees.collectionItemFee).toBe(collectionItemFee);
     closedLoc = await closedLoc.addCollectionItem({
-        itemId,
-        itemDescription,
+        payload: {
+            itemId,
+            itemDescription,
+        },
         signer: state.signer
     });
     await expectAsync(waitFor<BalanceState>({
@@ -499,19 +501,21 @@ export async function collectionLocWithUpload(state: State) {
         issuance: 1n,
     };
     closedLoc = await closedLoc.addCollectionItem({
-        itemId: firstItemId,
-        itemDescription: firstItemDescription,
-        signer: state.signer,
-        itemFiles: [
-            HashOrContent.fromContent(new NodeFile("integration/test.txt", "test.txt", MimeType.from("text/plain"))), // Let SDK compute hash and size
-        ],
-        itemToken: firstItemToken,
-        restrictedDelivery: true,
-        logionClassification: {
-            regionalLimit: [ "BE", "FR", "LU" ],
-            transferredRights: [ "PER-PRIV", "REG", "TIME" ],
-            expiration: "2025-01-01",
+        payload: {
+            itemId: firstItemId,
+            itemDescription: firstItemDescription,
+            itemFiles: [
+                HashOrContent.fromContent(new NodeFile("integration/test.txt", "test.txt", MimeType.from("text/plain"))), // Let SDK compute hash and size
+            ],
+            itemToken: firstItemToken,
+            restrictedDelivery: true,
+            logionClassification: {
+                regionalLimit: [ "BE", "FR", "LU" ],
+                transferredRights: [ "PER-PRIV", "REG", "TIME" ],
+                expiration: "2025-01-01",
+            },
         },
+        signer: state.signer,
     });
 
     const firstItem = await closedLoc.getCollectionItem({ itemId: firstItemId });
@@ -539,23 +543,50 @@ export async function collectionLocWithUpload(state: State) {
     const secondItemDescription = "Second collection item";
     const secondFile = new NodeFile("integration/test2.txt", "test2.txt", MimeType.from("text/plain"));
     const secondFileHash = Hash.of("test2");
-    closedLoc = await closedLoc.addCollectionItem({
-        itemId: secondItemId,
-        itemDescription: secondItemDescription,
-        signer: state.signer,
-        itemFiles: [
-            HashOrContent.fromDescription({
-                name: "test2.txt",
-                mimeType: MimeType.from("text/plain"),
-                hash: secondFileHash, // No content, must upload later
-                size: 5n, // No content, must provide size
-            }),
+    const thirdItemId = Hash.of("third-collection-item");
+    const thirdItemDescription = "Third collection item";
+    const thirdFile = new NodeFile("integration/test3.txt", "test3.txt", MimeType.from("text/plain"));
+    const thirdFileHash = Hash.of("test3");
+    closedLoc = await closedLoc.addCollectionItems({
+        payload: [
+            {
+                itemId: secondItemId,
+                itemDescription: secondItemDescription,
+                itemFiles: [
+                    HashOrContent.fromDescription({
+                        name: "test2.txt",
+                        mimeType: MimeType.from("text/plain"),
+                        hash: secondFileHash, // No content, must upload later
+                        size: 5n, // No content, must provide size
+                    }),
+                ],
+                creativeCommons: "BY-NC-SA",
+            },
+            {
+                itemId: thirdItemId,
+                itemDescription: thirdItemDescription,
+                itemFiles: [
+                    HashOrContent.fromDescription({
+                        name: "test3.txt",
+                        mimeType: MimeType.from("text/plain"),
+                        hash: thirdFileHash, // No content, must upload later
+                        size: 5n, // No content, must provide size
+                    }),
+                ],
+                creativeCommons: "BY-NC-SA",
+            }
         ],
-        creativeCommons: "BY-NC-SA",
+        signer: state.signer,
     });
 
     const secondItemNoUpload = await closedLoc.getCollectionItem({ itemId: secondItemId });
     expect(secondItemNoUpload!.files).toEqual(jasmine.arrayContaining([
+        jasmine.objectContaining({
+            uploaded: false,
+        })
+    ]));
+    const thirdItemNoUpload = await closedLoc.getCollectionItem({ itemId: thirdItemId });
+    expect(thirdItemNoUpload!.files).toEqual(jasmine.arrayContaining([
         jasmine.objectContaining({
             uploaded: false,
         })
@@ -565,6 +596,10 @@ export async function collectionLocWithUpload(state: State) {
         itemId: secondItemId,
         itemFile: HashOrContent.fromContent(secondFile),
     });
+    closedLoc = await closedLoc.uploadCollectionItemFile({
+        itemId: thirdItemId,
+        itemFile: HashOrContent.fromContent(thirdFile),
+    });
 
     const secondItemWithUpload = await closedLoc.getCollectionItem({ itemId: secondItemId });
     expect(secondItemWithUpload!.files).toEqual(jasmine.arrayContaining([
@@ -572,13 +607,21 @@ export async function collectionLocWithUpload(state: State) {
             uploaded: true,
         })
     ]));
+    const thirdItemWithUpload = await closedLoc.getCollectionItem({ itemId: thirdItemId });
+    expect(thirdItemWithUpload!.files).toEqual(jasmine.arrayContaining([
+        jasmine.objectContaining({
+            uploaded: true,
+        })
+    ]));
 
     const items = await closedLoc.getCollectionItems();
-    expect(items.length).toBe(2);
+    expect(items.length).toBe(3);
     expect(items[0].files.length).toBe(1);
     expect(items[0].termsAndConditions.length).toBe(1);
     expect(items[1].files.length).toBe(1);
     expect(items[1].termsAndConditions.length).toBe(1);
+    expect(items[2].files.length).toBe(1);
+    expect(items[2].termsAndConditions.length).toBe(1);
 }
 
 export async function identityLoc(state: State) {

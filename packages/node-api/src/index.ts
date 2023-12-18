@@ -1,4 +1,5 @@
 export * from "./Adapters.js";
+export * from "./Batching.js";
 export * from "./ChainTime.js";
 export * as Currency from "./Currency.js";
 export * from "./Connection.js";
