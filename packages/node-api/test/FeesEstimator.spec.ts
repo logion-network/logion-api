@@ -9,25 +9,84 @@ import { Fees, FeesEstimator } from "../src/index.js";
 
 describe("Fees", () => {
 
-    it("computes total fee", () => {
-        const fees = new Fees({
-            inclusionFee: 1n,
-            certificateFee: 2n,
-            collectionItemFee: 3n,
-            legalFee: 4n,
-            storageFee: 5n,
-            tokensRecordFee: 6n,
-            valueFee: 7n,
-        });
-        expect(fees.totalFee).toBe(28n);
+    it("computes total fee (all set)", () => {
+        expect(allSet.totalFee).toBe(28n);
     });
 
-    it("computes total with undefined fees", () => {
-        const fees = new Fees({
-            inclusionFee: 1n,
-        });
-        expect(fees.totalFee).toBe(1n);
+    it("computes total (only inclusion)", () => {
+        expect(onlyInclusionSet.totalFee).toBe(1n);
     });
+
+    it("adds another fee (all set + only inclusion)", () => {
+        expect(allSet.add(onlyInclusionSet)).toEqual(new Fees({
+            ...allSet,
+            inclusionFee: 2n,
+        }));
+    });
+
+    it("adds another fee (only inclusion + all set)", () => {
+        expect(onlyInclusionSet.add(allSet)).toEqual(new Fees({
+            ...allSet,
+            inclusionFee: 2n,
+        }));
+    });
+
+    it("adds another fee (only inclusion + only inclusion)", () => {
+        expect(onlyInclusionSet.add(onlyInclusionSet)).toEqual(new Fees({
+            inclusionFee: 2n,
+        }));
+    });
+
+    it("adds another fee (all set + all set)", () => {
+        expect(allSet.add(allSet)).toEqual(new Fees({
+            inclusionFee: 2n,
+            certificateFee: 4n,
+            collectionItemFee: 6n,
+            legalFee: 8n,
+            storageFee: 10n,
+            tokensRecordFee: 12n,
+            valueFee: 14n,
+        }));
+    });
+
+    it("multiplies (only inclusion)", () => {
+        expect(onlyInclusionSet.multiply(2n)).toEqual(new Fees({
+            inclusionFee: 2n,
+        }));
+    });
+
+    it("multiplies (all set)", () => {
+        expect(allSet.multiply(2n)).toEqual(new Fees({
+            inclusionFee: 2n,
+            certificateFee: 4n,
+            collectionItemFee: 6n,
+            legalFee: 8n,
+            storageFee: 10n,
+            tokensRecordFee: 12n,
+            valueFee: 14n,
+        }));
+    });
+
+    it("adds all fees", () => {
+        expect(Fees.addAll(allSet, onlyInclusionSet)).toEqual(new Fees({
+            ...allSet,
+            inclusionFee: 2n,
+        }));
+    });
+});
+
+const allSet = new Fees({
+    inclusionFee: 1n,
+    certificateFee: 2n,
+    collectionItemFee: 3n,
+    legalFee: 4n,
+    storageFee: 5n,
+    tokensRecordFee: 6n,
+    valueFee: 7n,
+});
+
+const onlyInclusionSet = new Fees({
+    inclusionFee: 1n,
 });
 
 describe("FeesEstimator", () => {

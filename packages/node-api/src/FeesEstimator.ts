@@ -1,10 +1,17 @@
 import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types.js";
 import { LocType } from "./Types.js";
-
-const LGNT: bigint = 1_000_000_000_000_000_000n;
+import { LGNT } from "./Currency.js";
 
 export class Fees {
+
+    static zero() {
+        return new Fees({ inclusionFee: 0n });
+    }
+
+    static addAll(...fees: Fees[]): Fees {
+        return fees.reduce((cur, next) => cur.add(next), Fees.zero());
+    }
 
     constructor(params: {
         inclusionFee: bigint,
@@ -41,6 +48,50 @@ export class Fees {
             + (this.collectionItemFee || 0n)
             + (this.tokensRecordFee || 0n)
         ;
+    }
+
+    multiply(times: bigint): Fees {
+        return new Fees({
+            inclusionFee: this.inclusionFee * times,
+            certificateFee: this.multiplyFee(this.certificateFee, times),
+            collectionItemFee: this.multiplyFee(this.collectionItemFee, times),
+            legalFee: this.multiplyFee(this.legalFee, times),
+            storageFee: this.multiplyFee(this.storageFee, times),
+            tokensRecordFee: this.multiplyFee(this.tokensRecordFee, times),
+            valueFee: this.multiplyFee(this.valueFee, times),
+        });
+    }
+
+    private multiplyFee(fee: bigint | undefined, times: bigint): bigint | undefined {
+        if(fee !== undefined) {
+            return fee * times;
+        } else {
+            return undefined;
+        }
+    }
+
+    add(fee: Fees): Fees {
+        return new Fees({
+            inclusionFee: this.inclusionFee + fee.inclusionFee,
+            certificateFee: this.addFee(this.certificateFee, fee.certificateFee),
+            collectionItemFee: this.addFee(this.collectionItemFee, fee.collectionItemFee),
+            legalFee: this.addFee(this.legalFee, fee.legalFee),
+            storageFee: this.addFee(this.storageFee, fee.storageFee),
+            tokensRecordFee: this.addFee(this.tokensRecordFee, fee.tokensRecordFee),
+            valueFee: this.addFee(this.valueFee, fee.valueFee),
+        });
+    }
+
+    private addFee(fee1: bigint | undefined, fee2: bigint | undefined): bigint | undefined {
+        if(fee1 !== undefined && fee2 !== undefined) {
+            return fee1 + fee2;
+        } else if(fee1 !== undefined && fee2 === undefined) {
+            return fee1;
+        } else if(fee1 === undefined && fee2 !== undefined) {
+            return fee2;
+        } else {
+            return undefined;
+        }
     }
 }
 

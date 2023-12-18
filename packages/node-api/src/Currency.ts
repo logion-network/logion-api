@@ -1,6 +1,7 @@
 import * as Numbers from "./numbers.js";
 
 export const LGNT_SMALLEST_UNIT = Numbers.ATTO;
+export const LGNT: bigint = 10n ** BigInt(-LGNT_SMALLEST_UNIT.tenExponent);
 export const SYMBOL = "LGNT";
 
 export function toCanonicalAmount(amount: Numbers.PrefixedNumber): bigint {
