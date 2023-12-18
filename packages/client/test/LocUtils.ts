@@ -108,6 +108,7 @@ export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType
 }
 
 export const ITEM_DESCRIPTION = "Some item description";
+export const ITEM_DESCRIPTION_2 = "Some second item description";
 
 export function buildCollectionItem(): CollectionItem {
     return {

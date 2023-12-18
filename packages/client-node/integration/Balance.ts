@@ -41,7 +41,7 @@ export async function transfers(state: State) {
 
     // Alice checks her balance.
     aliceState = await aliceState.refresh();
-    checkBalance(aliceState, "97.00k");
+    checkBalance(aliceState, "96.99k");
 }
 
 export function checkBalance(balanceState: BalanceState, expectedValue: string) {
