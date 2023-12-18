@@ -182,7 +182,7 @@ async function createAndCloseIdentityLoc(
         submittable: api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
             api.adapters.toLocId(identityLocId),
             legalOfficerAddress,
-            api.fees.getDefaultLegalFee({ locType: "Identity" }),
+            api.fees.getDefaultLegalFee({ locType: "Identity" }).canonical,
             {
                 metadata: [],
                 files: [],

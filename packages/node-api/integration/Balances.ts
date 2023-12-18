@@ -1,4 +1,4 @@
-import { Currency, Adapters, TypesJsonObject } from "../src/index.js";
+import { Lgnt, Adapters, TypesJsonObject } from "../src/index.js";
 import { REQUESTER, setup, signAndSend } from "./Util.js";
 
 export async function transferTokens() {
@@ -6,7 +6,7 @@ export async function transferTokens() {
 
     const transferExtrinsic = api.polkadot.tx.balances.transferAllowDeath(
         REQUESTER,
-        Currency.toCanonicalAmount(Currency.nLgnt(20000n))
+        Lgnt.from(20000n).canonical
     );
     const result = await signAndSend(alice, transferExtrinsic);
 

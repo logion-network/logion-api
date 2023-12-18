@@ -21,7 +21,7 @@ import {
     waitFor,
     MimeType
 } from "@logion/client";
-import { UUID } from "@logion/node-api";
+import { Lgnt, UUID } from "@logion/node-api";
 
 export async function openIdentityLoc(state: State): Promise<UUID> {
     const { directRequesterAccount, signer, alice, aliceAccount } = state;
@@ -35,7 +35,7 @@ export async function openIdentityLoc(state: State): Promise<UUID> {
         description: "Direct Identity",
         legalOfficerAddress: alice.address,
         template: "a-template",
-        legalFee: 15n,
+        legalFee: Lgnt.fromCanonical(15n),
         files: items.files,
         metadata: items.metadata,
         links: items.links,
@@ -76,7 +76,7 @@ export async function openTransactionLoc(state: State, linkedLoc: UUID): Promise
         description: "Direct Transaction",
         legalOfficerAddress: alice.address,
         template: "a-template",
-        legalFee: 15n,
+        legalFee: Lgnt.fromCanonical(15n),
         files: items.files,
         metadata: items.metadata,
         links: items.links,
@@ -105,15 +105,15 @@ export async function openCollectionLoc(state: State, linkedLoc1: UUID, linkedLo
         description: "Direct Collection",
         legalOfficerAddress: alice.address,
         template: "a-template",
-        legalFee: 15n,
+        legalFee: Lgnt.fromCanonical(15n),
         files: items.files,
         metadata: items.metadata,
         links: items.links,
         collectionCanUpload: false,
         collectionMaxSize: 200,
-        valueFee: 13000n,
-        collectionItemFee: 7000n,
-        tokensRecordFee: 6000n,
+        valueFee: Lgnt.fromCanonical(13000n),
+        collectionItemFee: Lgnt.fromCanonical(7000n),
+        tokensRecordFee: Lgnt.fromCanonical(6000n),
         signer
     });
     checkCollectionData(openLoc.data(), items);
@@ -123,9 +123,9 @@ function checkCollectionData(data: LocData, items: ItemsParams) {
     expect(data.collectionCanUpload).toBeFalse();
     expect(data.collectionMaxSize).toEqual(200);
     expect(data.collectionLastBlockSubmission).toBeUndefined();
-    expect(data.fees.valueFee).toEqual(13000n);
-    expect(data.fees.collectionItemFee).toEqual(7000n);
-    expect(data.fees.tokensRecordFee).toEqual(6000n);
+    expect(data.fees.valueFee?.canonical).toEqual(13000n);
+    expect(data.fees.collectionItemFee?.canonical).toEqual(7000n);
+    expect(data.fees.tokensRecordFee?.canonical).toEqual(6000n);
 
     checkData(data, items);
 }
@@ -134,7 +134,7 @@ function checkData(data: LocData, items: ItemsParams) {
     expect(data.status).toEqual("OPEN")
     const locType = data.locType;
     expect(data.description).toEqual(`Direct ${ locType }`)
-    expect(data.fees.legalFee).toEqual(15n)
+    expect(data.fees.legalFee?.canonical).toEqual(15n)
     expect(data.template).toEqual("a-template")
     expect(data.requesterLocId).toBeUndefined();
     expect(data.requesterAddress?.address).toEqual(DIRECT_REQUESTER_ADDRESS);

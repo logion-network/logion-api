@@ -1,5 +1,5 @@
 import { ApiPromise } from "@polkadot/api";
-import { CollectionItem, Hash, LegalOfficerCase, LogionNodeApiClass, Numbers, UUID } from "../src/index.js";
+import { CollectionItem, Hash, LegalOfficerCase, Lgnt, LogionNodeApiClass, Numbers, UUID } from "../src/index.js";
 import { POLKADOT_API_CREATE_TYPE, mockValidAccountId, mockBool } from "./Util.js";
 import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
 import { BN } from "bn.js";
@@ -323,10 +323,10 @@ export const DEFAULT_LOC: LegalOfficerCase = {
     collectionMaxSize: undefined,
     collectionCanUpload: false,
     seal: "0x917ec227fc39f3eba7dc3546d714f4146bcbeb496a909316723ada32008de3c8",
-    valueFee: 0n,
-    collectionItemFee: 0n,
-    tokensRecordFee: 0n,
-    legalFee: 2000n,
+    valueFee: Lgnt.zero(),
+    collectionItemFee: Lgnt.zero(),
+    tokensRecordFee: Lgnt.zero(),
+    legalFee: Lgnt.from(2000n),
 }
 
 export const DEFAULT_ITEM: CollectionItem = {

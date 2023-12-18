@@ -1,8 +1,7 @@
 import {
-    Currency,
-    Numbers,
     CoinBalance,
     Vault,
+    Lgnt,
 } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
@@ -130,7 +129,7 @@ export class VaultState extends State {
 
     async createVaultTransferRequest(params: {
         legalOfficer: LegalOfficer,
-        amount: Numbers.PrefixedNumber,
+        amount: Lgnt,
         destination: string,
         signer: Signer,
         callback?: SignCallback,
@@ -140,7 +139,7 @@ export class VaultState extends State {
 
     private async _createVaultTransferRequest(params: {
         legalOfficer: LegalOfficer,
-        amount: Numbers.PrefixedNumber,
+        amount: Lgnt,
         destination: string,
         signer: Signer,
         callback?: SignCallback,
@@ -176,7 +175,7 @@ export class VaultState extends State {
             legalOfficerAddress: legalOfficer.address,
             block: blockHeader.number.toString(),
             index: successfulSubmission.index,
-            amount: Currency.toCanonicalAmount(amount).toString(),
+            amount: amount.canonical.toString(),
         });
 
         const pendingVaultTransferRequests = this.sharedState.pendingVaultTransferRequests.concat([ newPendingRequest ]).sort(requestSort);
@@ -189,7 +188,7 @@ export class VaultState extends State {
 
     private async recoveryTransferSubmittable(params: {
         destination: string,
-        amount: Numbers.PrefixedNumber,
+        amount: Lgnt,
     }): Promise<SubmittableExtrinsic> {
         const { destination, amount } = params;
         const transfer = await this.sharedState.vault.tx.transferFromVault({
@@ -204,7 +203,7 @@ export class VaultState extends State {
 
     private regularTransferSubmittable(params: {
         destination: string,
-        amount: Numbers.PrefixedNumber,
+        amount: Lgnt,
     }): Promise<SubmittableExtrinsic> {
         const { destination, amount } = params;
         return this.sharedState.vault.tx.transferFromVault({
@@ -229,7 +228,7 @@ export class VaultState extends State {
         callback?: SignCallback,
     ): Promise<VaultState> {
         const signerId = getDefinedCurrentAddress(this.sharedState).address;
-        const amount = Currency.toPrefixedNumberAmount(BigInt(request.amount));
+        const amount = Lgnt.fromCanonical(BigInt(request.amount));
 
         let submittable: SubmittableExtrinsic;
         if(this.sharedState.isRecovery) {

@@ -1,4 +1,4 @@
-import { Numbers, Currency, CoinBalance } from "@logion/node-api";
+import { Numbers, Currency, CoinBalance, Lgnt } from "@logion/node-api";
 import { BalanceState, waitFor } from "@logion/client";
 
 import { State, REQUESTER_ADDRESS } from "./Utils.js";
@@ -15,7 +15,7 @@ export async function transfers(state: State) {
     expect(aliceState.transactions.length).toBe(0);
     aliceState = await aliceState.transfer({
         signer,
-        amount: new Numbers.PrefixedNumber("5", Numbers.KILO),
+        amount: Lgnt.from(5000n),
         destination: REQUESTER_ADDRESS
     });
     checkBalance(aliceState, "94.99k");
@@ -34,7 +34,7 @@ export async function transfers(state: State) {
     checkBalance(userState, "5.00k");
     userState = await userState.transfer({
         signer,
-        amount: new Numbers.PrefixedNumber("2", Numbers.KILO),
+        amount: Lgnt.from(2000n),
         destination: ALICE
     });
     checkBalance(userState, "2.99k");
@@ -66,7 +66,7 @@ export async function transferAndCannotPayFees(state: State) {
 
     await expectAsync(balanceState.transfer({
         signer,
-        amount: new Numbers.PrefixedNumber("1", Numbers.NONE),
+        amount: Lgnt.from(1n),
         destination: ALICE,
     })).toBeRejectedWithError("Not enough funds available to pay fees");
 }
@@ -80,7 +80,7 @@ export async function transferWithInsufficientFunds(state: State) {
 
     await expectAsync(aliceState.transfer({
         signer,
-        amount: aliceState.balances[0].available.add(new Numbers.PrefixedNumber("1", Numbers.NONE)),
+        amount: Lgnt.fromCanonicalPrefixedNumber(aliceState.balances[0].available).add(Lgnt.from(1)),
         destination: REQUESTER_ADDRESS
     })).toBeRejectedWithError("Insufficient balance");
 }

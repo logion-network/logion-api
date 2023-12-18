@@ -1,4 +1,4 @@
-import { buildApiClass, Currency } from "@logion/node-api";
+import { buildApiClass, Currency, Lgnt } from "@logion/node-api";
 import { ActiveProtection, VaultTransferRequest, WithProtectionParameters } from "@logion/client";
 
 import { REQUESTER_ADDRESS, State } from "./Utils.js";
@@ -18,7 +18,7 @@ export async function providesVault(state: State) {
     balanceState = await balanceState.transfer({
         signer,
         destination: vaultAddress,
-        amount: Currency.nLgnt(5n),
+        amount: Lgnt.from(5n),
     });
     vaultState = await vaultState.refresh();
     checkCoinBalance(vaultState.balances[0], "5.00");
@@ -26,7 +26,7 @@ export async function providesVault(state: State) {
     // Transfer back from vault
     vaultState = await vaultState.createVaultTransferRequest({
         legalOfficer: alice,
-        amount: Currency.nLgnt(1n),
+        amount: Lgnt.from(1n),
         destination: REQUESTER_ADDRESS,
         signer
     });
@@ -49,7 +49,7 @@ export async function aliceAcceptsTransfer(state: State, request: VaultTransferR
     const api = await buildApiClass(client.config.rpcEndpoints);
 
     const signerId = aliceAccount.address;
-    const amount = Currency.toPrefixedNumberAmount(BigInt(request!.amount));
+    const amount = Lgnt.fromCanonical(BigInt(request!.amount));
     const vault = api.vault(
         requesterAccount.address,
         activeProtection.protectionParameters.states.map(state => state.legalOfficer.address)

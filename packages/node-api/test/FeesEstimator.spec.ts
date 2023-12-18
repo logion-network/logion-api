@@ -4,89 +4,89 @@ import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces';
 import { Mock } from "moq.ts";
 import { Balance } from "../src/interfaces/index.js";
 import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
-import { POLKADOT_API_CREATE_TYPE, mockCodecWithToString } from "./Util.js";
-import { Fees, FeesEstimator } from "../src/index.js";
+import { POLKADOT_API_CREATE_TYPE, mockCodecWithToBigInt, mockCodecWithToString } from "./Util.js";
+import { Fees, FeesEstimator, Lgnt } from "../src/index.js";
 
 describe("Fees", () => {
 
     it("computes total fee (all set)", () => {
-        expect(allSet.totalFee).toBe(28n);
+        expect(allSet.totalFee).toEqual(Lgnt.fromCanonical(28n));
     });
 
     it("computes total (only inclusion)", () => {
-        expect(onlyInclusionSet.totalFee).toBe(1n);
+        expect(onlyInclusionSet.totalFee).toEqual(Lgnt.fromCanonical(1n));
     });
 
     it("adds another fee (all set + only inclusion)", () => {
         expect(allSet.add(onlyInclusionSet)).toEqual(new Fees({
             ...allSet,
-            inclusionFee: 2n,
+            inclusionFee: Lgnt.fromCanonical(2n),
         }));
     });
 
     it("adds another fee (only inclusion + all set)", () => {
         expect(onlyInclusionSet.add(allSet)).toEqual(new Fees({
             ...allSet,
-            inclusionFee: 2n,
+            inclusionFee: Lgnt.fromCanonical(2n),
         }));
     });
 
     it("adds another fee (only inclusion + only inclusion)", () => {
         expect(onlyInclusionSet.add(onlyInclusionSet)).toEqual(new Fees({
-            inclusionFee: 2n,
+            inclusionFee: Lgnt.fromCanonical(2n),
         }));
     });
 
     it("adds another fee (all set + all set)", () => {
         expect(allSet.add(allSet)).toEqual(new Fees({
-            inclusionFee: 2n,
-            certificateFee: 4n,
-            collectionItemFee: 6n,
-            legalFee: 8n,
-            storageFee: 10n,
-            tokensRecordFee: 12n,
-            valueFee: 14n,
+            inclusionFee: Lgnt.fromCanonical(2n),
+            certificateFee: Lgnt.fromCanonical(4n),
+            collectionItemFee: Lgnt.fromCanonical(6n),
+            legalFee: Lgnt.fromCanonical(8n),
+            storageFee: Lgnt.fromCanonical(10n),
+            tokensRecordFee: Lgnt.fromCanonical(12n),
+            valueFee: Lgnt.fromCanonical(14n),
         }));
     });
 
     it("multiplies (only inclusion)", () => {
         expect(onlyInclusionSet.multiply(2n)).toEqual(new Fees({
-            inclusionFee: 2n,
+            inclusionFee: Lgnt.fromCanonical(2n),
         }));
     });
 
     it("multiplies (all set)", () => {
         expect(allSet.multiply(2n)).toEqual(new Fees({
-            inclusionFee: 2n,
-            certificateFee: 4n,
-            collectionItemFee: 6n,
-            legalFee: 8n,
-            storageFee: 10n,
-            tokensRecordFee: 12n,
-            valueFee: 14n,
+            inclusionFee: Lgnt.fromCanonical(2n),
+            certificateFee: Lgnt.fromCanonical(4n),
+            collectionItemFee: Lgnt.fromCanonical(6n),
+            legalFee: Lgnt.fromCanonical(8n),
+            storageFee: Lgnt.fromCanonical(10n),
+            tokensRecordFee: Lgnt.fromCanonical(12n),
+            valueFee: Lgnt.fromCanonical(14n),
         }));
     });
 
     it("adds all fees", () => {
         expect(Fees.addAll(allSet, onlyInclusionSet)).toEqual(new Fees({
             ...allSet,
-            inclusionFee: 2n,
+            inclusionFee: Lgnt.fromCanonical(2n),
         }));
     });
 });
 
 const allSet = new Fees({
-    inclusionFee: 1n,
-    certificateFee: 2n,
-    collectionItemFee: 3n,
-    legalFee: 4n,
-    storageFee: 5n,
-    tokensRecordFee: 6n,
-    valueFee: 7n,
+    inclusionFee: Lgnt.fromCanonical(1n),
+    certificateFee: Lgnt.fromCanonical(2n),
+    collectionItemFee: Lgnt.fromCanonical(3n),
+    legalFee: Lgnt.fromCanonical(4n),
+    storageFee: Lgnt.fromCanonical(5n),
+    tokensRecordFee: Lgnt.fromCanonical(6n),
+    valueFee: Lgnt.fromCanonical(7n),
 });
 
 const onlyInclusionSet = new Fees({
-    inclusionFee: 1n,
+    inclusionFee: Lgnt.fromCanonical(1n),
 });
 
 describe("FeesEstimator", () => {
@@ -95,7 +95,7 @@ describe("FeesEstimator", () => {
 
         const dispatchInfo = new Mock<RuntimeDispatchInfo>();
         const expectedInclusionFee = BigInt(42);
-        dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToString(expectedInclusionFee.toString()));
+        dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToBigInt(expectedInclusionFee));
         const submittable = new Mock<SubmittableExtrinsic>();
         submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
 
@@ -110,8 +110,8 @@ describe("FeesEstimator", () => {
             submittable: submittable.object(),
         });
 
-        expect(fees.inclusionFee).toBe(expectedInclusionFee);
-        expect(fees.storageFee).toBe(expectedStorageFee);
+        expect(fees.inclusionFee.canonical).toBe(expectedInclusionFee);
+        expect(fees.storageFee?.canonical).toBe(expectedStorageFee);
         expect(fees.legalFee).toBeUndefined();
         expect(fees.certificateFee).toBeUndefined();
         expect(fees.valueFee).toBeUndefined();
@@ -120,7 +120,7 @@ describe("FeesEstimator", () => {
     it("estimates fees without storage", async () => {
         const dispatchInfo = new Mock<RuntimeDispatchInfo>();
         const expectedInclusionFee = BigInt(42);
-        dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToString(expectedInclusionFee.toString()));
+        dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToBigInt(expectedInclusionFee));
         const submittable = new Mock<SubmittableExtrinsic>();
         submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
 
@@ -131,7 +131,7 @@ describe("FeesEstimator", () => {
             submittable: submittable.object(),
         });
 
-        expect(fees.inclusionFee).toBe(expectedInclusionFee);
+        expect(fees.inclusionFee.canonical).toBe(expectedInclusionFee);
         expect(fees.storageFee).toBeUndefined();
         expect(fees.legalFee).toBeUndefined();
         expect(fees.certificateFee).toBeUndefined();
@@ -142,7 +142,7 @@ describe("FeesEstimator", () => {
 
         const dispatchInfo = new Mock<RuntimeDispatchInfo>();
         const expectedInclusionFee = BigInt(42);
-        dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToString(expectedInclusionFee.toString()));
+        dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToBigInt(expectedInclusionFee));
         const submittable = new Mock<SubmittableExtrinsic>();
         submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
 
@@ -156,22 +156,22 @@ describe("FeesEstimator", () => {
             origin: DEFAULT_LEGAL_OFFICER,
             submittable: submittable.object(),
             locType: "Collection",
-            valueFee: expectedValueFee,
-            legalFee: expectedLegalFee,
+            valueFee: Lgnt.fromCanonical(expectedValueFee),
+            legalFee: Lgnt.fromCanonical(expectedLegalFee),
         });
 
-        expect(fees.inclusionFee).toBe(expectedInclusionFee);
+        expect(fees.inclusionFee.canonical).toBe(expectedInclusionFee);
         expect(fees.storageFee).toBeUndefined();
-        expect(fees.legalFee).toBe(expectedLegalFee);
+        expect(fees.legalFee?.canonical).toBe(expectedLegalFee);
         expect(fees.certificateFee).toBeUndefined();
-        expect(fees.valueFee).toBe(expectedValueFee);
+        expect(fees.valueFee?.canonical).toBe(expectedValueFee);
     });
 
     it("estimates fees on Collection Item addition", async () => {
 
         const dispatchInfo = new Mock<RuntimeDispatchInfo>();
         const expectedInclusionFee = BigInt(42);
-        dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToString(expectedInclusionFee.toString()));
+        dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToBigInt(expectedInclusionFee));
         const submittable = new Mock<SubmittableExtrinsic>();
         submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
 
@@ -190,15 +190,15 @@ describe("FeesEstimator", () => {
             numOfEntries: 5n,
             totSize: 5n,
             tokenIssuance: 5n,
-            collectionItemFee: expectedCollectionItemFee,
+            collectionItemFee: Lgnt.fromCanonical(expectedCollectionItemFee),
         });
 
-        expect(fees.inclusionFee).toBe(expectedInclusionFee);
-        expect(fees.storageFee).toBe(expectedStorageFee);
+        expect(fees.inclusionFee.canonical).toBe(expectedInclusionFee);
+        expect(fees.storageFee?.canonical).toBe(expectedStorageFee);
         expect(fees.legalFee).toBeUndefined();
-        expect(fees.certificateFee).toBe(expectedCertificateFee);
+        expect(fees.certificateFee?.canonical).toBe(expectedCertificateFee);
         expect(fees.valueFee).toBeUndefined();
-        expect(fees.collectionItemFee).toBe(expectedCollectionItemFee);
+        expect(fees.collectionItemFee?.canonical).toBe(expectedCollectionItemFee);
         expect(fees.tokensRecordFee).toBeUndefined();
     });
 
@@ -206,7 +206,7 @@ describe("FeesEstimator", () => {
 
         const dispatchInfo = new Mock<RuntimeDispatchInfo>();
         const expectedInclusionFee = BigInt(42);
-        dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToString(expectedInclusionFee.toString()));
+        dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToBigInt(expectedInclusionFee));
         const submittable = new Mock<SubmittableExtrinsic>();
         submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
 
@@ -224,15 +224,15 @@ describe("FeesEstimator", () => {
             submittable: submittable.object(),
             numOfEntries: 5n,
             totSize: 5n,
-            tokensRecordFee: expectedTokensRecord,
+            tokensRecordFee: Lgnt.fromCanonical(expectedTokensRecord),
         });
 
-        expect(fees.inclusionFee).toBe(expectedInclusionFee);
-        expect(fees.storageFee).toBe(expectedStorageFee);
+        expect(fees.inclusionFee.canonical).toBe(expectedInclusionFee);
+        expect(fees.storageFee?.canonical).toBe(expectedStorageFee);
         expect(fees.legalFee).toBeUndefined();
         expect(fees.certificateFee).toBeUndefined();
         expect(fees.valueFee).toBeUndefined();
-        expect(fees.tokensRecordFee).toBe(expectedTokensRecord);
+        expect(fees.tokensRecordFee?.canonical).toBe(expectedTokensRecord);
         expect(fees.collectionItemFee).toBeUndefined();
     });
 });

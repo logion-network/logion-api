@@ -1,4 +1,4 @@
-import { Numbers, CoinBalance, Currency, Queries, Fees } from "@logion/node-api";
+import { Numbers, CoinBalance, Currency, Queries, Fees, Lgnt } from "@logion/node-api";
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { DateTime } from "luxon";
@@ -106,7 +106,7 @@ describe("Balance", () => {
                 }
             }
         );
-        const amount = new Numbers.PrefixedNumber("200", Numbers.ATTO);
+        const amount = Lgnt.fromCanonical(200n);
         const transfer = new Mock<SubmittableExtrinsic>();
         const balances: CoinBalance[] = [
             {
@@ -136,7 +136,7 @@ describe("Balance", () => {
                     .returns(transfer.object());
 
                 nodeApi.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny()))
-                    .returnsAsync(new Fees({ inclusionFee: 0n }));
+                    .returnsAsync(Fees.zero());
 
                 setupFetchTransactions(axiosFactory, [], REQUESTER_ADDRESS.address);
             },
@@ -180,7 +180,7 @@ describe("Balance", () => {
         );
         const recoveredAddress = "5EBxoSssqNo23FvsDeUxjyQScnfEiGxJaNwuwqBH2Twe35BX";
         const asRecovered = new Mock<SubmittableExtrinsic>();
-        const amount = new Numbers.PrefixedNumber("200", Numbers.ATTO);
+        const amount = Lgnt.fromCanonical(200n);
         const transfer = new Mock<SubmittableExtrinsic>();
         const balances: CoinBalance[] = [
             {
@@ -210,7 +210,7 @@ describe("Balance", () => {
                     .returns(transfer.object());
 
                 nodeApi.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny()))
-                    .returnsAsync(new Fees({ inclusionFee: 0n }));
+                    .returnsAsync(Fees.zero());
 
                 nodeApi.setup(instance => instance.polkadot.tx.recovery.asRecovered(recoveredAddress, transfer.object()))
                     .returns(asRecovered.object());
@@ -259,7 +259,7 @@ describe("Balance", () => {
                 }
             }
         );
-        const amount = new Numbers.PrefixedNumber("200", Numbers.ATTO);
+        const amount = Lgnt.fromCanonical(200n);
         const transfer = new Mock<SubmittableExtrinsic>();
         const balances: CoinBalance[] = [
             {
@@ -289,7 +289,7 @@ describe("Balance", () => {
                     .returns(transfer.object());
 
                 nodeApi.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny()))
-                    .returnsAsync(new Fees({ inclusionFee: 50n }));
+                    .returnsAsync(new Fees({ inclusionFee: Lgnt.fromCanonical(50n) }));
 
                 setupFetchTransactions(axiosFactory, [], REQUESTER_ADDRESS.address);
             },

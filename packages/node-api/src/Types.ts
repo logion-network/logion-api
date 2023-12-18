@@ -4,6 +4,7 @@ import { isHex } from "@polkadot/util";
 import { UUID } from "./UUID.js";
 import { ApiPromise } from "@polkadot/api";
 import { Hash } from './Hash.js';
+import { Lgnt } from './Currency.js';
 
 export interface TypesAccountData {
     available: bigint,
@@ -64,10 +65,10 @@ export interface LegalOfficerCase {
     collectionCanUpload: boolean;
     seal?: string;
     sponsorshipId?: UUID;
-    valueFee: bigint;
-    collectionItemFee: bigint;
-    tokensRecordFee: bigint;
-    legalFee: bigint;
+    valueFee: Lgnt;
+    collectionItemFee: Lgnt;
+    tokensRecordFee: Lgnt;
+    legalFee: Lgnt;
 }
 
 export type LocType = 'Transaction' | 'Collection' | 'Identity';

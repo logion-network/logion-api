@@ -8,6 +8,7 @@ import {
     LocBatch,
     Hash,
     Fees as FeesClass,
+    Lgnt,
 } from "@logion/node-api";
 
 import {
@@ -142,10 +143,10 @@ export interface MergedMetadataItem extends ItemLifecycle {
 }
 
 export interface LocFees {
-    valueFee?: bigint;
-    legalFee?: bigint;
-    collectionItemFee?: bigint;
-    tokensRecordFee?: bigint;
+    valueFee?: Lgnt;
+    legalFee?: Lgnt;
+    collectionItemFee?: Lgnt;
+    tokensRecordFee?: Lgnt;
 }
 
 export class LocsState extends State {
@@ -341,10 +342,10 @@ export class LocsState extends State {
             template,
             sponsorshipId: sponsorshipId?.toString(),
             fees: {
-                legalFee: params.legalFee?.toString(),
-                valueFee: params.valueFee?.toString(),
-                collectionItemFee: params.collectionItemFee?.toString(),
-                tokensRecordFee: params.tokensRecordFee?.toString(),
+                legalFee: params.legalFee?.canonical.toString(),
+                valueFee: params.valueFee?.canonical.toString(),
+                collectionItemFee: params.collectionItemFee?.canonical.toString(),
+                tokensRecordFee: params.tokensRecordFee?.canonical.toString(),
             }
         });
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
@@ -399,10 +400,10 @@ export class LocsState extends State {
             company,
             template,
             fees: {
-                legalFee: params.legalFee?.toString(),
-                valueFee: params.valueFee?.toString(),
-                collectionItemFee: params.collectionItemFee?.toString(),
-                tokensRecordFee: params.tokensRecordFee?.toString(),
+                legalFee: params.legalFee?.canonical.toString(),
+                valueFee: params.valueFee?.canonical.toString(),
+                collectionItemFee: params.collectionItemFee?.canonical.toString(),
+                tokensRecordFee: params.tokensRecordFee?.canonical.toString(),
             },
             metadata,
             links: links.map(link => ({
@@ -670,7 +671,7 @@ export interface CreateLocParams {
     legalOfficerAddress: string;
     description: string;
     template?: string;
-    legalFee?: bigint;
+    legalFee?: Lgnt;
 }
 
 export interface HasDraft {
@@ -697,9 +698,9 @@ export interface CreateCollectionLocParams extends CreateLocParams, EstimateFees
 }
 
 export interface CreateCollectionLocRequestParams extends CreateLocRequestParams {
-    valueFee: bigint;
-    collectionItemFee: bigint;
-    tokensRecordFee: bigint;
+    valueFee: Lgnt;
+    collectionItemFee: Lgnt;
+    tokensRecordFee: Lgnt;
 }
 
 interface CreateAnyLocParams extends CreateLocParams, Partial<HasIdentity>, Partial<EstimateFeesOpenCollectionLocParams> {
@@ -879,10 +880,10 @@ export abstract class LocRequestState extends State {
             voteId: request.voteId ? request.voteId : undefined,
             sponsorshipId: request.sponsorshipId ? new UUID(request.sponsorshipId) : undefined,
             fees: {
-                valueFee: request.fees?.valueFee !== undefined ? BigInt(request.fees.valueFee) : undefined,
-                legalFee: request.fees?.legalFee !== undefined ? BigInt(request.fees.legalFee) : undefined,
-                collectionItemFee: request.fees?.collectionItemFee !== undefined ? BigInt(request.fees.collectionItemFee) : undefined,
-                tokensRecordFee: request.fees?.tokensRecordFee !== undefined ? BigInt(request.fees.tokensRecordFee) : undefined,
+                valueFee: request.fees?.valueFee !== undefined ? Lgnt.fromCanonical(BigInt(request.fees.valueFee)) : undefined,
+                legalFee: request.fees?.legalFee !== undefined ? Lgnt.fromCanonical(BigInt(request.fees.legalFee)) : undefined,
+                collectionItemFee: request.fees?.collectionItemFee !== undefined ? Lgnt.fromCanonical(BigInt(request.fees.collectionItemFee)) : undefined,
+                tokensRecordFee: request.fees?.tokensRecordFee !== undefined ? Lgnt.fromCanonical(BigInt(request.fees.tokensRecordFee)) : undefined,
             }
         };
     }
@@ -1463,7 +1464,7 @@ export class AcceptedRequest extends ReviewedRequest {
         return {
             locId: this.locId,
             legalOfficerAddress: this.owner.address,
-            legalFee: this.request.fees?.legalFee !== undefined ? BigInt(this.request.fees?.legalFee) : undefined,
+            legalFee: this.request.fees?.legalFee !== undefined ? Lgnt.fromCanonical(BigInt(this.request.fees?.legalFee)) : undefined,
             metadata: this.toAddMetadataParams(autoPublish),
             files: this.toAddFileParams(autoPublish),
             links: this.toAddLinkParams(autoPublish),
@@ -1529,7 +1530,7 @@ export class AcceptedRequest extends ReviewedRequest {
         return await this.refresh() as OpenLoc;
     }
 
-    private checkOpenCollectionParams(autoPublish: boolean): OpenPolkadotLocParams & { valueFee: bigint, collectionItemFee: bigint, tokensRecordFee: bigint } & AutoPublish {
+    private checkOpenCollectionParams(autoPublish: boolean): OpenPolkadotLocParams & { valueFee: Lgnt, collectionItemFee: Lgnt, tokensRecordFee: Lgnt } & AutoPublish {
         const requesterAddress = this.request.requesterAddress;
         if (requesterAddress === undefined || requesterAddress?.type !== "Polkadot") {
             throw Error("Only Polkadot requester can open, or estimate fees of, a Collection LOC");
@@ -1551,10 +1552,10 @@ export class AcceptedRequest extends ReviewedRequest {
             return {
                 locId: this.locId,
                 legalOfficerAddress: this.owner.address,
-                valueFee: BigInt(valueFee),
-                collectionItemFee: BigInt(collectionItemFee),
-                tokensRecordFee: BigInt(tokensRecordFee),
-                legalFee: legalFee !== undefined ? BigInt(legalFee) : undefined,
+                valueFee: Lgnt.fromCanonical(BigInt(valueFee)),
+                collectionItemFee: Lgnt.fromCanonical(BigInt(collectionItemFee)),
+                tokensRecordFee: Lgnt.fromCanonical(BigInt(tokensRecordFee)),
+                legalFee: legalFee !== undefined ? Lgnt.fromCanonical(BigInt(legalFee)) : undefined,
                 metadata: this.toAddMetadataParams(autoPublish),
                 files: this.toAddFileParams(autoPublish),
                 links: this.toAddLinkParams(autoPublish),

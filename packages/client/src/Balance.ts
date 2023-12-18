@@ -1,7 +1,6 @@
 import {
     CoinBalance,
-    Numbers,
-    Currency,
+    Lgnt,
 } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types'; 
 
@@ -12,7 +11,7 @@ import { BlockchainSubmissionParams } from "./LocClient.js";
 
 export interface TransferParam extends BlockchainSubmissionParams {
     destination: string;
-    amount: Numbers.PrefixedNumber;
+    amount: Lgnt;
 }
 
 export interface BalanceSharedState extends SharedState {
@@ -75,7 +74,7 @@ export class BalanceState extends State {
     private async _transfer(params: TransferParam): Promise<BalanceState> {
         const { signer, destination, amount, callback } = params;
 
-        const canonicalAmount = Currency.toCanonicalAmount(amount);
+        const canonicalAmount = amount.canonical;
 
         let submittable: SubmittableExtrinsic;
         if(this.sharedState.isRecovery) {
@@ -98,7 +97,7 @@ export class BalanceState extends State {
                 canonicalAmount,
             );
             const fees = await this.ensureFundsForFees(submittable);
-            const available = Currency.toCanonicalAmount(this.balances[0].available);
+            const available = Lgnt.fromCanonicalPrefixedNumber(this.balances[0].available).canonical;
             const transferable = available - fees;
             if(transferable < canonicalAmount) {
                 throw new Error("Insufficient balance");
@@ -119,11 +118,11 @@ export class BalanceState extends State {
             origin: this.sharedState.currentAddress?.address || "",
             submittable,
         });
-        const available = Currency.toCanonicalAmount(this.balances[0].available);
-        if(available < fees.totalFee) {
+        const available = Lgnt.fromCanonicalPrefixedNumber(this.balances[0].available).canonical;
+        if(available < fees.totalFee.canonical) {
             throw new Error("Not enough funds available to pay fees");
         }
-        return fees.totalFee;
+        return fees.totalFee.canonical;
     }
 
     private async _refresh(): Promise<BalanceState> {

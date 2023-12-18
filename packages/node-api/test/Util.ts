@@ -12,6 +12,12 @@ export function mockCodecWithToString<T extends Codec>(value: string): T {
     }) as T;
 }
 
+export function mockCodecWithToBigInt<T>(value: bigint): T {
+    return ({
+        toBigInt: () => value,
+    }) as T;
+}
+
 export function mockValidAccountId(address: string): ValidAccountId {
     const api = {
         createType: (_type: string, ...args: any[]) => args,
