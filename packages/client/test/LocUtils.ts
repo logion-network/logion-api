@@ -1,4 +1,4 @@
-import { CollectionItem, Hash, LegalOfficerCase, LocBatch, LocType, UUID, ValidAccountId, VerifiedIssuerType, VoidInfo } from "@logion/node-api";
+import { CollectionItem, Hash, LegalOfficerCase, Lgnt, LocBatch, LocType, UUID, ValidAccountId, VerifiedIssuerType, VoidInfo } from "@logion/node-api";
 import { DateTime } from "luxon";
 import { Mock } from "moq.ts";
 
@@ -100,10 +100,10 @@ export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType
         locType,
         voidInfo,
         collectionCanUpload: false,
-        valueFee: locType === "Collection" ? 100n : 0n,
-        legalFee: locType === "Identity" ? 160n : 2000n,
-        collectionItemFee: locType === "Collection" ? 50n : 0n,
-        tokensRecordFee: locType === "Collection" ? 40n : 0n,
+        valueFee: locType === "Collection" ? Lgnt.fromCanonical(100n) : Lgnt.zero(),
+        legalFee: locType === "Identity" ? Lgnt.fromCanonical(160n) : Lgnt.fromCanonical(2000n),
+        collectionItemFee: locType === "Collection" ? Lgnt.fromCanonical(50n) : Lgnt.zero(),
+        tokensRecordFee: locType === "Collection" ? Lgnt.fromCanonical(40n) : Lgnt.zero(),
     };
 }
 

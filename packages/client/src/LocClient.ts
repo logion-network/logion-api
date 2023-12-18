@@ -17,6 +17,7 @@ import {
     Fees as FeesClass,
     LinkParams,
     MetadataItemParams,
+    Lgnt,
 } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AnyJson } from "@polkadot/types-codec/types";
@@ -915,6 +916,12 @@ export class AuthenticatedLocClient extends LocClient {
                 itemToken,
             } = params;
 
+            if(itemFiles) {
+                for(const file of itemFiles) {
+                    await file.finalize();
+                }
+            }
+
             const termsAndConditions = this.termsAndConditions(params);
 
             await this.submitItemPublicData(locId, {
@@ -1033,7 +1040,7 @@ export class AuthenticatedLocClient extends LocClient {
         );
     }
 
-    async estimateFeesAddCollectionItem(parameters: AddCollectionItemParams & FetchParameters & { collectionItemFee: bigint }): Promise<FeesClass> {
+    async estimateFeesAddCollectionItem(parameters: AddCollectionItemParams & FetchParameters & { collectionItemFee: Lgnt }): Promise<FeesClass> {
         const { itemFiles, itemToken, collectionItemFee } = parameters;
         const termsAndConditions = this.termsAndConditions(parameters);
         const submittable = await this.addCollectionItemSubmittable({
@@ -1314,7 +1321,7 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async estimateFeesAddTokensRecord(parameters: EstimateFeesAddTokensRecordParams & FetchParameters & { tokensRecordFee: bigint }): Promise<FeesClass> {
+    async estimateFeesAddTokensRecord(parameters: EstimateFeesAddTokensRecordParams & FetchParameters & { tokensRecordFee: Lgnt }): Promise<FeesClass> {
         const { files, tokensRecordFee } = parameters;
         const submittable = await this.addTokensRecordSubmittable(parameters);
         const numOfEntries = files ? BigInt(files.length) : 0n;
@@ -1769,7 +1776,7 @@ export class AuthenticatedLocClient extends LocClient {
                 origin: this.currentAddress?.address || "",
                 submittable,
                 locType: 'Transaction',
-                legalFee: 0n,
+                legalFee: Lgnt.zero(),
             });
         }
         return undefined;
@@ -1812,7 +1819,7 @@ export class AuthenticatedLocClient extends LocClient {
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficerAddress,
-            legalFee,
+            legalFee.canonical,
             this.nodeApi.adapters.toPalletLogionLocItemsParams({
                 metadata: metadata.map(item => this.toMetadataItemParams(item)),
                 files: files.map(item => this.toFileParams(item)),
@@ -1854,7 +1861,7 @@ export class AuthenticatedLocClient extends LocClient {
             origin: this.currentAddress?.address || "",
             submittable: this.openLogionTransactionLocSubmittable(parameters),
             locType: 'Transaction',
-            legalFee: 0n,
+            legalFee: Lgnt.zero(),
         });
     }
 
@@ -1915,7 +1922,7 @@ export class AuthenticatedLocClient extends LocClient {
                     this.nodeApi.adapters.toLocId(locId),
                     this.nodeApi.adapters.toPalletLogionLocOtherAccountId(otherAccountId),
                     this.nodeApi.adapters.toSponsorshipId(sponsorshipId),
-                    this.nodeApi.fees.getDefaultLegalFee({ locType: "Identity" }),
+                    this.nodeApi.fees.getDefaultLegalFee({ locType: "Identity" }).canonical,
                 );
             }
         } else {
@@ -1968,7 +1975,7 @@ export class AuthenticatedLocClient extends LocClient {
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficerAddress,
-            legalFee,
+            legalFee.canonical,
             this.nodeApi.adapters.toPalletLogionLocItemsParams({
                 metadata: metadata.map(item => this.toMetadataItemParams(item)),
                 files: files.map(item => this.toFileParams(item)),
@@ -2034,7 +2041,7 @@ export class AuthenticatedLocClient extends LocClient {
             origin: this.currentAddress?.address || "",
             submittable: this.openLogionIdentityLocSubmittable(parameters),
             locType: 'Identity',
-            legalFee: 0n,
+            legalFee: Lgnt.zero(),
         });
     }
 
@@ -2075,10 +2082,10 @@ export class AuthenticatedLocClient extends LocClient {
             parameters.collectionLastBlockSubmission || null,
             parameters.collectionMaxSize || null,
             parameters.collectionCanUpload,
-            parameters.valueFee,
-            legalFee,
-            collectionItemFee,
-            tokensRecordFee,
+            parameters.valueFee.canonical,
+            legalFee.canonical,
+            collectionItemFee.canonical,
+            tokensRecordFee.canonical,
             this.nodeApi.adapters.toPalletLogionLocItemsParams({
                 metadata: metadata.map(item => this.toMetadataItemParams(item)),
                 files: files.map(item => this.toFileParams(item)),
@@ -2087,7 +2094,7 @@ export class AuthenticatedLocClient extends LocClient {
         );
     }
 
-    async estimateFeesOpenCollectionLoc(parameters: { valueFee: bigint } & OpenPolkadotLocParams & EstimateFeesOpenCollectionLocParams & AutoPublish) {
+    async estimateFeesOpenCollectionLoc(parameters: { valueFee: Lgnt } & OpenPolkadotLocParams & EstimateFeesOpenCollectionLocParams & AutoPublish) {
         const storageSize = this.storageSize(parameters.autoPublish, parameters.files);
         return await this.nodeApi.fees.estimateCreateLoc({
             origin: this.currentAddress.address,
@@ -2335,7 +2342,7 @@ export interface AckLinkParams extends RefLinkParams, BlockchainSubmissionParams
 export interface OpenPolkadotLocParams {
     locId: UUID;
     legalOfficerAddress: string;
-    legalFee?: bigint;
+    legalFee?: Lgnt;
     metadata: AddMetadataParams[],
     files: AddFileParams[],
     links: AddLinkParams[],
@@ -2348,9 +2355,9 @@ export interface CollectionLimits {
 }
 
 export interface EstimateFeesOpenCollectionLocParams extends CollectionLimits {
-    valueFee: bigint;
-    collectionItemFee: bigint;
-    tokensRecordFee: bigint;
+    valueFee: Lgnt;
+    collectionItemFee: Lgnt;
+    tokensRecordFee: Lgnt;
 }
 
 export interface OpenCollectionLocParams extends EstimateFeesOpenCollectionLocParams, BlockchainSubmissionParams {

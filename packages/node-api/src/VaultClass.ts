@@ -1,12 +1,11 @@
 import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { createKeyMulti, encodeAddress } from '@polkadot/util-crypto';
-import * as Currency from "./Currency.js";
 import { Weight } from "./interfaces/index.js";
-import { PrefixedNumber } from "./numbers.js";
+import { Lgnt } from "./Currency.js";
 
 export interface RequestVaultOutTransferParameters {
-    amount: PrefixedNumber;
+    amount: Lgnt;
     destination: string;
 }
 
@@ -48,8 +47,8 @@ export class Vault {
 
     readonly tx = {
         transferFromVault: async (parameters: RequestVaultOutTransferParameters): Promise<SubmittableExtrinsic> => {
-            const actualAmount = Currency.toCanonicalAmount(parameters.amount);
-            const { submittable, weight } = await this.transferCallAndWeight(BigInt(actualAmount), parameters.destination);
+            const actualAmount = parameters.amount.canonical;
+            const { submittable, weight } = await this.transferCallAndWeight(actualAmount, parameters.destination);
         
             const existingMultisig = await this.api.query.multisig.multisigs(this.address, submittable.method.hash);
             if(existingMultisig.isSome) {
@@ -72,7 +71,7 @@ export class Vault {
                 throw new Error("No other legal officer found");
             }
 
-            const actualAmount = Currency.toCanonicalAmount(amount);
+            const actualAmount = amount.canonical;
             const { submittable, weight } = await this.transferCallAndWeight(BigInt(actualAmount), destination);
 
             const otherSignatories = [ this.requester, otherLegalOfficer ].sort();
@@ -81,7 +80,7 @@ export class Vault {
 
         cancelVaultTransfer: (parameters: CancelVaultOutTransferParameters): SubmittableExtrinsic => {
             const { amount, destination, block, index } = parameters;
-            const actualAmount = Currency.toCanonicalAmount(amount);
+            const actualAmount = amount.canonical;
             const call = this.api.tx.balances.transferAllowDeath(destination, actualAmount);
             const sortedLegalOfficers = [ ...this.legalOfficers ].sort();
             return this.api.tx.multisig.cancelAsMulti(Vault.THRESHOLD, sortedLegalOfficers, { height: block, index }, call.method.hash)

@@ -1,4 +1,4 @@
-import { ValidAccountId, buildApiClass } from "@logion/node-api";
+import { Lgnt, ValidAccountId, buildApiClass } from "@logion/node-api";
 
 import {
     AcceptedProtection,
@@ -66,7 +66,7 @@ export async function recoverLostVault(state: State) {
     let recoveredVault = await claimed.recoveredVaultState();
     recoveredVault = await recoveredVault.createVaultTransferRequest({
         legalOfficer: alice,
-        amount: recoveredVault.balances[0].available,
+        amount: Lgnt.fromCanonicalPrefixedNumber(recoveredVault.balances[0].available),
         destination: newVault.vaultAddress,
         signer,
     });

@@ -1,4 +1,4 @@
-import { Fees as FeesClass } from "@logion/node-api";
+import { Fees as FeesClass, Lgnt } from "@logion/node-api";
 
 // The fields below must be kept in sync with FeesView in
 // https://github.com/logion-network/logion-backend-ts/blob/main/src/logion/controllers/components.ts
@@ -25,13 +25,13 @@ export interface Fees {
 export function toFeesClass(fees: Fees | undefined): FeesClass | undefined {
     if(fees) {
         return new FeesClass({
-            inclusionFee: BigInt(fees.inclusion),
-            storageFee: fees.storage ? BigInt(fees.storage) : undefined,
-            legalFee: fees.legal ? BigInt(fees.legal) : undefined,
-            certificateFee: fees.certificate ? BigInt(fees.certificate) : undefined,
-            valueFee: fees.value ? BigInt(fees.value) : undefined,
-            collectionItemFee: fees.collectionItem ? BigInt(fees.collectionItem) : undefined,
-            tokensRecordFee: fees.tokensRecord ? BigInt(fees.tokensRecord) : undefined,
+            inclusionFee: Lgnt.fromCanonical(BigInt(fees.inclusion)),
+            storageFee: fees.storage ? Lgnt.fromCanonical(BigInt(fees.storage)) : undefined,
+            legalFee: fees.legal ? Lgnt.fromCanonical(BigInt(fees.legal)) : undefined,
+            certificateFee: fees.certificate ? Lgnt.fromCanonical(BigInt(fees.certificate)) : undefined,
+            valueFee: fees.value ? Lgnt.fromCanonical(BigInt(fees.value)) : undefined,
+            collectionItemFee: fees.collectionItem ? Lgnt.fromCanonical(BigInt(fees.collectionItem)) : undefined,
+            tokensRecordFee: fees.tokensRecord ? Lgnt.fromCanonical(BigInt(fees.tokensRecord)) : undefined,
         });
     } else {
         return undefined;

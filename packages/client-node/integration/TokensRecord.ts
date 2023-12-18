@@ -1,4 +1,4 @@
-import { Hash } from "@logion/node-api";
+import { Hash, Lgnt } from "@logion/node-api";
 import {
     ClosedCollectionLoc,
     HashOrContent,
@@ -14,13 +14,13 @@ export async function tokensRecords(state: State) {
     const { client, alice, aliceAccount, newAccount, issuerAccount, signer } = state;
 
     const userClient = state.client.withCurrentAddress(newAccount);
-    const tokensRecordFee = 50n;
+    const tokensRecordFee = Lgnt.fromCanonical(50n);
     let collectionLoc: LocRequestState = await (await userClient.locsState()).requestCollectionLoc({
         legalOfficerAddress: alice.address,
         description: "Some LOC with records",
         draft: false,
-        valueFee: 100n,
-        collectionItemFee: 50n,
+        valueFee: Lgnt.fromCanonical(100n),
+        collectionItemFee: Lgnt.fromCanonical(50n),
         tokensRecordFee,
     });
     const collectionLocId = collectionLoc.locId;
@@ -50,7 +50,7 @@ export async function tokensRecords(state: State) {
             HashOrContent.fromContent(new NodeFile("integration/test.txt", "report.txt", MimeType.from("text/plain"))),
         ],
     });
-    expect(estimatedFees.tokensRecordFee).toBe(tokensRecordFee);
+    expect(estimatedFees.tokensRecordFee).toEqual(tokensRecordFee);
     closedCollectionLoc = await closedCollectionLoc.addTokensRecord({
         recordId,
         description: recordDescription,
@@ -61,7 +61,7 @@ export async function tokensRecords(state: State) {
     });
     await expectAsync(waitFor<BalanceState>({
         producer: balanceState => balanceState ? balanceState.refresh() : userClient.balanceState(),
-        predicate: balanceState => balanceState.transactions.length > 0 && balanceState.transactions[0].fees.tokensRecord === tokensRecordFee.toString(),
+        predicate: balanceState => balanceState.transactions.length > 0 && balanceState.transactions[0].fees.tokensRecord === tokensRecordFee.canonical.toString(),
     })).toBeResolved();
     await expectAsync(waitFor<BalanceState>({
         producer: balanceState => balanceState ? balanceState.refresh() : aliceClient.balanceState(),

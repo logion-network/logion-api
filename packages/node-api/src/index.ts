@@ -2,6 +2,7 @@ export * from "./Adapters.js";
 export * from "./Batching.js";
 export * from "./ChainTime.js";
 export * as Currency from "./Currency.js";
+export { Lgnt, LgntFormatter } from "./Currency.js";
 export * from "./Connection.js";
 export * from "./FeesEstimator.js";
 export * as Numbers from "./numbers.js";

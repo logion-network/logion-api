@@ -1100,7 +1100,7 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
             const dismissIssuerExtrinsic = new Mock<SubmittableExtrinsic>();
             nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.dismissIssuer(It.IsAny())).returns(dismissIssuerExtrinsic.object());
 
-            nodeApiMock.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny())).returnsAsync(new Fees({ inclusionFee: 0n }));
+            nodeApiMock.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny())).returnsAsync(Fees.zero());
             nodeApiMock.setup(instance => instance.fees.ensureEnoughFunds(It.IsAny())).returnsAsync(undefined);
         },
         currentAddress,

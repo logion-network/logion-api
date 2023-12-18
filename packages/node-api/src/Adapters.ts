@@ -53,6 +53,7 @@ import { base58Decode, base58Encode } from "@polkadot/util-crypto";
 import { HexString } from "@polkadot/util/types.js";
 import { H256 } from "./interfaces/types.js";
 import { Hash } from "./Hash.js";
+import { Lgnt } from "./Currency.js";
 
 
 export class Adapters {
@@ -132,10 +133,10 @@ export class Adapters {
             collectionCanUpload: rawLoc.collectionCanUpload.isTrue,
             seal: rawLoc.seal.isSome ? rawLoc.seal.unwrap().toHex() : undefined,
             sponsorshipId: rawLoc.sponsorshipId.isSome ? this.fromSponsorshipId(rawLoc.sponsorshipId.unwrap()) : undefined,
-            valueFee: rawLoc.valueFee.toBigInt(),
-            legalFee: rawLoc.legalFee.toBigInt(),
-            collectionItemFee: rawLoc.collectionItemFee.toBigInt(),
-            tokensRecordFee: rawLoc.tokensRecordFee.toBigInt(),
+            valueFee: Lgnt.fromCanonical(rawLoc.valueFee.toBigInt()),
+            legalFee: Lgnt.fromCanonical(rawLoc.legalFee.toBigInt()),
+            collectionItemFee: Lgnt.fromCanonical(rawLoc.collectionItemFee.toBigInt()),
+            tokensRecordFee: Lgnt.fromCanonical(rawLoc.tokensRecordFee.toBigInt()),
         };
     }
 

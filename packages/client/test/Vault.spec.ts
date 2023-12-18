@@ -1,4 +1,4 @@
-import { Numbers, ValidAccountId, Vault } from '@logion/node-api';
+import { Lgnt, Numbers, ValidAccountId, Vault } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces/payment';
 import type { Header, BlockNumber } from '@polkadot/types/interfaces/runtime';
@@ -36,11 +36,11 @@ describe("Vault", () => {
 
     const destination = BOB.address;
 
-    const amount = "200";
+    const amount = Lgnt.fromCanonical(200n);
 
     const expectedPendingRequest: VaultTransferRequest = {
         id: "1",
-        amount,
+        amount: amount.canonical.toString(),
         block: "42",
         createdOn: DateTime.now().toISO(),
         destination,
@@ -114,7 +114,7 @@ describe("Vault", () => {
 
         const nextState = await state.createVaultTransferRequest({
             legalOfficer: ALICE,
-            amount: new Numbers.PrefixedNumber(amount, Numbers.ATTO),
+            amount,
             destination,
             signer: signer.object()
         });
@@ -127,7 +127,7 @@ describe("Vault", () => {
         const currentAddress = RECOVERING_ADDRESS;
         const tokens = buildTokens(currentAddress);
         const destination = BOB.address;
-        const amount = "200";
+        const amount = Lgnt.fromCanonical(200n);
         const maxWeight = "100000";
         const transfer = buildTransferSubmittable(vaultAddress, maxWeight);
 
@@ -191,7 +191,7 @@ describe("Vault", () => {
 
         const nextState = await state.createVaultTransferRequest({
             legalOfficer: ALICE,
-            amount: new Numbers.PrefixedNumber(amount, Numbers.ATTO),
+            amount,
             destination,
             signer: signer.object()
         });

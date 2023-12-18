@@ -1,4 +1,4 @@
-import { UUID, Hash } from "@logion/node-api";
+import { UUID, Hash, Lgnt } from "@logion/node-api";
 import {
     HashOrContent,
     MimeType,
@@ -269,7 +269,7 @@ export async function openTransactionLocWithAutoPublish(state: State, linkTarget
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
 
     const fees = await acceptedLoc.estimateFeesOpen({ autoPublish: true });
-    expect(fees.storageFee).toEqual(1200000000000n);
+    expect(fees.storageFee?.canonical).toEqual(1200000000000n);
 
     let openLoc = await acceptedLoc.open({ signer, autoPublish: true });
     expect(openLoc).toBeInstanceOf(OpenLoc);
@@ -299,11 +299,11 @@ export async function transactionLocWithCustomLegalFee(state: State) {
         legalOfficerAddress: alice.address,
         description: "This is a Transaction LOC",
         draft: true,
-        legalFee: 0n,
+        legalFee: Lgnt.zero(),
     }) as DraftRequest;
 
     expect(draftRequest).toBeInstanceOf(DraftRequest);
-    expect(draftRequest.data().fees.legalFee).toBe(0n);
+    expect(draftRequest.data().fees.legalFee?.canonical).toBe(0n);
 
     // Open LOC
     let pendingRequest = await draftRequest.submit();
@@ -314,7 +314,7 @@ export async function transactionLocWithCustomLegalFee(state: State) {
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
     let openLoc = await acceptedLoc.open({ signer, autoPublish: false });
 
-    expect(openLoc.data().fees.legalFee).toBe(0n);
+    expect(openLoc.data().fees.legalFee?.canonical).toBe(0n);
 }
 
 export async function collectionLoc(state: State) {
@@ -325,20 +325,20 @@ export async function collectionLoc(state: State) {
 
     await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, newAccount.address);
 
-    const collectionItemFee = 50n;
+    const collectionItemFee = Lgnt.fromCanonical(50n);
     const pendingRequest = await locsState.requestCollectionLoc({
         legalOfficerAddress: alice.address,
         description: "This is a Collection LOC",
         draft: false,
-        valueFee: 100n,
+        valueFee: Lgnt.fromCanonical(100n),
         collectionItemFee,
-        tokensRecordFee: 50n,
-        legalFee: 0n,
+        tokensRecordFee: Lgnt.fromCanonical(50n),
+        legalFee: Lgnt.zero(),
     });
-    expect(pendingRequest.data().fees.valueFee).toBe(100n);
-    expect(pendingRequest.data().fees.collectionItemFee).toBe(50n);
-    expect(pendingRequest.data().fees.tokensRecordFee).toBe(50n);
-    expect(pendingRequest.data().fees.legalFee).toBe(0n);
+    expect(pendingRequest.data().fees.valueFee?.canonical).toBe(100n);
+    expect(pendingRequest.data().fees.collectionItemFee?.canonical).toBe(50n);
+    expect(pendingRequest.data().fees.tokensRecordFee?.canonical).toBe(50n);
+    expect(pendingRequest.data().fees.legalFee?.canonical).toBe(0n);
 
     locsState = pendingRequest.locsState();
     expect(locsState.pendingRequests["Collection"][0].data().status).toBe("REVIEW_PENDING");
@@ -359,10 +359,10 @@ export async function collectionLoc(state: State) {
         autoPublish: false,
         signer,
     });
-    expect(openLoc.data().fees.valueFee).toBe(100n);
-    expect(openLoc.data().fees.collectionItemFee).toBe(50n);
-    expect(openLoc.data().fees.tokensRecordFee).toBe(50n);
-    expect(openLoc.data().fees.legalFee).toBe(0n);
+    expect(openLoc.data().fees.valueFee?.canonical).toBe(100n);
+    expect(openLoc.data().fees.collectionItemFee?.canonical).toBe(50n);
+    expect(openLoc.data().fees.tokensRecordFee?.canonical).toBe(50n);
+    expect(openLoc.data().fees.legalFee?.canonical).toBe(0n);
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
 
     aliceOpenLoc = await waitFor<OpenLoc>({
@@ -381,7 +381,7 @@ export async function collectionLoc(state: State) {
         itemId,
         itemDescription,
     });
-    expect(estimatedFees.collectionItemFee).toBe(collectionItemFee);
+    expect(estimatedFees.collectionItemFee).toEqual(collectionItemFee);
     closedLoc = await closedLoc.addCollectionItem({
         payload: {
             itemId,
@@ -391,7 +391,7 @@ export async function collectionLoc(state: State) {
     });
     await expectAsync(waitFor<BalanceState>({
         producer: balanceState => balanceState ? balanceState.refresh() : client.balanceState(),
-        predicate: balanceState => balanceState.transactions.length > 0 && balanceState.transactions[0].fees.collectionItem === collectionItemFee.toString(),
+        predicate: balanceState => balanceState.transactions.length > 0 && balanceState.transactions[0].fees.collectionItem === collectionItemFee.canonical.toString(),
     })).toBeResolved();
     await expectAsync(waitFor<BalanceState>({
         producer: balanceState => balanceState ? balanceState.refresh() : aliceClient.balanceState(),
@@ -468,9 +468,9 @@ export async function collectionLocWithUpload(state: State) {
         legalOfficerAddress: alice.address,
         description: "This is a Collection LOC with upload",
         draft: false,
-        valueFee: 100n,
-        collectionItemFee: 50n,
-        tokensRecordFee: 50n,
+        valueFee: Lgnt.fromCanonical(100n),
+        collectionItemFee: Lgnt.fromCanonical(50n),
+        tokensRecordFee: Lgnt.fromCanonical(50n),
     });
 
     let alicePendingRequest = await findWithLegalOfficerClient(aliceClient, pendingRequest) as PendingRequest;

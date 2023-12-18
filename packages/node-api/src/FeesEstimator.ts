@@ -1,12 +1,12 @@
 import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types.js";
 import { LocType } from "./Types.js";
-import { LGNT } from "./Currency.js";
+import { Lgnt } from "./Currency.js";
 
 export class Fees {
 
     static zero() {
-        return new Fees({ inclusionFee: 0n });
+        return new Fees({ inclusionFee: Lgnt.zero() });
     }
 
     static addAll(...fees: Fees[]): Fees {
@@ -14,13 +14,13 @@ export class Fees {
     }
 
     constructor(params: {
-        inclusionFee: bigint,
-        storageFee?: bigint,
-        legalFee?: bigint,
-        certificateFee?: bigint,
-        valueFee?: bigint,
-        collectionItemFee?: bigint,
-        tokensRecordFee?: bigint,
+        inclusionFee: Lgnt,
+        storageFee?: Lgnt,
+        legalFee?: Lgnt,
+        certificateFee?: Lgnt,
+        valueFee?: Lgnt,
+        collectionItemFee?: Lgnt,
+        tokensRecordFee?: Lgnt,
     }) {
         this.inclusionFee = params.inclusionFee;
         this.storageFee = params.storageFee;
@@ -31,28 +31,28 @@ export class Fees {
         this.tokensRecordFee = params.tokensRecordFee;
     }
 
-    readonly inclusionFee: bigint;
-    readonly storageFee?: bigint;
-    readonly legalFee?: bigint;
-    readonly certificateFee?: bigint;
-    readonly valueFee?: bigint;
-    readonly collectionItemFee?: bigint;
-    readonly tokensRecordFee?: bigint;
+    readonly inclusionFee: Lgnt;
+    readonly storageFee?: Lgnt;
+    readonly legalFee?: Lgnt;
+    readonly certificateFee?: Lgnt;
+    readonly valueFee?: Lgnt;
+    readonly collectionItemFee?: Lgnt;
+    readonly tokensRecordFee?: Lgnt;
 
-    get totalFee(): bigint {
+    get totalFee(): Lgnt {
         return this.inclusionFee
-            + (this.storageFee || 0n)
-            + (this.legalFee || 0n)
-            + (this.certificateFee || 0n)
-            + (this.valueFee || 0n)
-            + (this.collectionItemFee || 0n)
-            + (this.tokensRecordFee || 0n)
+            .add(this.storageFee || Lgnt.zero())
+            .add(this.legalFee || Lgnt.zero())
+            .add(this.certificateFee || Lgnt.zero())
+            .add(this.valueFee || Lgnt.zero())
+            .add(this.collectionItemFee || Lgnt.zero())
+            .add(this.tokensRecordFee || Lgnt.zero())
         ;
     }
 
     multiply(times: bigint): Fees {
         return new Fees({
-            inclusionFee: this.inclusionFee * times,
+            inclusionFee: this.inclusionFee.multiply(times),
             certificateFee: this.multiplyFee(this.certificateFee, times),
             collectionItemFee: this.multiplyFee(this.collectionItemFee, times),
             legalFee: this.multiplyFee(this.legalFee, times),
@@ -62,9 +62,9 @@ export class Fees {
         });
     }
 
-    private multiplyFee(fee: bigint | undefined, times: bigint): bigint | undefined {
+    private multiplyFee(fee: Lgnt | undefined, times: bigint): Lgnt | undefined {
         if(fee !== undefined) {
-            return fee * times;
+            return fee.multiply(times);
         } else {
             return undefined;
         }
@@ -72,7 +72,7 @@ export class Fees {
 
     add(fee: Fees): Fees {
         return new Fees({
-            inclusionFee: this.inclusionFee + fee.inclusionFee,
+            inclusionFee: this.inclusionFee.add(fee.inclusionFee),
             certificateFee: this.addFee(this.certificateFee, fee.certificateFee),
             collectionItemFee: this.addFee(this.collectionItemFee, fee.collectionItemFee),
             legalFee: this.addFee(this.legalFee, fee.legalFee),
@@ -82,9 +82,9 @@ export class Fees {
         });
     }
 
-    private addFee(fee1: bigint | undefined, fee2: bigint | undefined): bigint | undefined {
+    private addFee(fee1: Lgnt | undefined, fee2: Lgnt | undefined): Lgnt | undefined {
         if(fee1 !== undefined && fee2 !== undefined) {
-            return fee1 + fee2;
+            return fee1.add(fee2);
         } else if(fee1 !== undefined && fee2 === undefined) {
             return fee1;
         } else if(fee1 === undefined && fee2 !== undefined) {
@@ -116,24 +116,24 @@ export class FeesEstimator {
         return new Fees({ inclusionFee, storageFee });
     }
 
-    private async estimateInclusionFee(origin: string, submittable: SubmittableExtrinsic): Promise<bigint> {
+    private async estimateInclusionFee(origin: string, submittable: SubmittableExtrinsic): Promise<Lgnt> {
         const dispatchInfo = await submittable.paymentInfo(origin);
-        const partialFee = dispatchInfo.partialFee;
-        return BigInt(partialFee.toString());
+        const partialFee = dispatchInfo.partialFee.toBigInt();
+        return Lgnt.fromCanonical(partialFee);
     }
 
-    async estimateStorageFee(params: { numOfEntries: bigint, totSize: bigint }): Promise<bigint> {
+    async estimateStorageFee(params: { numOfEntries: bigint, totSize: bigint }): Promise<Lgnt> {
         const { numOfEntries, totSize } = params;
         const fee = await this.api.call.feesApi.queryFileStorageFee(numOfEntries, totSize);
-        return fee.toBigInt();
+        return Lgnt.fromCanonical(fee.toBigInt());
     }
 
-    getDefaultLegalFee(params: { locType: LocType }): bigint {
+    getDefaultLegalFee(params: { locType: LocType }): Lgnt {
         const { locType } = params;
         if (locType === "Identity") {
-            return 160n * LGNT;
+            return Lgnt.from(160n);
         } else {
-            return 2000n * LGNT;
+            return Lgnt.from(2000n);
         }
     }
 
@@ -149,8 +149,8 @@ export class FeesEstimator {
         origin: string,
         submittable: SubmittableExtrinsic,
         locType: LocType,
-        valueFee?: bigint,
-        legalFee?: bigint,
+        valueFee?: Lgnt,
+        legalFee?: Lgnt,
         storageSize?: bigint,
     }): Promise<Fees> {
         const { locType, valueFee, storageSize } = params;
@@ -160,10 +160,10 @@ export class FeesEstimator {
         return new Fees({ inclusionFee, legalFee, valueFee, storageFee });
     }
 
-    async estimateCertificateFee(params: { tokenIssuance: bigint }): Promise<bigint> {
+    async estimateCertificateFee(params: { tokenIssuance: bigint }): Promise<Lgnt> {
         const { tokenIssuance } = params;
         const fee = await this.api.call.feesApi.queryCertificateFee(tokenIssuance);
-        return fee.toBigInt();
+        return Lgnt.fromCanonical(fee.toBigInt());
     }
 
     async estimateAddCollectionItem(params: {
@@ -172,7 +172,7 @@ export class FeesEstimator {
         numOfEntries: bigint,
         totSize: bigint,
         tokenIssuance: bigint | undefined,
-        collectionItemFee: bigint;
+        collectionItemFee: Lgnt,
     }): Promise<Fees> {
         const { origin, submittable, numOfEntries, totSize, collectionItemFee } = params;
         const tokenIssuance = params.tokenIssuance || 0n;
@@ -192,7 +192,7 @@ export class FeesEstimator {
         submittable: SubmittableExtrinsic,
         numOfEntries: bigint,
         totSize: bigint,
-        tokensRecordFee: bigint;
+        tokensRecordFee: Lgnt,
     }): Promise<Fees> {
         const { origin, submittable, numOfEntries, totSize, tokensRecordFee } = params;
         const inclusionFee = await this.estimateInclusionFee(origin, submittable);
@@ -206,7 +206,7 @@ export class FeesEstimator {
 
     async ensureEnoughFunds(params: { fees: Fees, origin: string }) {
         const { fees, origin } = params;
-        const totalFees = fees.totalFee;
+        const totalFees = fees.totalFee.canonical;
         const accountData = await this.api.query.system.account(origin);
         const existentialDeposit = this.api.consts.balances.existentialDeposit.toBigInt();
         if(accountData.data.free.toBigInt() - existentialDeposit < totalFees) {

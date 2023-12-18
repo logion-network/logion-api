@@ -1,5 +1,5 @@
 import { ALICE, setup } from "./Util.js";
-import { Currency, Fees } from "../src/index.js";
+import { Lgnt, Fees } from "../src/index.js";
 
 export async function storageFees() {
     const { api } = await setup();
@@ -7,23 +7,23 @@ export async function storageFees() {
         numOfEntries: BigInt(10),
         totSize: BigInt(15000),
     });
-    expect(fee).toBeGreaterThanOrEqual(0);
+    expect(fee.canonical).toBeGreaterThanOrEqual(0);
 }
 
 export async function legalFees() {
     const { api } = await setup();
     const identityLocFee = api.fees.getDefaultLegalFee({ locType: "Identity"});
-    expect(identityLocFee).toEqual(Currency.toCanonicalAmount(Currency.nLgnt(160n)));
+    expect(identityLocFee).toEqual(Lgnt.from(160n));
     const transactionLocFee = api.fees.getDefaultLegalFee({ locType: "Transaction"});
-    expect(transactionLocFee).toEqual(Currency.toCanonicalAmount(Currency.nLgnt(2000n)));
+    expect(transactionLocFee).toEqual(Lgnt.from(2000n));
     const collectionLocFee = api.fees.getDefaultLegalFee({ locType: "Collection"});
-    expect(collectionLocFee).toEqual(Currency.toCanonicalAmount(Currency.nLgnt(2000n)));
+    expect(collectionLocFee).toEqual(Lgnt.from(2000n));
 }
 
 export async function certificateFees() {
     const { api } = await setup();
     const certificateFee = await api.fees.estimateCertificateFee({ tokenIssuance: 1000n });
-    expect(certificateFee).toEqual(Currency.toCanonicalAmount(Currency.nLgnt(4n)));
+    expect(certificateFee).toEqual(Lgnt.from(4n));
 }
 
 export async function ensureEnoughFunds() {
@@ -40,5 +40,5 @@ export async function ensureEnoughFunds() {
 
 async function testEnsureEnoughFunds(fees: bigint) {
     const { api } = await setup();
-    return api.fees.ensureEnoughFunds({ fees: new Fees({ inclusionFee: fees }), origin: ALICE })
+    return api.fees.ensureEnoughFunds({ fees: new Fees({ inclusionFee: Lgnt.fromCanonical(fees) }), origin: ALICE })
 }
