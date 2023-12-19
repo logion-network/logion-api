@@ -200,6 +200,53 @@ export class Lgnt {
         const amount = this.toPrefixedNumber().toNumber();
         return amount / rate;
     }
+
+    /**
+     * Builds an LGNT amount given a fiat amount and a rate LGNT/FIAT.
+     * For example, if 20 LGNTs = 1 FIAT, then the rate is 20.
+     * 
+     * @param amount a fiat amount
+     * @param rate The rate to apply
+     * @returns The LGNT equivalent of given fiat amount
+     */
+    static fromFiat(amount: number, rate: number): Lgnt {
+        return Lgnt.from(amount * rate);
+    }
+
+    /**
+     * Checks equality of this amount with another.
+     * 
+     * @param another Another LGNT amount
+     * @returns True if both amounts are equal, false otherwise
+     */
+    equalTo(another: Lgnt): boolean {
+        return this.canonical === another.canonical;
+    }
+
+    /**
+     * Compares this amount to another.
+     * 
+     * @param another Another LGNT amount
+     * @returns Zero if both amounts are equal,
+     * a negative value if this amount is lower than the other,
+     * a positive value if this amount is greater than the other
+     */
+    compareTo(another: Lgnt): number {
+        if(this.canonical < another.canonical) {
+            return -1;
+        } else if(this.canonical > another.canonical) {
+            return 1;
+        } else {
+            return 0;
+        } 
+    }
+
+    /**
+     * @returns The canonical form of this amount as a string.
+     */
+    toString(): string {
+        return this.canonical.toString();
+    }
 }
 
 /**

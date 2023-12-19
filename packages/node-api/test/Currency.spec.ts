@@ -83,6 +83,33 @@ describe("Lgnt", () => {
         const lgnt = Lgnt.from(20);
         expect(lgnt.convertToFiat(20)).toBe(1);
     });
+
+    it("builds from fiat", () => {
+        const lgnt = Lgnt.fromFiat(1, 20);
+        expect(lgnt).toEqual(Lgnt.from(20));
+    });
+
+    it("has equality", () => {
+        const lgnt1 = Lgnt.from(3);
+        const lgnt2 = Lgnt.from(4);
+        const lgnt3 = Lgnt.from(3);
+        expect(lgnt1.equalTo(lgnt2)).toBe(false);
+        expect(lgnt1.equalTo(lgnt3)).toBe(true);
+    });
+
+    it("compares", () => {
+        const lgnt1 = Lgnt.from(3);
+        const lgnt2 = Lgnt.from(4);
+        const lgnt3 = Lgnt.from(3);
+        expect(lgnt1.compareTo(lgnt2)).toBeLessThan(0);
+        expect(lgnt2.compareTo(lgnt1)).toBeGreaterThan(0);
+        expect(lgnt1.compareTo(lgnt3)).toBe(0);
+    });
+
+    it("has toString", () => {
+        const lgnt = Lgnt.fromCanonical(20n);
+        expect(lgnt.toString()).toBe("20");
+    });
 });
 
 describe("LgntFormatter", () => {
