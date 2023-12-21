@@ -348,13 +348,15 @@ declare module '@polkadot/types/lookup' {
     } & Struct;
     readonly isKeyChanged: boolean;
     readonly asKeyChanged: {
-      readonly oldSudoer: Option<AccountId32>;
+      readonly old: Option<AccountId32>;
+      readonly new_: AccountId32;
     } & Struct;
+    readonly isKeyRemoved: boolean;
     readonly isSudoAsDone: boolean;
     readonly asSudoAsDone: {
       readonly sudoResult: Result<Null, SpRuntimeDispatchError>;
     } & Struct;
-    readonly type: 'Sudid' | 'KeyChanged' | 'SudoAsDone';
+    readonly type: 'Sudid' | 'KeyChanged' | 'KeyRemoved' | 'SudoAsDone';
   }
 
   /** @name PalletMultisigEvent (44) */
@@ -1018,7 +1020,8 @@ declare module '@polkadot/types/lookup' {
       readonly who: MultiAddress;
       readonly call: Call;
     } & Struct;
-    readonly type: 'Sudo' | 'SudoUncheckedWeight' | 'SetKey' | 'SudoAs';
+    readonly isRemoveKey: boolean;
+    readonly type: 'Sudo' | 'SudoUncheckedWeight' | 'SetKey' | 'SudoAs' | 'RemoveKey';
   }
 
   /** @name PalletMultisigCall (145) */

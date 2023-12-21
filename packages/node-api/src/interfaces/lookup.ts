@@ -319,8 +319,13 @@ export default {
         sudoResult: 'Result<Null, SpRuntimeDispatchError>',
       },
       KeyChanged: {
-        oldSudoer: 'Option<AccountId32>',
+        _alias: {
+          new_: 'new',
+        },
+        old: 'Option<AccountId32>',
+        new_: 'AccountId32',
       },
+      KeyRemoved: 'Null',
       SudoAsDone: {
         sudoResult: 'Result<Null, SpRuntimeDispatchError>'
       }
@@ -956,8 +961,9 @@ export default {
       },
       sudo_as: {
         who: 'MultiAddress',
-        call: 'Call'
-      }
+        call: 'Call',
+      },
+      remove_key: 'Null'
     }
   },
   /**

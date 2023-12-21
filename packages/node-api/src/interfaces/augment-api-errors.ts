@@ -604,7 +604,7 @@ declare module '@polkadot/api-base/types/errors' {
     };
     sudo: {
       /**
-       * Sender must be the Sudo account
+       * Sender must be the Sudo account.
        **/
       RequireSudo: AugmentedError<ApiType>;
       /**
