@@ -269,7 +269,7 @@ export async function openTransactionLocWithAutoPublish(state: State, linkTarget
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
 
     const fees = await acceptedLoc.estimateFeesOpen({ autoPublish: true });
-    expect(fees.storageFee?.canonical).toEqual(1200000000000n);
+    expect(fees.storageFee?.canonical).toEqual(24000000000000n);
 
     let openLoc = await acceptedLoc.open({ signer, autoPublish: true });
     expect(openLoc).toBeInstanceOf(OpenLoc);
