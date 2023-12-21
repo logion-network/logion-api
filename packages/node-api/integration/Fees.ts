@@ -23,7 +23,7 @@ export async function legalFees() {
 export async function certificateFees() {
     const { api } = await setup();
     const certificateFee = await api.fees.estimateCertificateFee({ tokenIssuance: 1000n });
-    expect(certificateFee).toEqual(Lgnt.from(4n));
+    expect(certificateFee).toEqual(Lgnt.from(40n));
 }
 
 export async function ensureEnoughFunds() {

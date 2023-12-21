@@ -345,6 +345,10 @@ declare module '@polkadot/api-base/types/submittable' {
     };
     sudo: {
       /**
+       * See [`Pallet::remove_key`].
+       **/
+      removeKey: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
+      /**
        * See [`Pallet::set_key`].
        **/
       setKey: AugmentedSubmittable<(updated: MultiAddress | { Id: any } | { Index: any } | { Raw: any } | { Address32: any } | { Address20: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [MultiAddress]>;

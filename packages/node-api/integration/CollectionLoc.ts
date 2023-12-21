@@ -1,33 +1,33 @@
-import { UUID, Hash } from "../src/index.js";
+import { UUID, Hash, Lgnt } from "../src/index.js";
 import { setup, signAndSend, ALICE } from "./Util.js";
 
 export async function createCollectionLocLimitedInSizeTest() {
     const { api, requester } = await setup();
     const collectionMaxSize = 100;
-    const valueFee = 100n;
-    const legalFee = 200n;
-    const collectionItemFee = 50n;
-    const tokensRecordFee = 30n;
+    const valueFee = Lgnt.fromCanonical(100n);
+    const legalFee = Lgnt.fromCanonical(200n);
+    const collectionItemFee = Lgnt.fromCanonical(50n);
+    const tokensRecordFee = Lgnt.fromCanonical(30n);
     const createExtrinsic = api.polkadot.tx.logionLoc.createCollectionLoc(
         api.adapters.toLocId(COLLECTION_LOC_ID),
         ALICE,
         null,
         collectionMaxSize,
         false,
-        valueFee,
-        legalFee,
-        collectionItemFee,
-        tokensRecordFee,
+        valueFee.canonical,
+        legalFee.canonical,
+        collectionItemFee.canonical,
+        tokensRecordFee.canonical,
         api.adapters.emptyPalletLogionLocItemsParams(),
     );
     await signAndSend(requester, createExtrinsic);
     const loc = await api.queries.getLegalOfficerCase(COLLECTION_LOC_ID);
     expect(loc?.locType).toBe("Collection");
     expect(loc?.collectionMaxSize).toBe(collectionMaxSize);
-    expect(loc?.valueFee).toBe(valueFee);
-    expect(loc?.legalFee).toBe(legalFee);
-    expect(loc?.collectionItemFee).toBe(collectionItemFee);
-    expect(loc?.tokensRecordFee).toBe(tokensRecordFee);
+    expect(loc?.valueFee).toEqual(valueFee);
+    expect(loc?.legalFee).toEqual(legalFee);
+    expect(loc?.collectionItemFee).toEqual(collectionItemFee);
+    expect(loc?.tokensRecordFee).toEqual(tokensRecordFee);
 
     const map = await api.batch.locs([ COLLECTION_LOC_ID ]).getLocs();
     expect(map[COLLECTION_LOC_ID.toDecimalString()]).toBeDefined();

@@ -390,7 +390,11 @@ declare module '@polkadot/api-base/types/events' {
       /**
        * The sudo key has been updated.
        **/
-      KeyChanged: AugmentedEvent<ApiType, [oldSudoer: Option<AccountId32>], { oldSudoer: Option<AccountId32> }>;
+      KeyChanged: AugmentedEvent<ApiType, [old: Option<AccountId32>, new_: AccountId32], { old: Option<AccountId32>, new_: AccountId32 }>;
+      /**
+       * The key was permanently removed.
+       **/
+      KeyRemoved: AugmentedEvent<ApiType, []>;
       /**
        * A sudo call just took place.
        **/
