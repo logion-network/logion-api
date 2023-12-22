@@ -5,7 +5,7 @@ import * as Numbers from "./numbers.js";
  * is equal to `10 ^ Lgnt.SMALLEST_UNIT_PREFIX.tenExponent`. An amount
  * of LGNT has at most `Lgnt.DECIMALS`
  * (equal to `-Lgnt.SMALLEST_UNIT_PREFIX.tenExponent`) decimals.
- * 
+ *
  * The canonical form of an amount of LGNT is its expression as a
  * factor of `10 ^ Lgnt.SMALLEST_UNIT_PREFIX.tenExponent`. For example,
  * the canonical form of 1 LGNT is equal to `10 ^ Lgnt.DECIMALS`.
@@ -20,7 +20,7 @@ export class Lgnt {
 
     /**
      * Builds an LGNT amount from its canonical form.
-     * 
+     *
      * @param canonical The canonical form of an amount of LGNT
      * @returns An LGNT amount
      */
@@ -31,7 +31,7 @@ export class Lgnt {
     /**
      * Builds an LGNT amount from its canonical form
      * given as a `PrefixedNumber` instance.
-     * 
+     *
      * @param canonical The canonical form of an amount of LGNT
      * @returns An LGNT amount
      */
@@ -42,7 +42,7 @@ export class Lgnt {
 
     /**
      * Builds an LGNT amount.
-     * 
+     *
      * @param amount The amount
      * @returns An LGNT amount
      */
@@ -55,7 +55,7 @@ export class Lgnt {
     /**
      * Builds an LGNT amount
      * given as a `PrefixedNumber` instance.
-     * 
+     *
      * @param amount The amount
      * @returns An LGNT amount
      */
@@ -76,7 +76,7 @@ export class Lgnt {
      * Developers should prefer the use of the static factory
      * methods provided by this class to make the code more
      * self-explanatory.
-     * 
+     *
      * @param canonical The canonical form of an amount of LGNT
      */
     constructor(canonical: bigint) {
@@ -111,7 +111,7 @@ export class Lgnt {
 
     /**
      * Adds this amount to another.
-     * 
+     *
      * @param amount Another amount
      * @returns The addition of this amount with another
      */
@@ -121,7 +121,7 @@ export class Lgnt {
 
     /**
      * Substracts another amount from this one.
-     * 
+     *
      * @param amount Another amount
      * @returns This amount minus the other
      */
@@ -131,7 +131,7 @@ export class Lgnt {
 
     /**
      * Multiplies this amount by a given factor.
-     * 
+     *
      * @param factor The factor
      * @returns The multiplication of this amount with given factor.
      */
@@ -143,7 +143,7 @@ export class Lgnt {
      * Divides this amount by a given divider.
      * Given the fixed precision of an amount of LGNT, this
      * operation may result in a loss of value.
-     * 
+     *
      * @param divider The divider
      * @returns The division of this amount by given divider.
      */
@@ -152,8 +152,24 @@ export class Lgnt {
     }
 
     /**
+     * Negate this amount.
+     * @returns the negated amount/
+     */
+    negate(): Lgnt {
+        return new Lgnt(- this.canonical);
+    }
+
+    /**
+     * Check if this amount is strictly negative (i.e. less than zero).
+     * @returns true if amount is strictly negative, false otherwise.
+     */
+    isNegative(): boolean {
+        return this.canonical < 0n
+    }
+
+    /**
      * The integer part of this amount expressed in given unit.
-     * 
+     *
      * @param unit The unit in which to express this amount
      * @returns The integer part of this amount
      */
@@ -167,7 +183,7 @@ export class Lgnt {
      * The returned string has always a length equal to the
      * expected number of decimals. It might be zero-padded
      * on the left.
-     * 
+     *
      * @param decimals The number of decimals
      * @param unit The unit in which to express this amount
      * @returns The decimal part of this amount
@@ -179,7 +195,7 @@ export class Lgnt {
 
     /**
      * The decimal part of this amount expressed in given unit.
-     * 
+     *
      * @param decimals The maximum number of decimals
      * @param unit The unit in which to express this amount
      * @returns The decimal part of this amount
@@ -192,7 +208,7 @@ export class Lgnt {
     /**
      * Converts this amount into a fiat amount given a rate LGNT/FIAT.
      * For example, if 20 LGNTs = 1 FIAT, then the rate is 20.
-     * 
+     *
      * @param rate The rate to apply
      * @returns The fiat equivalent of this LGNT amount
      */
@@ -204,7 +220,7 @@ export class Lgnt {
     /**
      * Builds an LGNT amount given a fiat amount and a rate LGNT/FIAT.
      * For example, if 20 LGNTs = 1 FIAT, then the rate is 20.
-     * 
+     *
      * @param amount a fiat amount
      * @param rate The rate to apply
      * @returns The LGNT equivalent of given fiat amount
@@ -215,7 +231,7 @@ export class Lgnt {
 
     /**
      * Checks equality of this amount with another.
-     * 
+     *
      * @param another Another LGNT amount
      * @returns True if both amounts are equal, false otherwise
      */
@@ -225,7 +241,7 @@ export class Lgnt {
 
     /**
      * Compares this amount to another.
-     * 
+     *
      * @param another Another LGNT amount
      * @returns Zero if both amounts are equal,
      * a negative value if this amount is lower than the other,
@@ -238,7 +254,7 @@ export class Lgnt {
             return 1;
         } else {
             return 0;
-        } 
+        }
     }
 
     /**

@@ -64,6 +64,17 @@ describe("Lgnt", () => {
         expect(lgnt.canonical).toBe(1n);
     });
 
+    it("negates", () => {
+        const lgnt = Lgnt.fromCanonical(3n).negate();
+        expect(lgnt.canonical).toBe(-3n);
+    });
+
+    it("is checked negative", () => {
+        const lgnt = Lgnt.fromCanonical(3n);
+        expect(lgnt.isNegative()).toBeFalse();
+        expect(lgnt.negate().isNegative()).toBeTrue();
+    });
+
     it("provides integer part", () => {
         const lgnt = Lgnt.from(1000n);
         expect(lgnt.integerPart(Numbers.KILO)).toBe(1n);
