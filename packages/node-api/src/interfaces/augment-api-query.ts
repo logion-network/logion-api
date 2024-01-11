@@ -205,6 +205,10 @@ declare module '@polkadot/api-base/types/storage' {
        **/
       identityLocLocsMap: AugmentedQuery<ApiType, (arg: u128 | AnyNumber | Uint8Array) => Observable<Option<Vec<u128>>>, [u128]> & QueryableStorageEntry<ApiType, [u128]>;
       /**
+       * Invited Contributors by LOC
+       **/
+      invitedContributorsByLocMap: AugmentedQuery<ApiType, (arg1: u128 | AnyNumber | Uint8Array, arg2: AccountId32 | string | Uint8Array) => Observable<Option<Null>>, [u128, AccountId32]> & QueryableStorageEntry<ApiType, [u128, AccountId32]>;
+      /**
        * All LOCs indexed by ID.
        **/
       locMap: AugmentedQuery<ApiType, (arg: u128 | AnyNumber | Uint8Array) => Observable<Option<PalletLogionLocLegalOfficerCase>>, [u128]> & QueryableStorageEntry<ApiType, [u128]>;

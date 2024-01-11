@@ -207,6 +207,10 @@ declare module '@polkadot/api-base/types/submittable' {
        **/
       nominateIssuer: AugmentedSubmittable<(issuer: AccountId32 | string | Uint8Array, identityLocId: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [AccountId32, Compact<u128>]>;
       /**
+       * See [`Pallet::set_invited_contributor_selection`].
+       **/
+      setInvitedContributorSelection: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, invitedContributor: AccountId32 | string | Uint8Array, selected: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, bool]>;
+      /**
        * See [`Pallet::set_issuer_selection`].
        **/
       setIssuerSelection: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, issuer: AccountId32 | string | Uint8Array, selected: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, AccountId32, bool]>;
