@@ -1,4 +1,4 @@
-import { Currency, UUID, Adapters, Hash } from "../src/index.js";
+import { UUID, Adapters, Hash, Lgnt } from "../src/index.js";
 import { ALICE, ISSUER, setup, signAndSend, signAndSendBatch, REQUESTER } from "./Util.js";
 
 export async function verifiedIssuers() {
@@ -7,7 +7,7 @@ export async function verifiedIssuers() {
     const issuerIdentityLocId = new UUID();
     const collectionLocId = new UUID();
     await signAndSend(alice,
-        api.polkadot.tx.balances.transferAllowDeath(ISSUER, Currency.toCanonicalAmount(Currency.nLgnt(200n))),
+        api.polkadot.tx.balances.transferAllowDeath(ISSUER, Lgnt.from(200).canonical),
     );
     await signAndSend(issuer,
         api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
