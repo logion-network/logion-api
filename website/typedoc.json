@@ -6,6 +6,9 @@
   "entryPointStrategy": "packages",
   "entryPoints": [
     "../packages/client",
+    "../packages/client-browser",
+    "../packages/client-node",
+    "../packages/client-react-native-fs",
     "../packages/crossmint",
     "../packages/extension",
     "../packages/multiversx",

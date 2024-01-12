@@ -1,5 +1,5 @@
 {
-  "name": "Client (Node.JS)",
+  "name": "client-node",
   "entryPoints": [
     "./src/index.ts"
   ]
