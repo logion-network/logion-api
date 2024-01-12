@@ -22,6 +22,7 @@ import { verifiedIssuers } from "./VerifiedIssuers.js";
 import { storageFees, legalFees, certificateFees, ensureEnoughFunds } from "./Fees.js";
 import { toPalletLogionLocOtherAccountId, toSponsorshipId, toPalletLogionLocMetadataItem, toPalletLogionLocFile, toCollectionItemToken, toCollectionItemFile } from "./Adapters.js";
 import { badOriginError, moduleError } from "./Error.js";
+import { createIdentityLocTest } from "./IdentityLoc.js";
 
 describe("Logion Node API", () => {
 
@@ -44,6 +45,7 @@ describe("Logion Node API", () => {
     it("handles properly bad origin error", badOriginError);
     it("handles properly pallet error", moduleError);
 
+    it("creates identity LOC", createIdentityLocTest);
     it("creates transaction LOCs", createTransactionLocTest);
 
     it("adds metadata to transaction LOC (LLO)", addMetadataToTransactionLocTestAsLLO);
