@@ -28,6 +28,6 @@ const authenticatedClient = await client.authenticate([
 ```
 Now you can use authenticatedClient to interact with the network.
 
-## Authenticate with Polkadot{.js}
+## Authenticate with Polkadot\{.js\}
 
-In order to connect a webapp to logion-network, it is recommended to use [polkadot{.js} app](../extension/polkadot-js.md) extension.
+In order to connect a webapp to logion-network, it is recommended to use [polkadot\{.js\} app](../extension/polkadot-js.md) extension.
