@@ -11,6 +11,7 @@ export interface State {
     alice: IKeyringPair;
     requester: IKeyringPair;
     issuer: IKeyringPair;
+    invitedContributor: IKeyringPair;
 }
 
 let state: State;
@@ -22,6 +23,7 @@ export async function setup(): Promise<State> {
         const alice = keyring.addFromUri(ALICE_SEED);
         const requester = keyring.addFromUri(REQUESTER_SECRET_SEED);
         const issuer = keyring.addFromUri(ISSUER_SECRET_SEED);
+        const invitedContributor = keyring.addFromUri(INVITED_CONTRIBUTOR_SECRET_SEED);
         const api = await buildApiClass("ws://127.0.0.1:9944");
         state = {
             api,
@@ -29,6 +31,7 @@ export async function setup(): Promise<State> {
             alice,
             requester,
             issuer,
+            invitedContributor,
         };
     }
     return state;
@@ -47,6 +50,10 @@ export const DAVE = "5DAAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFy";
 export const ISSUER = "5HTA8nHHQWdN6XnciaWxjjzCHLoV8d5tME6CqT6KNDypovKU";
 
 const ISSUER_SECRET_SEED = "earth rough predict document divide deliver unable vanish spike alarm exotic spider";
+
+const INVITED_CONTRIBUTOR_SECRET_SEED = "october minimum future canvas range cruise jealous web renew border hover name";
+
+export const INVITED_CONTRIBUTOR = "5F42HAi5kvD6Ao4Ze6UBiZDw7BA4zk62twNYRWAVDq3EhdWH";
 
 export function signAndSend(keypair: IKeyringPair, extrinsic: SubmittableExtrinsic): Promise<ISubmittableResult> {
     let unsub: () => void;

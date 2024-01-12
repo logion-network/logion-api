@@ -19,6 +19,7 @@ import {
 } from "./TransactionLoc.js";
 import { createVote } from "./Vote.js";
 import { verifiedIssuers } from "./VerifiedIssuers.js";
+import { invitedContributors } from "./InvitedContributors.js";
 import { storageFees, legalFees, certificateFees, ensureEnoughFunds } from "./Fees.js";
 import { toPalletLogionLocOtherAccountId, toSponsorshipId, toPalletLogionLocMetadataItem, toPalletLogionLocFile, toCollectionItemToken, toCollectionItemFile } from "./Adapters.js";
 import { badOriginError, moduleError } from "./Error.js";
@@ -71,4 +72,5 @@ describe("Logion Node API", () => {
     it("provides available regions", getAvailableRegions);
 
     it("supports verified issuers", verifiedIssuers);
+    it("supports invited contributors", invitedContributors);
 });
