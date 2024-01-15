@@ -192,6 +192,10 @@ declare module '@polkadot/api-base/types/errors' {
     };
     logionLoc: {
       /**
+       * The provided Polkadot account has no closed, non-void identity LOC
+       **/
+      AccountNotIdentified: AugmentedError<ApiType>;
+      /**
        * Occurs when trying to close an already closed LOC
        **/
       AlreadyClosed: AugmentedError<ApiType>;

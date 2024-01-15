@@ -1,5 +1,5 @@
 {
-  "name": "Client (Browser)",
+  "name": "client-browser",
   "entryPoints": [
     "./src/index.ts"
   ]

@@ -1,5 +1,5 @@
 {
-  "name": "Client (React Native FS)",
+  "name": "client-react-native-fs",
   "entryPoints": [
     "./src/index.ts"
   ]

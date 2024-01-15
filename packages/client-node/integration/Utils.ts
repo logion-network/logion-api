@@ -1,4 +1,4 @@
-import { buildApiClass, Currency, Numbers, ValidAccountId } from "@logion/node-api";
+import { buildApiClass, Lgnt, Numbers, ValidAccountId } from "@logion/node-api";
 import { Keyring } from "@polkadot/api";
 
 import {
@@ -132,7 +132,7 @@ export async function updateConfig(config: Partial<LogionClientConfig>): Promise
 }
 
 export async function initRequesterBalance(config: LogionClientConfig, signer: Signer, requester: string): Promise<void> {
-    await transferTokens(config, signer, ALICE, requester, Currency.toCanonicalAmount(new Numbers.PrefixedNumber("10000", Numbers.NONE)));
+    await transferTokens(config, signer, ALICE, requester, Lgnt.fromPrefixedNumber(new Numbers.PrefixedNumber("10000", Numbers.NONE)).canonical);
 }
 
 async function transferTokens(config: LogionClientConfig, signer: Signer, source: string, destination: string, amount: bigint) {

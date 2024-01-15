@@ -1,5 +1,5 @@
 {
-  "name": "Extension",
+  "name": "extension",
   "entryPoints": [
     "./src/index.ts"
   ]

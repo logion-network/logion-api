@@ -2,9 +2,9 @@
 sidebar_position: 1
 ---
 
-# polkadot{.js}
+# polkadot\{.js\}
 
-![polkadot{.js} extension](/img/polkadot.png)
+![polkadot\{.js\} extension](/img/polkadot.png)
 
 This project provides some utility classes enabling the use the
 [Polkadot JS extension](https://github.com/polkadot-js/extension#readme)

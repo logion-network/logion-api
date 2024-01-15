@@ -1,4 +1,4 @@
-import { Numbers, Currency, CoinBalance, Lgnt } from "@logion/node-api";
+import { Numbers, CoinBalance, Lgnt } from "@logion/node-api";
 import { BalanceState, waitFor } from "@logion/client";
 
 import { State, REQUESTER_ADDRESS } from "./Utils.js";
@@ -25,7 +25,7 @@ export async function transfers(state: State) {
     });
     expect(aliceState.transactions[0].fees.inclusion).toBeGreaterThan(0);
     expect(aliceState.transactions[0].fees.storage).toBeUndefined();
-    expect(aliceState.transactions[0].transferValue).toBe(Currency.toCanonicalAmount(new Numbers.PrefixedNumber("5", Numbers.KILO)).toString());
+    expect(aliceState.transactions[0].transferValue).toBe(Lgnt.fromPrefixedNumber(new Numbers.PrefixedNumber("5", Numbers.KILO)).toString());
 
     // User transfers to Alice.
     const userClient = client.withCurrentAddress(requesterAccount)

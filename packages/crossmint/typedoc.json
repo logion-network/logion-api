@@ -1,5 +1,5 @@
 {
-  "name": "Crossmint",
+  "name": "crossmint",
   "entryPoints": [
     "./src/index.ts"
   ]
