@@ -37,7 +37,7 @@ export class VoterApi {
             client,
             locsState,
         }
-        return new ReadOnlyLocState(locSharedState, locRequest, loc, EMPTY_LOC_ISSUERS);
+        return new ReadOnlyLocState(locSharedState, locRequest, loc, EMPTY_LOC_ISSUERS, []);
     }
 
     private async getLocAndClient(locId: UUID): Promise<{ loc: LegalOfficerCase, locRequest: LocRequest, client: AuthenticatedLocClient } | undefined> {

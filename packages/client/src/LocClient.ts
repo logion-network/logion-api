@@ -202,6 +202,18 @@ export interface BlockchainBatchSubmission<T> extends BlockchainSubmissionParams
     payload: T[];
 }
 
+export function withLocId<T>(locId: UUID, params: BlockchainSubmission<T>): BlockchainSubmission<T & FetchParameters> {
+    const { signer, callback, payload } = params;
+    return {
+        signer,
+        callback,
+        payload: {
+            locId,
+            ...payload,
+        }
+    }
+}
+
 export interface AddCollectionItemParams {
     itemId: Hash,
     itemDescription: string,
@@ -283,11 +295,7 @@ export interface VerifiedIssuerIdentity {
     selected?: boolean;
 }
 
-export interface AddTokensRecordParams extends EstimateFeesAddTokensRecordParams, BlockchainSubmissionParams {
-
-}
-
-export interface EstimateFeesAddTokensRecordParams {
+export interface AddTokensRecordParams {
     recordId: Hash,
     description: string,
     files: HashOrContent[],
@@ -1233,17 +1241,61 @@ export class AuthenticatedLocClient extends LocClient {
         return issuers.issuers.find(issuer => issuer.address === this.currentAddress.address && this.currentAddress.type === "Polkadot") !== undefined;
     }
 
-    async addTokensRecord(parameters: AddTokensRecordParams & FetchParameters): Promise<void> {
+    async isInvitedContributorOf(locId: UUID): Promise<boolean> {
+        return this.nodeApi.queries.isInvitedContributorOf(this.currentAddress.address, locId);
+    }
+
+    async getInvitedContributors(
+        request: LocRequest,
+    ): Promise<ValidAccountId[]> {
+        if (!this.currentAddress || (request.status !== "OPEN" && request.status !== "CLOSED")) {
+            return [];
+        } else {
+            const locId = new UUID(request.id);
+            const invitedContributors = await this.nodeApi.polkadot.query.logionLoc.invitedContributorsByLocMap.entries(locId.toDecimalString());
+            return invitedContributors.map(entry => {
+                const address = entry[0].args[1].toString();
+                return this.nodeApi.queries.getValidAccountId(address, "Polkadot");
+            });
+        }
+    }
+
+    async setInvitedContributor(params: BlockchainSubmission<SetInvitedContributorSelectionParams & FetchParameters>) {
+        await params.signer.signAndSend({
+            signerId: this.currentAddress.address,
+            submittable: this.setInvitedContributorSubmittable(params.payload),
+            callback: params.callback,
+        });
+    }
+
+    async estimateFeesSetInvitedContributor(params: SetInvitedContributorSelectionParams & FetchParameters) {
+        return await this.nodeApi.fees.estimateWithoutStorage({
+            origin: this.currentAddress.address,
+            submittable: this.setInvitedContributorSubmittable(params),
+        });
+    }
+
+    private setInvitedContributorSubmittable(params: SetInvitedContributorSelectionParams & FetchParameters): SubmittableExtrinsic {
+        return this.nodeApi.polkadot.tx.logionLoc.setInvitedContributorSelection(
+            this.nodeApi.adapters.toLocId(params.locId),
+            params.invitedContributor,
+            params.selected,
+        )
+    }
+
+    async addTokensRecord(parameters: BlockchainSubmission<AddTokensRecordParams & FetchParameters>): Promise<void> {
         const {
             recordId,
             description,
-            signer,
-            callback,
             locId,
             files,
+        } = parameters.payload;
+        const {
+            signer,
+            callback,
         } = parameters;
 
-        const submittable = await this.addTokensRecordSubmittable(parameters); // finalizes files
+        const submittable = await this.addTokensRecordSubmittable(parameters.payload); // finalizes files
 
         await this.submitRecordPublicData(locId, {
             recordId: recordId.toHex(),
@@ -1273,7 +1325,7 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    private async addTokensRecordSubmittable(parameters: EstimateFeesAddTokensRecordParams & FetchParameters) {
+    private async addTokensRecordSubmittable(parameters: AddTokensRecordParams & FetchParameters) {
         const {
             recordId,
             description,
@@ -1321,7 +1373,7 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async estimateFeesAddTokensRecord(parameters: EstimateFeesAddTokensRecordParams & FetchParameters & { tokensRecordFee: Lgnt }): Promise<FeesClass> {
+    async estimateFeesAddTokensRecord(parameters: AddTokensRecordParams & FetchParameters & { tokensRecordFee: Lgnt }): Promise<FeesClass> {
         const { files, tokensRecordFee } = parameters;
         const submittable = await this.addTokensRecordSubmittable(parameters);
         const numOfEntries = files ? BigInt(files.length) : 0n;
@@ -2383,6 +2435,11 @@ export interface VoidParams extends BlockchainSubmissionParams, VoidInfo {
 export interface SetIssuerSelectionParams extends BlockchainSubmissionParams {
     locId: UUID;
     issuer: string;
+    selected: boolean;
+}
+
+export interface SetInvitedContributorSelectionParams {
+    invitedContributor: string;
     selected: boolean;
 }
 

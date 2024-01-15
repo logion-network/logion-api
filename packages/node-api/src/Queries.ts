@@ -34,7 +34,7 @@ export interface CoinBalance {
 export const ARTIFICIAL_MAX_BALANCE = Currency.toPrefixedNumberAmount(100n);
 
 export class Queries {
-    
+
     constructor(
         api: ApiPromise,
         adapters: Adapters,
@@ -71,12 +71,12 @@ export class Queries {
     async getCoinBalances(accountId: string): Promise<CoinBalance[]> {
         const accountInfo = await this.api.query.system.account(accountId);
         const data = this.adapters.fromFrameSystemAccountInfo(accountInfo);
-    
+
         const logAvailable = Currency.toPrefixedNumberAmount(BigInt(data.available)).optimizeScale(3);
         const logReserved = Currency.toPrefixedNumberAmount(BigInt(data.reserved)).optimizeScale(3);
         const logTotal = Currency.toPrefixedNumberAmount(BigInt(data.total)).optimizeScale(3);
         const logLevel = logTotal.scientificNumber.divideBy(ARTIFICIAL_MAX_BALANCE.convertTo(logTotal.prefix).scientificNumber).toNumber();
-    
+
         return [
             Queries.buildCoinBalance({
                 coinId: 'lgnt',
@@ -273,5 +273,12 @@ export class Queries {
 
     getDefaultRegion(): Region {
         return this.adapters.fromLogionNodeRuntimeRegion(this.adapters.getDefaultLogionNodeRuntimeRegion());
+    }
+
+    async isInvitedContributorOf(address: string, locId: UUID): Promise<boolean> {
+        return this.isValidAccountId(address, "Polkadot") && (await this.api.query.logionLoc.invitedContributorsByLocMap(
+            locId.toDecimalString(),
+            address,
+        )).isSome
     }
 }

@@ -52,11 +52,13 @@ export async function tokensRecords(state: State) {
     });
     expect(estimatedFees.tokensRecordFee).toEqual(tokensRecordFee);
     closedCollectionLoc = await closedCollectionLoc.addTokensRecord({
-        recordId,
-        description: recordDescription,
-        files: [
-            HashOrContent.fromContent(new NodeFile("integration/test.txt", "report.txt", MimeType.from("text/plain"))),
-        ],
+        payload: {
+            recordId,
+            description: recordDescription,
+            files: [
+                HashOrContent.fromContent(new NodeFile("integration/test.txt", "report.txt", MimeType.from("text/plain"))),
+            ],
+        },
         signer: state.signer,
     });
     await expectAsync(waitFor<BalanceState>({

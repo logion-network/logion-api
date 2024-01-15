@@ -52,7 +52,7 @@ import {
     buildValidPolkadotAccountId,
     ItIsUuid,
     mockCodecWithToString,
-    MOCK_FILE
+    MOCK_FILE, mockOption, mockEmptyOption
 } from "./Utils.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
 import {
@@ -512,9 +512,11 @@ describe("ClosedCollectionLoc", () => {
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await closedLoc.addTokensRecord({
-            recordId: RECORD_ID,
-            description: RECORD_DESCRIPTION,
-            files: RECORD_FILES,
+            payload: {
+                recordId: RECORD_ID,
+                description: RECORD_DESCRIPTION,
+                files: RECORD_FILES,
+            },
             signer: signer.object(),
         });
 
@@ -1078,6 +1080,9 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
                 ITEM_DESCRIPTION,
                 It.IsAny(),
             )).returns(addTokensRecordExtrinsic.object());
+
+            nodeApiMock.setup(instance => instance.polkadot.query.logionLoc.invitedContributorsByLocMap.entries(It.IsAny())).returns(Promise.resolve([]))
+            nodeApiMock.setup(instance => instance.polkadot.query.logionLoc.invitedContributorsByLocMap(It.IsAny(), It.IsAny())).returns(Promise.resolve(mockEmptyOption()))
 
             const closeExtrinsic = new Mock<SubmittableExtrinsic>();
             nodeApiMock.setup(instance => instance.polkadot.tx.logionLoc.close(It.IsAny(), It.IsAny(), It.IsAny())).returns(closeExtrinsic.object());

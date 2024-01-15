@@ -35,7 +35,7 @@ export class PublicApi {
         const { loc, client } = locAndClient;
 
         const locRequest = await client.getLocRequest(params);
-        const data = LocRequestState.buildLocData(this.sharedState.nodeApi, loc, locRequest, EMPTY_LOC_ISSUERS);
+        const data = LocRequestState.buildLocData(this.sharedState.nodeApi, loc, locRequest, EMPTY_LOC_ISSUERS, []);
         return new PublicLoc({
             data,
             client,
@@ -99,15 +99,19 @@ export class PublicLoc {
         client: PublicLocClient,
     }) {
         this._data = args.data;
-        this.client = args.client;
+        this._client = args.client;
     }
 
     private readonly _data: LocData;
 
-    private readonly client: PublicLocClient;
+    private readonly _client: PublicLocClient;
 
     get data(): LocData {
         return this._data;
+    }
+
+    get client(): PublicLocClient {
+        return this._client;
     }
 
     async checkHash(hash: Hash, itemId?: Hash): Promise<CheckHashResult> {
@@ -116,13 +120,13 @@ export class PublicLoc {
         let collectionItemFile = undefined;
         if(this._data.locType === "Collection") {
             collectionItem = await getCollectionItem({
-                locClient: this.client,
+                locClient: this._client,
                 locId: this._data.id,
                 itemId: hash,
             });
             if (itemId) {
                 const collectionItemToInspect = await getCollectionItem({
-                    locClient: this.client,
+                    locClient: this._client,
                     locId: this._data.id,
                     itemId,
                 });
@@ -146,7 +150,7 @@ export class PublicLoc {
 
     async checkCertifiedCopy(hash: Hash): Promise<CheckCertifiedCopyResult> {
         try {
-            const delivery = await this.client.checkDelivery({
+            const delivery = await this._client.checkDelivery({
                 locId: this._data.id,
                 hash,
             });
