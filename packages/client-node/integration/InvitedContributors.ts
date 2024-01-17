@@ -98,7 +98,7 @@ export async function invitedContributors(state: State) {
 
     // Contribute tokens records with dedicated API
     const api = invitedContributorClient.invitedContributor;
-    let loc = await api.findContributedLocById({ locId: collectionLocId }) as InvitedContributorLoc;
+    let loc = await api.findLocById({ locId: collectionLocId }) as InvitedContributorLoc;
     expect(loc).toBeDefined();
     const recordId = Hash.of("record-id");
     const recordDescription = "Some tokens record";

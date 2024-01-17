@@ -25,7 +25,7 @@ export class InvitedContributorApi {
     private readonly sharedState: SharedState;
     private readonly logionClient: LogionClient;
 
-    async findContributedLocById(params: FetchParameters): Promise<InvitedContributorLoc | undefined> {
+    async findLocById(params: FetchParameters): Promise<InvitedContributorLoc | undefined> {
 
         if (!this.sharedState.currentAddress) {
             throw new Error("Current address must be set");
@@ -73,7 +73,7 @@ export class InvitedContributorLoc extends PublicLoc {
             throw new Error("Current user is not allowed to add a tokens record");
         }
         await this.authenticatedClient.addTokensRecord(withLocId(super.data.id, parameters));
-        return requireDefined(await this.invitedContributorApi.findContributedLocById({ locId: super.data.id }))
+        return requireDefined(await this.invitedContributorApi.findLocById({ locId: super.data.id }))
     }
 }
 
