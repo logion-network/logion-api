@@ -19,6 +19,7 @@ import { NetworkState } from "./NetworkState.js";
 import { VoterApi } from "./Voter.js";
 import { SponsorshipState, SponsorshipApi } from "./Sponsorship.js";
 import { requireDefined } from "./assertions.js";
+import { InvitedContributorApi } from "./InvitedContributor.js";
 
 export class LogionClient {
 
@@ -53,6 +54,7 @@ export class LogionClient {
         this.sharedState = sharedState;
         this._public = new PublicApi({ sharedState });
         this._voter = new VoterApi({ sharedState, logionClient: this });
+        this._invitedContributor = new InvitedContributorApi({ sharedState, logionClient: this })
     }
 
     private sharedState: SharedState;
@@ -60,6 +62,8 @@ export class LogionClient {
     private _public: PublicApi;
 
     private _voter: VoterApi;
+
+    private readonly _invitedContributor: InvitedContributorApi;
 
     get config(): LogionClientConfig {
         return this.sharedState.config;
@@ -257,7 +261,7 @@ export class LogionClient {
 
     /**
      * Builds an axios instance enabling direct access to a legal officer's node REST API.
-     * 
+     *
      * @param legalOfficer The legal officer
      * @returns The axios instance
      * @deprecated use LegalOfficerClass.buildAxiosToNode() instead
@@ -348,6 +352,11 @@ export class LogionClient {
     get voter(): VoterApi {
         this.ensureConnected();
         return this._voter;
+    }
+
+    get invitedContributor(): InvitedContributorApi {
+        this.ensureConnected();
+        return this._invitedContributor;
     }
 
     async disconnect() {

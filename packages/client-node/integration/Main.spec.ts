@@ -20,6 +20,7 @@ import { backendConfig } from "./LegalOfficer.js";
 import { voidTransactionLoc } from "./Void.js";
 import { votingProcess } from "./Vote.js";
 import { openIdentityLoc, openTransactionLoc, openCollectionLoc } from "./DirectLocOpen.js";
+import { invitedContributors } from "./InvitedContributors.js";
 
 describe("Logion SDK", () => {
 
@@ -47,7 +48,7 @@ describe("Logion SDK", () => {
         await transfers(state);
     });
 
-    it("refuses transfer with unsufficient funds", async () => {
+    it("refuses transfer with insufficient funds", async () => {
         await transferWithInsufficientFunds(state);
     });
 
@@ -108,6 +109,10 @@ describe("Logion SDK", () => {
 
     it("provides Tokens Records", async () => {
         await tokensRecords(state);
+    });
+
+    it("provides invited contributor", async () => {
+        await invitedContributors(state);
     });
 
     it("voids a Transaction LOC", async () => {

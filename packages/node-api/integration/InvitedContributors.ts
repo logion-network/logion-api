@@ -24,6 +24,9 @@ export async function invitedContributors() {
             false,
         ),
     );
+
+    expect(await api.queries.isInvitedContributorOf(INVITED_CONTRIBUTOR, collectionLocId)).toBeFalse();
+
     await signAndSendBatch(requester, [
         api.polkadot.tx.logionLoc.createCollectionLoc(
             collectionLocId.toDecimalString(),
@@ -43,6 +46,9 @@ export async function invitedContributors() {
             true,
         ),
     ]);
+
+    expect(await api.queries.isInvitedContributorOf(INVITED_CONTRIBUTOR, collectionLocId)).toBeTrue();
+
     await signAndSend(alice,
         api.polkadot.tx.logionLoc.close(
             collectionLocId.toDecimalString(),

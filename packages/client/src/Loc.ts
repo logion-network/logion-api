@@ -54,9 +54,10 @@ import {
     ItemLifecycle as BackendItemLifecycle,
     AutoPublish,
     CollectionLimits,
-    EstimateFeesAddTokensRecordParams,
     BlockchainSubmission,
     BlockchainBatchSubmission,
+    SetInvitedContributorSelectionParams,
+    withLocId,
 } from "./LocClient.js";
 import { SharedState, getLegalOfficer } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
@@ -102,6 +103,7 @@ export interface LocData extends LocVerifiedIssuers {
     template?: string;
     sponsorshipId?: UUID;
     fees: LocFees;
+    invitedContributors: ValidAccountId[];
 }
 
 interface ItemLifecycle {
@@ -350,9 +352,9 @@ export class LocsState extends State {
         });
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
         if(draft) {
-            return new DraftRequest(locSharedState, request, undefined, EMPTY_LOC_ISSUERS).veryNew(); // Discards this state
+            return new DraftRequest(locSharedState, request, undefined, EMPTY_LOC_ISSUERS, []).veryNew(); // Discards this state
         } else {
-            return new PendingRequest(locSharedState, request, undefined, EMPTY_LOC_ISSUERS).veryNew(); // Discards this state
+            return new PendingRequest(locSharedState, request, undefined, EMPTY_LOC_ISSUERS, []).veryNew(); // Discards this state
         }
     }
 
@@ -446,7 +448,7 @@ export class LocsState extends State {
             }, false);
         }
         const loc = await client.getLoc({ locId });
-        return (await new OpenLoc(locSharedState, request, loc, EMPTY_LOC_ISSUERS).refresh()) as OpenLoc;
+        return (await new OpenLoc(locSharedState, request, loc, EMPTY_LOC_ISSUERS, []).refresh()) as OpenLoc;
     }
 
     async refresh(params?: FetchAllLocsParams): Promise<LocsState> {
@@ -514,10 +516,11 @@ export class LocsState extends State {
             const legalOfficerCases = await locBatch.getLocs();
             const legalOfficerCase = legalOfficerCases[id.toDecimalString()];
             const locIssuers = await client.getLocIssuers(locRequest, locBatch);
+            const invitedContributors = await client.getInvitedContributors(locRequest);
             if((locRequest.status === "OPEN" || locRequest.status === "CLOSED") && !legalOfficerCase) {
                 throw new Error("LOC expected");
             }
-            return LocRequestState.createFromRequest(locSharedState, locRequest, locIssuers, legalOfficerCase);
+            return LocRequestState.createFromRequest(locSharedState, locRequest, locIssuers, invitedContributors, legalOfficerCase);
         } else {
             throw new Error(`Can not find owner ${ locRequest.ownerAddress } of LOC ${ locRequest.id } among LO list`);
         }
@@ -647,7 +650,7 @@ export class LegalOfficerLocsStateCommands {
         }
 
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this.locsState };
-        return new OpenLoc(locSharedState, request, undefined, EMPTY_LOC_ISSUERS).veryNew();
+        return new OpenLoc(locSharedState, request, undefined, EMPTY_LOC_ISSUERS, []).veryNew();
     }
 }
 
@@ -736,14 +739,16 @@ export abstract class LocRequestState extends State {
     protected readonly request: LocRequest;
     protected readonly legalOfficerCase?: LegalOfficerCase;
     protected readonly locIssuers: LocVerifiedIssuers;
+    protected readonly invitedContributors: ValidAccountId[];
     readonly owner: LegalOfficerClass;
 
-    constructor(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers) {
+    constructor(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers, invitedContributors: ValidAccountId[]) {
         super();
         this.locSharedState = locSharedState;
         this.request = request;
         this.legalOfficerCase = legalOfficerCase;
         this.locIssuers = locIssuers;
+        this.invitedContributors = invitedContributors;
 
         const owner = locSharedState.allLegalOfficers.find(officer => officer.address === request.ownerAddress);
         if(!owner) {
@@ -756,41 +761,41 @@ export abstract class LocRequestState extends State {
         return new UUID(this.request.id);
     }
 
-    static async createFromRequest(locSharedState: LocSharedState, request: LocRequest, locIssuers: LocVerifiedIssuers, legalOfficerCase?: LegalOfficerCase): Promise<AnyLocState> {
+    static async createFromRequest(locSharedState: LocSharedState, request: LocRequest, locIssuers: LocVerifiedIssuers, invitedContributors: ValidAccountId[], legalOfficerCase?: LegalOfficerCase): Promise<AnyLocState> {
         switch (request.status) {
             case "DRAFT":
-                return new DraftRequest(locSharedState, request, undefined, locIssuers)
+                return new DraftRequest(locSharedState, request, undefined, locIssuers, invitedContributors)
             case "REVIEW_PENDING":
-                return new PendingRequest(locSharedState, request, undefined, locIssuers)
+                return new PendingRequest(locSharedState, request, undefined, locIssuers, invitedContributors)
             case "REVIEW_ACCEPTED":
-                return new AcceptedRequest(locSharedState, request, undefined, locIssuers)
+                return new AcceptedRequest(locSharedState, request, undefined, locIssuers, invitedContributors)
             case "REVIEW_REJECTED":
-                return new RejectedRequest(locSharedState, request, undefined, locIssuers)
+                return new RejectedRequest(locSharedState, request, undefined, locIssuers, invitedContributors)
             default:
-                return LocRequestState.refreshLoc(locSharedState, request, legalOfficerCase, locIssuers)
+                return LocRequestState.refreshLoc(locSharedState, request, legalOfficerCase, locIssuers, invitedContributors)
         }
     }
 
-    static async createFromLoc(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase, locIssuers: LocVerifiedIssuers): Promise<OnchainLocState> {
-        return await LocRequestState.refreshLoc(locSharedState, request, legalOfficerCase, locIssuers) as OnchainLocState;
+    static async createFromLoc(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase, locIssuers: LocVerifiedIssuers, invitedContributors: ValidAccountId[]): Promise<OnchainLocState> {
+        return await LocRequestState.refreshLoc(locSharedState, request, legalOfficerCase, locIssuers, invitedContributors) as OnchainLocState;
     }
 
-    private static async refreshLoc(locSharedState: LocSharedState, request: LocRequest, loc: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers): Promise<OnchainLocState> {
+    private static async refreshLoc(locSharedState: LocSharedState, request: LocRequest, loc: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers, invitedContributors: ValidAccountId[]): Promise<OnchainLocState> {
         const legalOfficerCase: LegalOfficerCase = loc ? loc : await locSharedState.client.getLoc({ locId: new UUID(request.id) });
         if (legalOfficerCase.voidInfo) {
             if (legalOfficerCase.locType === 'Collection') {
-                return new VoidedCollectionLoc(locSharedState, request, legalOfficerCase, locIssuers);
+                return new VoidedCollectionLoc(locSharedState, request, legalOfficerCase, locIssuers, invitedContributors);
             } else {
-                return new VoidedLoc(locSharedState, request, legalOfficerCase, locIssuers);
+                return new VoidedLoc(locSharedState, request, legalOfficerCase, locIssuers, invitedContributors);
             }
         } else if (legalOfficerCase.closed) {
             if (legalOfficerCase.locType === 'Collection') {
-                return new ClosedCollectionLoc(locSharedState, request, legalOfficerCase, locIssuers);
+                return new ClosedCollectionLoc(locSharedState, request, legalOfficerCase, locIssuers, invitedContributors);
             } else {
-                return new ClosedLoc(locSharedState, request, legalOfficerCase, locIssuers);
+                return new ClosedLoc(locSharedState, request, legalOfficerCase, locIssuers, invitedContributors);
             }
         } else {
-            return new OpenLoc(locSharedState, request, legalOfficerCase, locIssuers);
+            return new OpenLoc(locSharedState, request, legalOfficerCase, locIssuers, invitedContributors);
         }
     }
 
@@ -800,7 +805,8 @@ export abstract class LocRequestState extends State {
         const client = sharedState.client;
         const request = await client.getLocRequest({ locId: current.locId });
         const locIssuers = await client.getLocIssuers(request, sharedState.nodeApi.batch.locs([ current.locId ]));
-        const newState = await LocRequestState.createFromRequest(sharedState, request, locIssuers);
+        const invitedContributors = await client.getInvitedContributors(request);
+        const newState = await LocRequestState.createFromRequest(sharedState, request, locIssuers, invitedContributors);
         const newLocsState = sharedState.locsState.refreshWith(newState); // Discards this state
         return newLocsState.findById(current.locId);
     }
@@ -810,14 +816,14 @@ export abstract class LocRequestState extends State {
     }
 
     data(): LocData {
-        return LocRequestState.buildLocData(this.locSharedState.nodeApi, this.legalOfficerCase, this.request, this.locIssuers);
+        return LocRequestState.buildLocData(this.locSharedState.nodeApi, this.legalOfficerCase, this.request, this.locIssuers, this.invitedContributors);
     }
 
-    static buildLocData(api: LogionNodeApiClass, legalOfficerCase: LegalOfficerCase | undefined, request: LocRequest, locIssuers: LocVerifiedIssuers): LocData {
+    static buildLocData(api: LogionNodeApiClass, legalOfficerCase: LegalOfficerCase | undefined, request: LocRequest, locIssuers: LocVerifiedIssuers, invitedContributors: ValidAccountId[]): LocData {
         if (legalOfficerCase) {
-            return LocRequestState.dataFromRequestAndLoc(api, request, legalOfficerCase, locIssuers);
+            return LocRequestState.dataFromRequestAndLoc(api, request, legalOfficerCase, locIssuers, invitedContributors);
         } else {
-            return LocRequestState.dataFromRequest(api, request, locIssuers);
+            return LocRequestState.dataFromRequest(api, request, locIssuers, invitedContributors);
         }
     }
 
@@ -861,7 +867,7 @@ export abstract class LocRequestState extends State {
         return result;
     }
 
-    private static dataFromRequest(api: LogionNodeApiClass, request: LocRequest, locIssuers: LocVerifiedIssuers): LocData {
+    private static dataFromRequest(api: LogionNodeApiClass, request: LocRequest, locIssuers: LocVerifiedIssuers, invitedContributors: ValidAccountId[]): LocData {
         return {
             ...request,
             ...locIssuers,
@@ -884,11 +890,12 @@ export abstract class LocRequestState extends State {
                 legalFee: request.fees?.legalFee !== undefined ? Lgnt.fromCanonical(BigInt(request.fees.legalFee)) : undefined,
                 collectionItemFee: request.fees?.collectionItemFee !== undefined ? Lgnt.fromCanonical(BigInt(request.fees.collectionItemFee)) : undefined,
                 tokensRecordFee: request.fees?.tokensRecordFee !== undefined ? Lgnt.fromCanonical(BigInt(request.fees.tokensRecordFee)) : undefined,
-            }
+            },
+            invitedContributors,
         };
     }
 
-    private static dataFromRequestAndLoc(api: LogionNodeApiClass, request: LocRequest, loc: LegalOfficerCase, locIssuers: LocVerifiedIssuers): LocData {
+    private static dataFromRequestAndLoc(api: LogionNodeApiClass, request: LocRequest, loc: LegalOfficerCase, locIssuers: LocVerifiedIssuers, invitedContributors: ValidAccountId[]): LocData {
         const data: LocData = {
             ...loc,
             ...locIssuers,
@@ -916,7 +923,8 @@ export abstract class LocRequestState extends State {
                 legalFee: loc.legalFee,
                 collectionItemFee: loc.collectionItemFee,
                 tokensRecordFee: loc.tokensRecordFee,
-            }
+            },
+            invitedContributors,
         };
 
         if(data.voidInfo && request.voidInfo) {
@@ -1045,11 +1053,11 @@ export abstract class LocRequestState extends State {
 
     abstract withLocs(locsState: LocsState): LocRequestState;
 
-    protected _withLocs<T extends LocRequestState>(locsState: LocsState, constructor: new (locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers) => T): T {
+    protected _withLocs<T extends LocRequestState>(locsState: LocsState, constructor: new (locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers, invitedContributors: ValidAccountId[]) => T): T {
         return this.syncDiscardOnSuccess<T>(current => new constructor({
             ...this.locSharedState,
             locsState
-        }, current.request, current.legalOfficerCase, current.locIssuers));
+        }, current.request, current.legalOfficerCase, current.locIssuers, current.invitedContributors));
     }
 
     async getFile(hash: Hash): Promise<TypedFile> {
@@ -1782,6 +1790,15 @@ export class OpenLoc extends EditableRequest {
         });
     }
 
+    async setInvitedContributor(parameters: BlockchainSubmission<SetInvitedContributorSelectionParams>): Promise<OpenLoc> {
+        if (this.request.locType !== "Collection") {
+            throw Error("Only Collection can have invited contributor")
+        }
+        const client = this.locSharedState.client;
+        await client.setInvitedContributor(withLocId(this.locId, parameters));
+        return await this.refresh() as OpenLoc;
+    }
+
     get legalOfficer(): LegalOfficerOpenRequestCommands {
         return new LegalOfficerOpenRequestCommands({
             locId: this.locId,
@@ -2243,21 +2260,14 @@ export interface UploadTokensRecordFileParams {
 export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
 
     async addCollectionItem(parameters: BlockchainSubmission<AddCollectionItemParams>): Promise<ClosedCollectionLoc> {
-        const { payload, signer, callback } = parameters;
+        const { itemFiles } = parameters.payload;
         const client = this.locSharedState.client;
-        if(payload.itemFiles
-            && payload.itemFiles.length > 0
+        if(itemFiles
+            && itemFiles.length > 0
             && (!this.legalOfficerCase?.collectionCanUpload || false)) {
             throw new Error("This Collection LOC does not allow uploading files with items");
         }
-        await client.addCollectionItem({
-            signer,
-            callback,
-            payload: {
-                ...payload,
-                locId: this.locId,
-            }
-        })
+        await client.addCollectionItem(withLocId(this.locId, parameters));
         return this.getCurrentStateOrThrow() as ClosedCollectionLoc;
     }
 
@@ -2306,22 +2316,20 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
         return this.getCurrentStateOrThrow() as ClosedCollectionLoc;
     }
 
-    async addTokensRecord(parameters: AddTokensRecordParams): Promise<ClosedCollectionLoc> {
+    async addTokensRecord(parameters: BlockchainSubmission<AddTokensRecordParams>): Promise<ClosedCollectionLoc> {
         const client = this.locSharedState.client;
-        if(parameters.files.length === 0) {
+        const { files } = parameters.payload;
+        if(files.length === 0) {
             throw new Error("Cannot add a tokens record without files");
         }
         if(!await client.canAddRecord(this.request)) {
             throw new Error("Current user is not allowed to add a tokens record");
         }
-        await client.addTokensRecord({
-            locId: this.locId,
-            ...parameters
-        })
+        await client.addTokensRecord(withLocId(this.locId, parameters));
         return this.getCurrentStateOrThrow() as ClosedCollectionLoc;
     }
 
-    async estimateFeesAddTokensRecord(parameters: EstimateFeesAddTokensRecordParams): Promise<FeesClass> {
+    async estimateFeesAddTokensRecord(parameters: AddTokensRecordParams): Promise<FeesClass> {
         const client = this.locSharedState.client;
         const tokensRecordFee = this.data().fees.tokensRecordFee;
         if(tokensRecordFee === undefined) {
@@ -2354,6 +2362,12 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
 
     override withLocs(locsState: LocsState): ClosedCollectionLoc {
         return this._withLocs(locsState, ClosedCollectionLoc);
+    }
+
+    async setInvitedContributor(parameters: BlockchainSubmission<SetInvitedContributorSelectionParams>): Promise<ClosedCollectionLoc> {
+        const client = this.locSharedState.client;
+        await client.setInvitedContributor(withLocId(this.locId, parameters));
+        return await this.refresh() as ClosedCollectionLoc;
     }
 
     get legalOfficer(): LegalOfficerClosedCollectionLocCommands {
@@ -2403,7 +2417,7 @@ implements LegalOfficerLocWithSelectableIssuersCommands<ClosedCollectionLoc>, Le
 async function requestSof(locSharedState: LocSharedState, locId: UUID, itemId?: Hash): Promise<PendingRequest> {
     const client = locSharedState.client;
     const locRequest = await client.createSofRequest({ locId, itemId });
-    return new PendingRequest(locSharedState, locRequest, undefined, EMPTY_LOC_ISSUERS).veryNew(); // Discards this state
+    return new PendingRequest(locSharedState, locRequest, undefined, EMPTY_LOC_ISSUERS, []).veryNew(); // Discards this state
 }
 
 export class VoidedLoc extends LocRequestState {
@@ -2446,8 +2460,8 @@ export class VoidedCollectionLoc extends ClosedOrVoidCollectionLoc {
 
 export class ReadOnlyLocState extends LocRequestState {
 
-    constructor(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers) {
-        super(locSharedState, request, legalOfficerCase, locIssuers);
+    constructor(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers, invitedContributors: ValidAccountId[]) {
+        super(locSharedState, request, legalOfficerCase, locIssuers, invitedContributors);
     }
 
     withLocs(locsState: LocsState): LocRequestState {

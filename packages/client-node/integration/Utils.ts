@@ -57,6 +57,9 @@ export const ISSUER_SECRET_SEED = "exit photo know trouble stay hollow gate rive
 export const ETHEREUM_ADDRESS = "0x2469a2fd33ad71a3525cc2047bdd4f3ca851e89f";
 export const ETHEREUM_SEED = "0x09dc05bbed08ff234919b84002a1eb6f856a6e949b017289fc7d457e1bb5e9d4";
 
+export const INVITED_CONTRIBUTOR_ADDRESS = "5F42HAi5kvD6Ao4Ze6UBiZDw7BA4zk62twNYRWAVDq3EhdWH";
+export const INVITED_CONTRIBUTOR_SECRET_SEED = "october minimum future canvas range cruise jealous web renew border hover name";
+
 export interface State {
     signer: FullSigner;
     client: LogionClient;
@@ -71,6 +74,7 @@ export interface State {
     charlieAccount: ValidAccountId,
     issuerAccount: ValidAccountId,
     ethereumAccount: ValidAccountId,
+    invitedContributorAccount: ValidAccountId,
 }
 
 export async function setupInitialState(config: LogionClientConfig = TEST_LOGION_CLIENT_CONFIG): Promise<State> {
@@ -83,6 +87,7 @@ export async function setupInitialState(config: LogionClientConfig = TEST_LOGION
         BOB_SECRET_SEED,
         CHARLIE_SECRET_SEED,
         ISSUER_SECRET_SEED,
+        INVITED_CONTRIBUTOR_SECRET_SEED,
     ]);
     const requesterAccount = anonymousClient.logionApi.queries.getValidAccountId(REQUESTER_ADDRESS, "Polkadot");
     const directRequesterAccount = anonymousClient.logionApi.queries.getValidAccountId(DIRECT_REQUESTER_ADDRESS, "Polkadot");
@@ -92,6 +97,7 @@ export async function setupInitialState(config: LogionClientConfig = TEST_LOGION
     const charlieAccount = anonymousClient.logionApi.queries.getValidAccountId(CHARLIE, "Polkadot");
     const issuerAccount = anonymousClient.logionApi.queries.getValidAccountId(ISSUER_ADDRESS, "Polkadot");
     const ethereumAccount = anonymousClient.logionApi.queries.getValidAccountId(ETHEREUM_ADDRESS, "Ethereum");
+    const invitedContributorAccount = anonymousClient.logionApi.queries.getValidAccountId(INVITED_CONTRIBUTOR_ADDRESS, "Polkadot");
     const client = await anonymousClient.authenticate([
         requesterAccount,
         directRequesterAccount,
@@ -101,6 +107,7 @@ export async function setupInitialState(config: LogionClientConfig = TEST_LOGION
         charlieAccount,
         issuerAccount,
         ethereumAccount,
+        invitedContributorAccount,
     ], signer);
     const legalOfficers = client.legalOfficers;
     const alice = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === ALICE));
@@ -120,6 +127,7 @@ export async function setupInitialState(config: LogionClientConfig = TEST_LOGION
         charlieAccount,
         issuerAccount,
         ethereumAccount,
+        invitedContributorAccount,
     };
 }
 

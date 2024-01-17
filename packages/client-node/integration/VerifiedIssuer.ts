@@ -61,8 +61,8 @@ export async function verifiedIssuer(state: State) {
     const transactionLocId = pendingLocRequest.data().id;
 
     aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: aliceAccount.address, locTypes: ["Transaction"], statuses: ["REVIEW_PENDING"] } });
-    const alicePendingTransation = aliceLocs.findById(transactionLocId) as PendingRequest;
-    const aliceAcceptedTransaction = await alicePendingTransation.legalOfficer.accept() as AcceptedRequest;
+    const alicePendingTransaction = aliceLocs.findById(transactionLocId) as PendingRequest;
+    const aliceAcceptedTransaction = await alicePendingTransaction.legalOfficer.accept() as AcceptedRequest;
 
     let acceptedLoc = await pendingLocRequest.refresh() as AcceptedRequest;
     let openLoc = await acceptedLoc.open({ signer, autoPublish: false });
