@@ -15,6 +15,7 @@ export * from './Environment.js';
 export * from './Ethereum.js';
 export * from './Hash.js';
 export * from './Http.js';
+export * from './InvitedContributor.js';
 export * from './Loc.js';
 export * from './LocClient.js';
 export * from './LogionClient.js';

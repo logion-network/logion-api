@@ -3,7 +3,11 @@ import {
     ClosedLoc,
     HashOrContent,
     AcceptedRequest,
-    PendingRequest, OpenLoc, MimeType, waitFor
+    PendingRequest,
+    OpenLoc,
+    MimeType,
+    waitFor,
+    InvitedContributorLoc,
 } from "@logion/client";
 import {
     State,
@@ -12,7 +16,6 @@ import {
     INVITED_CONTRIBUTOR_ADDRESS
 } from "./Utils.js";
 import { NodeFile } from "../src/index.js";
-import { InvitedContributorLoc } from "@logion/client/dist/InvitedContributor.js";
 
 export async function invitedContributors(state: State) {
     const { alice, aliceAccount, invitedContributorAccount, newAccount, signer } = state;
