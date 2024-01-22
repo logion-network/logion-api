@@ -18,7 +18,7 @@ const configs: Record<Environment, Omit<LogionClientConfig, 'buildFileUploader'>
     TEST: {
         rpcEndpoints: [ "wss://test-rpc01.logion.network" ],
         directoryEndpoint: "https://test-directory.logion.network",
-        logionClassificationLoc: UUID.fromDecimalStringOrThrow("282936933702588204161845152150370047407"),
+        logionClassificationLoc: UUID.fromDecimalStringOrThrow("116468287775993067124760331735250695835"),
     },
     MVP: {
         rpcEndpoints: [ "wss://rpc01.logion.network", "wss://rpc02.logion.network" ],
