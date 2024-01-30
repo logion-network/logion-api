@@ -30,9 +30,12 @@ import {
     RECOVERED_ADDRESS,
     buildSimpleNodeApi,
     buildValidPolkadotAccountId,
+    REQUESTER_ID_LOC_ALICE,
+    REQUESTER_ID_LOC_BOB,
 } from './Utils.js';
 import { TestConfigFactory } from './TestConfigFactory.js';
 import { AxiosFactory } from '../src/AxiosFactory.js';
+import { UUID } from "@logion/node-api";
 
 describe("Recovery's getInitialState", () => {
 
@@ -214,6 +217,7 @@ async function buildSharedState(): Promise<SharedState> {
 interface PartialProtectionRequest {
     id: string,
     requesterAddress: string,
+    requesterIdentityLoc: string,
     userIdentity: UserIdentity,
     userPostalAddress: PostalAddress,
     createdOn: string,
@@ -228,6 +232,7 @@ function buildPartialAliceRequest(): PartialProtectionRequest {
         legalOfficerAddress: ALICE.address,
         otherLegalOfficerAddress: BOB.address,
         requesterAddress: REQUESTER.address,
+        requesterIdentityLoc: REQUESTER_ID_LOC_ALICE,
         userIdentity: {} as UserIdentity,
         userPostalAddress: {} as PostalAddress,
     };
@@ -240,6 +245,7 @@ function buildPartialBobRequest(): PartialProtectionRequest {
         legalOfficerAddress: BOB.address,
         otherLegalOfficerAddress: ALICE.address,
         requesterAddress: REQUESTER.address,
+        requesterIdentityLoc: REQUESTER_ID_LOC_BOB,
         userIdentity: {} as UserIdentity,
         userPostalAddress: {} as PostalAddress,
     };
@@ -385,7 +391,6 @@ describe("NoProtection", () => {
                 setupCreateProtectionRequest(
                     axiosFactory,
                     buildPartialAliceRequest(),
-                    currentAddress.address,
                     ALICE,
                     BOB,
                     token,
@@ -394,7 +399,6 @@ describe("NoProtection", () => {
                 setupCreateProtectionRequest(
                     axiosFactory,
                     buildPartialBobRequest(),
-                    currentAddress.address,
                     BOB,
                     ALICE,
                     token,
@@ -407,7 +411,12 @@ describe("NoProtection", () => {
         );
         const state = new NoProtection(sharedState);
 
-        const nextState = await state.requestProtection({legalOfficer1: sharedState.legalOfficerClasses[0], legalOfficer2: sharedState.legalOfficerClasses[1], userIdentity: {} as UserIdentity, postalAddress: {} as PostalAddress});
+        const nextState = await state.requestProtection({
+            legalOfficer1: sharedState.legalOfficerClasses[0],
+            legalOfficer2: sharedState.legalOfficerClasses[1],
+            requesterIdentityLoc1: new UUID(REQUESTER_ID_LOC_ALICE),
+            requesterIdentityLoc2: new UUID(REQUESTER_ID_LOC_BOB)
+        });
 
         expect(nextState).toBeInstanceOf(PendingProtection);
         expect(nextState.protectionParameters.isActive).toBe(false);
@@ -447,7 +456,6 @@ describe("NoProtection", () => {
                 setupCreateProtectionRequest(
                     axiosFactory,
                     buildPartialAliceRequest(),
-                    currentAddress.address,
                     ALICE,
                     BOB,
                     token,
@@ -456,7 +464,6 @@ describe("NoProtection", () => {
                 setupCreateProtectionRequest(
                     axiosFactory,
                     buildPartialBobRequest(),
-                    currentAddress.address,
                     BOB,
                     ALICE,
                     token,
@@ -473,12 +480,14 @@ describe("NoProtection", () => {
             .returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 
         const nextState = await state.requestRecovery({
-            legalOfficer1: sharedState.legalOfficerClasses[0],
-            legalOfficer2: sharedState.legalOfficerClasses[1],
-            userIdentity: {} as UserIdentity,
-            postalAddress: {} as PostalAddress,
+            payload : {
+                legalOfficer1: sharedState.legalOfficerClasses[0],
+                legalOfficer2: sharedState.legalOfficerClasses[1],
+                requesterIdentityLoc1: new UUID(REQUESTER_ID_LOC_ALICE),
+                requesterIdentityLoc2: new UUID(REQUESTER_ID_LOC_BOB),
+                recoveredAddress: RECOVERED_ADDRESS.address
+            },
             signer: signer.object(),
-            recoveredAddress: RECOVERED_ADDRESS.address
         });
 
         expect(nextState).toBeInstanceOf(PendingProtection);
@@ -491,7 +500,6 @@ describe("NoProtection", () => {
 function setupCreateProtectionRequest(
     axiosFactory: Mock<AxiosFactory>,
     partialProtectionRequest: PartialProtectionRequest,
-    requester: string,
     legalOfficer: LegalOfficer,
     otherLegalOfficer: LegalOfficer,
     token: string,
@@ -513,7 +521,6 @@ function setupCreateProtectionRequest(
     axios.setup(instance => instance.post("/api/protection-request", It.Is<CreateProtectionRequest>(body =>
         body.otherLegalOfficerAddress === otherLegalOfficer.address
         && ((body.isRecovery && addressToRecover !== null) || (!body.isRecovery && addressToRecover === null))
-        && body.requesterAddress === requester
     ))).returns(Promise.resolve(response.object()));
     axiosFactory.setup(instance => instance.buildAxiosInstance(legalOfficer.node, token))
         .returns(axios.object());
@@ -721,7 +728,7 @@ describe("AcceptedProtection", () => {
             && params.submittable === submittable.object()))
         ).returns(Promise.resolve({ block: "hash", index: 1, events: [] }));
 
-        const nextState = await state.activate(signer.object());
+        const nextState = await state.activate({ signer: signer.object() });
 
         expect(nextState).toBeInstanceOf(ActiveProtection);
         expect(nextState.protectionParameters.isActive).toBe(true);
@@ -784,7 +791,7 @@ describe("AcceptedProtection", () => {
             && params.submittable === submittable.object()))
         ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 
-        const nextState = await state.activate(signer.object());
+        const nextState = await state.activate({ signer: signer.object() });
 
         expect(nextState).toBeInstanceOf(PendingRecovery);
         expect(nextState.protectionParameters.isActive).toBe(true);
@@ -859,7 +866,7 @@ describe("PendingRecovery", () => {
             && params.submittable === submittable.object()))
         ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 
-        const nextState = await state.claimRecovery(signer.object());
+        const nextState = await state.claimRecovery({ signer: signer.object() });
 
         expect(nextState).toBeInstanceOf(ClaimedRecovery);
         expect(nextState.protectionParameters.isActive).toBe(true);

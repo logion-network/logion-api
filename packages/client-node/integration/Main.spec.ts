@@ -1,5 +1,5 @@
 import { setupInitialState, State, tearDown } from "./Utils.js";
-import { enablesProtection, requestsProtectionAndCancel } from "./Protection.js";
+import { enablesProtection, requestsProtectionAndCancel, requestValidIdentity } from "./Protection.js";
 import { transferAndCannotPayFees, transfers, transferWithInsufficientFunds } from "./Balance.js";
 import { providesVault } from "./Vault.js";
 import { recoverLostAccount, recoverLostVault, requestRecoveryAndCancel, requestRecoveryWithResubmit } from "./Recovery.js";
@@ -53,8 +53,9 @@ describe("Logion SDK", () => {
     });
 
     it("enables protection", async () => {
-        await requestsProtectionAndCancel(state);
-        await enablesProtection(state);
+        const identityLocs = await requestValidIdentity(state);
+        await requestsProtectionAndCancel(state, identityLocs);
+        await enablesProtection(state, identityLocs);
     });
 
     it("provides vault", async () => {

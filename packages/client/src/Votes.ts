@@ -1,7 +1,7 @@
 import { UUID } from "@logion/node-api";
 import { LogionClient } from "./LogionClient.js";
 import { State } from "./State.js";
-import { BlockchainSubmissionParams } from "./LocClient.js";
+import { BlockchainSubmissionParams } from "./Signer.js";
 
 export class Votes extends State {
 

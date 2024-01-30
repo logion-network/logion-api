@@ -31,7 +31,6 @@ import {
     AddTokensRecordParams,
     GetTokensRecordsRequest,
     ReviewFileParams,
-    BlockchainSubmissionParams,
     AckFileParams,
     ReviewMetadataParams,
     AckMetadataParams,
@@ -54,11 +53,10 @@ import {
     ItemLifecycle as BackendItemLifecycle,
     AutoPublish,
     CollectionLimits,
-    BlockchainSubmission,
-    BlockchainBatchSubmission,
     SetInvitedContributorSelectionParams,
     withLocId,
 } from "./LocClient.js";
+import { BlockchainSubmission, BlockchainSubmissionParams, BlockchainBatchSubmission } from "./Signer.js";
 import { SharedState, getLegalOfficer } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
 import { CollectionItem as CollectionItemClass } from "./CollectionItem.js";

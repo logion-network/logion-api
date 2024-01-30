@@ -2,12 +2,12 @@ import {
     CoinBalance,
     Lgnt,
 } from "@logion/node-api";
-import type { SubmittableExtrinsic } from '@polkadot/api/promise/types'; 
+import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import { Transaction, TransactionClient } from "./TransactionClient.js";
 import { SharedState } from "./SharedClient.js";
 import { State } from "./State.js";
-import { BlockchainSubmissionParams } from "./LocClient.js";
+import { BlockchainSubmissionParams } from "./Signer.js";
 
 export interface TransferParam extends BlockchainSubmissionParams {
     destination: string;

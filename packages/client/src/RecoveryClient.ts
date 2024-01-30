@@ -25,6 +25,7 @@ export type ProtectionRequestStatus =
 export interface ProtectionRequest {
     id: string,
     requesterAddress: string,
+    requesterIdentityLoc: string,
     decision: LegalOfficerDecision,
     userIdentity: UserIdentity,
     userPostalAddress: PostalAddress,
@@ -45,9 +46,7 @@ export interface FetchProtectionRequestSpecification {
 }
 
 export interface CreateProtectionRequest {
-    requesterAddress: string,
-    userIdentity: UserIdentity,
-    userPostalAddress: PostalAddress,
+    requesterIdentityLoc: string,
     isRecovery: boolean,
     addressToRecover: string,
     legalOfficerAddress: string,

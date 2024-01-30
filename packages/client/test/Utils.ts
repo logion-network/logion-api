@@ -175,6 +175,9 @@ export const RECOVERED_ADDRESS = buildValidPolkadotAccountId("5FniDvPw22DMW1TLee
 
 export const REQUESTER = buildValidPolkadotAccountId("5EBxoSssqNo23FvsDeUxjyQScnfEiGxJaNwuwqBH2Twe35BX")!;
 
+export const REQUESTER_ID_LOC_ALICE = "354b4c13-aad5-477e-8ad3-b834e880db65";
+export const REQUESTER_ID_LOC_BOB = "feeb0877-3068-4e05-a4a7-65bf37b84eb5";
+
 export function itSpies<T>(): T {
     return It.Is<T>(value => { console.log(value); return false });
 }

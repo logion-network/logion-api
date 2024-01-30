@@ -2,9 +2,9 @@ import {
     AuthenticatedLocClient,
     AddTokensRecordParams,
     FetchParameters,
-    BlockchainSubmission,
     withLocId
 } from "./LocClient.js";
+import { BlockchainSubmission } from "./Signer.js";
 import { PublicLoc } from "./Public.js";
 import { SharedState } from "./SharedClient.js";
 import { LogionClient } from "./LogionClient.js";

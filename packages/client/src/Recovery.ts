@@ -12,13 +12,14 @@ import {
 } from "./RecoveryClient.js";
 
 import { authenticatedCurrentAddress, getDefinedCurrentAddress, getLegalOfficer, SharedState } from "./SharedClient.js";
-import { SignCallback, Signer } from "./Signer.js";
 import { LegalOfficerClass, LegalOfficer, PostalAddress, UserIdentity } from "./Types.js";
 import { BalanceState, getBalanceState } from "./Balance.js";
 import { VaultState } from "./Vault.js";
 import { PollingParameters, waitFor } from "./Polling.js";
 import { findOrThrow } from "./Collections.js";
 import { State } from "./State.js";
+import { BlockchainSubmission, BlockchainSubmissionParams } from "./Signer.js";
+import { UUID } from "@logion/node-api/dist/types/UUID";
 
 export type ProtectionState =
     NoProtection
@@ -40,6 +41,21 @@ export interface RecoverySharedState extends SharedState {
     recoveryConfig?: TypesRecoveryConfig;
     recoveredAddress?: string;
     selectedLegalOfficers: LegalOfficerClass[];
+}
+
+export interface ProtectionParams {
+    legalOfficer1: LegalOfficerClass,
+    legalOfficer2: LegalOfficerClass,
+    requesterIdentityLoc1: UUID,
+    requesterIdentityLoc2: UUID,
+}
+
+export interface ProtectionOrRecoveryParams extends ProtectionParams {
+    recoveredAddress?: string
+}
+
+export interface RecoveryParams extends ProtectionParams {
+    recoveredAddress: string
 }
 
 function toActionableProtectionRequest(protectionRequest: ProtectionRequest, sharedState: SharedState): ProtectionRequest {
@@ -178,49 +194,28 @@ export class NoProtection extends State {
         }
     }
 
-    async requestProtection(params: {
-        legalOfficer1: LegalOfficerClass,
-        legalOfficer2: LegalOfficerClass,
-        userIdentity: UserIdentity,
-        postalAddress: PostalAddress,
-    }): Promise<PendingProtection> {
+    async requestProtection(params: ProtectionParams): Promise<PendingProtection> {
         return this.requestProtectionOrRecoveryAndDiscard({ ...params });
     }
 
-    private async requestProtectionOrRecoveryAndDiscard(params: {
-        legalOfficer1: LegalOfficerClass,
-        legalOfficer2: LegalOfficerClass,
-        userIdentity: UserIdentity,
-        postalAddress: PostalAddress,
-        recoveredAddress?: string,
-    }): Promise<PendingProtection> {
+    private async requestProtectionOrRecoveryAndDiscard(params: ProtectionOrRecoveryParams): Promise<PendingProtection> {
         return this.discardOnSuccess<NoProtection, PendingProtection>(current => current.requestProtectionOrRecovery(params));
     }
 
-    private async requestProtectionOrRecovery(params: {
-        legalOfficer1: LegalOfficerClass,
-        legalOfficer2: LegalOfficerClass,
-        userIdentity: UserIdentity,
-        postalAddress: PostalAddress,
-        recoveredAddress?: string,
-    }): Promise<PendingProtection> {
+    private async requestProtectionOrRecovery(params: ProtectionOrRecoveryParams): Promise<PendingProtection> {
         const loRecoveryClient1 = newLoRecoveryClient(this.sharedState, params.legalOfficer1);
         const protection1 = await loRecoveryClient1.createProtectionRequest({
-            requesterAddress: getDefinedCurrentAddress(this.sharedState).address,
+            requesterIdentityLoc: params.requesterIdentityLoc1.toString(),
             legalOfficerAddress: params.legalOfficer1.address,
             otherLegalOfficerAddress: params.legalOfficer2.address,
-            userIdentity: params.userIdentity,
-            userPostalAddress: params.postalAddress,
             isRecovery: params.recoveredAddress !== undefined,
             addressToRecover: params.recoveredAddress || "",
         });
         const loRecoveryClient2 = newLoRecoveryClient(this.sharedState, params.legalOfficer2);
         const protection2 = await loRecoveryClient2.createProtectionRequest({
-            requesterAddress: getDefinedCurrentAddress(this.sharedState).address,
+            requesterIdentityLoc: params.requesterIdentityLoc2.toString(),
             legalOfficerAddress: params.legalOfficer2.address,
             otherLegalOfficerAddress: params.legalOfficer1.address,
-            userIdentity: params.userIdentity,
-            userPostalAddress: params.postalAddress,
             isRecovery: params.recoveredAddress !== undefined,
             addressToRecover: params.recoveredAddress || "",
         });
@@ -242,36 +237,29 @@ export class NoProtection extends State {
         });
     }
 
-    async requestRecovery(params: {
-        legalOfficer1: LegalOfficerClass,
-        legalOfficer2: LegalOfficerClass,
-        userIdentity: UserIdentity,
-        postalAddress: PostalAddress,
-        recoveredAddress: string,
-        signer: Signer,
-        callback?: SignCallback,
-    }): Promise<PendingProtection> {
+    async requestRecovery(params: BlockchainSubmission<RecoveryParams>): Promise<PendingProtection> {
+        const { payload } = params;
         const currentAddress = getDefinedCurrentAddress(this.sharedState);
         const activeRecovery = await this.sharedState.nodeApi.queries.getActiveRecovery(
-            params.recoveredAddress,
+            payload.recoveredAddress,
             currentAddress.address,
         );
         if (activeRecovery === undefined) {
-            const recoveryConfig = await this.sharedState.nodeApi.queries.getRecoveryConfig(params.recoveredAddress);
+            const recoveryConfig = await this.sharedState.nodeApi.queries.getRecoveryConfig(payload.recoveredAddress);
             if (recoveryConfig &&
-                recoveryConfig.legalOfficers.includes(params.legalOfficer1.address) &&
-                recoveryConfig.legalOfficers.includes(params.legalOfficer2.address)
+                recoveryConfig.legalOfficers.includes(payload.legalOfficer1.address) &&
+                recoveryConfig.legalOfficers.includes(payload.legalOfficer2.address)
             ) {
                 await params.signer.signAndSend({
                     signerId: currentAddress.address,
-                    submittable: this.sharedState.nodeApi.polkadot.tx.recovery.initiateRecovery(params.recoveredAddress),
+                    submittable: this.sharedState.nodeApi.polkadot.tx.recovery.initiateRecovery(payload.recoveredAddress),
                     callback: params.callback,
                 });
             } else {
                 throw Error("Unable to find a valid Recovery config.");
             }
         }
-        return this.requestProtectionOrRecoveryAndDiscard({ ...params });
+        return this.requestProtectionOrRecoveryAndDiscard(params.payload);
     }
 
     get protectionParameters(): ProtectionParameters {
@@ -420,6 +408,7 @@ class ProtectionRequestImpl implements ProtectionRequest {
     constructor(protectionRequest: ProtectionRequest, loRecoveryClient: LoRecoveryClient) {
         this.id = protectionRequest.id;
         this.requesterAddress = protectionRequest.requesterAddress;
+        this.requesterIdentityLoc = protectionRequest.requesterIdentityLoc;
         this.decision = protectionRequest.decision;
         this.userIdentity = protectionRequest.userIdentity;
         this.userPostalAddress = protectionRequest.userPostalAddress;
@@ -434,6 +423,7 @@ class ProtectionRequestImpl implements ProtectionRequest {
 
     readonly id: string;
     readonly requesterAddress: string;
+    readonly requesterIdentityLoc: string;
     readonly decision: LegalOfficerDecision;
     readonly userIdentity: UserIdentity;
     readonly userPostalAddress: PostalAddress;
@@ -565,11 +555,9 @@ export class RejectedProtection extends RejectedRecovery {
     private createNewRequest(requestToCancel: ProtectionRequest, otherRequest: ProtectionRequest, newLegalOfficer: LegalOfficer): Promise<ProtectionRequest> {
         const loRecoveryClient = newLoRecoveryClient(this.sharedState, newLegalOfficer);
         return loRecoveryClient.createProtectionRequest({
-            requesterAddress: getDefinedCurrentAddress(this.sharedState).address,
+            requesterIdentityLoc: requestToCancel.requesterIdentityLoc,
             legalOfficerAddress: newLegalOfficer.address,
             otherLegalOfficerAddress: otherRequest.legalOfficerAddress,
-            userIdentity: requestToCancel.userIdentity,
-            userPostalAddress: requestToCancel.userPostalAddress,
             isRecovery: false,
             addressToRecover: "",
         });
@@ -585,17 +573,12 @@ export class AcceptedProtection extends State implements WithProtectionParameter
 
     private readonly sharedState: RecoverySharedState;
 
-    async activate(
-        signer: Signer,
-        callback?: SignCallback,
-    ): Promise<ActiveProtection | PendingRecovery> {
-        return this.discardOnSuccess<AcceptedProtection, ActiveProtection | PendingRecovery>(current => current._activate(signer, callback));
+    async activate(params: BlockchainSubmissionParams): Promise<ActiveProtection | PendingRecovery> {
+        return this.discardOnSuccess<AcceptedProtection, ActiveProtection | PendingRecovery>(current => current._activate(params));
     }
 
-    private async _activate(
-        signer: Signer,
-        callback?: SignCallback,
-    ): Promise<ActiveProtection | PendingRecovery> {
+    private async _activate(params: BlockchainSubmissionParams): Promise<ActiveProtection | PendingRecovery> {
+        const { signer, callback } = params
         const sortedLegalOfficers = this.sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address).sort();
         await signer.signAndSend({
             signerId: getDefinedCurrentAddress(this.sharedState).address,
@@ -715,17 +698,12 @@ export class PendingRecovery extends State implements WithProtectionParameters, 
 
     private readonly sharedState: RecoverySharedState;
 
-    async claimRecovery(
-        signer: Signer,
-        callback?: SignCallback,
-    ): Promise<ClaimedRecovery> {
-        return this.discardOnSuccess<PendingRecovery, ClaimedRecovery>(current => current._claimRecovery(signer, callback));
+    async claimRecovery(params: BlockchainSubmissionParams): Promise<ClaimedRecovery> {
+        return this.discardOnSuccess<PendingRecovery, ClaimedRecovery>(current => current._claimRecovery(params));
     }
 
-    private async _claimRecovery(
-        signer: Signer,
-        callback?: SignCallback,
-    ): Promise<ClaimedRecovery> {
+    private async _claimRecovery(params: BlockchainSubmissionParams): Promise<ClaimedRecovery> {
+        const { signer, callback } = params;
         const addressToRecover = this.protectionParameters.recoveredAddress || "";
         await signer.signAndSend({
             signerId: getDefinedCurrentAddress(this.sharedState).address,
