@@ -1,5 +1,5 @@
 import { setupInitialState, State, tearDown } from "./Utils.js";
-import { enablesProtection, requestsProtectionAndCancel } from "./Protection.js";
+import { enablesProtection, requestsProtectionAndCancel, requestValidIdentity } from "./Protection.js";
 import { transferAndCannotPayFees, transfers, transferWithInsufficientFunds } from "./Balance.js";
 import { providesVault } from "./Vault.js";
 import { recoverLostAccount, recoverLostVault, requestRecoveryAndCancel, requestRecoveryWithResubmit } from "./Recovery.js";
@@ -53,20 +53,19 @@ describe("Logion SDK", () => {
     });
 
     it("enables protection", async () => {
-        await requestsProtectionAndCancel(state);
-        await enablesProtection(state);
+        const identityLocs = await requestValidIdentity(state, state.requesterAccount);
+        await requestsProtectionAndCancel(state, identityLocs);
+        await enablesProtection(state, identityLocs);
     });
 
     it("provides vault", async () => {
         await providesVault(state);
     });
 
-    it("is able to cancel a recovery request", async () => {
-        await requestRecoveryAndCancel(state);
-    });
-
-    it("is able to start recovery after resubmission", async () => {
-        await requestRecoveryWithResubmit(state);
+    it("enables recovery", async () => {
+        const identityLocs = await requestValidIdentity(state, state.newAccount);
+        await requestRecoveryAndCancel(state, identityLocs);
+        await requestRecoveryWithResubmit(state, identityLocs);
     });
 
     it("recovers a lost vault", async () => {
@@ -75,10 +74,6 @@ describe("Logion SDK", () => {
 
     it("recovers a lost account", async () => {
         await recoverLostAccount(state);
-    });
-
-    it("provides Identity LOC", async () => {
-        await identityLoc(state);
     });
 
     it("provides Logion Identity LOC", async () => {

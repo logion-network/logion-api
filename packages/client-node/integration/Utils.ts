@@ -140,14 +140,11 @@ export async function updateConfig(config: Partial<LogionClientConfig>): Promise
 }
 
 export async function initRequesterBalance(config: LogionClientConfig, signer: Signer, requester: string): Promise<void> {
-    await transferTokens(config, signer, ALICE, requester, Lgnt.fromPrefixedNumber(new Numbers.PrefixedNumber("10000", Numbers.NONE)).canonical);
-}
-
-async function transferTokens(config: LogionClientConfig, signer: Signer, source: string, destination: string, amount: bigint) {
     const api = await buildApiClass(config.rpcEndpoints);
+    const setBalance = api.polkadot.tx.balances.forceSetBalance(requester, Lgnt.from(10000).canonical);
     await signer.signAndSend({
-        signerId: source,
-        submittable: api.polkadot.tx.balances.transferAllowDeath(destination, amount)
+        signerId: ALICE,
+        submittable: api.polkadot.tx.sudo.sudo(setBalance),
     });
 }
 

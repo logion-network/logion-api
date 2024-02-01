@@ -29,7 +29,7 @@ import { authenticatedCurrentAddress, LegalOfficerEndpoint, SharedState, LogionC
 import { AxiosFactory } from "./AxiosFactory.js";
 import { requireDefined } from "./assertions.js";
 import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays, Token } from "./Http.js";
-import { Signer, SignCallback } from "./Signer.js";
+import { BlockchainSubmission, BlockchainSubmissionParams, BlockchainBatchSubmission } from "./Signer.js";
 import { ComponentFactory } from "./ComponentFactory.js";
 import { newBackendError } from "./Error.js";
 import { HashOrContent, HashString } from "./Hash.js";
@@ -187,19 +187,6 @@ export interface AddFileParams {
 export interface AddLinkParams {
     target: UUID;
     nature: string;
-}
-
-export interface BlockchainSubmissionParams {
-    signer: Signer;
-    callback?: SignCallback;
-}
-
-export interface BlockchainSubmission<T> extends BlockchainSubmissionParams {
-    payload: T;
-}
-
-export interface BlockchainBatchSubmission<T> extends BlockchainSubmissionParams {
-    payload: T[];
 }
 
 export function withLocId<T>(locId: UUID, params: BlockchainSubmission<T>): BlockchainSubmission<T & FetchParameters> {

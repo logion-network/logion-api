@@ -6,11 +6,11 @@ import { aggregateArrays, MultiSourceHttpClient, initMultiSourceHttpClientState 
 import { NetworkState } from "./NetworkState.js";
 import { LegalOfficerEndpoint } from "./SharedClient.js";
 import { LegalOfficer, PostalAddress, UserIdentity } from "./Types.js";
+import { newBackendError } from "./Error.js";
 
 export interface LegalOfficerDecision {
     rejectReason: string | null,
     decisionOn: string | null,
-    locId?: string | null,
 }
 
 export type ProtectionRequestStatus =
@@ -25,6 +25,7 @@ export type ProtectionRequestStatus =
 export interface ProtectionRequest {
     id: string,
     requesterAddress: string,
+    requesterIdentityLoc: string,
     decision: LegalOfficerDecision,
     userIdentity: UserIdentity,
     userPostalAddress: PostalAddress,
@@ -45,9 +46,7 @@ export interface FetchProtectionRequestSpecification {
 }
 
 export interface CreateProtectionRequest {
-    requesterAddress: string,
-    userIdentity: UserIdentity,
-    userPostalAddress: PostalAddress,
+    requesterIdentityLoc: string,
     isRecovery: boolean,
     addressToRecover: string,
     legalOfficerAddress: string,
@@ -141,8 +140,12 @@ export class RecoveryClient {
         axios: AxiosInstance,
         specification: FetchProtectionRequestSpecification
     ): Promise<ProtectionRequest[]> {
-        const response = await axios.put("/api/protection-request", specification);
-        return response.data.requests;
+        try {
+            const response = await axios.put("/api/protection-request", specification);
+            return response.data.requests;
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     private filterByStatuses(requests: ProtectionRequest[], statuses: ProtectionRequestStatus[]): ProtectionRequest[] {
@@ -188,29 +191,44 @@ export class LoRecoveryClient {
     private readonly legalOfficer: LegalOfficer;
 
     async createProtectionRequest(request: CreateProtectionRequest): Promise<ProtectionRequest> {
-        const response = await this.backend().post("/api/protection-request", request);
-        return response.data;
-    }
-
-    async resubmit(params: UserActionParameters): Promise<void> {
-        const { id } = params;
-        return this.backend().post(`/api/protection-request/${ id }/resubmit`)
-    }
-
-    async cancel(params: UserActionParameters): Promise<void> {
-        const { id } = params;
-        return this.backend().post(`/api/protection-request/${ id }/cancel`)
-    }
-
-    async update(params: UserActionParameters & UpdateParameters): Promise<void> {
-        const { id, otherLegalOfficer } = params;
-        return this.backend().put(`/api/protection-request/${ id }/update`, {
-            otherLegalOfficerAddress: otherLegalOfficer.address
-        })
+        try {
+            const response = await this.backend().post("/api/protection-request", request);
+            return response.data;
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     private backend(): AxiosInstance {
         return this.axiosFactory.buildAxiosInstance(this.legalOfficer.node, this.token);
     }
 
+    async resubmit(params: UserActionParameters): Promise<void> {
+        const { id } = params;
+        try {
+            return this.backend().post(`/api/protection-request/${ id }/resubmit`)
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    async cancel(params: UserActionParameters): Promise<void> {
+        const { id } = params;
+        try {
+            return this.backend().post(`/api/protection-request/${ id }/cancel`)
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    async update(params: UserActionParameters & UpdateParameters): Promise<void> {
+        const { id, otherLegalOfficer } = params;
+        try {
+            return this.backend().put(`/api/protection-request/${ id }/update`, {
+                otherLegalOfficerAddress: otherLegalOfficer.address
+            })
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
 }

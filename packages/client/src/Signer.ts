@@ -69,6 +69,19 @@ interface SubmissionState {
     block?: string;
 }
 
+export interface BlockchainSubmissionParams {
+    signer: Signer;
+    callback?: SignCallback;
+}
+
+export interface BlockchainSubmission<T> extends BlockchainSubmissionParams {
+    payload: T;
+}
+
+export interface BlockchainBatchSubmission<T> extends BlockchainSubmissionParams {
+    payload: T[];
+}
+
 export abstract class BaseSigner implements FullSigner {
 
     constructor(signAndSendStrategy?: SignAndSendStrategy) {
@@ -100,10 +113,18 @@ export abstract class BaseSigner implements FullSigner {
 
     async signAndSend(parameters: SignParameters): Promise<SuccessfulSubmission> {
         const signAndSendFunction = await this.buildSignAndSendFunction(parameters);
-        return this.buildSignAndSendPromise({
-            ...parameters,
-            signAndSend: signAndSendFunction,
-        });
+        try {
+            return await this.buildSignAndSendPromise({
+                ...parameters,
+                signAndSend: signAndSendFunction,
+            });
+        } catch(e) {
+            if(typeof e === "object" && e !== null && "message" in e && typeof e.message === "string") {
+                throw new Error(e.message);
+            } else {
+                throw new Error("Unexpected error");
+            }
+        }
     }
 
     abstract buildSignAndSendFunction(parameters: SignParameters): Promise<SignAndSendFunction>;
