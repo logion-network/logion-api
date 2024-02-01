@@ -53,7 +53,7 @@ describe("Logion SDK", () => {
     });
 
     it("enables protection", async () => {
-        const identityLocs = await requestValidIdentity(state);
+        const identityLocs = await requestValidIdentity(state, state.requesterAccount);
         await requestsProtectionAndCancel(state, identityLocs);
         await enablesProtection(state, identityLocs);
     });
@@ -62,12 +62,10 @@ describe("Logion SDK", () => {
         await providesVault(state);
     });
 
-    it("is able to cancel a recovery request", async () => {
-        await requestRecoveryAndCancel(state);
-    });
-
-    it("is able to start recovery after resubmission", async () => {
-        await requestRecoveryWithResubmit(state);
+    it("enables recovery", async () => {
+        const identityLocs = await requestValidIdentity(state, state.newAccount);
+        await requestRecoveryAndCancel(state, identityLocs);
+        await requestRecoveryWithResubmit(state, identityLocs);
     });
 
     it("recovers a lost vault", async () => {
@@ -76,10 +74,6 @@ describe("Logion SDK", () => {
 
     it("recovers a lost account", async () => {
         await recoverLostAccount(state);
-    });
-
-    it("provides Identity LOC", async () => {
-        await identityLoc(state);
     });
 
     it("provides Logion Identity LOC", async () => {

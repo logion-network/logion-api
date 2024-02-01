@@ -22,16 +22,18 @@ import { initRequesterBalance, State, TEST_LOGION_CLIENT_CONFIG } from "./Utils.
 import { ClosedLoc } from "@logion/client/dist/Loc";
 import { LegalOfficerClass } from "@logion/client/dist/Types";
 
-interface IdentityLocs {
+export interface IdentityLocs {
     alice: UUID,
     bob: UUID,
+    charlie: UUID,
 }
 
-export async function requestValidIdentity(state: State): Promise<IdentityLocs> {
-    const { alice, aliceAccount, bob, bobAccount } = state
-    const idByAlice = await createsIdentityLoc(state, alice, aliceAccount);
-    const idByBob = await createsIdentityLoc(state, bob, bobAccount);
-    return { alice: idByAlice.data().id, bob: idByBob.data().id }
+export async function requestValidIdentity(state: State, account: ValidAccountId): Promise<IdentityLocs> {
+    const { alice, aliceAccount, bob, bobAccount, charlie, charlieAccount } = state
+    const idByAlice = await createsIdentityLoc(state, account, alice, aliceAccount);
+    const idByBob = await createsIdentityLoc(state, account, bob, bobAccount);
+    const idByCharlie = await createsIdentityLoc(state, account, charlie, charlieAccount);
+    return { alice: idByAlice.data().id, bob: idByBob.data().id, charlie: idByCharlie.data().id }
 }
 
 export async function enablesProtection(state: State, identityLocs: IdentityLocs) {
@@ -82,12 +84,12 @@ async function requestProtection(state: State, identityLocs: IdentityLocs): Prom
     }
 }
 
-async function createsIdentityLoc(state: State, legalOfficer: LegalOfficerClass, legalOfficerAccount: ValidAccountId): Promise<ClosedLoc> {
-    const { client, signer, requesterAccount } = state;
-    console.log("Setting balance of %s", requesterAccount.address)
-    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, signer, requesterAccount.address);
+async function createsIdentityLoc(state: State, account: ValidAccountId, legalOfficer: LegalOfficerClass, legalOfficerAccount: ValidAccountId): Promise<ClosedLoc> {
+    const { client, signer } = state;
+    console.log("Setting balance of %s", account.address)
+    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, signer, account.address);
 
-    const authenticatedClient = client.withCurrentAddress(requesterAccount);
+    const authenticatedClient = client.withCurrentAddress(account);
     const locsState = await authenticatedClient.locsState();
 
     const pendingRequest = await locsState.requestIdentityLoc({
@@ -140,7 +142,7 @@ async function enableProtection(state: State, identityLocs: IdentityLocs): Promi
 
     console.log("User changing LO: Charlie instead of Bob");
     const rejected = (await pending.refresh()) as RejectedProtection;
-    const pendingAgain = await rejected.changeLegalOfficer(bob, charlie);
+    const pendingAgain = await rejected.changeLegalOfficer(bob, charlie, identityLocs.charlie);
 
     console.log("LO's - Alice Rejecting")
     await rejectRequest(client, signer, alice, aliceAccount, requester, "Some info is missing");

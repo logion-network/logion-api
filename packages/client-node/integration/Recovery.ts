@@ -12,16 +12,16 @@ import {
     LogionClientConfig,
     ClaimedRecovery,
 } from "@logion/client";
-import { acceptRequest, rejectRequest } from "./Protection.js";
+import { IdentityLocs, acceptRequest, rejectRequest } from "./Protection.js";
 import { aliceAcceptsTransfer } from "./Vault.js";
 import { initRequesterBalance, NEW_ADDRESS, REQUESTER_ADDRESS, State } from "./Utils.js";
 
-export async function requestRecoveryAndCancel(state: State) {
+export async function requestRecoveryAndCancel(state: State, identityLocs: IdentityLocs) {
     const { client, signer, alice, aliceAccount, charlie, charlieAccount } = state;
 
-    const pending = await requestRecovery(state) as PendingProtection;
+    const pending = await requestRecovery(state, identityLocs) as PendingProtection;
 
-    console.log("LO's - Alice and Bob Rejecting")
+    console.log("LO's - Alice and Charlie Rejecting")
     await rejectRequest(client, signer, charlie, charlieAccount, NEW_ADDRESS, "Your protection request is not complete");
     await rejectRequest(client, signer, alice, aliceAccount, NEW_ADDRESS, "Some info is missing");
 
@@ -31,10 +31,10 @@ export async function requestRecoveryAndCancel(state: State) {
     expect(cancelled).toBeInstanceOf(NoProtection);
 }
 
-export async function requestRecoveryWithResubmit(state: State) {
+export async function requestRecoveryWithResubmit(state: State, identityLocs: IdentityLocs) {
     const { client, signer, alice, aliceAccount, charlie, charlieAccount } = state;
 
-    const requested = await requestRecovery(state);
+    const requested = await requestRecovery(state, identityLocs);
 
     console.log("LO's - Alice Rejecting")
     await rejectRequest(client, signer, alice, aliceAccount, NEW_ADDRESS, "for some reason");
@@ -49,11 +49,11 @@ export async function requestRecoveryWithResubmit(state: State) {
 
     console.log("Activating")
     const accepted = await pending.refresh() as AcceptedProtection;
-    let pendingRecovery = await accepted.activate(signer) as PendingRecovery;
+    let pendingRecovery = await accepted.activate({ signer }) as PendingRecovery;
     pendingRecovery = await pendingRecovery.waitForFullyReady();
 
     console.log("Claiming")
-    await pendingRecovery.claimRecovery(signer);
+    await pendingRecovery.claimRecovery({ signer });
 }
 
 export async function recoverLostVault(state: State) {
@@ -94,10 +94,11 @@ export async function recoverLostAccount(state: State) {
     await recoveredBalance.transferAll({
         signer,
         destination: NEW_ADDRESS,
+        keepAlive: false,
     });
 }
 
-async function requestRecovery(state: State): Promise<PendingProtection> {
+async function requestRecovery(state: State, identityLocs: IdentityLocs): Promise<PendingProtection> {
     const { client, signer, alice, charlie, newAccount } = state;
 
     await initRequesterBalance(client.config, signer, NEW_ADDRESS);
@@ -109,23 +110,14 @@ async function requestRecovery(state: State): Promise<PendingProtection> {
     if(current instanceof NoProtection) {
         console.log("Requesting recovery")
         return await current.requestRecovery({
-            recoveredAddress: REQUESTER_ADDRESS,
-            signer,
-            legalOfficer1: authenticatedClient.getLegalOfficer(alice.address),
-            legalOfficer2: authenticatedClient.getLegalOfficer(charlie.address),
-            userIdentity: {
-                email: "john.doe@invalid.domain",
-                firstName: "John",
-                lastName: "Doe",
-                phoneNumber: "+1234",
+            payload: {
+                recoveredAddress: REQUESTER_ADDRESS,
+                legalOfficer1: authenticatedClient.getLegalOfficer(alice.address),
+                legalOfficer2: authenticatedClient.getLegalOfficer(charlie.address),
+                requesterIdentityLoc1: identityLocs.alice,
+                requesterIdentityLoc2: identityLocs.charlie,
             },
-            postalAddress: {
-                city: "",
-                country: "",
-                line1: "",
-                line2: "",
-                postalCode: "",
-            }
+            signer,
         });
     } else {
         throw new Error("Unexpected state, aborting");

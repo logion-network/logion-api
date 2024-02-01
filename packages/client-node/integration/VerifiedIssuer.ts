@@ -51,6 +51,7 @@ export async function verifiedIssuer(state: State) {
     let aliceClosed = await aliceOpen.legalOfficer.close({ signer, autoAck: false }) as ClosedLoc;
     aliceClosed = await aliceClosed.legalOfficer.nominateIssuer({ signer });
 
+    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, signer, newAccount.address);
     const requesterClient = state.client.withCurrentAddress(newAccount);
     let userLocsState = await requesterClient.locsState();
     let pendingLocRequest = await userLocsState.requestTransactionLoc({

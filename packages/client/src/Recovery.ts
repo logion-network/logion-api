@@ -1,5 +1,6 @@
 import {
     TypesRecoveryConfig,
+    UUID,
 } from "@logion/node-api";
 import {
     FetchAllResult,
@@ -19,7 +20,6 @@ import { PollingParameters, waitFor } from "./Polling.js";
 import { findOrThrow } from "./Collections.js";
 import { State } from "./State.js";
 import { BlockchainSubmission, BlockchainSubmissionParams } from "./Signer.js";
-import { UUID } from "@logion/node-api/dist/types/UUID";
 
 export type ProtectionState =
     NoProtection
@@ -293,6 +293,8 @@ export interface LegalOfficerProtectionState {
 
     readonly legalOfficer: LegalOfficerClass;
 
+    readonly identityLoc: UUID;
+
     readonly status: ProtectionRequestStatus;
 
     readonly decision: LegalOfficerDecision;
@@ -344,6 +346,7 @@ function buildProtectionState(legalOfficer: LegalOfficerClass, request: Protecti
         legalOfficer,
         status: request.status,
         decision: request.decision,
+        identityLoc: new UUID(request.requesterIdentityLoc),
     };
 }
 
@@ -520,14 +523,14 @@ export class RejectedRecovery extends State implements WithProtectionParameters 
 
 export class RejectedProtection extends RejectedRecovery {
 
-    async changeLegalOfficer(currentLegalOfficer: LegalOfficer, newLegalOfficer: LegalOfficer): Promise<PendingProtection> {
-        return this.discardOnSuccess<RejectedProtection, PendingProtection>(current => current._changeLegalOfficer(currentLegalOfficer, newLegalOfficer));
+    async changeLegalOfficer(currentLegalOfficer: LegalOfficer, newLegalOfficer: LegalOfficer, identityLoc: UUID): Promise<PendingProtection> {
+        return this.discardOnSuccess<RejectedProtection, PendingProtection>(current => current._changeLegalOfficer(currentLegalOfficer, newLegalOfficer, identityLoc));
     }
 
-    private async _changeLegalOfficer(currentLegalOfficer: LegalOfficer, newLegalOfficer: LegalOfficer): Promise<PendingProtection> {
+    private async _changeLegalOfficer(currentLegalOfficer: LegalOfficer, newLegalOfficer: LegalOfficer, identityLoc: UUID): Promise<PendingProtection> {
         const cancel = this.cancelCurrentRequest(currentLegalOfficer)
         const update = this.updateOtherRequest(cancel.request, newLegalOfficer);
-        const newProtection = this.createNewRequest(cancel.request, update.request, newLegalOfficer)
+        const newProtection = this.createNewRequest(currentLegalOfficer.address, identityLoc, newLegalOfficer);
 
         return Promise.all([ cancel.operation, update.operation, newProtection ])
             .then(async () => {
@@ -552,12 +555,12 @@ export class RejectedProtection extends RejectedRecovery {
         return { operation: request.update({ otherLegalOfficer: newLegalOfficer }), request }
     }
 
-    private createNewRequest(requestToCancel: ProtectionRequest, otherRequest: ProtectionRequest, newLegalOfficer: LegalOfficer): Promise<ProtectionRequest> {
+    private createNewRequest(previousLegalOfficer: string, requesterIdentityLoc: UUID, newLegalOfficer: LegalOfficer): Promise<ProtectionRequest> {
         const loRecoveryClient = newLoRecoveryClient(this.sharedState, newLegalOfficer);
         return loRecoveryClient.createProtectionRequest({
-            requesterIdentityLoc: requestToCancel.requesterIdentityLoc,
+            requesterIdentityLoc: requesterIdentityLoc.toString(),
             legalOfficerAddress: newLegalOfficer.address,
-            otherLegalOfficerAddress: otherRequest.legalOfficerAddress,
+            otherLegalOfficerAddress: previousLegalOfficer,
             isRecovery: false,
             addressToRecover: "",
         });

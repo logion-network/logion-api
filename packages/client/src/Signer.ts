@@ -113,10 +113,18 @@ export abstract class BaseSigner implements FullSigner {
 
     async signAndSend(parameters: SignParameters): Promise<SuccessfulSubmission> {
         const signAndSendFunction = await this.buildSignAndSendFunction(parameters);
-        return this.buildSignAndSendPromise({
-            ...parameters,
-            signAndSend: signAndSendFunction,
-        });
+        try {
+            return await this.buildSignAndSendPromise({
+                ...parameters,
+                signAndSend: signAndSendFunction,
+            });
+        } catch(e) {
+            if(typeof e === "object" && e !== null && "message" in e && typeof e.message === "string") {
+                throw new Error(e.message);
+            } else {
+                throw new Error("Unexpected error");
+            }
+        }
     }
 
     abstract buildSignAndSendFunction(parameters: SignParameters): Promise<SignAndSendFunction>;

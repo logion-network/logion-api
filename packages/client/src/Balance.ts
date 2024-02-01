@@ -48,6 +48,7 @@ function newTransactionClient(currentAddress: string, sharedState: SharedState):
 
 export interface TransferAllParam extends BlockchainSubmissionParams {
     destination: string;
+    keepAlive: boolean;
 }
 
 export class BalanceState extends State {
@@ -138,7 +139,7 @@ export class BalanceState extends State {
     }
 
     private async _transferAll(params: TransferAllParam): Promise<BalanceState> {
-        const { signer, destination, callback } = params;
+        const { signer, destination, callback, keepAlive } = params;
 
         let submittable: SubmittableExtrinsic;
         if(this.sharedState.isRecovery) {
@@ -146,13 +147,13 @@ export class BalanceState extends State {
                 this.sharedState.recoveredAddress || "",
                 this.sharedState.nodeApi.polkadot.tx.balances.transferAll(
                     destination,
-                    true,
+                    keepAlive,
                 ),
             );
         } else {
             submittable = this.sharedState.nodeApi.polkadot.tx.balances.transferAll(
                 destination,
-                true,
+                keepAlive,
             );
         }
 

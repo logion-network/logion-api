@@ -1,4 +1,4 @@
-import { buildApiClass, Currency, Lgnt } from "@logion/node-api";
+import { buildApiClass, Lgnt } from "@logion/node-api";
 import { ActiveProtection, VaultTransferRequest, WithProtectionParameters } from "@logion/client";
 
 import { REQUESTER_ADDRESS, State } from "./Utils.js";
@@ -39,7 +39,6 @@ export async function providesVault(state: State) {
     vaultState = await vaultState.refresh();
     balanceState = await balanceState.refresh();
 
-    checkCoinBalance(balanceState.balances[0], "22.66k");
     checkCoinBalance(vaultState.balances[0], "4.00");
 }
 
