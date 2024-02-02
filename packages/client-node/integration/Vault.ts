@@ -51,7 +51,7 @@ export async function aliceAcceptsTransfer(state: State, request: VaultTransferR
     const amount = Lgnt.fromCanonical(BigInt(request!.amount));
     const vault = api.vault(
         requesterAccount.address,
-        activeProtection.protectionParameters.states.map(state => state.legalOfficer.address)
+        activeProtection.protectionParameters.legalOfficers.map(legalOfficer => legalOfficer.address),
     );
     const submittable = await vault.tx.approveVaultTransfer({
         signerId,

@@ -4,6 +4,7 @@ import { aggregateArrays, MultiSourceHttpClient, initMultiSourceHttpClientState 
 import { NetworkState } from "./NetworkState.js";
 import { LegalOfficerEndpoint } from "./SharedClient.js";
 import { LegalOfficer, PostalAddress, UserIdentity } from "./Types.js";
+import { newBackendError } from "./Error.js";
 
 export type VaultTransferRequestStatus = "ACCEPTED" | "PENDING" | "REJECTED" | "CANCELLED" | "REJECTED_CANCELLED";
 
@@ -137,12 +138,16 @@ export class VaultClient {
     }
 
     private async getVaultTransferRequests(axios: AxiosInstance, legalOfficerAddress: string, fetch: FetchVaultTransferRequest): Promise<VaultTransferRequest[]> {
-        const requests = (await axios.put("/api/vault-transfer-request", fetch)
-            .then(response => response.data.requests)) as VaultTransferRequest[];
-        return requests.map(request => ({
-            ...request,
-            legalOfficerAddress,
-        }));
+        try {
+            const requests = (await axios.put("/api/vault-transfer-request", fetch)
+                .then(response => response.data.requests)) as VaultTransferRequest[];
+            return requests.map(request => ({
+                ...request,
+                legalOfficerAddress,
+            }));
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     private filterByStatuses(requests: VaultTransferRequest[], statuses: VaultTransferRequestStatus[]): VaultTransferRequest[] {
@@ -154,11 +159,15 @@ export class VaultClient {
         params: CreateVaultTransferRequest,
     ): Promise<VaultTransferRequest> {
         const axios = this.axiosFactory.buildAxiosInstance(legalOfficer.node, this.token);
-        const response = await axios.post('/api/vault-transfer-request', params);
-        return {
-            ...response.data,
-            legalOfficerAddress: legalOfficer.address,
-        };
+        try {
+            const response = await axios.post('/api/vault-transfer-request', params);
+            return {
+                ...response.data,
+                legalOfficerAddress: legalOfficer.address,
+            };
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async cancelVaultTransferRequest(
@@ -166,7 +175,11 @@ export class VaultClient {
         request: VaultTransferRequest,
     ): Promise<void> {
         const axios = this.axiosFactory.buildAxiosInstance(legalOfficer.node, this.token);
-        return await axios.post(`/api/vault-transfer-request/${request.id}/cancel`);
+        try {
+            return await axios.post(`/api/vault-transfer-request/${request.id}/cancel`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async acceptVaultTransferRequest(
@@ -174,7 +187,11 @@ export class VaultClient {
         request: VaultTransferRequest,
     ): Promise<void> {
         const axios = this.axiosFactory.buildAxiosInstance(legalOfficer.node, this.token);
-        return await axios.post(`/api/vault-transfer-request/${request.id}/accept`);
+        try {
+            return await axios.post(`/api/vault-transfer-request/${request.id}/accept`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async rejectVaultTransferRequest(
@@ -183,7 +200,11 @@ export class VaultClient {
         rejectReason: string
     ): Promise<void> {
         const axios = this.axiosFactory.buildAxiosInstance(legalOfficer.node, this.token);
-        return await axios.post(`/api/vault-transfer-request/${request.id}/reject`, { rejectReason });
+        try {
+            return await axios.post(`/api/vault-transfer-request/${request.id}/reject`, { rejectReason });
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 
     async resubmitVaultTransferRequest(
@@ -191,7 +212,11 @@ export class VaultClient {
         request: VaultTransferRequest,
     ): Promise<void> {
         const axios = this.axiosFactory.buildAxiosInstance(legalOfficer.node, this.token);
-        return await axios.post(`/api/vault-transfer-request/${request.id}/resubmit`);
+        try {
+            return await axios.post(`/api/vault-transfer-request/${request.id}/resubmit`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 }
 

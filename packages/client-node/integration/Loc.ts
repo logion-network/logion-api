@@ -624,53 +624,6 @@ export async function collectionLocWithUpload(state: State) {
     expect(items[2].termsAndConditions.length).toBe(1);
 }
 
-export async function identityLoc(state: State) {
-
-    const { alice, aliceAccount, newAccount, signer } = state;
-    const client = state.client.withCurrentAddress(newAccount);
-    let locsState = await client.locsState();
-
-    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, signer, newAccount.address);
-
-    const pendingRequest = await locsState.requestIdentityLoc({
-        legalOfficerAddress: alice.address,
-        description: "This is an Identity LOC",
-        userIdentity: {
-            email: "john.doe@invalid.domain",
-            firstName: "John",
-            lastName: "Doe",
-            phoneNumber: "+1234",
-        },
-        userPostalAddress: {
-            line1: "Peace Street",
-            line2: "2nd floor",
-            postalCode: "10000",
-            city: "MyCity",
-            country: "Wonderland"
-        },
-        draft: false,
-    }) as PendingRequest;
-
-    locsState = pendingRequest.locsState();
-    expect(locsState.pendingRequests["Identity"][0].data().status).toBe("REVIEW_PENDING");
-
-    const aliceClient = state.client.withCurrentAddress(aliceAccount);
-    const alicePendingRequest = await findWithLegalOfficerClient(aliceClient, pendingRequest) as PendingRequest;
-    const aliceAcceptedRequest = await alicePendingRequest.legalOfficer.accept({ signer }) as AcceptedRequest;
-    expect(aliceAcceptedRequest.data().status).toBe("REVIEW_ACCEPTED");
-
-    const acceptedRequest = await pendingRequest.refresh() as AcceptedRequest;
-    const openLoc = await acceptedRequest.open({ signer, autoPublish: false });
-    expect(openLoc.data().status).toBe("OPEN");
-
-    let aliceOpenLoc = await aliceAcceptedRequest.refresh() as OpenLoc;
-    aliceOpenLoc = await waitFor<OpenLoc>({
-        producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : aliceOpenLoc.refresh() as Promise<OpenLoc>,
-        predicate: state => state.legalOfficer.canClose(false),
-    });
-    await aliceOpenLoc.legalOfficer.close({ signer, autoAck: false });
-}
-
 export async function otherIdentityLoc(state: State): Promise<UUID> {
     const { alice, aliceAccount, ethereumAccount, signer } = state;
 
