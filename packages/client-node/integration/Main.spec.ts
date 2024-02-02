@@ -1,5 +1,5 @@
 import { setupInitialState, State, tearDown } from "./Utils.js";
-import { enablesProtection, requestsProtectionAndCancel, requestValidIdentity } from "./Protection.js";
+import { enablesProtection, requestValidIdentity } from "./Protection.js";
 import { transferAndCannotPayFees, transfers, transferWithInsufficientFunds } from "./Balance.js";
 import { providesVault } from "./Vault.js";
 import { recoverLostAccount, recoverLostVault, requestRecoveryAndCancel, requestRecoveryWithResubmit } from "./Recovery.js";
@@ -7,7 +7,6 @@ import {
     requestTransactionLoc,
     collectionLoc,
     collectionLocWithUpload,
-    identityLoc,
     otherIdentityLoc,
     logionIdentityLoc,
     transactionLocWithCustomLegalFee,
@@ -54,7 +53,6 @@ describe("Logion SDK", () => {
 
     it("enables protection", async () => {
         const identityLocs = await requestValidIdentity(state, state.requesterAccount);
-        await requestsProtectionAndCancel(state, identityLocs);
         await enablesProtection(state, identityLocs);
     });
 

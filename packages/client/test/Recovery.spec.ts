@@ -13,7 +13,6 @@ import {
     NoProtection,
     PendingProtection,
     PendingRecovery,
-    RejectedProtection,
     LegalOfficer,
     PostalAddress,
     UserIdentity,
@@ -54,10 +53,7 @@ describe("Recovery's getInitialState", () => {
     it("builds an initial active state", async () => {
         const data: FetchAllResult = {
             pendingProtectionRequests: [],
-            acceptedProtectionRequests: [
-                buildAcceptedAliceRequest(),
-                buildAcceptedBobRequest()
-            ],
+            acceptedProtectionRequests: [],
             rejectedProtectionRequests: [],
             cancelledProtectionRequests: [],
             recoveryConfig: {
@@ -162,23 +158,6 @@ describe("Recovery's getInitialState", () => {
         };
         await testGetInitialState(data, ClaimedRecovery);
     });
-
-    it("builds an initial rejected protection", async () => {
-        const data: FetchAllResult = {
-            pendingProtectionRequests: [],
-            acceptedProtectionRequests: [
-                buildAcceptedBobRequest(),
-            ],
-            rejectedProtectionRequests: [
-                buildRejectedAliceRequest(),
-            ],
-            cancelledProtectionRequests: [],
-            recoveryConfig: undefined,
-            recoveredAddress: undefined,
-        };
-        await testGetInitialState(data, RejectedProtection);
-    });
-
 });
 
 async function testGetInitialState(data: FetchAllResult, expectedStateClass: any) {
@@ -370,56 +349,62 @@ function buildPendingBobRecoveryRequest(): ProtectionRequest {
 
 describe("NoProtection", () => {
 
-    it("requests protection", async () => {
+    it("activates protection", async () => {
         const currentAddress = REQUESTER;
         const token = "some-token";
         const tokens = new AccountTokens(
             buildSimpleNodeApi(),
             {
-                [REQUESTER.toKey()]: {
+                [`Polkadot:${REQUESTER.address}`]: {
                     value: token,
                     expirationDateTime: DateTime.now().plus({hours: 1})
                 }
             }
         );
+        const submittable = new Mock<SubmittableExtrinsic>();
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
+                const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token);
+                setupFetchProtectionRequests(aliceAxios, [], [], []);
+                setupFetchProtectionRequests(bobAxios, [], [], []);
+
                 factory.setupDefaultNetworkState();
                 factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
-                factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const axiosFactory = factory.setupAxiosFactoryMock();
-                setupCreateProtectionRequest(
-                    axiosFactory,
-                    buildPartialAliceRequest(),
-                    ALICE,
-                    BOB,
-                    token,
-                    null
-                );
-                setupCreateProtectionRequest(
-                    axiosFactory,
-                    buildPartialBobRequest(),
-                    BOB,
-                    ALICE,
-                    token,
-                    null
-                );
+
+                const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
+                nodeApi.setup(instance => instance.queries.getRecoveryConfig(currentAddress.address))
+                    .returns(Promise.resolve(undefined));
+                nodeApi.setup(instance => instance.queries.getProxy(currentAddress.address))
+                    .returns(Promise.resolve(undefined));
+
+                const legalOfficersAddresses = legalOfficers.map(legalOfficer => legalOfficer.address);
+                nodeApi.setup(instance => instance.polkadot.tx.verifiedRecovery.createRecovery(It.Is<string[]>(
+                        addresses => addresses.every(address => legalOfficersAddresses.includes(address)))))
+                    .returns(submittable.object());
             },
             currentAddress,
             legalOfficers,
             tokens,
         );
         const state = new NoProtection(sharedState);
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
+            params.signerId === currentAddress.address
+            && params.submittable === submittable.object()))
+        ).returns(Promise.resolve({ block: "hash", index: 1, events: [] }));
 
-        const nextState = await state.requestProtection({
-            legalOfficer1: sharedState.legalOfficerClasses[0],
-            legalOfficer2: sharedState.legalOfficerClasses[1],
-            requesterIdentityLoc1: new UUID(REQUESTER_ID_LOC_ALICE),
-            requesterIdentityLoc2: new UUID(REQUESTER_ID_LOC_BOB)
+        const nextState = await state.activateProtection({
+            payload: {
+                legalOfficer1: sharedState.legalOfficerClasses[0],
+                legalOfficer2: sharedState.legalOfficerClasses[1],
+                requesterIdentityLoc1: new UUID(REQUESTER_ID_LOC_ALICE),
+                requesterIdentityLoc2: new UUID(REQUESTER_ID_LOC_BOB),
+            },
+            signer: signer.object()
         });
 
-        expect(nextState).toBeInstanceOf(PendingProtection);
-        expect(nextState.protectionParameters.isActive).toBe(false);
+        expect(nextState).toBeInstanceOf(ActiveProtection);
+        expect(nextState.protectionParameters.isActive).toBe(true);
         expect(nextState.protectionParameters.isClaimed).toBe(false);
         expect(nextState.protectionParameters.isRecovery).toBe(false);
     });
@@ -672,69 +657,6 @@ function setupFetchProtectionRequests(
 }
 
 describe("AcceptedProtection", () => {
-
-    it("activates protection", async () => {
-        const aliceRequest: ProtectionRequest = buildAcceptedAliceRequest();
-        const bobRequest: ProtectionRequest = buildAcceptedBobRequest();
-        const currentAddress = REQUESTER;
-        const token = "some-token";
-        const tokens = new AccountTokens(
-            buildSimpleNodeApi(),
-            {
-                [`Polkadot:${REQUESTER.address}`]: {
-                    value: token,
-                    expirationDateTime: DateTime.now().plus({hours: 1})
-                }
-            }
-        );
-        const submittable = new Mock<SubmittableExtrinsic>();
-        const sharedState = await buildTestAuthenticatedSharedSate(
-            (factory: TestConfigFactory) => {
-                const { aliceAxios, bobAxios } = setupAliceBobAxios(factory, token);
-                setupFetchProtectionRequests(aliceAxios, [], [ aliceRequest ], []);
-                setupFetchProtectionRequests(bobAxios, [], [ bobRequest ], []);
-
-                factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
-
-                const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                nodeApi.setup(instance => instance.queries.getRecoveryConfig(currentAddress.address))
-                    .returns(Promise.resolve(undefined));
-                nodeApi.setup(instance => instance.queries.getProxy(currentAddress.address))
-                    .returns(Promise.resolve(undefined));
-
-                const legalOfficersAddresses = legalOfficers.map(legalOfficer => legalOfficer.address);
-                nodeApi.setup(instance => instance.polkadot.tx.verifiedRecovery.createRecovery(It.Is<string[]>(
-                        addresses => addresses.every(address => legalOfficersAddresses.includes(address)))))
-                    .returns(submittable.object());
-            },
-            currentAddress,
-            legalOfficers,
-            tokens,
-        );
-        const state = new AcceptedProtection({
-            ...sharedState,
-            selectedLegalOfficers: sharedState.legalOfficerClasses,
-            legalOfficers: sharedState.legalOfficerClasses,
-            pendingProtectionRequests: [],
-            acceptedProtectionRequests: [ aliceRequest, bobRequest ],
-            rejectedProtectionRequests: [],
-            cancelledProtectionRequests: [],
-            allRequests: [ aliceRequest, bobRequest ],
-        });
-        const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
-            params.signerId === currentAddress.address
-            && params.submittable === submittable.object()))
-        ).returns(Promise.resolve({ block: "hash", index: 1, events: [] }));
-
-        const nextState = await state.activate({ signer: signer.object() });
-
-        expect(nextState).toBeInstanceOf(ActiveProtection);
-        expect(nextState.protectionParameters.isActive).toBe(true);
-        expect(nextState.protectionParameters.isClaimed).toBe(false);
-        expect(nextState.protectionParameters.isRecovery).toBe(false);
-    });
 
     it("activates recovery", async () => {
         const aliceRequest: ProtectionRequest = buildAcceptedAliceRecoveryRequest();
