@@ -3515,6 +3515,8 @@ __metadata:
     moq.ts: ^9.0.2
     ts-node: ^10.9.1
     typescript: ^5.2.2
+  peerDependencies:
+    "@logion/client": 0.x
   languageName: unknown
   linkType: soft
 
@@ -3535,6 +3537,8 @@ __metadata:
     moq.ts: ^9.0.2
     ts-node: ^10.9.1
     typescript: ^5.2.2
+  peerDependencies:
+    "@logion/client": 0.x
   languageName: unknown
   linkType: soft
 
@@ -3550,6 +3554,8 @@ __metadata:
     eslint: ^8.20.0
     react-native-fs: ^2.20.0
     typescript: ^5.2.2
+  peerDependencies:
+    "@logion/client": 0.x
   languageName: unknown
   linkType: soft
 
@@ -3593,7 +3599,7 @@ __metadata:
     ts-node: ^10.9.1
     typescript: ^5.2.2
   peerDependencies:
-    "@logion/client-browser": "workspace:^"
+    "@logion/client-browser": 0.x
   languageName: unknown
   linkType: soft
 
@@ -3615,7 +3621,7 @@ __metadata:
     ts-node: ^10.9.1
     typescript: ^5.2.2
   peerDependencies:
-    "@logion/client-browser": "workspace:^"
+    "@logion/client-browser": 0.x
   languageName: unknown
   linkType: soft
 
@@ -3637,7 +3643,7 @@ __metadata:
     ts-node: ^10.9.1
     typescript: ^5.2.2
   peerDependencies:
-    "@logion/client-browser": "workspace:^"
+    "@logion/client-browser": 0.x
   languageName: unknown
   linkType: soft
 
