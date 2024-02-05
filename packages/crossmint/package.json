@@ -1,6 +1,6 @@
 {
   "name": "@logion/crossmint",
-  "version": "0.1.32-1",
+  "version": "0.1.32",
   "description": "logion SDK for Crossmint",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
@@ -22,11 +22,10 @@
   "author": "Logion Team",
   "license": "Apache-2.0",
   "dependencies": {
-    "@crossmint/connect": "^0.0.8",
-    "@logion/client-browser": "workspace:^"
+    "@crossmint/connect": "^0.0.8"
   },
   "peerDependencies": {
-    "@logion/client-browser": "workspace:^"
+    "@logion/client-browser": "0.x"
   },
   "bugs": {
     "url": "https://github.com/logion-network/logion-api/issues"

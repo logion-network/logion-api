@@ -1,6 +1,6 @@
 {
   "name": "@logion/multiversx",
-  "version": "0.1.13-1",
+  "version": "0.1.13",
   "description": "logion SDK for MultiversX",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
@@ -22,12 +22,11 @@
   "author": "Logion Team",
   "license": "Apache-2.0",
   "dependencies": {
-    "@logion/client-browser": "workspace:^",
     "@multiversx/sdk-core": "^12.4.3",
     "@multiversx/sdk-extension-provider": "^2.0.7"
   },
   "peerDependencies": {
-    "@logion/client-browser": "workspace:^"
+    "@logion/client-browser": "0.x"
   },
   "bugs": {
     "url": "https://github.com/logion-network/logion-api/issues"

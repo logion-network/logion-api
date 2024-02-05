@@ -1,6 +1,6 @@
 {
   "name": "@logion/client-node",
-  "version": "0.3.3-1",
+  "version": "0.3.3",
   "description": "logion SDK for Node.JS client applications",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
@@ -26,14 +26,17 @@
   "author": "Logion Team",
   "license": "Apache-2.0",
   "dependencies": {
-    "@logion/client": "workspace:^",
     "form-data": "^4.0.0"
+  },
+  "peerDependencies": {
+    "@logion/client": "0.x"
   },
   "bugs": {
     "url": "https://github.com/logion-network/logion-api/issues"
   },
   "homepage": "https://github.com/logion-network/logion-api/packages/client-node#readme",
   "devDependencies": {
+    "@logion/client": "workspace:^",
     "@tsconfig/node18": "^1.0.1",
     "@types/jasmine": "^4.0.3",
     "@types/node": "^18.6.1",

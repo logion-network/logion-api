@@ -1,6 +1,6 @@
 {
   "name": "@logion/client-react-native-fs",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "logion SDK for client applications running in a React Native app using react-native-fs",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
@@ -25,14 +25,17 @@
   "author": "Logion Team",
   "license": "Apache-2.0",
   "dependencies": {
-    "@logion/client": "workspace:^",
     "react-native-fs": "^2.20.0"
+  },
+  "peerDependencies": {
+    "@logion/client": "0.x"
   },
   "bugs": {
     "url": "https://github.com/logion-network/logion-api/issues"
   },
   "homepage": "https://github.com/logion-network/logion-api/packages/client-react-native-fs#readme",
   "devDependencies": {
+    "@logion/client": "workspace:^",
     "@tsconfig/node18": "^1.0.1",
     "@types/node": "^18.6.1",
     "@typescript-eslint/eslint-plugin": "^6.9.1",
