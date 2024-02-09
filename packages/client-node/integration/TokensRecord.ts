@@ -63,7 +63,7 @@ export async function tokensRecords(state: State) {
     });
     await expectAsync(waitFor<BalanceState>({
         producer: balanceState => balanceState ? balanceState.refresh() : userClient.balanceState(),
-        predicate: balanceState => balanceState.transactions.length > 0 && balanceState.transactions[0].fees.tokensRecord === tokensRecordFee.canonical.toString(),
+        predicate: balanceState => balanceState.transactions.length > 0 && balanceState.transactions[1].fees.tokensRecord === tokensRecordFee.canonical.toString(),
     })).toBeResolved();
     await expectAsync(waitFor<BalanceState>({
         producer: balanceState => balanceState ? balanceState.refresh() : aliceClient.balanceState(),

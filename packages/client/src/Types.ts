@@ -99,4 +99,13 @@ export class LegalOfficerClass implements LegalOfficer {
         const response = await axios.get("/api/config");
         return response.data;
     }
+
+    async getWorkload(): Promise<number> {
+        if(!this.token) {
+            throw new Error("Authenticate first");
+        }
+        const axios = this.buildAxiosToNode();
+        const response = await axios.get(`/api/workload/${ this.address }`);
+        return response.data.workload;
+    }
 }

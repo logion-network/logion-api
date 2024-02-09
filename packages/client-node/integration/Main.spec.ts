@@ -15,7 +15,7 @@ import {
 import { verifiedIssuer } from "./VerifiedIssuer.js";
 import { tokensRecords } from "./TokensRecord.js";
 import { fees } from "./Fees.js";
-import { backendConfig } from "./LegalOfficer.js";
+import { backendConfig, workload } from "./LegalOfficer.js";
 import { voidTransactionLoc } from "./Void.js";
 import { votingProcess } from "./Vote.js";
 import { openIdentityLoc, openTransactionLoc, openCollectionLoc } from "./DirectLocOpen.js";
@@ -33,6 +33,10 @@ describe("Logion SDK", () => {
 
     it("fetches backend config", async () => {
         await backendConfig(state);
+    });
+
+    it("fetches workload", async () => {
+        await workload(state);
     });
 
     it("estimates fees", async () => {
