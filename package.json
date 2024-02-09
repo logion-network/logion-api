@@ -13,9 +13,9 @@
   ],
   "packageManager": "yarn@3.2.0",
   "scripts": {
-    "build": "yarn workspaces foreach -t run build",
-    "clean": "yarn workspaces foreach -t run clean",
-    "lint": "yarn workspaces foreach -t run lint",
-    "test": "yarn workspaces foreach -t run test"
+    "build": "yarn workspaces foreach --topological-dev -v run build",
+    "clean": "yarn workspaces foreach -v run clean",
+    "lint": "yarn workspaces foreach -v run lint",
+    "test": "yarn workspaces foreach -v run test"
   }
 }
