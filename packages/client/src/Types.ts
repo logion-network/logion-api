@@ -41,7 +41,65 @@ export interface BackendConfig {
     };
 }
 
+const WORKLOAD_CACHE_TTL_MS = 10 * 1000; // 10 sec
+
+interface CachedWorkload {
+    workload: number,
+    timestamp: number,
+}
+
+class Workload {
+
+    private workloads: Record<string, CachedWorkload> = {};
+    private addressesByNode: Record<string, Set<string>> = {};
+
+    constructor() {
+    }
+
+    addLegalOfficer(legalOfficer: LegalOfficer) {
+        const addresses = this.addressesByNode[legalOfficer.node];
+        if (addresses === undefined) {
+            this.addressesByNode[legalOfficer.node] = new Set([ legalOfficer.address ]);
+        } else {
+            addresses.add(legalOfficer.address);
+        }
+    }
+
+    async getWorkload(legalOfficer: LegalOfficerClass): Promise<number> {
+        const cachedWorkload = this.workloads[legalOfficer.address];
+        if (cachedWorkload !== undefined && (Date.now() - cachedWorkload.timestamp) < WORKLOAD_CACHE_TTL_MS) {
+            return cachedWorkload.workload;
+        } else {
+            await this.fetchAndStoreWorkload(legalOfficer);
+            return this.workloads[legalOfficer.address].workload;
+        }
+
+    }
+
+    private async fetchAndStoreWorkload(legalOfficer: LegalOfficerClass) {
+        if (!legalOfficer.token) {
+            throw new Error("Authenticate first");
+        }
+        const axios = legalOfficer.buildAxiosToNode();
+
+        const legalOfficerAddresses = Array.from(this.addressesByNode[legalOfficer.node]);
+        const response = await axios.put(`/api/workload`, {
+            legalOfficerAddresses
+        });
+        const workloads = response.data.workloads;
+        const addresses = Object.keys(workloads);
+        addresses.forEach(address => {
+            this.workloads[address] = {
+                workload: workloads[address],
+                timestamp: Date.now(),
+            };
+        })
+    }
+}
+
 export class LegalOfficerClass implements LegalOfficer {
+
+    private static readonly workload: Workload = new Workload();
 
     constructor(args: {
         legalOfficer: LegalOfficer,
@@ -59,7 +117,10 @@ export class LegalOfficerClass implements LegalOfficer {
 
         this.axiosFactory = args.axiosFactory;
         this.token = args.token;
+
+        LegalOfficerClass.workload.addLegalOfficer(this);
     }
+
 
     readonly userIdentity: UserIdentity;
     readonly postalAddress: LegalOfficerPostalAddress;
@@ -101,11 +162,6 @@ export class LegalOfficerClass implements LegalOfficer {
     }
 
     async getWorkload(): Promise<number> {
-        if(!this.token) {
-            throw new Error("Authenticate first");
-        }
-        const axios = this.buildAxiosToNode();
-        const response = await axios.get(`/api/workload/${ this.address }`);
-        return response.data.workload;
+        return LegalOfficerClass.workload.getWorkload(this);
     }
 }

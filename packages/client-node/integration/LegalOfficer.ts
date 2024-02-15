@@ -11,12 +11,13 @@ export async function backendConfig(state: State) {
     expect(config.features.vote).toBe(false);
 }
 
-export async function workload(state: State) {
+export async function workload(state: State, ...legalOfficerAddresses: string[]) {
     const { client, requesterAccount } = state;
 
     const authenticatedClient = client.withCurrentAddress(requesterAccount);
-    const alice = authenticatedClient.getLegalOfficer(ALICE);
-    const workload = await alice.getWorkload();
-
-    expect(workload).toBe(0);
+    for (const address of legalOfficerAddresses) {
+        const legalOfficer = authenticatedClient.getLegalOfficer(address);
+        const workload = await legalOfficer.getWorkload();
+        expect(workload).toBe(0);
+    }
 }

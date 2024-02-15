@@ -1,4 +1,4 @@
-import { setupInitialState, State, tearDown } from "./Utils.js";
+import { setupInitialState, State, tearDown, ALICE, BOB } from "./Utils.js";
 import { enablesProtection, requestValidIdentity } from "./Protection.js";
 import { transferAndCannotPayFees, transfers, transferWithInsufficientFunds } from "./Balance.js";
 import { providesVault } from "./Vault.js";
@@ -36,7 +36,7 @@ describe("Logion SDK", () => {
     });
 
     it("fetches workload", async () => {
-        await workload(state);
+        await workload(state, ALICE, BOB, ALICE);
     });
 
     it("estimates fees", async () => {
