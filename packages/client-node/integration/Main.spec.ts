@@ -36,7 +36,7 @@ describe("Logion SDK", () => {
     });
 
     it("fetches workload", async () => {
-        await workload(state, ALICE, BOB, ALICE);
+        await workload(state, ALICE, BOB);
     });
 
     it("estimates fees", async () => {

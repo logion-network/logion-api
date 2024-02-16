@@ -76,6 +76,10 @@ class Workload {
 
     }
 
+    flushCache() {
+        this.workloads = {};
+    }
+
     private async fetchAndStoreWorkload(legalOfficer: LegalOfficerClass) {
         if (!legalOfficer.token) {
             throw new Error("Authenticate first");
@@ -163,5 +167,9 @@ export class LegalOfficerClass implements LegalOfficer {
 
     async getWorkload(): Promise<number> {
         return LegalOfficerClass.workload.getWorkload(this);
+    }
+
+    static flushWorkloadCache() {
+        LegalOfficerClass.workload.flushCache();
     }
 }
