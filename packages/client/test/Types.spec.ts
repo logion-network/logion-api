@@ -9,6 +9,7 @@ describe("Workload", () => {
     const bobToken = "bob-token";
 
     beforeEach(() => {
+        LegalOfficerClass.workloadCacheTtlMs = 10 * 1000; // 10 sec;
         LegalOfficerClass.flushWorkloadCache();
     })
 
