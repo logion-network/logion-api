@@ -44,6 +44,23 @@ describe("Workload", () => {
         axiosInstance.verify(instance => instance.put(`/api/workload`, It.IsAny()), Times.Once())
     })
 
+    it("fetches again after cache expiration", async () => {
+
+        const { axiosFactory, axiosInstance } = setupAxios(ALICE, aliceToken, 42);
+        const alice = new LegalOfficerClass({
+            legalOfficer: ALICE,
+            token: aliceToken,
+            axiosFactory: axiosFactory.object()
+        });
+
+        LegalOfficerClass.workloadCacheTtlMs = 0;
+
+        expect(await alice.getWorkload()).toEqual(42);
+        expect(await alice.getWorkload()).toEqual(42);
+
+        axiosInstance.verify(instance => instance.put(`/api/workload`, It.IsAny()), Times.Exactly(2))
+    })
+
     it("fetches twice for LLOs on DISTINCT nodes", async () => {
 
         const aliceAxios = setupAxios(ALICE, aliceToken, 42);
