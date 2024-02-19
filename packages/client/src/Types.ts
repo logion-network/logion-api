@@ -41,8 +41,6 @@ export interface BackendConfig {
     };
 }
 
-const WORKLOAD_CACHE_TTL_MS = 10 * 1000; // 10 sec
-
 interface CachedWorkload {
     workload: number,
     timestamp: number,
@@ -52,8 +50,13 @@ class Workload {
 
     private workloads: Record<string, CachedWorkload> = {};
     private addressesByNode: Record<string, Set<string>> = {};
+    private _cacheTtlMs = 10 * 1000; // 10 sec
 
     constructor() {
+    }
+
+    set cacheTtlMs(value: number) {
+        this._cacheTtlMs = value;
     }
 
     addLegalOfficer(legalOfficer: LegalOfficer) {
@@ -67,13 +70,17 @@ class Workload {
 
     async getWorkload(legalOfficer: LegalOfficerClass): Promise<number> {
         const cachedWorkload = this.workloads[legalOfficer.address];
-        if (cachedWorkload !== undefined && (Date.now() - cachedWorkload.timestamp) < WORKLOAD_CACHE_TTL_MS) {
+        if (cachedWorkload !== undefined && (Date.now() - cachedWorkload.timestamp) < this._cacheTtlMs) {
             return cachedWorkload.workload;
         } else {
             await this.fetchAndStoreWorkload(legalOfficer);
             return this.workloads[legalOfficer.address].workload;
         }
 
+    }
+
+    flushCache() {
+        this.workloads = {};
     }
 
     private async fetchAndStoreWorkload(legalOfficer: LegalOfficerClass) {
@@ -163,5 +170,13 @@ export class LegalOfficerClass implements LegalOfficer {
 
     async getWorkload(): Promise<number> {
         return LegalOfficerClass.workload.getWorkload(this);
+    }
+
+    static flushWorkloadCache() {
+        LegalOfficerClass.workload.flushCache();
+    }
+
+    static set workloadCacheTtlMs(value: number) {
+        LegalOfficerClass.workload.cacheTtlMs = value;
     }
 }
