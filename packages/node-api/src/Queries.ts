@@ -255,7 +255,7 @@ export class Queries {
         return legalOfficerData
             .filter(entry => entry[1].isSome)
             .filter(entry => entry[1].unwrap().isGuest)
-            .filter(entry => entry[1].unwrap().asGuest.toString() === address)
+            .filter(entry => entry[1].unwrap().asGuest.hostId.toString() === address)
             .map(entry => entry[0].args[0].toString());
     }
 

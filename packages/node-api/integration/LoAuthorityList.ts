@@ -11,7 +11,7 @@ export async function addGuestLegalOfficer() {
     const entry = await api.polkadot.query.loAuthorityList.legalOfficerSet(DAVE);
     expect(entry.isSome).toBe(true);
     const host = entry.unwrap().asGuest;
-    expect(host.toString()).toBe(ALICE);
+    expect(host.hostId.toString()).toBe(ALICE);
 }
 
 export async function updateHostLegalOfficer() {

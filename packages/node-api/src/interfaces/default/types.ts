@@ -107,6 +107,13 @@ export interface HostData extends Struct {
   readonly region: Region;
 }
 
+/** @name HostDataParam */
+export interface HostDataParam extends Struct {
+  readonly node_id: Option<OpaquePeerId>;
+  readonly base_url: Option<Bytes>;
+  readonly region: Region;
+}
+
 /** @name ItemsParams */
 export interface ItemsParams extends Struct {
   readonly metadata: Vec<MetadataItemParams>;
@@ -146,6 +153,15 @@ export interface LegalOfficerCaseSummary extends Struct {
 export interface LegalOfficerData extends Enum {
   readonly isHost: boolean;
   readonly asHost: HostData;
+  readonly isGuest: boolean;
+  readonly asGuest: AccountId;
+  readonly type: 'Host' | 'Guest';
+}
+
+/** @name LegalOfficerDataParam */
+export interface LegalOfficerDataParam extends Enum {
+  readonly isHost: boolean;
+  readonly asHost: HostDataParam;
   readonly isGuest: boolean;
   readonly asGuest: AccountId;
   readonly type: 'Host' | 'Guest';

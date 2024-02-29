@@ -194,6 +194,10 @@ declare module '@polkadot/api-base/types/events' {
        **/
       LoAdded: AugmentedEvent<ApiType, [AccountId32]>;
       /**
+       * Issued when an LO is imported. [accountId]
+       **/
+      LoImported: AugmentedEvent<ApiType, [AccountId32]>;
+      /**
        * Issued when an LO is removed from the list. [accountId]
        **/
       LoRemoved: AugmentedEvent<ApiType, [AccountId32]>;
@@ -220,6 +224,10 @@ declare module '@polkadot/api-base/types/events' {
        **/
       ItemAdded: AugmentedEvent<ApiType, [u128, H256]>;
       /**
+       * Issued upon collection item import. [locId, collectionItemId]
+       **/
+      ItemImported: AugmentedEvent<ApiType, [u128, H256]>;
+      /**
        * Issued when Legal Fee is withdrawn. [payerAccountId, beneficiary, legalFee]
        **/
       LegalFeeWithdrawn: AugmentedEvent<ApiType, [AccountId32, LogionSharedBeneficiary, u128]>;
@@ -244,6 +252,10 @@ declare module '@polkadot/api-base/types/events' {
        **/
       SponsorshipCreated: AugmentedEvent<ApiType, [u128, AccountId32, PalletLogionLocSupportedAccountId]>;
       /**
+       * Issued upon sponsorship import. [sponsorshipId]
+       **/
+      SponsorshipImported: AugmentedEvent<ApiType, [u128]>;
+      /**
        * Issued when a sponsorship was successfully withdrawn [sponsorship_id, sponsor, sponsored_account]
        **/
       SponsorshipWithdrawn: AugmentedEvent<ApiType, [u128, AccountId32, PalletLogionLocSupportedAccountId]>;
@@ -255,6 +267,10 @@ declare module '@polkadot/api-base/types/events' {
        * Issued when Token Record Fee is withdrawn. [payerAccountId, fee, beneficiary, amountReceived]
        **/
       TokensRecordFeeWithdrawn: AugmentedEvent<ApiType, [AccountId32, u128, LogionSharedBeneficiary, u128]>;
+      /**
+       * Issued upon tokens record import. [locId, recordId]
+       **/
+      TokensRecordImported: AugmentedEvent<ApiType, [u128, H256]>;
       /**
        * Issued when Value Fee is withdrawn. [payerAccountId, storageFee]
        **/
