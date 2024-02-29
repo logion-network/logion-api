@@ -4,6 +4,7 @@ import {
     FrameSystemAccountInfo,
     LogionNodeRuntimeRegion,
     PalletLoAuthorityListLegalOfficerData,
+    PalletLoAuthorityListLegalOfficerDataParam,
     PalletLogionLocFileParams,
     PalletLogionLocLegalOfficerCase,
     PalletLogionLocCollectionItem,
@@ -556,7 +557,7 @@ export class Adapters {
         return anyAccountId.toValidAccountId();
     }
 
-    toPalletLoAuthorityListLegalOfficerDataHost(legalOfficerData: Partial<HostData>): PalletLoAuthorityListLegalOfficerData {
+    toPalletLoAuthorityListLegalOfficerDataHost(legalOfficerData: Partial<HostData>): PalletLoAuthorityListLegalOfficerDataParam {
         let nodeId: string | null = null;
         if(legalOfficerData.nodeId) {
             const opaquePeerId = base58Decode(legalOfficerData.nodeId);
@@ -571,7 +572,7 @@ export class Adapters {
 
         const region = legalOfficerData.region ? this.toLogionNodeRuntimeRegion(legalOfficerData.region) : this.fromLogionNodeRuntimeRegion(this.getDefaultLogionNodeRuntimeRegion());
 
-        return this.api.createType<PalletLoAuthorityListLegalOfficerData>("PalletLoAuthorityListLegalOfficerData", { Host: { nodeId, baseUrl, region } });
+        return this.api.createType<PalletLoAuthorityListLegalOfficerDataParam>("PalletLoAuthorityListLegalOfficerDataParam", { Host: { nodeId, baseUrl, region } });
     }
 
     toLogionNodeRuntimeRegion(region: Region): LogionNodeRuntimeRegion {

@@ -232,6 +232,10 @@ declare module '@polkadot/api-base/types/events' {
        **/
       LocCreated: AugmentedEvent<ApiType, [u128]>;
       /**
+       * Issued upon LOC import. [locId]
+       **/
+      LocImported: AugmentedEvent<ApiType, [u128]>;
+      /**
        * Issued when LOC is voided. [locId]
        **/
       LocVoid: AugmentedEvent<ApiType, [u128]>;
