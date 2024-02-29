@@ -122,6 +122,7 @@ export default {
                 "V20AddCustomLegalFee",
                 "V21EnableRequesterLinks",
                 "V22AddRecurrentFees",
+                "V23RemoveUselessMapsAddImported",
             ]
         },
         Requester: {
@@ -160,6 +161,17 @@ export default {
             }
         },
         HostData: {
+            node_id: "Option<OpaquePeerId>",
+            base_url: "Option<Vec<u8>>",
+            region: "Region",
+        },
+        LegalOfficerDataParam: {
+            "_enum": {
+                "Host": "HostDataParam",
+                "Guest": "AccountId"
+            }
+        },
+        HostDataParam: {
             node_id: "Option<OpaquePeerId>",
             base_url: "Option<Vec<u8>>",
             region: "Region",

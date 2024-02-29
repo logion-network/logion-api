@@ -154,6 +154,10 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       AlreadyExists: AugmentedError<ApiType>;
       /**
+       * The base url is too long
+       **/
+      BaseUrlTooLong: AugmentedError<ApiType>;
+      /**
        * LO cannot change region
        **/
       CannotChangeRegion: AugmentedError<ApiType>;
@@ -186,11 +190,23 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       PeerIdAlreadyInUse: AugmentedError<ApiType>;
       /**
+       * The PeerId is too long
+       **/
+      PeerIdTooLong: AugmentedError<ApiType>;
+      /**
+       * There are too much nodes
+       **/
+      TooManyNodes: AugmentedError<ApiType>;
+      /**
        * Generic error
        **/
       [key: string]: AugmentedError<ApiType>;
     };
     logionLoc: {
+      /**
+       * There are too much LOCs linked to account
+       **/
+      AccountLocsTooMuchData: AugmentedError<ApiType>;
       /**
        * The provided Polkadot account has no closed, non-void identity LOC
        **/
@@ -261,6 +277,14 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       CollectionItemAlreadyExists: AugmentedError<ApiType>;
       /**
+       * There are too much files in the Collection Item
+       **/
+      CollectionItemFilesTooMuchData: AugmentedError<ApiType>;
+      /**
+       * There are too much terms and conditions in the Collection Item
+       **/
+      CollectionItemTCsTooMuchData: AugmentedError<ApiType>;
+      /**
        * Collection Item cannot be added to given collection because some fields contain too many bytes
        **/
       CollectionItemTooMuchData: AugmentedError<ApiType>;
@@ -313,9 +337,21 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       LinkedLocNotFound: AugmentedError<ApiType>;
       /**
+       * There are too much files in the LOC
+       **/
+      LocFilesTooMuchData: AugmentedError<ApiType>;
+      /**
        * Link cannot be added to given LOC because submitted data are invalid
        **/
       LocLinkInvalid: AugmentedError<ApiType>;
+      /**
+       * There are too much links in the LOC
+       **/
+      LocLinksTooMuchData: AugmentedError<ApiType>;
+      /**
+       * There are too much metadata in the LOC
+       **/
+      LocMetadataTooMuchData: AugmentedError<ApiType>;
       /**
        * Metadata Item cannot be added to given LOC because submitted data are invalid
        **/
@@ -715,6 +751,10 @@ declare module '@polkadot/api-base/types/errors' {
        * User is not allowed to vote on given vote.
        **/
       NotAllowed: AugmentedError<ApiType>;
+      /**
+       * There are too much ballots in the vote
+       **/
+      TooMuchBallots: AugmentedError<ApiType>;
       /**
        * Given vote does not exist.
        **/

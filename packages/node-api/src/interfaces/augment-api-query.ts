@@ -8,9 +8,8 @@ import '@polkadot/api-base/types/storage';
 import type { ApiTypes, AugmentedQuery, QueryableStorageEntry } from '@polkadot/api-base/types';
 import type { BTreeSet, Bytes, Null, Option, Struct, U8aFixed, Vec, bool, u128, u32, u64 } from '@polkadot/types-codec';
 import type { AnyNumber, ITuple } from '@polkadot/types-codec/types';
-import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, H256 } from '@polkadot/types/interfaces/runtime';
-import type { FrameSupportDispatchPerDispatchClassWeight, FrameSystemAccountInfo, FrameSystemEventRecord, FrameSystemLastRuntimeUpgradeInfo, FrameSystemPhase, LogionNodeRuntimeOpaqueSessionKeys, PalletBalancesAccountData, PalletBalancesBalanceLock, PalletBalancesIdAmount, PalletBalancesReserveData, PalletGrandpaStoredPendingChange, PalletGrandpaStoredState, PalletLoAuthorityListLegalOfficerData, PalletLoAuthorityListStorageVersion, PalletLogionLocCollectionItem, PalletLogionLocLegalOfficerCase, PalletLogionLocOtherAccountId, PalletLogionLocSponsorship, PalletLogionLocStorageVersion, PalletLogionLocTokensRecord, PalletLogionLocVerifiedIssuer, PalletLogionVoteVote, PalletMultisigMultisig, PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig, PalletTransactionPaymentReleases, PalletTreasuryProposal, PalletTreasurySpendStatus, SpConsensusAuraSr25519AppSr25519Public, SpConsensusGrandpaAppPublic, SpCoreCryptoKeyTypeId, SpRuntimeDigest } from '@polkadot/types/lookup';
+import type { FrameSupportDispatchPerDispatchClassWeight, FrameSystemAccountInfo, FrameSystemEventRecord, FrameSystemLastRuntimeUpgradeInfo, FrameSystemPhase, LogionNodeRuntimeOpaqueSessionKeys, PalletBalancesAccountData, PalletBalancesBalanceLock, PalletBalancesIdAmount, PalletBalancesReserveData, PalletGrandpaStoredPendingChange, PalletGrandpaStoredState, PalletLoAuthorityListLegalOfficerData, PalletLoAuthorityListStorageVersion, PalletLogionLocCollectionItem, PalletLogionLocLegalOfficerCase, PalletLogionLocSponsorship, PalletLogionLocStorageVersion, PalletLogionLocTokensRecord, PalletLogionLocVerifiedIssuer, PalletLogionVoteVote, PalletMultisigMultisig, PalletRecoveryActiveRecovery, PalletRecoveryRecoveryConfig, PalletTransactionPaymentReleases, PalletTreasuryProposal, PalletTreasurySpendStatus, SpConsensusAuraSr25519AppSr25519Public, SpConsensusGrandpaAppPublic, SpCoreCryptoKeyTypeId, SpRuntimeDigest } from '@polkadot/types/lookup';
 import type { Observable } from '@polkadot/types/types';
 
 export type __AugmentedQuery<ApiType extends ApiTypes> = AugmentedQuery<ApiType, () => unknown>;
@@ -173,7 +172,7 @@ declare module '@polkadot/api-base/types/storage' {
       /**
        * The set of LO nodes.
        **/
-      legalOfficerNodes: AugmentedQuery<ApiType, () => Observable<BTreeSet<OpaquePeerId>>, []> & QueryableStorageEntry<ApiType, []>;
+      legalOfficerNodes: AugmentedQuery<ApiType, () => Observable<BTreeSet<Bytes>>, []> & QueryableStorageEntry<ApiType, []>;
       /**
        * All LOs indexed by their account ID.
        **/
@@ -201,10 +200,6 @@ declare module '@polkadot/api-base/types/storage' {
        **/
       collectionSizeMap: AugmentedQuery<ApiType, (arg: u128 | AnyNumber | Uint8Array) => Observable<Option<u32>>, [u128]> & QueryableStorageEntry<ApiType, [u128]>;
       /**
-       * Requested LOCs by logion Identity LOC.
-       **/
-      identityLocLocsMap: AugmentedQuery<ApiType, (arg: u128 | AnyNumber | Uint8Array) => Observable<Option<Vec<u128>>>, [u128]> & QueryableStorageEntry<ApiType, [u128]>;
-      /**
        * Invited Contributors by LOC
        **/
       invitedContributorsByLocMap: AugmentedQuery<ApiType, (arg1: u128 | AnyNumber | Uint8Array, arg2: AccountId32 | string | Uint8Array) => Observable<Option<Null>>, [u128, AccountId32]> & QueryableStorageEntry<ApiType, [u128, AccountId32]>;
@@ -216,10 +211,6 @@ declare module '@polkadot/api-base/types/storage' {
        * LOCs by Verified Issuer
        **/
       locsByVerifiedIssuerMap: AugmentedQuery<ApiType, (arg1: AccountId32 | string | Uint8Array, arg2: AccountId32 | string | Uint8Array, arg3: u128 | AnyNumber | Uint8Array) => Observable<Option<Null>>, [AccountId32, AccountId32, u128]> & QueryableStorageEntry<ApiType, [AccountId32, AccountId32, u128]>;
-      /**
-       * Requested LOCs by other requester.
-       **/
-      otherAccountLocsMap: AugmentedQuery<ApiType, (arg: PalletLogionLocOtherAccountId | { Ethereum: any } | string | Uint8Array) => Observable<Option<Vec<u128>>>, [PalletLogionLocOtherAccountId]> & QueryableStorageEntry<ApiType, [PalletLogionLocOtherAccountId]>;
       /**
        * Storage version
        **/

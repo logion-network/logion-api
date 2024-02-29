@@ -9,7 +9,7 @@ import type { ApiTypes, AugmentedSubmittable, SubmittableExtrinsic, SubmittableE
 import type { Bytes, Compact, Null, Option, U8aFixed, Vec, bool, u128, u16, u32, u64 } from '@polkadot/types-codec';
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
 import type { AccountId32, Call, H256, MultiAddress } from '@polkadot/types/interfaces/runtime';
-import type { LogionNodeRuntimeOpaqueSessionKeys, LogionNodeRuntimeOriginCaller, PalletLoAuthorityListLegalOfficerData, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFileParams, PalletLogionLocItemsParams, PalletLogionLocLocLinkParams, PalletLogionLocMetadataItemParams, PalletLogionLocOtherAccountId, PalletLogionLocSupportedAccountId, PalletLogionLocTermsAndConditionsElement, PalletLogionLocTokensRecordFile, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
+import type { LogionNodeRuntimeOpaqueSessionKeys, LogionNodeRuntimeOriginCaller, PalletLoAuthorityListLegalOfficerDataParam, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFileParams, PalletLogionLocItems, PalletLogionLocItemsParams, PalletLogionLocLocLinkParams, PalletLogionLocLocType, PalletLogionLocLocVoidInfo, PalletLogionLocMetadataItemParams, PalletLogionLocOtherAccountId, PalletLogionLocRequester, PalletLogionLocSupportedAccountId, PalletLogionLocTermsAndConditionsElement, PalletLogionLocTokensRecordFile, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
 
 export type __AugmentedSubmittable = AugmentedSubmittable<() => unknown>;
 export type __SubmittableExtrinsic<ApiType extends ApiTypes> = SubmittableExtrinsic<ApiType>;
@@ -115,7 +115,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * See [`Pallet::add_legal_officer`].
        **/
-      addLegalOfficer: AugmentedSubmittable<(legalOfficerId: AccountId32 | string | Uint8Array, data: PalletLoAuthorityListLegalOfficerData | { Host: any } | { Guest: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [AccountId32, PalletLoAuthorityListLegalOfficerData]>;
+      addLegalOfficer: AugmentedSubmittable<(legalOfficerId: AccountId32 | string | Uint8Array, data: PalletLoAuthorityListLegalOfficerDataParam | { Host: any } | { Guest: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [AccountId32, PalletLoAuthorityListLegalOfficerDataParam]>;
       /**
        * See [`Pallet::remove_legal_officer`].
        **/
@@ -123,7 +123,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * See [`Pallet::update_legal_officer`].
        **/
-      updateLegalOfficer: AugmentedSubmittable<(legalOfficerId: AccountId32 | string | Uint8Array, data: PalletLoAuthorityListLegalOfficerData | { Host: any } | { Guest: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [AccountId32, PalletLoAuthorityListLegalOfficerData]>;
+      updateLegalOfficer: AugmentedSubmittable<(legalOfficerId: AccountId32 | string | Uint8Array, data: PalletLoAuthorityListLegalOfficerDataParam | { Host: any } | { Guest: any } | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [AccountId32, PalletLoAuthorityListLegalOfficerDataParam]>;
       /**
        * Generic tx
        **/
@@ -194,6 +194,10 @@ declare module '@polkadot/api-base/types/submittable' {
        * See [`Pallet::dismiss_issuer`].
        **/
       dismissIssuer: AugmentedSubmittable<(issuer: AccountId32 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [AccountId32]>;
+      /**
+       * See [`Pallet::import_loc`].
+       **/
+      importLoc: AugmentedSubmittable<(locId: Compact<u128> | AnyNumber | Uint8Array, requester: PalletLogionLocRequester | { None: any } | { Account: any } | { Loc: any } | { OtherAccount: any } | string | Uint8Array, legalOfficer: AccountId32 | string | Uint8Array, locType: PalletLogionLocLocType | 'Transaction' | 'Identity' | 'Collection' | number | Uint8Array, items: PalletLogionLocItems | { metadata?: any; files?: any; links?: any } | string | Uint8Array, collectionLastBlockSubmission: Option<u32> | null | Uint8Array | u32 | AnyNumber, collectionMaxSize: Option<u32> | null | Uint8Array | u32 | AnyNumber, collectionCanUpload: bool | boolean | Uint8Array, valueFee: u128 | AnyNumber | Uint8Array, legalFee: u128 | AnyNumber | Uint8Array, collectionItemFee: u128 | AnyNumber | Uint8Array, tokensRecordFee: u128 | AnyNumber | Uint8Array, sponsorshipId: Option<u128> | null | Uint8Array | u128 | AnyNumber, seal: Option<H256> | null | Uint8Array | H256 | string, voidInfo: Option<PalletLogionLocLocVoidInfo> | null | Uint8Array | PalletLogionLocLocVoidInfo | { replacer?: any } | string, replacerOf: Option<u128> | null | Uint8Array | u128 | AnyNumber, closed: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, PalletLogionLocRequester, AccountId32, PalletLogionLocLocType, PalletLogionLocItems, Option<u32>, Option<u32>, bool, u128, u128, u128, u128, Option<u128>, Option<H256>, Option<PalletLogionLocLocVoidInfo>, Option<u128>, bool]>;
       /**
        * See [`Pallet::make_void`].
        **/
