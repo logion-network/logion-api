@@ -593,8 +593,7 @@ export class Adapters {
     toHostData(legalOfficerData: PalletLoAuthorityListLegalOfficerData): Partial<HostData> {
         let nodeId: string | undefined;
         if(legalOfficerData.asHost.nodeId.isSome) {
-            const opaquePeerId = legalOfficerData.asHost.nodeId.unwrap();
-            nodeId = base58Encode(opaquePeerId);
+            nodeId = legalOfficerData.asHost.nodeId.toHuman() as string;
         }
 
         let baseUrl: string | undefined;

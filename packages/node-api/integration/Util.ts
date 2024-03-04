@@ -55,6 +55,8 @@ const INVITED_CONTRIBUTOR_SECRET_SEED = "october minimum future canvas range cru
 
 export const INVITED_CONTRIBUTOR = "5F42HAi5kvD6Ao4Ze6UBiZDw7BA4zk62twNYRWAVDq3EhdWH";
 
+export const FERDIE = "5CiPPseXPECbkjWCa6MnjNokrgYjMqmKndv2rSnekmSK2DjL";
+
 export function signAndSend(keypair: IKeyringPair, extrinsic: SubmittableExtrinsic): Promise<ISubmittableResult> {
     let unsub: () => void;
     return new Promise((resolve, error) => {

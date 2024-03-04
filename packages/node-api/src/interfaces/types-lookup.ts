@@ -7,9 +7,9 @@ import '@polkadot/types/lookup';
 
 import type { Bytes, Compact, Enum, Null, Option, Result, Struct, Text, U8aFixed, Vec, bool, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
 import type { ITuple } from '@polkadot/types-codec/types';
-import type { OpaquePeerId } from '@polkadot/types/interfaces/imOnline';
 import type { AccountId32, Call, H160, H256, MultiAddress } from '@polkadot/types/interfaces/runtime';
 import type { Event } from '@polkadot/types/interfaces/system';
+import { OpaquePeerId } from './types';
 
 declare module '@polkadot/types/lookup' {
   /** @name FrameSystemAccountInfo (3) */
