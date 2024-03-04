@@ -50,7 +50,7 @@ import {
 } from "./Types.js";
 import { UUID } from "./UUID.js";
 import { stringToU8a, u8aToHex } from "@polkadot/util";
-import { base58Decode, base58Encode } from "@polkadot/util-crypto";
+import { base58Decode } from "@polkadot/util-crypto";
 import { HexString } from "@polkadot/util/types.js";
 import { H256 } from "./interfaces/types.js";
 import { Hash } from "./Hash.js";
