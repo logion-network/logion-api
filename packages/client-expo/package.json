@@ -1,0 +1,51 @@
+{
+  "name": "@logion/client-expo",
+  "version": "0.1.0-1",
+  "description": "logion SDK for client applications built with Expo",
+  "main": "dist/index.js",
+  "packageManager": "yarn@3.2.0",
+  "type": "module",
+  "scripts": {
+    "build": "yarn lint && tsc -p tsconfig.json",
+    "lint": "yarn eslint src/**",
+    "test": "echo 'Nothing to test for now'",
+    "clean": "rm -rf dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logion-network/logion-api.git",
+    "directory": "packages/client-expo"
+  },
+  "keywords": [
+    "logion",
+    "api",
+    "client",
+    "expo"
+  ],
+  "author": "Logion Team",
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "@logion/client": "0.x",
+    "expo-crypto": "12.x",
+    "expo-file-system": "16.x"
+  },
+  "bugs": {
+    "url": "https://github.com/logion-network/logion-api/issues"
+  },
+  "homepage": "https://github.com/logion-network/logion-api/packages/client-expo#readme",
+  "devDependencies": {
+    "@logion/client": "workspace:^",
+    "@tsconfig/node18": "^1.0.1",
+    "@types/node": "^18.6.1",
+    "@typescript-eslint/eslint-plugin": "^6.9.1",
+    "@typescript-eslint/parser": "^6.9.1",
+    "eslint": "^8.20.0",
+    "expo-crypto": "^12.8.1",
+    "expo-file-system": "^16.0.7",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "stableVersion": "0.1.0"
+}
