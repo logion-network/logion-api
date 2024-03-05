@@ -1,0 +1,6 @@
+{
+  "name": "client-expo",
+  "entryPoints": [
+    "./src/index.ts"
+  ]
+}
