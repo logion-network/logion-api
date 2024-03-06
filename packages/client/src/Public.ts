@@ -2,7 +2,7 @@ import { LegalOfficerCase, UUID, FeesEstimator, Hash } from "@logion/node-api";
 
 import { CollectionItem } from "./CollectionItem.js";
 import { CheckCertifiedCopyResult, CheckResultType } from "./Deliveries.js";
-import { CheckHashResult, getCollectionItem, getTokensRecords, LocData, LocRequestState } from "./Loc.js";
+import { CheckHashResult, getCollectionItem, getTokensRecord, getTokensRecords, LocData, LocRequestState } from "./Loc.js";
 import {
     EMPTY_LOC_ISSUERS,
     FetchParameters,
@@ -88,6 +88,19 @@ export class PublicApi {
             locClient: client,
             locId,
             jwtToken,
+        })
+    }
+
+    async getTokensRecord(params: { locId: UUID, recordId: Hash }): Promise<TokensRecord | undefined> {
+        const { locId, recordId } = params;
+        const locAndClient = await this.getLocAndClient(params);
+        if (!locAndClient) {
+            return undefined
+        }
+        return getTokensRecord({
+            locClient: locAndClient.client,
+            locId,
+            recordId,
         })
     }
 }
