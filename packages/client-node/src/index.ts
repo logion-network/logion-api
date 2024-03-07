@@ -60,7 +60,7 @@ export class NodeFile extends NodeStreamFile {
 
 export class NodeBufferFile extends NodeStreamFile {
 
-    constructor(name: string, mimeType: MimeType, content: Buffer) {
+    constructor(content: Buffer, name: string, mimeType: MimeType) {
         super(name, mimeType);
         this.content = content;
     }
