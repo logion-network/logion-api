@@ -63,7 +63,10 @@ export async function tokensRecords(state: State) {
     });
     await expectAsync(waitFor<BalanceState>({
         producer: balanceState => balanceState ? balanceState.refresh() : userClient.balanceState(),
-        predicate: balanceState => balanceState.transactions.length > 0 && balanceState.transactions[1].fees.tokensRecord === tokensRecordFee.canonical.toString(),
+        predicate: balanceState => balanceState.transactions.length > 1 && (
+            balanceState.transactions[0].fees.tokensRecord === tokensRecordFee.canonical.toString()
+            || balanceState.transactions[1].fees.tokensRecord === tokensRecordFee.canonical.toString()
+        ),
     })).toBeResolved();
     await expectAsync(waitFor<BalanceState>({
         producer: balanceState => balanceState ? balanceState.refresh() : aliceClient.balanceState(),
@@ -75,6 +78,33 @@ export async function tokensRecords(state: State) {
     expect(record?.description.validValue()).toBe(recordDescription);
     expect(record?.files.length).toBe(1);
 
-    const records = await closedCollectionLoc.getTokensRecords();
+    let records = await closedCollectionLoc.getTokensRecords();
     expect(records.length).toBe(1);
+
+    const recordId2 = Hash.of("record-id2");
+    const recordDescription2 = "Tokens record 2";
+    const recordId3 = Hash.of("record-id3");
+    const recordDescription3 = "Tokens record 3";
+    closedCollectionLoc = await closedCollectionLoc.addTokensRecords({
+        payload: [
+            {
+                recordId: recordId2,
+                description: recordDescription2,
+                files: [
+                    HashOrContent.fromContent(new NodeFile("integration/test0.txt", "report2.txt", MimeType.from("text/plain"))),
+                ],
+            },
+            {
+                recordId: recordId3,
+                description: recordDescription3,
+                files: [
+                    HashOrContent.fromContent(new NodeFile("integration/test2.txt", "report3.txt", MimeType.from("text/plain"))),
+                ],
+            }
+        ],
+        signer: state.signer,
+    });
+
+    records = await closedCollectionLoc.getTokensRecords();
+    expect(records.length).toBe(3);
 }

@@ -967,6 +967,64 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
+    async addTokensRecords(parameters: BlockchainBatchSubmission<AddTokensRecordParams & FetchParameters>): Promise<void> {
+
+        const submittables: SubmittableExtrinsic[] = [];
+
+        for (const params of parameters.payload) {
+            const {
+                recordId,
+                description,
+                locId,
+                files,
+            } = params;
+
+            if(files) {
+                for(const file of files) {
+                    await file.finalize();
+                }
+            }
+
+            await this.submitRecordPublicData(locId, {
+                recordId: recordId.toHex(),
+                files: files?.map(file => ({
+                    name: file.name,
+                    contentType: file.mimeType.mimeType,
+                    hash: file.contentHash.toHex(),
+                })) || [],
+                description,
+            });
+
+            const submittable = await this.addTokensRecordSubmittable({ ...params });
+            submittables.push(submittable);
+        }
+        const { signer, callback } = parameters;
+        try {
+            await signer.signAndSend({
+                signerId: this.currentAddress.address,
+                submittable: this.nodeApi.batching.batchAll(submittables),
+                callback
+            });
+        } catch(e) {
+            for (const params of parameters.payload) {
+                const { locId, recordId } = params;
+                await this.cancelRecordPublicDataSubmission(locId, recordId);
+            }
+            throw e;
+        }
+
+        for (const params of parameters.payload) {
+            const { locId, recordId, files } = params;
+            if (files) {
+                for(const file of files) {
+                    if(file.hasContent) {
+                        await this.uploadTokensRecordFile({ locId, recordId, file });
+                    }
+                }
+            }
+        }
+    }
+
     private termsAndConditions(parameters: AddCollectionItemParams): TermsAndConditionsElement[] {
         const { logionClassification, creativeCommons, specificLicenses } = parameters
         const termsAndConditions: TermsAndConditionsElement[] = [];
