@@ -538,6 +538,31 @@ describe("ClosedCollectionLoc", () => {
         )),Times.Once());
     });
 
+    it("adds tokens records", async () => {
+        const closedLoc = await getClosedCollectionLoc();
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+        await closedLoc.addTokensRecords({
+            payload: [
+                {
+                    recordId: RECORD_ID,
+                    description: RECORD_DESCRIPTION,
+                    files: RECORD_FILES,
+                },
+                {
+                    recordId: OTHER_RECORD_ID,
+                    description: OTHER_RECORD_DESCRIPTION,
+                    files: OTHER_RECORD_FILES,
+                }
+            ],
+            signer: signer.object(),
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addTokensRecord(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Exactly(2));
+    });
+
     it("can be voided", async () => {
         const openLoc = await getClosedCollectionLoc();
         const signer = new Mock<Signer>();
@@ -872,6 +897,10 @@ const CREATIVE_COMMONS: CreativeCommonsCode = "BY-SA";
 const RECORD_ID = Hash.fromHex("0x186bf67f32bb45187a1c50286dbd9adf8751874831aeba2a66760a74a9c898cc");
 const RECORD_DESCRIPTION = "Some record description";
 const RECORD_FILES: HashOrContent[] = [ HashOrContent.fromContent(MOCK_FILE) ];
+
+const OTHER_RECORD_ID = Hash.fromHex("0x0c274fac19724c028d4a20a86a68930df23df80f9e8171b5b8bf733cc605c766");
+const OTHER_RECORD_DESCRIPTION = "Some other record description";
+const OTHER_RECORD_FILES: HashOrContent[] = [ HashOrContent.fromContent(MOCK_FILE) ];
 
 let aliceAxiosMock: Mock<AxiosInstance>;
 let bobAxiosMock: Mock<AxiosInstance>;

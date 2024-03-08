@@ -2350,6 +2350,29 @@ export class ClosedCollectionLoc extends ClosedOrVoidCollectionLoc {
         return this.getCurrentStateOrThrow() as ClosedCollectionLoc;
     }
 
+    async addTokensRecords(parameters: BlockchainBatchSubmission<AddTokensRecordParams>): Promise<ClosedCollectionLoc> {
+        const { signer, callback } = parameters;
+        const client = this.locSharedState.client;
+        const payload = parameters.payload.map(payload => {
+            if(payload.files.length === 0) {
+                throw new Error("Cannot add a tokens record without files");
+            }
+            return {
+                ...payload,
+                locId: this.locId,
+            };
+        });
+        if(!await client.canAddRecord(this.request)) {
+            throw new Error("Current user is not allowed to add tokens records");
+        }
+        await client.addTokensRecords({
+            signer,
+            callback,
+            payload,
+        })
+        return this.getCurrentStateOrThrow() as ClosedCollectionLoc;
+    }
+
     async requestSof(params: CreateSofRequestParams): Promise<PendingRequest> {
         return requestSof(this.locSharedState, this.locId, params.itemId);
     }
