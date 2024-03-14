@@ -3,6 +3,7 @@ import { Call, FunctionMetadataLatest } from "@polkadot/types/interfaces";
 import {
     FrameSystemAccountInfo,
     LogionNodeRuntimeRegion,
+    PalletLoAuthorityListHostDataParam,
     PalletLoAuthorityListLegalOfficerData,
     PalletLoAuthorityListLegalOfficerDataParam,
     PalletLogionLocFileParams,
@@ -50,7 +51,7 @@ import {
 } from "./Types.js";
 import { UUID } from "./UUID.js";
 import { stringToU8a, u8aToHex } from "@polkadot/util";
-import { base58Decode } from "@polkadot/util-crypto";
+import { base58Decode, base58Encode } from "@polkadot/util-crypto";
 import { HexString } from "@polkadot/util/types.js";
 import { H256 } from "./interfaces/types.js";
 import { Hash } from "./Hash.js";
@@ -593,14 +594,15 @@ export class Adapters {
     toHostData(legalOfficerData: PalletLoAuthorityListLegalOfficerData): Partial<HostData> {
         let nodeId: string | undefined;
         if(legalOfficerData.asHost.nodeId.isSome) {
-            nodeId = legalOfficerData.asHost.nodeId.toHuman() as string;
+            const opaquePeerId = legalOfficerData.asHost.nodeId.unwrap().toHex();
+            nodeId = base58Encode(opaquePeerId);
         }
 
         let baseUrl: string | undefined;
         if(legalOfficerData.asHost.baseUrl.isSome) {
             const urlBytes = legalOfficerData.asHost.baseUrl.unwrap();
             baseUrl = urlBytes.toUtf8();
-        }
+        } 
 
         const region = this.fromLogionNodeRuntimeRegion(legalOfficerData.asHost.region);
 
@@ -636,6 +638,19 @@ export class Adapters {
             metadata: [],
             files: [],
             links: [],
+        });
+    }
+
+    toPalletLoAuthorityListHostDataParam(params: {
+        nodeId: string | undefined,
+        baseUrl: string | undefined,
+        region: Region,
+    }): PalletLoAuthorityListHostDataParam {
+        const nodeId = params.nodeId ? u8aToHex(base58Decode(params.nodeId)) : undefined;
+        return this.api.createType("PalletLoAuthorityListHostDataParam", {
+            nodeId,
+            baseUrl: params.baseUrl,
+            region: this.toLogionNodeRuntimeRegion(params.region),
         });
     }
 }

@@ -9,7 +9,7 @@ import type { ApiTypes, AugmentedSubmittable, SubmittableExtrinsic, SubmittableE
 import type { Bytes, Compact, Null, Option, U8aFixed, Vec, bool, u128, u16, u32, u64 } from '@polkadot/types-codec';
 import type { AnyNumber, IMethod, ITuple } from '@polkadot/types-codec/types';
 import type { AccountId32, Call, H256, MultiAddress } from '@polkadot/types/interfaces/runtime';
-import type { LogionNodeRuntimeOpaqueSessionKeys, LogionNodeRuntimeOriginCaller, PalletLoAuthorityListHostDataParam, PalletLoAuthorityListLegalOfficerDataParam, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFileParams, PalletLogionLocItems, PalletLogionLocItemsParams, PalletLogionLocLocLinkParams, PalletLogionLocLocType, PalletLogionLocLocVoidInfo, PalletLogionLocMetadataItemParams, PalletLogionLocOtherAccountId, PalletLogionLocRequester, PalletLogionLocSupportedAccountId, PalletLogionLocTermsAndConditionsElement, PalletLogionLocTokensRecordFile, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
+import type { LogionNodeRuntimeOpaqueSessionKeys, LogionNodeRuntimeOriginCaller, PalletBalancesAdjustmentDirection, PalletLoAuthorityListHostDataParam, PalletLoAuthorityListLegalOfficerDataParam, PalletLogionLocCollectionItemFile, PalletLogionLocCollectionItemToken, PalletLogionLocFileParams, PalletLogionLocItems, PalletLogionLocItemsParams, PalletLogionLocLocLinkParams, PalletLogionLocLocType, PalletLogionLocLocVoidInfo, PalletLogionLocMetadataItemParams, PalletLogionLocOtherAccountId, PalletLogionLocRequester, PalletLogionLocSupportedAccountId, PalletLogionLocTermsAndConditionsElement, PalletLogionLocTokensRecordFile, PalletMultisigTimepoint, SpConsensusGrandpaEquivocationProof, SpCoreVoid, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
 
 export type __AugmentedSubmittable = AugmentedSubmittable<() => unknown>;
 export type __SubmittableExtrinsic<ApiType extends ApiTypes> = SubmittableExtrinsic<ApiType>;
@@ -18,6 +18,10 @@ export type __SubmittableExtrinsicFunction<ApiType extends ApiTypes> = Submittab
 declare module '@polkadot/api-base/types/submittable' {
   interface AugmentedSubmittables<ApiType extends ApiTypes> {
     balances: {
+      /**
+       * See [`Pallet::force_adjust_total_issuance`].
+       **/
+      forceAdjustTotalIssuance: AugmentedSubmittable<(direction: PalletBalancesAdjustmentDirection | 'Increase' | 'Decrease' | number | Uint8Array, delta: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>, [PalletBalancesAdjustmentDirection, Compact<u128>]>;
       /**
        * See [`Pallet::force_set_balance`].
        **/
@@ -410,6 +414,18 @@ declare module '@polkadot/api-base/types/submittable' {
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
     system: {
+      /**
+       * See [`Pallet::apply_authorized_upgrade`].
+       **/
+      applyAuthorizedUpgrade: AugmentedSubmittable<(code: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes]>;
+      /**
+       * See [`Pallet::authorize_upgrade`].
+       **/
+      authorizeUpgrade: AugmentedSubmittable<(codeHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [H256]>;
+      /**
+       * See [`Pallet::authorize_upgrade_without_checks`].
+       **/
+      authorizeUpgradeWithoutChecks: AugmentedSubmittable<(codeHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [H256]>;
       /**
        * See [`Pallet::kill_prefix`].
        **/

@@ -53,11 +53,12 @@ export async function importHost() {
     const nodeId = "12D3KooWDh3ZkezHgdC1A7MB32m43HHsGPDy1aGoA3svhN4Z8qYt";
     const baseUrl = "https://some-node.logion.network";
     const region = "Europe";
-    const extrinsic = api.polkadot.tx.loAuthorityList.importHostLegalOfficer(FERDIE, {
+    const params = api.adapters.toPalletLoAuthorityListHostDataParam({
         nodeId,
         baseUrl,
         region,
     });
+    const extrinsic = api.polkadot.tx.loAuthorityList.importHostLegalOfficer(FERDIE, params);
     const sudoExtrinsic = api.polkadot.tx.sudo.sudo(extrinsic);
     await signAndSend(alice, sudoExtrinsic);
 
