@@ -1,6 +1,6 @@
 {
   "name": "@logion/client",
-  "version": "0.41.0-2",
+  "version": "0.41.0-3",
   "description": "logion SDK for client applications",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
@@ -27,7 +27,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@logion/node-api": "workspace:^",
-    "axios": "^0.27.2",
+    "axios": "^1.6.7",
     "luxon": "^3.0.1",
     "mime-db": "^1.52.0"
   },
