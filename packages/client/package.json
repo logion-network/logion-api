@@ -1,6 +1,6 @@
 {
   "name": "@logion/client",
-  "version": "0.41.0-3",
+  "version": "0.41.0-4",
   "description": "logion SDK for client applications",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
@@ -28,7 +28,7 @@
   "dependencies": {
     "@logion/node-api": "workspace:^",
     "axios": "^1.6.7",
-    "luxon": "^3.0.1",
+    "luxon": "^3.4.4",
     "mime-db": "^1.52.0"
   },
   "bugs": {

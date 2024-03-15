@@ -3210,7 +3210,7 @@ __metadata:
     eslint: ^8.20.0
     jasmine: ^4.3.0
     jasmine-spec-reporter: ^7.0.0
-    luxon: ^3.0.1
+    luxon: ^3.4.4
     mime-db: ^1.52.0
     moq.ts: ^9.0.2
     typescript: ^5.2.2
@@ -11497,7 +11497,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"luxon@npm:^3.0.1":
+"luxon@npm:^3.4.4":
   version: 3.4.4
   resolution: "luxon@npm:3.4.4"
   checksum: 36c1f99c4796ee4bfddf7dc94fa87815add43ebc44c8934c924946260a58512f0fd2743a629302885df7f35ccbd2d13f178c15df046d0e3b6eb71db178f1c60c
