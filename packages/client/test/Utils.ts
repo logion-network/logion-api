@@ -244,6 +244,10 @@ export function buildValidAccountId(address: string | undefined, type: AccountTy
 export function buildSimpleNodeApi(): LogionNodeApiClass {
     const api = {
         createType: () => undefined,
+        runtimeVersion: {
+            specName: { toString: () => "logion" },
+            specVersion: { toBigInt: () => 164n },
+        },
     } as unknown as ApiPromise;
     return new LogionNodeApiClass(api);
 }
