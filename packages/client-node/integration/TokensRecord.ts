@@ -22,6 +22,10 @@ export async function tokensRecords(state: State) {
         valueFee: Lgnt.fromCanonical(100n),
         collectionItemFee: Lgnt.fromCanonical(50n),
         tokensRecordFee,
+        collectionParams: {
+            maxSize: 100,
+            canUpload: true,
+        }
     });
     const collectionLocId = collectionLoc.locId;
     const aliceClient = client.withCurrentAddress(aliceAccount);
@@ -30,7 +34,7 @@ export async function tokensRecords(state: State) {
     let aliceAcceptedLoc = await alicePendingRequest.legalOfficer.accept();
 
     let acceptedLoc = await collectionLoc.refresh() as AcceptedRequest;
-    await acceptedLoc.openCollection({ collectionMaxSize: 100, collectionCanUpload: true, signer, autoPublish: false });
+    await acceptedLoc.open({ signer, autoPublish: false });
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
 
     aliceOpenLoc = await aliceOpenLoc.legalOfficer.selectIssuer({ issuer: ISSUER_ADDRESS, signer });

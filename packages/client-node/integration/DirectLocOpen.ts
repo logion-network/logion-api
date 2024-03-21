@@ -109,8 +109,10 @@ export async function openCollectionLoc(state: State, linkedLoc1: UUID, linkedLo
         files: items.files,
         metadata: items.metadata,
         links: items.links,
-        collectionCanUpload: false,
-        collectionMaxSize: 200,
+        collectionParams: {
+            canUpload: false,
+            maxSize: 200,
+        },
         valueFee: Lgnt.fromCanonical(13000n),
         collectionItemFee: Lgnt.fromCanonical(7000n),
         tokensRecordFee: Lgnt.fromCanonical(6000n),
@@ -120,9 +122,9 @@ export async function openCollectionLoc(state: State, linkedLoc1: UUID, linkedLo
 }
 
 function checkCollectionData(data: LocData, items: ItemsParams) {
-    expect(data.collectionCanUpload).toBeFalse();
-    expect(data.collectionMaxSize).toEqual(200);
-    expect(data.collectionLastBlockSubmission).toBeUndefined();
+    expect(data.collectionParams?.canUpload).toBeFalse();
+    expect(data.collectionParams?.maxSize).toEqual(200);
+    expect(data.collectionParams?.lastBlockSubmission).toBeUndefined();
     expect(data.fees.valueFee?.canonical).toEqual(13000n);
     expect(data.fees.collectionItemFee?.canonical).toEqual(7000n);
     expect(data.fees.tokensRecordFee?.canonical).toEqual(6000n);

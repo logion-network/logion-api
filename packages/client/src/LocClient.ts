@@ -152,6 +152,7 @@ export interface LocRequest {
     template?: string;
     sponsorshipId?: string;
     fees?: BackendLocFees;
+    collectionParams?: BackendCollectionParams;
 }
 
 export interface IdenfyVerificationSession {
@@ -190,14 +191,27 @@ export interface AddLinkParams {
 }
 
 export function withLocId<T>(locId: UUID, params: BlockchainSubmission<T>): BlockchainSubmission<T & FetchParameters> {
+    return addToPayload({ locId }, params)
+}
+
+export function addToPayload<T, P>(additionalPayload: P, params: BlockchainSubmission<T>): BlockchainSubmission<T & P> {
     const { signer, callback, payload } = params;
     return {
         signer,
         callback,
         payload: {
-            locId,
             ...payload,
+            ...additionalPayload,
         }
+    }
+}
+
+export function toBlockchainSubmission<T>(params: T & BlockchainSubmissionParams): BlockchainSubmission<T> {
+    const { signer, callback, ...payload } = params;
+    return {
+        signer,
+        callback,
+        payload: payload as T,
     }
 }
 
@@ -229,6 +243,13 @@ export interface BaseLoc {
     company?: string;
     template?: string;
     fees?: BackendLocFees;
+    collectionParams?: BackendCollectionParams;
+}
+
+export interface BackendCollectionParams {
+    lastBlockSubmission?: string;
+    maxSize?: string;
+    canUpload: boolean;
 }
 
 export interface BackendLocFees {
@@ -1879,10 +1900,11 @@ export class AuthenticatedLocClient extends LocClient {
         return undefined;
     }
 
-    async openTransactionLoc(parameters: OpenPolkadotLocParams & BlockchainSubmissionParams & AutoPublish, requirePreOpen = true) {
-        const { locId, signer, callback, autoPublish } = parameters;
+    async openTransactionLoc(parameters: BlockchainSubmission<OpenPolkadotLocParams & AutoPublish>, requirePreOpen = true) {
+        const { payload, signer, callback } = parameters;
+        const { locId, autoPublish } = payload;
 
-        const fees = await this.estimateFeesOpenTransactionLoc(parameters);
+        const fees = await this.estimateFeesOpenTransactionLoc(payload);
         await this.ensureEnoughFunds(fees);
 
         if (requirePreOpen) {
@@ -1892,7 +1914,7 @@ export class AuthenticatedLocClient extends LocClient {
         try {
             await signer.signAndSend({
                 signerId: this.currentAddress.address,
-                submittable: this.openTransactionLocSubmittable(parameters),
+                submittable: this.openTransactionLocSubmittable(payload),
                 callback,
             });
         } catch(e) {
@@ -2042,10 +2064,11 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    async openIdentityLoc(parameters: OpenPolkadotLocParams & BlockchainSubmissionParams & AutoPublish, requirePreOpen = true) {
-        const { locId, signer, callback, autoPublish } = parameters;
+    async openIdentityLoc(parameters: BlockchainSubmission<OpenPolkadotLocParams & AutoPublish>, requirePreOpen = true) {
+        const { payload, signer, callback } = parameters;
+        const { locId, autoPublish } = payload;
 
-        const fees = await this.estimateFeesOpenIdentityLoc(parameters);
+        const fees = await this.estimateFeesOpenIdentityLoc(payload);
         await this.ensureEnoughFunds(fees);
 
         if (requirePreOpen) {
@@ -2055,7 +2078,7 @@ export class AuthenticatedLocClient extends LocClient {
         try {
             await signer.signAndSend({
                 signerId: this.currentAddress.address,
-                submittable: this.openIdentityLocSubmittable(parameters),
+                submittable: this.openIdentityLocSubmittable(payload),
                 callback,
             });
         } catch(e) {
@@ -2146,10 +2169,11 @@ export class AuthenticatedLocClient extends LocClient {
         await this.acceptLoc(parameters);
     }
 
-    async openCollectionLoc(parameters: OpenPolkadotLocParams & OpenCollectionLocParams & AutoPublish, requirePreOpen = true) {
-        const { locId, signer, callback, autoPublish } = parameters;
+    async openCollectionLoc(parameters: BlockchainSubmission<OpenPolkadotLocParams & OpenCollectionLocParams & AutoPublish>, requirePreOpen = true) {
+        const { signer, callback, payload } = parameters;
+        const { locId, autoPublish } = payload;
 
-        const fees = await this.estimateFeesOpenCollectionLoc(parameters);
+        const fees = await this.estimateFeesOpenCollectionLoc(parameters.payload);
         await this.ensureEnoughFunds(fees);
 
         if (requirePreOpen) {
@@ -2159,7 +2183,7 @@ export class AuthenticatedLocClient extends LocClient {
         try {
             await signer.signAndSend({
                 signerId: this.currentAddress.address,
-                submittable: this.openCollectionLocSubmittable(parameters),
+                submittable: this.openCollectionLocSubmittable(payload),
                 callback,
             });
         } catch(e) {
@@ -2168,18 +2192,19 @@ export class AuthenticatedLocClient extends LocClient {
         }
     }
 
-    private openCollectionLocSubmittable(parameters: OpenPolkadotLocParams & EstimateFeesOpenCollectionLocParams): SubmittableExtrinsic {
-        const { locId, legalOfficerAddress, metadata, files, links, collectionItemFee, tokensRecordFee } = parameters;
+    private openCollectionLocSubmittable(parameters: OpenPolkadotLocParams & OpenCollectionLocParams): SubmittableExtrinsic {
+        const { locId, legalOfficerAddress, metadata, files, links, collectionItemFee, tokensRecordFee, valueFee } = parameters;
+        const { lastBlockSubmission, maxSize, canUpload } = parameters.collectionParams;
         const legalFee = parameters.legalFee === undefined ?
             this.nodeApi.fees.getDefaultLegalFee({ locType: "Collection" }) :
             parameters.legalFee;
         return this.nodeApi.polkadot.tx.logionLoc.createCollectionLoc(
             this.nodeApi.adapters.toLocId(locId),
             legalOfficerAddress,
-            parameters.collectionLastBlockSubmission || null,
-            parameters.collectionMaxSize || null,
-            parameters.collectionCanUpload,
-            parameters.valueFee.canonical,
+            lastBlockSubmission || null,
+            maxSize || null,
+            canUpload,
+            valueFee.canonical,
             legalFee.canonical,
             collectionItemFee.canonical,
             tokensRecordFee.canonical,
@@ -2191,7 +2216,7 @@ export class AuthenticatedLocClient extends LocClient {
         );
     }
 
-    async estimateFeesOpenCollectionLoc(parameters: { valueFee: Lgnt } & OpenPolkadotLocParams & EstimateFeesOpenCollectionLocParams & AutoPublish) {
+    async estimateFeesOpenCollectionLoc(parameters: { valueFee: Lgnt } & OpenPolkadotLocParams & OpenCollectionLocParams & AutoPublish) {
         const storageSize = this.storageSize(parameters.autoPublish, parameters.files);
         return await this.nodeApi.fees.estimateCreateLoc({
             origin: this.currentAddress.address,
@@ -2445,19 +2470,17 @@ export interface OpenPolkadotLocParams {
     links: AddLinkParams[],
 }
 
-export interface CollectionLimits {
-    collectionLastBlockSubmission?: bigint;
-    collectionMaxSize?: number;
-    collectionCanUpload: boolean;
+export interface CollectionParams {
+    lastBlockSubmission?: bigint;
+    maxSize?: number;
+    canUpload: boolean;
 }
 
-export interface EstimateFeesOpenCollectionLocParams extends CollectionLimits {
+export interface OpenCollectionLocParams {
     valueFee: Lgnt;
     collectionItemFee: Lgnt;
     tokensRecordFee: Lgnt;
-}
-
-export interface OpenCollectionLocParams extends EstimateFeesOpenCollectionLocParams, BlockchainSubmissionParams {
+    collectionParams: CollectionParams;
 }
 
 export const EMPTY_LOC_ISSUERS: LocVerifiedIssuers = {
