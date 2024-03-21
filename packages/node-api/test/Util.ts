@@ -1,5 +1,5 @@
 import type { Codec } from '@polkadot/types-codec/types';
-import { AnyAccountId, ValidAccountId } from '../src/index.js';
+import { AnyAccountId, EXPECTED_PARA_VERSION, EXPECTED_SOLO_VERSION, EXPECTED_SPEC_NAME, ValidAccountId } from '../src/index.js';
 import { bool } from "@polkadot/types-codec";
 
 export function createdPolkadotType(content: object): any {
@@ -32,4 +32,48 @@ export function mockBool(value: boolean): bool {
         isTrue: value,
         isFalse: !value,
     }) as bool;
+}
+
+export function mockSoloRuntimeVersion() {
+    return {
+        specName: {
+            toString: () => EXPECTED_SPEC_NAME,
+        },
+        specVersion: {
+            toBigInt: () => EXPECTED_SOLO_VERSION,
+        },
+    };
+}
+
+export function mockParaRuntimeVersion() {
+    return {
+        specName: {
+            toString: () => EXPECTED_SPEC_NAME,
+        },
+        specVersion: {
+            toBigInt: () => EXPECTED_PARA_VERSION,
+        },
+    };
+}
+
+export function mockRuntimeVersionUnexpectedSpecName() {
+    return {
+        specName: {
+            toString: () => "not-logion",
+        },
+        specVersion: {
+            toBigInt: () => EXPECTED_PARA_VERSION,
+        },
+    };
+}
+
+export function mockRuntimeVersionUnexpectedSpecVersion() {
+    return {
+        specName: {
+            toString: () => EXPECTED_SPEC_NAME,
+        },
+        specVersion: {
+            toBigInt: () => 42n,
+        },
+    };
 }

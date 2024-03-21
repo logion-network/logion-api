@@ -15,21 +15,52 @@ import { UUID } from './UUID.js';
 import { LegalOfficerCase, VerifiedIssuerType } from './Types.js';
 import { Batching } from "./Batching.js";
 
-function buildProvider(endpoint: string | string[]): WsProvider {
-    let endpoints: string[];
-    if(typeof endpoint === "string") {
-        endpoints = [ endpoint ];
-    } else {
-        endpoints = endpoint;
-        endpoints.sort(() => Math.random() - 0.5);
-    }
-    return new WsProvider(endpoints, 100);
-}
+export type ChainType = "Solo" | "Para";
 
+export const EXPECTED_SPEC_NAME = "logion";
+
+export const EXPECTED_SOLO_VERSION = 164n;
+
+export const EXPECTED_PARA_VERSION = 3n;
+
+/**
+ * A Logion chain client. An instance of this class provides
+ * direct access to the Polkadot API but also to Logion-specific
+ * features and helpers.
+ */
 export class LogionNodeApiClass {
+
+    /**
+     * Creates a connected Logion chain client.
+     * @param endpoint the URL(s) of the RPCs to connect to.
+     * @returns A promise resolving to a connected Logion chain client.
+     */
+    static async connect(endpoint: string | string[]): Promise<LogionNodeApiClass> {
+        const provider = LogionNodeApiClass.buildProvider(endpoint);
+        const types = Object.values(definitions).reduce((res, { types }): object => ({ ...res, ...types }), {});
+        const api = await ApiPromise.create({
+            provider,
+            types,
+            rpc: jsonrpc,
+            runtime: definitions.runtime.runtime,
+        });
+        return new LogionNodeApiClass(api);
+    }
+
+    private static buildProvider(endpoint: string | string[]): WsProvider {
+        let endpoints: string[];
+        if(typeof endpoint === "string") {
+            endpoints = [ endpoint ];
+        } else {
+            endpoints = endpoint;
+            endpoints.sort(() => Math.random() - 0.5);
+        }
+        return new WsProvider(endpoints, 100);
+    }
 
     constructor(api: ApiPromise) {
         this.polkadot = api;
+        this.chainType = this.detectChainType();
         this.adapters = new Adapters(api);
         this.fees = new FeesEstimator(api);
         this.queries = new Queries(api, this.adapters);
@@ -37,6 +68,24 @@ export class LogionNodeApiClass {
     }
 
     readonly polkadot: ApiPromise;
+    readonly chainType: ChainType;
+
+    private detectChainType(): ChainType {
+        const chainSpecName = this.polkadot.runtimeVersion.specName.toString();
+        if(chainSpecName !== EXPECTED_SPEC_NAME) {
+            throw new Error(`Unexpected chain '${chainSpecName}'`);
+        }
+    
+        const chainSpecVersion = this.polkadot.runtimeVersion.specVersion.toBigInt();
+        if(chainSpecVersion === EXPECTED_SOLO_VERSION) {
+            return "Solo";
+        } else if(chainSpecVersion === EXPECTED_PARA_VERSION) {
+            return "Para";
+        } else {
+            throw new Error(`Unsupported runtime version '${chainSpecVersion}'`);
+        }
+    }
+
     readonly adapters: Adapters;
     readonly fees: FeesEstimator;
     readonly queries: Queries;
@@ -68,14 +117,12 @@ export class LogionNodeApiClass {
     }
 }
 
+/**
+ * Builds a connected interface to the Logion chain.
+ * @param endpoint the URL(s) of the RPCs to connect to
+ * @returns A connected Logion chain client
+ * @deprecated Use `LogionNodeApiClass.connect(endpoint)` instead
+ */
 export async function buildApiClass(endpoint: string | string[]): Promise<LogionNodeApiClass> {
-    const provider = buildProvider(endpoint);
-    const types = Object.values(definitions).reduce((res, { types }): object => ({ ...res, ...types }), {});
-    const api = await ApiPromise.create({
-        provider,
-        types,
-        rpc: jsonrpc,
-        runtime: definitions.runtime.runtime,
-    });
-    return new LogionNodeApiClass(api);
+    return LogionNodeApiClass.connect(endpoint);
 }
