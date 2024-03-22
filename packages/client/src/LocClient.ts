@@ -191,10 +191,10 @@ export interface AddLinkParams {
 }
 
 export function withLocId<T>(locId: UUID, params: BlockchainSubmission<T>): BlockchainSubmission<T & FetchParameters> {
-    return addToPayload({ locId }, params)
+    return withAdditional({ locId }, params)
 }
 
-export function addToPayload<T, P>(additionalPayload: P, params: BlockchainSubmission<T>): BlockchainSubmission<T & P> {
+export function withAdditional<T, P>(additionalPayload: P, params: BlockchainSubmission<T>): BlockchainSubmission<T & P> {
     const { signer, callback, payload } = params;
     return {
         signer,

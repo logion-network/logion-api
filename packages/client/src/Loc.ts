@@ -54,7 +54,7 @@ import {
     AutoPublish,
     SetInvitedContributorSelectionParams,
     withLocId,
-    addToPayload,
+    withAdditional,
     toBlockchainSubmission,
     CollectionParams,
     BackendCollectionParams,
@@ -445,17 +445,17 @@ export class LocsState extends State {
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
         if (payload.locType === "Identity") {
             await client.openIdentityLoc(
-                addToPayload({ locId, autoPublish: false }, params),
+                withAdditional({ locId, autoPublish: false }, params),
                 false
             );
         } else if (payload.locType === "Transaction") {
             await client.openTransactionLoc(
-                addToPayload({ locId, autoPublish: false }, params),
+                withAdditional({ locId, autoPublish: false }, params),
                 false
             );
         } else if (payload.locType === "Collection") {
             await client.openCollectionLoc(
-                addToPayload({
+                withAdditional({
                         collectionParams: requireDefined(collectionParams),
                         valueFee: requireDefined(payload.valueFee),
                         collectionItemFee: requireDefined(payload.collectionItemFee),

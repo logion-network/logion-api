@@ -19,6 +19,5 @@ describe("LocClient", () => {
         expect(result.signer).toBe(signer);
         expect(result.callback).toBe(callback);
         expect(result.payload).toEqual(someParams);
-        console.log(result)
     })
 })
