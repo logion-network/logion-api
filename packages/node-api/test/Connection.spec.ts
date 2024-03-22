@@ -12,12 +12,11 @@ describe("LogionNodeApiClass", () => {
         expect(api.chainType).toBe("Solo");
     });
 
-    it("detects para chain", () => {
+    it("fails connecting to para chain", () => {
         const polkadot = {
             runtimeVersion: mockParaRuntimeVersion(),
         } as unknown as ApiPromise;
-        const api = new LogionNodeApiClass(polkadot);
-        expect(api.chainType).toBe("Para");
+        expect(() => new LogionNodeApiClass(polkadot)).toThrowError("This version of the SDK does not have support for chain type Para");
     });
 
     it("throws with unexpected spec name", () => {

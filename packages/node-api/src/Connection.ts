@@ -61,6 +61,9 @@ export class LogionNodeApiClass {
     constructor(api: ApiPromise) {
         this.polkadot = api;
         this.chainType = this.detectChainType();
+        if(this.chainType !== "Solo") {
+            throw new Error(`This version of the SDK does not have support for chain type ${ this.chainType }`);
+        }
         this.adapters = new Adapters(api);
         this.fees = new FeesEstimator(api);
         this.queries = new Queries(api, this.adapters);
