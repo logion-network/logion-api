@@ -69,6 +69,10 @@ export async function invitedContributors(state: State) {
         collectionItemFee: Lgnt.zero(),
         tokensRecordFee: Lgnt.zero(),
         valueFee: Lgnt.fromCanonical(100n),
+        collectionParams: {
+            canUpload: false,
+            maxSize: 100,
+        }
     }) as PendingRequest;
     const collectionLocId = pendingLocRequest.data().id;
 
@@ -77,11 +81,9 @@ export async function invitedContributors(state: State) {
     await alicePendingCollection.legalOfficer.accept();
 
     let acceptedLoc = await pendingLocRequest.refresh() as AcceptedRequest;
-    let openLoc = await acceptedLoc.openCollection({
+    let openLoc = await acceptedLoc.open({
         signer,
         autoPublish: false,
-        collectionCanUpload: false,
-        collectionMaxSize: 100,
     });
 
     let locWithInvitedContributor = await openLoc.setInvitedContributor({

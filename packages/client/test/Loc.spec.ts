@@ -52,7 +52,8 @@ import {
     buildValidPolkadotAccountId,
     ItIsUuid,
     mockCodecWithToString,
-    MOCK_FILE, mockOption, mockEmptyOption
+    MOCK_FILE,
+    mockEmptyOption,
 } from "./Utils.js";
 import { TestConfigFactory } from "./TestConfigFactory.js";
 import {

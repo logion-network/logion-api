@@ -44,7 +44,7 @@ import {
     EstimateFeesPublishFileParams,
     EstimateFeesPublishMetadataParams,
     EstimateFeesPublishLinkParams,
-    EstimateFeesOpenCollectionLocParams,
+    OpenCollectionLocParams,
     OpenPolkadotLocParams,
     RefLinkParams,
     AckLinkParams,
@@ -52,9 +52,12 @@ import {
     ItemsParams,
     ItemLifecycle as BackendItemLifecycle,
     AutoPublish,
-    CollectionLimits,
     SetInvitedContributorSelectionParams,
     withLocId,
+    withAdditional,
+    toBlockchainSubmission,
+    CollectionParams,
+    BackendCollectionParams,
 } from "./LocClient.js";
 import { BlockchainSubmission, BlockchainSubmissionParams, BlockchainBatchSubmission } from "./Signer.js";
 import { SharedState, getLegalOfficer } from "./SharedClient.js";
@@ -88,9 +91,7 @@ export interface LocData extends LocVerifiedIssuers {
     identityLocId?: UUID;
     userIdentity?: UserIdentity;
     userPostalAddress?: PostalAddress;
-    collectionLastBlockSubmission?: bigint;
-    collectionMaxSize?: number;
-    collectionCanUpload?: boolean;
+    collectionParams?: CollectionParams;
     files: MergedFile[];
     metadata: MergedMetadataItem[];
     links: MergedLink[];
@@ -304,6 +305,10 @@ export class LocsState extends State {
     }
 
     async requestCollectionLoc(params: CreateCollectionLocRequestParams): Promise<DraftRequest | PendingRequest> {
+        const { lastBlockSubmission, maxSize } = params.collectionParams;
+        if (lastBlockSubmission === undefined) {
+            requireDefined(maxSize, () => Error("Missing Collection upper bound."));
+        }
         return this.requestLoc({
             ...params,
             locType: "Collection"
@@ -346,7 +351,8 @@ export class LocsState extends State {
                 valueFee: params.valueFee?.canonical.toString(),
                 collectionItemFee: params.collectionItemFee?.canonical.toString(),
                 tokensRecordFee: params.tokensRecordFee?.canonical.toString(),
-            }
+            },
+            collectionParams: this.toBackendCollectionParams(params.collectionParams),
         });
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
         if(draft) {
@@ -356,18 +362,32 @@ export class LocsState extends State {
         }
     }
 
+    private toBackendCollectionParams(collectionParams: CollectionParams | undefined): BackendCollectionParams | undefined {
+        return collectionParams ?
+            {
+                lastBlockSubmission: collectionParams.lastBlockSubmission?.toString(),
+                maxSize: collectionParams.maxSize?.toString(),
+                canUpload: collectionParams.canUpload,
+            } :
+            undefined
+    }
+
     async openTransactionLoc(params: CreateLocParams & ItemsParams & BlockchainSubmissionParams): Promise<OpenLoc> {
-        return this.openLoc({
+        return this.openLoc(toBlockchainSubmission({
             ...params,
             locType: "Transaction"
-        });
+        }));
     }
 
     async openCollectionLoc(params: CreateCollectionLocParams & ItemsParams & BlockchainSubmissionParams): Promise<OpenLoc> {
-        return this.openLoc({
+        const { lastBlockSubmission, maxSize } = params.collectionParams;
+        if (lastBlockSubmission === undefined) {
+            requireDefined(maxSize, () => Error("Missing Collection upper bound."));
+        }
+        return this.openLoc(toBlockchainSubmission({
             ...params,
             locType: "Collection"
-        });
+        }));
     }
 
     async openIdentityLoc(params: CreateIdentityLocParams & ItemsParams & BlockchainSubmissionParams): Promise<OpenLoc> {
@@ -378,14 +398,15 @@ export class LocsState extends State {
         if (userPostalAddress === undefined) {
             throw new Error("User Postal Address is mandatory for an Identity LOC")
         }
-        return this.openLoc({
+        return this.openLoc(toBlockchainSubmission({
             ...params,
             locType: "Identity"
-        });
+        }));
     }
 
-    private async openLoc(params: CreateAnyLocParams & ItemsParams & BlockchainSubmissionParams): Promise<OpenLoc> {
-        const { legalOfficerAddress, locType, description, userIdentity, userPostalAddress, company, template, metadata, links } = params;
+    private async openLoc(params: BlockchainSubmission<CreateAnyLocParams & ItemsParams>): Promise<OpenLoc> {
+        const { payload } = params;
+        const { legalOfficerAddress, locType, description, userIdentity, userPostalAddress, company, template, metadata, links, collectionParams } = payload;
         const legalOfficer = getLegalOfficer(this.sharedState, legalOfficerAddress)
         if (this.sharedState.currentAddress?.type !== "Polkadot") {
             throw Error("Direct LOC opening must be done by Polkadot account");
@@ -400,20 +421,21 @@ export class LocsState extends State {
             company,
             template,
             fees: {
-                legalFee: params.legalFee?.canonical.toString(),
-                valueFee: params.valueFee?.canonical.toString(),
-                collectionItemFee: params.collectionItemFee?.canonical.toString(),
-                tokensRecordFee: params.tokensRecordFee?.canonical.toString(),
+                legalFee: payload.legalFee?.canonical.toString(),
+                valueFee: payload.valueFee?.canonical.toString(),
+                collectionItemFee: payload.collectionItemFee?.canonical.toString(),
+                tokensRecordFee: payload.tokensRecordFee?.canonical.toString(),
             },
             metadata,
             links: links.map(link => ({
                 target: link.target.toString(),
                 nature: link.nature
-            }))
+            })),
+            collectionParams: this.toBackendCollectionParams(collectionParams),
         });
 
         const locId = new UUID(request.id);
-        for (const file of params.files) {
+        for (const file of payload.files) {
             await client.addFile({
                 ...file,
                 locId,
@@ -421,29 +443,30 @@ export class LocsState extends State {
             })
         }
         const locSharedState: LocSharedState = { ...this.sharedState, legalOfficer, client, locsState: this };
-        if (params.locType === "Identity") {
-            await client.openIdentityLoc({
-                ...params,
-                locId,
-                autoPublish: false,
-            }, false);
-        } else if (params.locType === "Transaction") {
-            await client.openTransactionLoc({
-                ...params,
-                locId,
-                autoPublish: false,
-            }, false);
-        } else if (params.locType === "Collection") {
-            await client.openCollectionLoc({
-                collectionCanUpload: requireDefined(params.collectionCanUpload),
-                collectionLastBlockSubmission: params.collectionLastBlockSubmission,
-                collectionMaxSize: params.collectionMaxSize,
-                valueFee: requireDefined(params.valueFee),
-                collectionItemFee: requireDefined(params.collectionItemFee),
-                tokensRecordFee: requireDefined(params.tokensRecordFee),
-                ...params, locId,
-                autoPublish: false,
-            }, false);
+        if (payload.locType === "Identity") {
+            await client.openIdentityLoc(
+                withAdditional({ locId, autoPublish: false }, params),
+                false
+            );
+        } else if (payload.locType === "Transaction") {
+            await client.openTransactionLoc(
+                withAdditional({ locId, autoPublish: false }, params),
+                false
+            );
+        } else if (payload.locType === "Collection") {
+            await client.openCollectionLoc(
+                withAdditional({
+                        collectionParams: requireDefined(collectionParams),
+                        valueFee: requireDefined(payload.valueFee),
+                        collectionItemFee: requireDefined(payload.collectionItemFee),
+                        tokensRecordFee: requireDefined(payload.tokensRecordFee),
+                        locId,
+                        autoPublish: false
+                    },
+                    params
+                ),
+                false
+            );
         }
         const loc = await client.getLoc({ locId });
         return (await new OpenLoc(locSharedState, request, loc, EMPTY_LOC_ISSUERS, []).refresh()) as OpenLoc;
@@ -695,16 +718,17 @@ export interface CreateIdentityLocRequestParams extends CreateLocRequestParams, 
 export interface CreateIdentityLocParams extends CreateLocParams, HasIdentity {
 }
 
-export interface CreateCollectionLocParams extends CreateLocParams, EstimateFeesOpenCollectionLocParams {
+export interface CreateCollectionLocParams extends CreateLocParams, OpenCollectionLocParams {
 }
 
 export interface CreateCollectionLocRequestParams extends CreateLocRequestParams {
     valueFee: Lgnt;
     collectionItemFee: Lgnt;
     tokensRecordFee: Lgnt;
+    collectionParams: CollectionParams;
 }
 
-interface CreateAnyLocParams extends CreateLocParams, Partial<HasIdentity>, Partial<EstimateFeesOpenCollectionLocParams> {
+interface CreateAnyLocParams extends CreateLocParams, Partial<HasIdentity>, Partial<OpenCollectionLocParams> {
     locType: LocType;
 }
 
@@ -889,8 +913,21 @@ export abstract class LocRequestState extends State {
                 collectionItemFee: request.fees?.collectionItemFee !== undefined ? Lgnt.fromCanonical(BigInt(request.fees.collectionItemFee)) : undefined,
                 tokensRecordFee: request.fees?.tokensRecordFee !== undefined ? Lgnt.fromCanonical(BigInt(request.fees.tokensRecordFee)) : undefined,
             },
+            collectionParams: this.toCollectionParams(request.collectionParams),
             invitedContributors,
         };
+    }
+
+    static toCollectionParams(collectionParams: BackendCollectionParams | undefined): CollectionParams | undefined {
+        if (collectionParams === undefined) {
+            return undefined;
+        }
+        const { lastBlockSubmission, maxSize, canUpload } = collectionParams;
+        return {
+            lastBlockSubmission: lastBlockSubmission ? BigInt(lastBlockSubmission) : undefined,
+            maxSize: maxSize ? parseInt(maxSize) : undefined,
+            canUpload,
+        }
     }
 
     private static dataFromRequestAndLoc(api: LogionNodeApiClass, request: LocRequest, loc: LegalOfficerCase, locIssuers: LocVerifiedIssuers, invitedContributors: ValidAccountId[]): LocData {
@@ -923,6 +960,11 @@ export abstract class LocRequestState extends State {
                 tokensRecordFee: loc.tokensRecordFee,
             },
             invitedContributors,
+            collectionParams: {
+                lastBlockSubmission: loc.collectionLastBlockSubmission,
+                maxSize: loc.collectionMaxSize,
+                canUpload: loc.collectionCanUpload,
+            }
         };
 
         if(data.voidInfo && request.voidInfo) {
@@ -1447,17 +1489,20 @@ export class AcceptedRequest extends ReviewedRequest {
     async open(parameters: BlockchainSubmissionParams & AutoPublish): Promise<OpenLoc> {
         const { autoPublish } = parameters;
         if (this.request.locType === "Transaction") {
-            await this.locSharedState.client.openTransactionLoc({
+            await this.locSharedState.client.openTransactionLoc(toBlockchainSubmission({
                 ...this.checkOpenParams(autoPublish),
                 ...parameters,
-            })
+            }));
         } else if (this.request.locType === "Identity") {
-            await this.locSharedState.client.openIdentityLoc({
+            await this.locSharedState.client.openIdentityLoc(toBlockchainSubmission({
                 ...this.checkOpenParams(autoPublish),
                 ...parameters,
-            })
+            }));
         } else {
-            throw Error("Collection LOCs are opened with openCollection()");
+            await this.locSharedState.client.openCollectionLoc(toBlockchainSubmission({
+                ...this.checkOpenCollectionParams(autoPublish),
+                ...parameters,
+            }));
         }
         return await this.refresh() as OpenLoc
     }
@@ -1523,60 +1568,36 @@ export class AcceptedRequest extends ReviewedRequest {
         } else if (this.request.locType === "Identity") {
             return this.locSharedState.client.estimateFeesOpenIdentityLoc(this.checkOpenParams(autoPublish))
         } else {
-            throw Error("Collection LOCs fees are estimated with estimateFeesOpenCollection()");
+            return this.locSharedState.client.estimateFeesOpenCollectionLoc(this.checkOpenCollectionParams(autoPublish))
         }
     }
 
-    async openCollection(parameters: CollectionLimits & BlockchainSubmissionParams & AutoPublish): Promise<OpenLoc> {
-        const { autoPublish } = parameters;
-        await this.locSharedState.client.openCollectionLoc({
-            ...this.checkOpenCollectionParams(autoPublish),
-            ...parameters,
-        });
-        return await this.refresh() as OpenLoc;
-    }
-
-    private checkOpenCollectionParams(autoPublish: boolean): OpenPolkadotLocParams & { valueFee: Lgnt, collectionItemFee: Lgnt, tokensRecordFee: Lgnt } & AutoPublish {
+    private checkOpenCollectionParams(autoPublish: boolean): OpenPolkadotLocParams & OpenCollectionLocParams & AutoPublish {
         const requesterAddress = this.request.requesterAddress;
         if (requesterAddress === undefined || requesterAddress?.type !== "Polkadot") {
             throw Error("Only Polkadot requester can open, or estimate fees of, a Collection LOC");
         }
-        const legalFee = this.request.fees?.legalFee;
-        const valueFee = this.request.fees?.valueFee;
-        if(!valueFee) {
-            throw new Error("Missing value fee");
+        const fees = this.request.fees;
+        const legalFee = fees?.legalFee;
+        const valueFee = requireDefined(fees?.valueFee, () => new Error("Missing value fee"));
+        const collectionItemFee = requireDefined(fees?.collectionItemFee, () => new Error("Missing collection item fee"));
+        const tokensRecordFee = requireDefined(fees?.tokensRecordFee, () => new Error("Missing tokens record fee"));
+        const collectionParams = requireDefined(LocRequestState.toCollectionParams(this.request.collectionParams),
+            () => new Error("Missing collection params")
+        );
+        return {
+            locId: this.locId,
+            legalOfficerAddress: this.owner.address,
+            valueFee: Lgnt.fromCanonical(BigInt(valueFee)),
+            collectionItemFee: Lgnt.fromCanonical(BigInt(collectionItemFee)),
+            tokensRecordFee: Lgnt.fromCanonical(BigInt(tokensRecordFee)),
+            legalFee: legalFee !== undefined ? Lgnt.fromCanonical(BigInt(legalFee)) : undefined,
+            metadata: this.toAddMetadataParams(autoPublish),
+            files: this.toAddFileParams(autoPublish),
+            links: this.toAddLinkParams(autoPublish),
+            collectionParams,
+            autoPublish,
         }
-        const collectionItemFee = this.request.fees?.collectionItemFee;
-        if(!collectionItemFee) {
-            throw new Error("Missing collection item fee");
-        }
-        const tokensRecordFee = this.request.fees?.tokensRecordFee;
-        if(!tokensRecordFee) {
-            throw new Error("Missing tokens record fee");
-        }
-        if (this.request.locType === "Collection") {
-            return {
-                locId: this.locId,
-                legalOfficerAddress: this.owner.address,
-                valueFee: Lgnt.fromCanonical(BigInt(valueFee)),
-                collectionItemFee: Lgnt.fromCanonical(BigInt(collectionItemFee)),
-                tokensRecordFee: Lgnt.fromCanonical(BigInt(tokensRecordFee)),
-                legalFee: legalFee !== undefined ? Lgnt.fromCanonical(BigInt(legalFee)) : undefined,
-                metadata: this.toAddMetadataParams(autoPublish),
-                files: this.toAddFileParams(autoPublish),
-                links: this.toAddLinkParams(autoPublish),
-                autoPublish,
-            }
-        } else {
-            throw Error("Other LOCs are opened/estimated with open()/estimateFeesOpen()");
-        }
-    }
-
-    async estimateFeesOpenCollection(parameters: EstimateFeesOpenCollectionLocParams & AutoPublish): Promise<FeesClass> {
-        return this.locSharedState.client.estimateFeesOpenCollectionLoc({
-            ...this.checkOpenCollectionParams(parameters.autoPublish),
-            ...parameters
-        });
     }
 
     withLocs(locsState: LocsState): AcceptedRequest {

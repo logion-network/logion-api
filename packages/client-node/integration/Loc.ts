@@ -334,6 +334,11 @@ export async function collectionLoc(state: State) {
         collectionItemFee,
         tokensRecordFee: Lgnt.fromCanonical(50n),
         legalFee: Lgnt.zero(),
+        collectionParams: {
+            lastBlockSubmission: 100000n,
+            maxSize: 9999,
+            canUpload: true,
+        }
     });
     expect(pendingRequest.data().fees.valueFee?.canonical).toBe(100n);
     expect(pendingRequest.data().fees.collectionItemFee?.canonical).toBe(50n);
@@ -353,9 +358,7 @@ export async function collectionLoc(state: State) {
     locsState = acceptedLoc.locsState();
     expect(locsState.acceptedRequests["Collection"][0].data().status).toBe("REVIEW_ACCEPTED");
 
-    let openLoc = await acceptedLoc.openCollection({
-        collectionMaxSize: 100,
-        collectionCanUpload: true,
+    let openLoc = await acceptedLoc.open({
         autoPublish: false,
         signer,
     });
@@ -471,15 +474,17 @@ export async function collectionLocWithUpload(state: State) {
         valueFee: Lgnt.fromCanonical(100n),
         collectionItemFee: Lgnt.fromCanonical(50n),
         tokensRecordFee: Lgnt.fromCanonical(50n),
+        collectionParams: {
+            maxSize: 100,
+            canUpload: true,
+        }
     });
 
     let alicePendingRequest = await findWithLegalOfficerClient(aliceClient, pendingRequest) as PendingRequest;
     let aliceAcceptedLoc = await alicePendingRequest.legalOfficer.accept();
 
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
-    let openLoc = await acceptedLoc.openCollection({
-        collectionMaxSize: 100,
-        collectionCanUpload: true,
+    let openLoc = await acceptedLoc.open({
         autoPublish: false,
         signer,
     });
