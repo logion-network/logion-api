@@ -22,6 +22,7 @@ export interface CancelVaultOutTransferParameters extends RequestVaultOutTransfe
 
 export class Vault {
 
+    // Should be taken from runtime, requires https://github.com/logion-network/logion-internal/issues/1193
     static readonly THRESHOLD = 2;
 
     constructor(

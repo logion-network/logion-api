@@ -31,7 +31,7 @@ export interface CoinBalance {
     level: number,
 }
 
-export const ARTIFICIAL_MAX_BALANCE = Currency.toPrefixedNumberAmount(100n);
+export const ARTIFICIAL_MAX_BALANCE = Currency.Lgnt.fromCanonical(100n).toCanonicalPrefixedNumber();
 
 export class Queries {
 
@@ -72,9 +72,9 @@ export class Queries {
         const accountInfo = await this.api.query.system.account(accountId);
         const data = this.adapters.fromFrameSystemAccountInfo(accountInfo);
 
-        const logAvailable = Currency.toPrefixedNumberAmount(BigInt(data.available)).optimizeScale(3);
-        const logReserved = Currency.toPrefixedNumberAmount(BigInt(data.reserved)).optimizeScale(3);
-        const logTotal = Currency.toPrefixedNumberAmount(BigInt(data.total)).optimizeScale(3);
+        const logAvailable = Currency.Lgnt.fromCanonical(BigInt(data.available)).toCanonicalPrefixedNumber().optimizeScale(3);
+        const logReserved = Currency.Lgnt.fromCanonical(BigInt(data.reserved)).toCanonicalPrefixedNumber().optimizeScale(3);
+        const logTotal = Currency.Lgnt.fromCanonical(BigInt(data.total)).toCanonicalPrefixedNumber().optimizeScale(3);
         const logLevel = logTotal.scientificNumber.divideBy(ARTIFICIAL_MAX_BALANCE.convertTo(logTotal.prefix).scientificNumber).toNumber();
 
         return [
