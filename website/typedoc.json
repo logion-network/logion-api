@@ -9,6 +9,7 @@
     "../packages/client-browser",
     "../packages/client-node",
     "../packages/client-react-native-fs",
+    "../packages/client-expo",
     "../packages/crossmint",
     "../packages/extension",
     "../packages/multiversx",

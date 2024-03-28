@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 5
 description: How to protect/recover a Polkadot account, and access the vault.
 ---
 
@@ -18,99 +18,54 @@ const refreshedState = await protectionState.refresh();
 ```
 
 :::caution
-All user operations (`requestProtection`, `activate`, `cancel`, etc.), as well as `refresh`, do return a new state.
+All user operations (`activateProtection`), as well as `refresh`, do return a new state.
 Always use the most recent state, and discard the former state.
 In the example above, the var `protectionState` must not be used any more as soon as `refreshedState` is available.
 :::
 
 ## Protection
 
-The setup of a Polkadot account protection is a 3-steps process:
+The setup of a Polkadot account protection is a 2-steps process:
 * **Choose 2 officers** among the official list of Logion Legal Officers.
-* **Request** the protection towards those 2 LO's.
-* Upon acceptance, **activate** the protection on the chain.
+* **activate** the protection on-chain given a valid (i.e. closed and non-void) Identity LOC with each LLO.
 
-### Overview of the whole process
+### Choose LLOs and LOCs
 
-![Protection State Diagram](img/protection-state.png)
-
-### Choose legal officers
-
-The following call accesses the configured [logion-directory](https://github.com/logion-network/logion-directory)
-to retrieve the list of available Legal Officers. A protection requires the user to choose 2 distinct Legal Officers
-(in this sample Alice and Bob are selected).
+For below example to work, you will need a valid Identity LOC with both alice and bob.
 
 ```typescript
-const legalOfficers: LegalOfficer[] = authenticatedClient.getLegalOfficers();
+const legalOfficers = authenticatedClient.getLegalOfficers();
+const locsState = await authenticatedClient.locsState();
 
-const alice = legalOfficers[0];
-const bob = legalOfficers[1];
+const alice = authenticatedClient.getLegalOfficer("5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY");
+const bob = authenticatedClient.getLegalOfficer("5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty");
+const aliceLoc = locsState.closedLocs.Identity.find(
+    loc => loc.data().ownerAddress === alice.address
+        && loc.data().voidInfo === undefined
+);
+const bobLoc = locsState.closedLocs.Identity.find(
+    loc => loc.data().ownerAddress === bob.address
+        && loc.data().voidInfo === undefined
+);
 ```
 
-### Request a protection
-
-You can submit your protection requests to the selected officers: 
+### Activate your protection
 
 ```typescript
 const noProtection = await authenticatedClient.protectionState() as NoProtection;
-const pending = await noProtection.requestProtection({
-    legalOfficer1: alice,
-    legalOfficer2: bob,
-    userIdentity: {
-        email: "john.doe@invalid.domain",
-        firstName: "John",
-        lastName: "Doe",
-        phoneNumber: "+1234",
+const pending = await noProtection.activateProtection({
+    payload: {
+        legalOfficer1: alice,
+        legalOfficer2: bob,
+        requesterIdentityLoc1: aliceLoc,
+        requesterIdentityLoc2: bobLoc,
     },
-    postalAddress: {
-        city: "",
-        country: "",
-        line1: "",
-        line2: "",
-        postalCode: "",
-    }
+    signer,
 });
 ```
 
-### Activate the protection
-
-You must first wait for both Legal Officers acceptance, and then activate the protection:
-
-```typescript
-const accepted = (await pending.refresh()) as AcceptedProtection;
-
-accepted.activate(signer);
-```
-
-In case of refusal of one or both Legal Officers, the refreshed state will be `RejectedProtection`.
-
-### Rejection Management
-
-If rejected by one or more Legal Officer, you may either
-* Resubmit the request to the officer who rejected,
-* Or replace him/her with a new Legal Officer,
-* Or completely cancel your protection request.
-
-```typescript title="Resubmit to LO who rejected"
-let rejectedProtection = (await authenticatedClient.protectionState()) as RejectedProtection;
-const rejecter = rejectedProtection.protectionParameters.states.find(state => state.status === "REJECTED")!.legalOfficer;
-rejectedProtection.resubmit(rejecter);
-```
-
-```typescript title="Replace LO who rejected with Charlie"
-let rejectedProtection = (await authenticatedClient.protectionState()) as RejectedProtection;
-const rejecter = rejectedProtection.protectionParameters.states.find(state => state.status === "REJECTED")!.legalOfficer;
-const charlie: LegalOfficer = ...;
-rejectedProtection.changeLegalOfficer(rejecter, charlie);
-```
-
-```typescript title="Cancel the protection request"
-let rejectedProtection = (await authenticatedClient.protectionState()) as RejectedProtection;
-rejectedProtection.cancel();
-```
-
 ## Vault
-Operations require an activated protection (see above [Protection Request](#protection))
+Operations require an activated protection (see above).
 
 ### Transfer from vault
 
@@ -162,34 +117,17 @@ One claimed, you can recover the lost assets.
 Recovery must be requested to the **same Legal Officers** who accepted to protect the lost account (in this case, Alice and Bob).
 
 ```typescript
-const NEW_ADDRESS = "5GsxAu1XexDATCbDJbWxKSow4gdC6epkajZr7Ht8Ci9VZabV";
-
-const authenticatedClient = await LogionClient.create({
-    rpcEndpoints: [ 'wss://rpc01.logion.network' ], // A list of websocket endpoints
-    directoryEndpoint: 'https://directory.logion.network' // A logion directory
-}).authenticate([ NEW_ADDRESS ], signer);
-
 const noProtection = await authenticatedClient.protectionState() as NoProtection;
 const pending = await noProtection.requestRecovery({
-    recoveredAddress: REQUESTER_ADDRESS,
-    signer,
-    legalOfficer1: alice,
-    legalOfficer2: bob,
-    userIdentity: {
-        email: "john.doe@invalid.domain",
-        firstName: "John",
-        lastName: "Doe",
-        phoneNumber: "+1234",
+    payload: {
+        recoveredAddress: REQUESTER_ADDRESS,
+        legalOfficer1: alice,
+        legalOfficer2: bob,
+        requesterIdentityLoc1: aliceLoc,
+        requesterIdentityLoc2: bobLoc,
     },
-    postalAddress: {
-        city: "",
-        country: "",
-        line1: "",
-        line2: "",
-        postalCode: "",
-    }
+    signer,
 });
-
 ```
 
 ### Activate the new protection

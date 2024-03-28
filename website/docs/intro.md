@@ -4,23 +4,12 @@ sidebar_position: 1
 
 # Introduction
 
-## Install
+The Logion SDK enables the creation of Typescript applications that interact with a Logion network.
 
-Install package [`@logion/extension`](https://www.npmjs.com/package/@logion/extension) with your favorite package manager (recommended).
-Note that the extension has [`@logion/client`](https://www.npmjs.com/package/@logion/client) as a dependency.
+In order to interact with a Logion network, a [client should be instantiated](./client/introduction.md).
+The access to private data and transaction signature require a signer, either
+[embedded](./client/authentication.md) or using a [browser extension](/docs/category/extension).
 
-Alternatively if you don't want to use a Polkadot\{.js\} and provide your own keyring instead, you can directly use
-[`@logion/client`](https://www.npmjs.com/package/@logion/client)
-
-
-## Architecture
-
-The logion-sdk allows you to create a Typescript application that interacts with the logion network.
-Each logion node runs
-
-* a Substrate service,
-* IPFS/IPFS cluster services,
-* a private database service,
-* a logion off-chain service.
-
-![Architecture](/img/architecture.png)
+For a more business-oriented description of Logion, please refer to our [white paper](https://docs.logion.network/logion-white-paper).
+In particular, [this page](https://docs.logion.network/logion-white-paper/logion-in-a-nutshell) summarizes
+Logion's process.
