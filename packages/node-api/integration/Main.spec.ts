@@ -24,6 +24,7 @@ import { storageFees, legalFees, certificateFees, ensureEnoughFunds } from "./Fe
 import { toPalletLogionLocOtherAccountId, toSponsorshipId, toPalletLogionLocMetadataItem, toPalletLogionLocFile, toCollectionItemToken, toCollectionItemFile } from "./Adapters.js";
 import { badOriginError, moduleError } from "./Error.js";
 import { createIdentityLocTest } from "./IdentityLoc.js";
+import { handleTime } from "./ChainTime.js";
 
 describe("Logion Node API", () => {
 
@@ -74,4 +75,6 @@ describe("Logion Node API", () => {
 
     it("supports verified issuers", verifiedIssuers);
     it("supports invited contributors", invitedContributors);
+
+    it("handles time", handleTime);
 });

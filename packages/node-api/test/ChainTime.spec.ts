@@ -65,11 +65,11 @@ describe("ChainTime", () => {
 
 function buildPolkadotApiForTime() {
     return {
-        consts: {
-            timestamp: {
-                minimumPeriod: {
-                    toBigInt: () => BigInt(3000)
-                }
+        call: {
+            auraApi: {
+                slotDuration: () => Promise.resolve({
+                    toBigInt: () => 6000n
+                }),
             }
         },
 
