@@ -1,33 +1,26 @@
 ---
-sidebar_position: 1
+sidebar_position: 2
 description: How to authenticate a Polkadot account to logion network.
 ---
 
 # Authentication
 
-## Authenticate with ad-hoc keyring
+Below example shows how to use an embedded signer in order to authenticate `client`. This approach is not recommended in production,
+a [browser extension](/docs/category/extension) should be used instead.
 
 ```typescript
-import { LogionClient, KeyringSigner } from '@logion/client';
 import { Keyring } from '@polkadot/api';
 
 const keyring = new Keyring();
-keyring.addFromUri("0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a"); // Alice
+const keypair = keyring.addFromUri("0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a"); // Alice
 const signer = new KeyringSigner(keyring);
 
-const client = await LogionClient.create({
-    rpcEndpoints: [ 'wss://rpc01.logion.network' ], // A list of websocket endpoints
-    directoryEndpoint: 'https://directory.logion.network' // A logion directory
-});
-
 // Authenticate Alice
-const authenticatedClient = await client.authenticate([
-    "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" ],
+let authenticatedClient = await client.authenticate(
+    [ keypair.address ],
     signer
 );
+
+// Later on, refresh the session (session's TTL is 1 hour)
+authenticatedClient = await authenticatedClient.refreshTokens(DateTime.now());
 ```
-Now you can use authenticatedClient to interact with the network.
-
-## Authenticate with Polkadot\{.js\}
-
-In order to connect a webapp to logion-network, it is recommended to use [polkadot\{.js\} app](../extension/polkadot-js.md) extension.
