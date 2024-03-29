@@ -1,6 +1,6 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "out": "docs/api",
+  "out": "docs/reference",
   "plugin": ["typedoc-plugin-markdown"],
   "excludeExternals": false,
   "entryPointStrategy": "packages",
@@ -15,13 +15,14 @@
     "../packages/multiversx",
     "../packages/node-api"
   ],
-  "readme": "src/API.md",
+  "readme": "src/modules.md",
   "skipErrorChecking": true,
-  "entryDocument": "API.md",
+  "entryDocument": "modules.md",
   "hideBreadcrumbs": false,
   "hideInPageTOC": false,
-  "name": "API",
+  "name": "Reference",
   "excludePrivate": true,
+  "excludeProtected": true,
   "excludeInternal": true,
   "gitRevision": "main"
 }

@@ -17,7 +17,7 @@ In addition to the Logion nodes, a Logion network also includes
 * RPC nodes for accessing the chain,
 * a directory service exposing the identity data of the Logion Legal Officer.
 
-Logion's client interacts with the Logion chain (throught RPC nodes), the REST API exposed by each node of the network and the directory.
+Logion's client interacts with the Logion chain (through RPC nodes), the REST API exposed by each node of the network and the directory.
 The other services are publicly accessible.
 
 The client's purpose is to merge data coming from the chain and the nodes
@@ -29,10 +29,10 @@ The client is able to run in several environments:
 - a Node.JS application,
 - a React Native based mobile app.
 
-In function of the envrironment, the client will be instantiated differently (see below).
+In function of the environment, the client will be instantiated differently (see below).
 
 Another key concept is data caching. The client needs to interact with many data sources over the network. In order to
-optimize the use of bandwith, data are cached and retrieved only when needed. The client relies on "states" to handle
+optimize the use of bandwidth, data are cached and retrieved only when needed. The client relies on "states" to handle
 the different caches. A state is an immutable object, when the developer calls a mutating method on the state, a new
 state instance is returned and the previous state is discarded.
 

@@ -65,7 +65,7 @@ const draftRequest = await locsState.requestIdentityLoc({
 
 :::warning
 The default legal fee for an identity
-LOC is 160 LGNTs. Another value of `legalFee` should have been discussed with the LLO beforehands,
+LOC is 160 LGNTs. Another value of `legalFee` should have been discussed with the LLO beforehand,
 otherwise it may reject the LOC.
 :::
 
@@ -129,8 +129,8 @@ const draftRequest = await locsState.requestTransactionLoc({
 
 :::warning
 The default legal fee for a transaction
-LOC is 2000 LGNTs. Another value of `legalFee` should have been discussed with the LLO beforehands,
-otherwise it may reject the LOC. 
+LOC is 2000 LGNTs. Another value of `legalFee` should have been discussed with the LLO beforehand,
+otherwise the LLO may reject the LOC. 
 :::
 
 ## Collection LOC
@@ -452,7 +452,7 @@ closedLoc = await closedLoc.addTokensRecord({
         description: recordDescription,
         files: [ file ],
     },
-    signer: state.signer,
+    signer,
 });
 ```
 
@@ -475,6 +475,7 @@ closedLoc = await closedLoc.addTokensRecord({
             }),
         ],
     },
+    signer,
 });
 ```
 
