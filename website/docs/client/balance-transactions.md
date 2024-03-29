@@ -1,9 +1,12 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 description: How to access to the balance and do transactions.
 ---
 
 # Balance and Transactions
+
+The Logion network relies on the LGNT token. This section is about accessing you LGNT balance and transactions.
+It also shows how to transfer LGNTs.
 
 ## State
 

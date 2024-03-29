@@ -1,8 +1,8 @@
 {
   "label": "Extension",
-  "position": 2,
+  "position": 3,
   "link": {
     "type": "generated-index",
-    "description": "Provides some utility classes enabling the use a browser extension with."
+    "description": "How to use browser extensions with the Logion client."
   }
 }

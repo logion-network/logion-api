@@ -1,8 +1,8 @@
 {
   "label": "Client",
-  "position": 3,
+  "position": 2,
   "link": {
     "type": "generated-index",
-    "description": "The client to interact with logion network."
+    "description": "The Logion client"
   }
 }

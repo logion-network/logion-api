@@ -2,36 +2,30 @@
 sidebar_position: 2
 ---
 
-# metamask
+# MetaMask
 
 ![metamask](/img/metamask.png)
 
-Allows to sign a message with an ethereum account using [MetaMask](https://metamask.io/) browser extension (for [chrome](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn) or [firefox](https://addons.mozilla.org/firefox/addon/ether-metamask/))).
+Allows to sign a message with an ethereum account using [MetaMask](https://metamask.io/) browser extension (for [chrome](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn) or [firefox](https://addons.mozilla.org/firefox/addon/ether-metamask/)).
 
+:::warning
+In order to authenticate, `eth_sign` requests must be enabled in MetaMask in advanced settings.
+This is considered a dangerous feature as it enables an attacker to make you sign almost anything.
+:::
 
 ## List all available accounts
 
 ```typescript
 import { enableMetaMask, allMetamaskAccounts } from "@logion/extension";
 
-const enabled = await enableMetaMask("MyLogionWebApp")
-
-const accounts = await allMetamaskAccounts();
-accounts.forEach(account => console.log("Detected MetaMask accounts: %s", account.address));
+if(await enableMetaMask("MyLogionWebApp")) {
+    const accounts = await allMetamaskAccounts();
+    const authenticated = await client.authenticate(addresses, signer);
+    ...
+}
 ```
 
-## Authenticate the selected account 
-The selected account can be [authenticated](/docs/client/authentication.md):
-
-```typescript
-const authenticatedClient = await client.authenticate([ accounts[0].address ], signer);
-```
-
-## Use JWT token
-
-Once authenticated, the returned JWT token can be used (for instance to claim an asset linked to your ethereum account):
-
-```typescript
-const jwtToken = authenticatedClient.tokens.get(address);
-```
-
+:::info
+If several accounts are available, the call to `authenticate`
+will require a signature for each one of them.
+:::

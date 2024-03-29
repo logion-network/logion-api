@@ -1,5 +1,5 @@
 {
-  "name": "MultiversX",
+  "name": "multiversx",
   "entryPoints": [
     "./src/index.ts"
   ]

@@ -4,7 +4,7 @@ const darkTheme = themes.dracula;
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'logion SDK',
+  title: 'Logion SDK',
   tagline: 'The blockchain infrastructure of safe digital ownership',
   url: 'https://logion-network.github.io/',
   baseUrl: '/logion-api/',
@@ -32,6 +32,20 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
+          sidebarItemsGenerator: async function({defaultSidebarItemsGenerator, ...args}) {
+            const sidebarItems = await defaultSidebarItemsGenerator(args);
+            const reference = sidebarItems.find(item => item.label === "Reference");
+            if(reference) {
+              const packagesIndex = reference.items.findIndex(item => item.type === "doc" && item.id === "reference/modules");
+              if(packagesIndex !== -1) {
+                const packages = reference.items[packagesIndex];
+                packages.label = "Packages";
+                reference.items.splice(packagesIndex, 1);
+                reference.items = [ packages ].concat(reference.items);
+              }
+            }
+            return sidebarItems;
+          },
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl:
             'https://github.com/logion-network/logion-api/tree/main/website/',
@@ -52,7 +66,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'logion SDK',
+        title: 'Logion SDK',
         logo: {
           alt: 'logion Logo',
           src: 'img/logion218-twitter.png',
@@ -75,9 +89,9 @@ const config = {
             label: 'Client',
           },
           {
-            to: '/docs/api',
+            to: '/docs/reference/modules',
             position: 'left',
-            label: 'API',
+            label: 'Reference',
           },
           {
             href: 'https://github.com/logion-network/logion-api',

@@ -9,8 +9,8 @@ OpenLoc : OPEN
 RejectedRequest : REVIEW_REJECTED
 ClosedLoc : CLOSED
 AcceptedRequest : REVIEW_ACCEPTED
-[*] -right-> PendingRequest: requestIdentityLoc\n(draft: false)
-[*] --> DraftRequest: requestIdentityLoc\n(draft: true)
+[*] -right-> PendingRequest: request___Loc\n(draft: false)
+[*] --> DraftRequest: request___Loc\n(draft: true)
 DraftRequest --> DraftRequest: addMetadata(),\n addFile(),\n deleteMetadata(),\n deleteFile(),\n
 DraftRequest --> PendingRequest: submit()
 PendingRequest --> decision
