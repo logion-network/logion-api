@@ -21,8 +21,24 @@ import { SponsorshipState, SponsorshipApi } from "./Sponsorship.js";
 import { requireDefined } from "./assertions.js";
 import { InvitedContributorApi } from "./InvitedContributor.js";
 
+/**
+ * An instance of LogionClient is connected to a Logion network and
+ * interacts with all its components (including the blockchain).
+ * 
+ * It features:
+ * - Access to LGNT balance, transactions and transfer
+ * - LOC management
+ * - Account protection and recovery
+ * - A vault (multisig)
+ */
 export class LogionClient {
 
+    /**
+     * Instantiates a connected client.
+     * 
+     * @param config Parameters of a connection to the Logion network.
+     * @returns A connected client.
+     */
     static async create(config: LogionClientConfig): Promise<LogionClient> {
         const componentFactory = getComponentFactory(config);
         const axiosFactory = componentFactory.buildAxiosFactory();
@@ -65,14 +81,23 @@ export class LogionClient {
 
     private readonly _invitedContributor: InvitedContributorApi;
 
+    /**
+     * The configuration of this client.
+     */
     get config(): LogionClientConfig {
         return this.sharedState.config;
     }
 
+    /**
+     * The current address used to query data and sign extrinsics.
+     */
     get currentAddress(): ValidAccountId | undefined {
         return this.sharedState.currentAddress;
     }
 
+    /**
+     * The current address if authenticated (see {@link authenticate}). Throws an error otherwise.
+     */
     get authenticatedCurrentAddress(): ValidAccountId {
         const address = this.currentAddress;
         if(!address) {
@@ -81,30 +106,53 @@ export class LogionClient {
         return address;
     }
 
+    /**
+     * The JWT tokens attached to authenticated addresses.
+     */
     get tokens(): AccountTokens {
         return this.sharedState.tokens;
     }
 
+    /**
+     * An instance of Directory client.
+     */
     get directoryClient(): DirectoryClient {
         return this.sharedState.directoryClient;
     }
 
+    /**
+     * The available legal officers.
+     */
     get legalOfficers(): LegalOfficerClass[] {
         return this.sharedState.legalOfficers;
     }
 
+    /**
+     * All legal officers, including the inactive (i.e. not attached to any node) ones.
+     */
     get allLegalOfficers(): LegalOfficerClass[] {
         return this.sharedState.allLegalOfficers;
     }
 
+    /**
+     * An instance of Logion chain's client.
+     */
     get logionApi(): LogionNodeApiClass {
         return this.sharedState.nodeApi;
     }
 
+    /**
+     * Overrides current tokens.
+     * 
+     * @param tokens The new tokens.
+     * @returns A copy of this client, but using the new tokens.
+     */
     useTokens(tokens: AccountTokens): LogionClient {
         this.ensureConnected();
+        const token = tokens.get(this.currentAddress)?.value;
+        const sharedState = this.refreshLegalOfficers(this.sharedState, token);
         return new LogionClient({
-            ...this.sharedState,
+            ...sharedState,
             tokens,
         });
     }
@@ -115,6 +163,13 @@ export class LogionClient {
         }
     }
 
+    /**
+     * Postpones the expiration of valid (see {@link isTokenValid}) JWT tokens.
+     * 
+     * @param now Current time, used to check if tokens are still valid or not.
+     * @param threshold If at least one token's expiration falls between now and (now + threshold), then tokens are refreshed. Otherwise, they are not.
+     * @returns An authenticated client using refreshed tokens or this if no refresh occured.
+     */
     async refreshTokens(now: DateTime, threshold?: DurationLike): Promise<LogionClient> {
         this.ensureConnected();
         let actualThreshold;
@@ -136,12 +191,7 @@ export class LogionClient {
             this.sharedState.axiosFactory
         );
         const tokens = await client.refresh(this.sharedState.tokens);
-        const token = tokens.get(this.currentAddress)?.value;
-        const sharedState = this.refreshLegalOfficers(this.sharedState, token);
-        return new LogionClient({
-            ...sharedState,
-            tokens,
-        });
+        return this.useTokens(tokens);
     }
 
     private refreshLegalOfficers(sharedState: SharedState, token?: string): SharedState {
@@ -154,6 +204,12 @@ export class LogionClient {
         };
     }
 
+    /**
+     * Sets current address.
+     * 
+     * @param currentAddress The address to use as current.
+     * @returns A client instance with provided current address.
+     */
     withCurrentAddress(currentAddress?: ValidAccountId): LogionClient {
         this.ensureConnected();
         let directoryClient: DirectoryClient;
@@ -180,6 +236,10 @@ export class LogionClient {
         });
     }
 
+    /**
+     * Clears all authentication data (i.e. JWT tokens).
+     * @returns A client instance with no authentication data.
+     */
     logout(): LogionClient {
         this.ensureConnected();
         const directoryClient = this.sharedState.componentFactory.buildDirectoryClient(
@@ -203,6 +263,10 @@ export class LogionClient {
         }
     }
 
+    /**
+     * The protection state attached to current address.
+     * @returns An instance of {@link ProtectionState}
+     */
     async protectionState(): Promise<ProtectionState> {
         this.ensureConnected();
         const { currentAddress, token } = authenticatedCurrentAddress(this.sharedState);
@@ -217,10 +281,29 @@ export class LogionClient {
         return getInitialState(data, this.sharedState);
     }
 
+    /**
+     * Checks if the authentication token attached to current address is still valid (i.e. did not expire).
+     * @param now Current time.
+     * @returns True if the token did not yet expire, false if it did.
+     */
     isTokenValid(now: DateTime): boolean {
         return this.sharedState.tokens.isAuthenticated(now, this.currentAddress);
     }
 
+    /**
+     * Authenticates the set of provided addresses. Authentication consists in getting
+     * a JWT token for each address. A valid JWT token is sent back by a Logion node
+     * if the client was able to sign a random challenge, hence proving that provided
+     * signer is indeed able to sign using provided addresses.
+     * 
+     * Note that the signer may be able to sign for more addresses than the once provided.
+     * A call to this method will merge the retrieved tokens with the ones already available.
+     * Older tokens are replaced.
+     * 
+     * @param addresses The addresses for which an authentication token must be retrieved.
+     * @param signer The signer that will sign the challenge.
+     * @returns An instance of client with retrived JWT tokens.
+     */
     async authenticate(addresses: ValidAccountId[], signer: RawSigner): Promise<LogionClient> {
         this.ensureConnected();
         const client = this.sharedState.componentFactory.buildAuthenticationClient(
@@ -240,11 +323,22 @@ export class LogionClient {
         return this.useTokens(tokens).withCurrentAddress(currentAddress);
     }
 
+    /**
+     * Tells if a given address is associated with a legal officer.
+     * @param address An SS58 Polkadot address.
+     * @returns True if the provided address is linked to a legal officer, false otherwise.
+     */
     isLegalOfficer(address: string): boolean {
         this.ensureConnected();
         return this.sharedState.allLegalOfficers.find(legalOfficer => legalOfficer.address === address) !== undefined;
     }
 
+    /**
+     * Gets the {@link LegalOfficerClass} associated with provided address. Will throw an error
+     * if no legal officer is linked to the address.
+     * @param address An SS58 Polkadot address.
+     * @returns An instance of {@link LegalOfficerClass}
+     */
     getLegalOfficer(address: string): LegalOfficerClass {
         const legalOfficer = this.sharedState.allLegalOfficers.find(legalOfficer => legalOfficer.address === address);
         if(!legalOfficer) {
@@ -253,6 +347,11 @@ export class LogionClient {
         return legalOfficer;
     }
 
+    /**
+     * Queries Logion blockchain to check if a given address is attached to a legal officer.
+     * @param address An SS58 Polkadot address.
+     * @returns True if provided address is attached to a legal officer.
+     */
     async isRegisteredLegalOfficer(address: string): Promise<boolean> {
         this.ensureConnected();
         const option = await this.sharedState.nodeApi.polkadot.query.loAuthorityList.legalOfficerSet(address);
@@ -280,6 +379,11 @@ export class LogionClient {
         }
     }
 
+    /**
+     * Builds an instance of {@link MultiSourceHttpClient} that will connect to all
+     * legal officer nodes.
+     * @returns An instance of {@link MultiSourceHttpClient}
+     */
     buildMultiSourceHttpClient(): MultiSourceHttpClient<LegalOfficerEndpoint> {
         const initialState = initMultiSourceHttpClientState(this.sharedState.networkState, this.sharedState.legalOfficers);
         const token = this.sharedState.tokens.get(this.sharedState.currentAddress);
@@ -294,6 +398,12 @@ export class LogionClient {
         );
     }
 
+    /**
+     * Updates network state given the an instance of {@link MultiSourceHttpClient} that interacted
+     * with the Logion network.
+     * @param multiSourceClient an instance of {@link MultiSourceHttpClient}.
+     * @returns An instance of {@link LogionClient} with an updated network state.
+     */
     updateNetworkState(multiSourceClient: MultiSourceHttpClient<LegalOfficerEndpoint>): LogionClient {
         const { nodesUp, nodesDown } = multiSourceClient.getState();
         const networkState = this.sharedState.componentFactory.buildNetworkState(nodesUp, nodesDown);
@@ -314,10 +424,17 @@ export class LogionClient {
         }
     }
 
+    /**
+     * Logion network's state (nodes up and down).
+     */
     get networkState(): NetworkState<LegalOfficerEndpoint> {
         return this.sharedState.networkState;
     }
 
+    /**
+     * Builds a new instance of {@link BalanceState} for to current address.
+     * @returns An instance of {@link BalanceState}
+     */
     async balanceState(): Promise<BalanceState> {
         this.ensureConnected();
         if(!this.sharedState.currentAddress) {
@@ -329,42 +446,77 @@ export class LogionClient {
         });
     }
 
+    /**
+     * Queries the blockchain to tell if provided address is protected (see {@link ProtectionState}).
+     * @param address An SS58 Polkadot address.
+     * @returns True if the address is protected, false otherwise.
+     */
     async isProtected(address: string): Promise<boolean> {
         this.ensureConnected();
         const config = await this.sharedState.nodeApi.queries.getRecoveryConfig(address);
         return config !== undefined;
     }
 
+    /**
+     * Tells if provided address is a valid Polkadot address.
+     * @param address A string that may or may not represent a valid Polkadot address.
+     * @returns True if the address is valid, false otherwise.
+     */
     isValidAddress(address: string): boolean {
         return this.sharedState.nodeApi.queries.isValidAccountId(address, "Polkadot");
     }
 
+    /**
+     * An instance of {@link LocsState} for current address.
+     * @param params Some optional spec to further control which LOCs will be fetched. Leave undefined unless you now what you do.
+     * @returns An instance of {@link LocsState}
+     */
     async locsState(params?: FetchAllLocsParams): Promise<LocsState> {
         this.ensureConnected();
         return LocsState.getInitialLocsState(this.sharedState, this, params);
     }
 
+    /**
+     * Queries which do not require authentication.
+     * @returns An instance of {@link PublicApi}
+     */
     get public(): PublicApi {
         this.ensureConnected();
         return this._public;
     }
 
+    /**
+     * Voters tools.
+     * @returns An instance of {@link VoterApi}
+     */
     get voter(): VoterApi {
         this.ensureConnected();
         return this._voter;
     }
 
+    /**
+     * Invited contributors tools.
+     * @returns An instance of {@link InvitedContributorApi}
+     */
     get invitedContributor(): InvitedContributorApi {
         this.ensureConnected();
         return this._invitedContributor;
     }
 
+    /**
+     * Disconnects the client from the Logion blockchain.
+     * @returns 
+     */
     async disconnect() {
         if(this.sharedState.nodeApi.polkadot.isConnected) {
             return this.sharedState.nodeApi.polkadot.disconnect();
         }
     }
 
+    /**
+     * Sponsors tools.
+     * @returns An instance of {@link SponsorshipApi}
+     */
     get sponsorship(): SponsorshipApi {
         this.ensureConnected();
         return new SponsorshipApi({
@@ -373,6 +525,10 @@ export class LogionClient {
         });
     }
 
+    /**
+     * Sponsorship state.
+     * @returns An instance of {@link SponsorshipState}
+     */
     sponsorshipState(sponsorshipId: UUID): Promise<SponsorshipState> {
         return SponsorshipState.getState({
             sharedState: this.sharedState,

@@ -1,3 +1,10 @@
+/**
+ * Exposes tools enabling interaction with a Logion network.
+ * An instance of {@link LogionClient} must be created.
+ * Most features of the client require authentication.
+ * 
+ * @module
+ */
 import { ISubmittableResult } from '@polkadot/types/types';
 export {
     ISubmittableResult,
