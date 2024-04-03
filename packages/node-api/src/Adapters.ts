@@ -2,7 +2,7 @@ import { ApiPromise } from "@polkadot/api";
 import { Call, FunctionMetadataLatest } from "@polkadot/types/interfaces";
 import {
     FrameSystemAccountInfo,
-    LogionNodeRuntimeRegion,
+    LogionRuntimeRegion,
     PalletLoAuthorityListHostDataParam,
     PalletLoAuthorityListLegalOfficerData,
     PalletLoAuthorityListLegalOfficerDataParam,
@@ -571,25 +571,25 @@ export class Adapters {
             baseUrl = u8aToHex(urlBytes);
         }
 
-        const region = legalOfficerData.region ? this.toLogionNodeRuntimeRegion(legalOfficerData.region) : this.fromLogionNodeRuntimeRegion(this.getDefaultLogionNodeRuntimeRegion());
+        const region = legalOfficerData.region ? this.toLogionRuntimeRegion(legalOfficerData.region) : this.fromLogionRuntimeRegion(this.getDefaultLogionRuntimeRegion());
 
         return this.api.createType<PalletLoAuthorityListLegalOfficerDataParam>("PalletLoAuthorityListLegalOfficerDataParam", { Host: { nodeId, baseUrl, region } });
     }
 
-    toLogionNodeRuntimeRegion(region: Region): LogionNodeRuntimeRegion {
-        return this.api.createType<LogionNodeRuntimeRegion>("LogionNodeRuntimeRegion", region);
+    toLogionRuntimeRegion(region: Region): LogionRuntimeRegion {
+        return this.api.createType<LogionRuntimeRegion>("LogionRuntimeRegion", region);
     }
 
-    fromLogionNodeRuntimeRegion(region: LogionNodeRuntimeRegion): Region {
+    fromLogionRuntimeRegion(region: LogionRuntimeRegion): Region {
         return region.toString() as Region;
     }
 
-    getDefaultLogionNodeRuntimeRegion(): LogionNodeRuntimeRegion {
-        this.defaultRegion ||= this.api.createType<LogionNodeRuntimeRegion>("LogionNodeRuntimeRegion");
+    getDefaultLogionRuntimeRegion(): LogionRuntimeRegion {
+        this.defaultRegion ||= this.api.createType<LogionRuntimeRegion>("LogionRuntimeRegion");
         return this.defaultRegion;
     }
 
-    private defaultRegion?: LogionNodeRuntimeRegion;
+    private defaultRegion?: LogionRuntimeRegion;
 
     toHostData(legalOfficerData: PalletLoAuthorityListLegalOfficerData): Partial<HostData> {
         let nodeId: string | undefined;
@@ -602,9 +602,9 @@ export class Adapters {
         if(legalOfficerData.asHost.baseUrl.isSome) {
             const urlBytes = legalOfficerData.asHost.baseUrl.unwrap();
             baseUrl = urlBytes.toUtf8();
-        } 
+        }
 
-        const region = this.fromLogionNodeRuntimeRegion(legalOfficerData.asHost.region);
+        const region = this.fromLogionRuntimeRegion(legalOfficerData.asHost.region);
 
         return { baseUrl, nodeId, region };
     }
@@ -650,7 +650,7 @@ export class Adapters {
         return this.api.createType("PalletLoAuthorityListHostDataParam", {
             nodeId,
             baseUrl: params.baseUrl,
-            region: this.toLogionNodeRuntimeRegion(params.region),
+            region: this.toLogionRuntimeRegion(params.region),
         });
     }
 }

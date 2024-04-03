@@ -1,4 +1,4 @@
-import { LogionNodeRuntimeRegion } from '@polkadot/types/lookup';
+import { LogionRuntimeRegion } from '@polkadot/types/lookup';
 import { AnyJson } from "@polkadot/types-codec/types";
 import { isHex } from "@polkadot/util";
 import { UUID } from "./UUID.js";
@@ -353,4 +353,4 @@ export interface HostData {
     region: Region;
 }
 
-export type Region = LogionNodeRuntimeRegion["type"];
+export type Region = LogionRuntimeRegion["type"];

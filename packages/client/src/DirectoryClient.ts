@@ -88,7 +88,7 @@ export class DirectoryClient {
             node = onchainHost.asHost.baseUrl.unwrap().toUtf8();
         }
 
-        const region = this.api.adapters.fromLogionNodeRuntimeRegion(onchainHost.asHost.region);
+        const region = this.api.adapters.fromLogionRuntimeRegion(onchainHost.asHost.region);
 
         return { nodeId, node, region };
     }

@@ -267,12 +267,12 @@ export class Queries {
     private availableRegions?: Region[];
 
     private computeAvailableRegions(): Region[] {
-        const defaultRegion = this.adapters.getDefaultLogionNodeRuntimeRegion();
+        const defaultRegion = this.adapters.getDefaultLogionRuntimeRegion();
         return defaultRegion.defKeys as Region[];
     }
 
     getDefaultRegion(): Region {
-        return this.adapters.fromLogionNodeRuntimeRegion(this.adapters.getDefaultLogionNodeRuntimeRegion());
+        return this.adapters.fromLogionRuntimeRegion(this.adapters.getDefaultLogionRuntimeRegion());
     }
 
     async isInvitedContributorOf(address: string, locId: UUID): Promise<boolean> {

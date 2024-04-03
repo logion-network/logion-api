@@ -31,7 +31,7 @@ export async function updateHostLegalOfficer() {
     expect(entry.isSome).toBe(true);
     const hostData = entry.unwrap().asHost;
     expect(hostData.region.isEurope).toBe(true);
-    expect(api.adapters.fromLogionNodeRuntimeRegion(hostData.region)).toBe(region);
+    expect(api.adapters.fromLogionRuntimeRegion(hostData.region)).toBe(region);
 
     const host = await api.queries.getLegalOfficerData(ALICE);
     expect(host.isHost).toBe(true);
