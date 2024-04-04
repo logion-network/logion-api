@@ -1,5 +1,6 @@
 import { UUID, MetadataItemParams, Hash, ItemToken, ItemFile, TermsAndConditionsElement } from "../src/index.js";
 import { setup } from "./Util.js";
+import { encodeAddress } from "@polkadot/util-crypto";
 
 export async function toPalletLogionLocOtherAccountId() {
     const { api } = await setup();
@@ -21,6 +22,7 @@ export async function toSponsorshipId() {
 
 export async function toPalletLogionLocMetadataItem() {
     const { api } = await setup();
+    const polkadotAddress = encodeAddress("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb", api.queries.ss58Prefix);
 
     const sponsorshipId = new UUID();
     const compactSponsorshipId = api.adapters.toSponsorshipId(sponsorshipId);
@@ -41,10 +43,9 @@ export async function toPalletLogionLocMetadataItem() {
     expect(palletItem.submitter.asPolkadot.toString()).toBe(polkadotAddress);
 }
 
-const polkadotAddress = "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb";
-
 export async function toPalletLogionLocFile() {
     const { api } = await setup();
+    const polkadotAddress = encodeAddress("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb", api.queries.ss58Prefix);
 
     const validPolkadotAccountId = api.queries.getValidAccountId(polkadotAddress, "Polkadot");
 

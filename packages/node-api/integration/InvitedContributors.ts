@@ -1,5 +1,5 @@
 import { UUID, Adapters, Hash, Lgnt } from "../src/index.js";
-import { ALICE, INVITED_CONTRIBUTOR, setup, signAndSend, signAndSendBatch } from "./Util.js";
+import { setup, signAndSend, signAndSendBatch } from "./Util.js";
 
 export async function invitedContributors() {
     const { api, alice, invitedContributor, requester } = await setup();
@@ -7,12 +7,12 @@ export async function invitedContributors() {
     const invitedContributorIdentityLocId = new UUID();
     const collectionLocId = new UUID();
     await signAndSend(alice,
-        api.polkadot.tx.balances.transferAllowDeath(INVITED_CONTRIBUTOR, Lgnt.from(200).canonical),
+        api.polkadot.tx.balances.transferAllowDeath(invitedContributor.address, Lgnt.from(200).canonical),
     );
     await signAndSend(invitedContributor,
         api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
             invitedContributorIdentityLocId.toDecimalString(),
-            ALICE,
+            alice.address,
             0,
             api.adapters.emptyPalletLogionLocItemsParams(),
         ),
@@ -25,12 +25,12 @@ export async function invitedContributors() {
         ),
     );
 
-    expect(await api.queries.isInvitedContributorOf(INVITED_CONTRIBUTOR, collectionLocId)).toBeFalse();
+    expect(await api.queries.isInvitedContributorOf(invitedContributor.address, collectionLocId)).toBeFalse();
 
     await signAndSendBatch(requester, [
         api.polkadot.tx.logionLoc.createCollectionLoc(
             collectionLocId.toDecimalString(),
-            ALICE,
+            alice.address,
             null,
             200,
             true,
@@ -42,12 +42,12 @@ export async function invitedContributors() {
         ),
         api.polkadot.tx.logionLoc.setInvitedContributorSelection(
             collectionLocId.toDecimalString(),
-            INVITED_CONTRIBUTOR,
+            invitedContributor.address,
             true,
         ),
     ]);
 
-    expect(await api.queries.isInvitedContributorOf(INVITED_CONTRIBUTOR, collectionLocId)).toBeTrue();
+    expect(await api.queries.isInvitedContributorOf(invitedContributor.address, collectionLocId)).toBeTrue();
 
     await signAndSend(alice,
         api.polkadot.tx.logionLoc.close(

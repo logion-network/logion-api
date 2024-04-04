@@ -1,6 +1,11 @@
 import { ApiPromise } from "@polkadot/api";
 import { CollectionItem, Hash, LegalOfficerCase, Lgnt, LogionNodeApiClass, Numbers, UUID } from "../src/index.js";
-import { POLKADOT_API_CREATE_TYPE, mockValidAccountId, mockBool, mockSoloRuntimeVersion } from "./Util.js";
+import {
+    POLKADOT_API_CREATE_TYPE,
+    mockValidAccountId,
+    mockBool,
+    mockParaRuntimeVersion,
+} from "./Util.js";
 import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
 import { BN } from "bn.js";
 
@@ -124,7 +129,7 @@ describe("Queries", () => {
 
 function mockPolkadotApiWithAccountData(accountId: string) {
     return {
-        runtimeVersion: mockSoloRuntimeVersion(),
+        runtimeVersion: mockParaRuntimeVersion(),
         query: {
             system: {
                 account: (id: string) => id === accountId ? {
@@ -145,7 +150,7 @@ function mockPolkadotApiWithAccountData(accountId: string) {
 
 function mockPolkadotApiForLogionLoc() {
     return {
-        runtimeVersion: mockSoloRuntimeVersion(),
+        runtimeVersion: mockParaRuntimeVersion(),
         query: {
             logionLoc: {
                 locMap: () => Promise.resolve({
@@ -348,7 +353,7 @@ export const DEFAULT_ITEM: CollectionItem = {
 
 function mockPolkadotApiForRecovery(recoverable?: any, activeRecoveries?: any) {
     return {
-        runtimeVersion: mockSoloRuntimeVersion(),
+        runtimeVersion: mockParaRuntimeVersion(),
         query: {
             recovery: {
                 recoverable: recoverable ? recoverable : () => Promise.resolve(),

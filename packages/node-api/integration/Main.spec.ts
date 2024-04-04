@@ -68,8 +68,8 @@ describe("Logion Node API", () => {
 
     it("creates a vote", createVote);
 
-    it("adds guest legal offier", addGuestLegalOfficer);
-    it("updates host legal offier", updateHostLegalOfficer);
+    it("adds guest legal officer", addGuestLegalOfficer);
+    it("updates host legal officer", updateHostLegalOfficer);
     it("provides available regions", getAvailableRegions);
     it("imports host legal officer", importHost);
 

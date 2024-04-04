@@ -246,7 +246,7 @@ export function buildSimpleNodeApi(): LogionNodeApiClass {
         createType: () => undefined,
         runtimeVersion: {
             specName: { toString: () => "logion" },
-            specVersion: { toBigInt: () => 164n },
+            specVersion: { toBigInt: () => 3000n },
         },
     } as unknown as ApiPromise;
     return new LogionNodeApiClass(api);

@@ -281,4 +281,8 @@ export class Queries {
             address,
         )).isSome
     }
+
+    get ss58Prefix(): number {
+        return this.api.consts.system.ss58Prefix.toNumber();
+    }
 }

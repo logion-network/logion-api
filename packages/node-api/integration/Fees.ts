@@ -1,4 +1,4 @@
-import { ALICE, setup } from "./Util.js";
+import { setup } from "./Util.js";
 import { Lgnt, Fees } from "../src/index.js";
 
 export async function storageFees() {
@@ -27,9 +27,9 @@ export async function certificateFees() {
 }
 
 export async function ensureEnoughFunds() {
-    const { api } = await setup();
+    const { api, alice } = await setup();
 
-    const accountData = await api.queries.getAccountData(ALICE);
+    const accountData = await api.queries.getAccountData(alice.address);
     const existentialDeposit = api.polkadot.consts.balances.existentialDeposit.toBigInt();
 
     await expectAsync(testEnsureEnoughFunds(accountData.available)).toBeRejectedWithError("Not enough funds");
@@ -39,6 +39,6 @@ export async function ensureEnoughFunds() {
 }
 
 async function testEnsureEnoughFunds(fees: bigint) {
-    const { api } = await setup();
-    return api.fees.ensureEnoughFunds({ fees: new Fees({ inclusionFee: Lgnt.fromCanonical(fees) }), origin: ALICE })
+    const { api, alice } = await setup();
+    return api.fees.ensureEnoughFunds({ fees: new Fees({ inclusionFee: Lgnt.fromCanonical(fees) }), origin: alice.address })
 }
