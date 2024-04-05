@@ -24,7 +24,6 @@ const configs: Record<Environment, Omit<LogionClientConfig, 'buildFileUploader'>
         rpcEndpoints: [
             "wss://rpc01.logion.network",
             "wss://rpc02.logion.network",
-            "wss://rpc03.logion.network",
         ],
         directoryEndpoint: "https://directory.logion.network",
         logionClassificationLoc: UUID.fromDecimalStringOrThrow("85815882149698756717105061322008904805"),
