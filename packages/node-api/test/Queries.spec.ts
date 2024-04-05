@@ -4,7 +4,7 @@ import {
     POLKADOT_API_CREATE_TYPE,
     mockValidAccountId,
     mockBool,
-    mockParaRuntimeVersion,
+    mockParaRuntimeVersion, SS58_PREFIX,
 } from "./Util.js";
 import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
 import { BN } from "bn.js";
@@ -151,6 +151,13 @@ function mockPolkadotApiWithAccountData(accountId: string) {
 function mockPolkadotApiForLogionLoc() {
     return {
         runtimeVersion: mockParaRuntimeVersion(),
+        consts: {
+            system: {
+                ss58Prefix: {
+                    toNumber: () => SS58_PREFIX
+                }
+            }
+        },
         query: {
             logionLoc: {
                 locMap: () => Promise.resolve({
@@ -294,13 +301,13 @@ function mockPolkadotApiForLogionLoc() {
 }
 
 export const DEFAULT_LOC: LegalOfficerCase = {
-    owner: "owner",
+    owner: DEFAULT_LEGAL_OFFICER,
     requesterAddress: mockValidAccountId("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb"),
     metadata: [
         {
             name: Hash.of("meta_name"),
             value: Hash.of("meta_value"),
-            submitter: mockValidAccountId("owner"),
+            submitter: mockValidAccountId(DEFAULT_LEGAL_OFFICER),
             acknowledgedByOwner: true,
             acknowledgedByVerifiedIssuer: false,
         }
@@ -309,7 +316,7 @@ export const DEFAULT_LOC: LegalOfficerCase = {
         {
             hash: Hash.fromHex("0x8fc334610ff6939e55ea65b472fc107df861790b02542ecdbbfeaa2d17ed5abb"),
             nature: Hash.of("file-nature"),
-            submitter: mockValidAccountId("owner"),
+            submitter: mockValidAccountId(DEFAULT_LEGAL_OFFICER),
             size: BigInt(128000),
             acknowledgedByOwner: true,
             acknowledgedByVerifiedIssuer: false,
@@ -319,7 +326,7 @@ export const DEFAULT_LOC: LegalOfficerCase = {
         {
             id: new UUID("90fcde7e-a255-404e-8b15-32963a4e64c0"),
             nature: Hash.of("link-nature"),
-            submitter: mockValidAccountId("owner"),
+            submitter: mockValidAccountId(DEFAULT_LEGAL_OFFICER),
             acknowledgedByOwner: true,
             acknowledgedByVerifiedIssuer: false,
         }

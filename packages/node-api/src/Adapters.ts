@@ -553,6 +553,10 @@ export class Adapters {
         throw new Error(`Unsupported account type: ${ type }`);
     }
 
+    getValidPolkadotAccountId(accountId: string): ValidAccountId {
+        return this.getValidAccountId(accountId, "Polkadot");
+    }
+
     getValidAccountId(accountId: string, type: AccountType): ValidAccountId {
         const anyAccountId = new AnyAccountId(this.api, accountId, type);
         return anyAccountId.toValidAccountId();
