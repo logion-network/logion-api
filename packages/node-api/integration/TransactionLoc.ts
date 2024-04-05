@@ -1,25 +1,25 @@
 import { UUID, MetadataItemParams, FileParams, Hash, LinkParams } from "../src/index.js";
-import { ALICE, REQUESTER, setup, signAndSend, signAndSendBatch } from "./Util.js";
+import { setup, signAndSend, signAndSendBatch } from "./Util.js";
 import { IKeyringPair } from "@polkadot/types/types";
 
 export async function createTransactionLocTest() {
-    const { requester, api } = await setup();
+    const { requester, api, alice } = await setup();
 
     const createLocExtrinsic = api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
         api.adapters.toLocId(TRANSACTION_LOC_ID),
-        ALICE,
+        alice.address,
         10,
         api.adapters.emptyPalletLogionLocItemsParams(),
     );
     const createOtherLocExtrinsic = api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
         api.adapters.toLocId(OTHER_TRANSACTION_LOC_ID),
-        ALICE,
+        alice.address,
         0n,
         api.adapters.emptyPalletLogionLocItemsParams(),
     );
     const createYetAnotherLocExtrinsic = api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
         api.adapters.toLocId(YET_ANOTHER_TRANSACTION_LOC_ID),
-        ALICE,
+        alice.address,
         0n,
         api.adapters.emptyPalletLogionLocItemsParams(),
     );
@@ -30,8 +30,8 @@ export async function createTransactionLocTest() {
     ]);
 
     const loc = await api.queries.getLegalOfficerCase(TRANSACTION_LOC_ID);
-    expect(loc?.owner).toBe(ALICE);
-    expect(loc?.requesterAddress?.address).toBe(REQUESTER);
+    expect(loc?.owner).toBe(alice.address);
+    expect(loc?.requesterAddress?.address).toBe(requester.address);
     expect(loc?.requesterAddress?.type).toBe("Polkadot");
     expect(loc?.closed).toBe(false);
     expect(loc?.locType).toBe("Transaction");
@@ -44,7 +44,7 @@ export async function addMetadataToTransactionLocTestAsLLO() {
         {
             name: Hash.of("Some name"),
             value: Hash.of("Some value"),
-            submitter: api.queries.getValidAccountId(ALICE, "Polkadot"),
+            submitter: api.queries.getValidAccountId(alice.address, "Polkadot"),
         },
         true,
         0
@@ -58,7 +58,7 @@ export async function addMetadataToTransactionLocTestAsRequester() {
         {
             name: REQUESTER_METADATA_NAME,
             value: Hash.of("Some other value"),
-            submitter: api.queries.getValidAccountId(REQUESTER, "Polkadot"),
+            submitter: api.queries.getValidAccountId(requester.address, "Polkadot"),
         },
         false,
         1
@@ -105,7 +105,7 @@ export async function addFileToTransactionLocTestAsLLO() {
         {
             hash: Hash.fromHex("0x46d9bb04725470dc8483395f635805e9da5e105c7b2b90935b895a0f4f364d80"),
             nature: Hash.of("Some nature"),
-            submitter: api.queries.getValidAccountId(ALICE, "Polkadot"),
+            submitter: api.queries.getValidAccountId(alice.address, "Polkadot"),
             size: BigInt(456),
         },
         true,
@@ -120,7 +120,7 @@ export async function addFileToTransactionLocTestAsRequester() {
         {
             hash: REQUESTER_FILE_HASH,
             nature: Hash.of("Some other nature"),
-            submitter: api.queries.getValidAccountId(REQUESTER, "Polkadot"),
+            submitter: api.queries.getValidAccountId(requester.address, "Polkadot"),
             size: BigInt(123),
         },
         false,
@@ -169,7 +169,7 @@ export async function addLinkToTransactionLocTestAsLLO() {
         {
             id: OTHER_TRANSACTION_LOC_ID,
             nature: Hash.of("Some link"),
-            submitter: api.queries.getValidAccountId(ALICE, "Polkadot"),
+            submitter: api.queries.getValidAccountId(alice.address, "Polkadot"),
         },
         true,
         0
@@ -183,7 +183,7 @@ export async function addLinkToTransactionLocTestAsRequester() {
         {
             id: YET_ANOTHER_TRANSACTION_LOC_ID,
             nature: Hash.of("Some other link"),
-            submitter: api.queries.getValidAccountId(REQUESTER, "Polkadot"),
+            submitter: api.queries.getValidAccountId(requester.address, "Polkadot"),
         },
         false,
         1

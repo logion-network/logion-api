@@ -3,7 +3,7 @@ import { IKeyringPair, ISubmittableResult } from "@polkadot/types/types";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import { waitReady } from "@polkadot/wasm-crypto";
 
-import { Adapters, LogionNodeApiClass, buildApiClass } from "../src/index.js";
+import { Adapters, LogionNodeApiClass } from "../src/index.js";
 
 export interface State {
     api: LogionNodeApiClass;
@@ -19,12 +19,12 @@ let state: State;
 export async function setup(): Promise<State> {
     if(!state) {
         await waitReady();
-        const keyring = new Keyring({ type: 'sr25519' });
+        const api = await LogionNodeApiClass.connect("ws://127.0.0.1:9944");
+        const keyring = new Keyring({ type: 'sr25519', ss58Format: api.queries.ss58Prefix });
         const alice = keyring.addFromUri(ALICE_SEED);
         const requester = keyring.addFromUri(REQUESTER_SECRET_SEED);
         const issuer = keyring.addFromUri(ISSUER_SECRET_SEED);
         const invitedContributor = keyring.addFromUri(INVITED_CONTRIBUTOR_SECRET_SEED);
-        const api = await buildApiClass("ws://127.0.0.1:9944");
         state = {
             api,
             keyring,
@@ -39,23 +39,11 @@ export async function setup(): Promise<State> {
 
 const ALICE_SEED = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a";
 
-export const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY";
-
 const REQUESTER_SECRET_SEED = "unique chase zone team upset caution match west enter eyebrow limb wrist";
-
-export const REQUESTER = "5DPLBrBxniGbGdFe1Lmdpkt6K3aNjhoNPJrSJ51rwcmhH2Tn";
-
-export const DAVE = "5DAAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFy";
-
-export const ISSUER = "5HTA8nHHQWdN6XnciaWxjjzCHLoV8d5tME6CqT6KNDypovKU";
 
 const ISSUER_SECRET_SEED = "earth rough predict document divide deliver unable vanish spike alarm exotic spider";
 
 const INVITED_CONTRIBUTOR_SECRET_SEED = "october minimum future canvas range cruise jealous web renew border hover name";
-
-export const INVITED_CONTRIBUTOR = "5F42HAi5kvD6Ao4Ze6UBiZDw7BA4zk62twNYRWAVDq3EhdWH";
-
-export const FERDIE = "5CiPPseXPECbkjWCa6MnjNokrgYjMqmKndv2rSnekmSK2DjL";
 
 export function signAndSend(keypair: IKeyringPair, extrinsic: SubmittableExtrinsic): Promise<ISubmittableResult> {
     let unsub: () => void;

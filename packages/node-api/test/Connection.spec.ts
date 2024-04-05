@@ -4,19 +4,19 @@ import { mockParaRuntimeVersion, mockRuntimeVersionUnexpectedSpecName, mockRunti
 
 describe("LogionNodeApiClass", () => {
 
-    it("detects solo chain", () => {
-        const polkadot = {
-            runtimeVersion: mockSoloRuntimeVersion(),
-        } as unknown as ApiPromise;
-        const api = new LogionNodeApiClass(polkadot);
-        expect(api.chainType).toBe("Solo");
-    });
-
-    it("fails connecting to para chain", () => {
+    it("detects para chain", () => {
         const polkadot = {
             runtimeVersion: mockParaRuntimeVersion(),
         } as unknown as ApiPromise;
-        expect(() => new LogionNodeApiClass(polkadot)).toThrowError("This version of the SDK does not have support for chain type Para");
+        const api = new LogionNodeApiClass(polkadot);
+        expect(api.chainType).toBe("Para");
+    });
+
+    it("fails connecting to solo chain", () => {
+        const polkadot = {
+            runtimeVersion: mockSoloRuntimeVersion(),
+        } as unknown as ApiPromise;
+        expect(() => new LogionNodeApiClass(polkadot)).toThrowError("This version of the SDK does not have support for chain type Solo");
     });
 
     it("throws with unexpected spec name", () => {

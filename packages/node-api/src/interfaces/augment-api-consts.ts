@@ -9,7 +9,7 @@ import type { ApiTypes, AugmentedConst } from '@polkadot/api-base/types';
 import type { Option, u128, u16, u32, u64, u8 } from '@polkadot/types-codec';
 import type { Codec } from '@polkadot/types-codec/types';
 import type { Permill } from '@polkadot/types/interfaces/runtime';
-import type { FrameSupportPalletId, FrameSystemLimitsBlockLength, FrameSystemLimitsBlockWeights, SpVersionRuntimeVersion, SpWeightsRuntimeDbWeight } from '@polkadot/types/lookup';
+import type { FrameSupportPalletId, FrameSystemLimitsBlockLength, FrameSystemLimitsBlockWeights, SpVersionRuntimeVersion, SpWeightsRuntimeDbWeight, SpWeightsWeightV2Weight } from '@polkadot/types/lookup';
 
 export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>;
 
@@ -96,29 +96,6 @@ declare module '@polkadot/api-base/types/consts' {
        **/
       [key: string]: Codec;
     };
-    grandpa: {
-      /**
-       * Max Authorities in use
-       **/
-      maxAuthorities: u32 & AugmentedConst<ApiType>;
-      /**
-       * The maximum number of nominators for each validator.
-       **/
-      maxNominators: u32 & AugmentedConst<ApiType>;
-      /**
-       * The maximum number of entries to keep in the set id to session index mapping.
-       * 
-       * Since the `SetIdSession` map is only used for validating equivocations this
-       * value should relate to the bonding duration of whatever staking system is
-       * being used (if any). If equivocation handling is not enabled then this value
-       * can be zero.
-       **/
-      maxSetIdSessionEntries: u64 & AugmentedConst<ApiType>;
-      /**
-       * Generic const
-       **/
-      [key: string]: Codec;
-    };
     logionTreasury: {
       /**
        * Percentage of spare funds (if any) that are burnt per spend period.
@@ -155,6 +132,34 @@ declare module '@polkadot/api-base/types/consts' {
        * Period between successive spends.
        **/
       spendPeriod: u32 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
+    messageQueue: {
+      /**
+       * The size of the page; this implies the maximum message size which can be sent.
+       * 
+       * A good value depends on the expected message sizes, their weights, the weight that is
+       * available for processing them and the maximal needed message size. The maximal message
+       * size is slightly lower than this as defined by [`MaxMessageLenOf`].
+       **/
+      heapSize: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximum number of stale pages (i.e. of overweight messages) allowed before culling
+       * can happen. Once there are more stale pages than this, then historical pages may be
+       * dropped, even if they contain unprocessed overweight messages.
+       **/
+      maxStale: u32 & AugmentedConst<ApiType>;
+      /**
+       * The amount of weight (if any) which should be provided to the message queue for
+       * servicing enqueued items.
+       * 
+       * This may be legitimately `None` in the case that you will call
+       * `ServiceQueues::service_queues` manually.
+       **/
+      serviceWeight: Option<SpWeightsWeightV2Weight> & AugmentedConst<ApiType>;
       /**
        * Generic const
        **/
@@ -309,6 +314,31 @@ declare module '@polkadot/api-base/types/consts' {
        * The limit on the number of batched calls.
        **/
       batchedCallsLimit: u32 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
+    vesting: {
+      maxVestingSchedules: u32 & AugmentedConst<ApiType>;
+      /**
+       * The minimum amount transferred to call `vested_transfer`.
+       **/
+      minVestedTransfer: u128 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
+    xcmpQueue: {
+      /**
+       * The maximum number of inbound XCMP channels that can be suspended simultaneously.
+       * 
+       * Any further channel suspensions will fail and messages may get dropped without further
+       * notice. Choosing a high value (1000) is okay; the trade-off that is described in
+       * [`InboundXcmpSuspended`] still applies at that scale.
+       **/
+      maxInboundSuspended: u32 & AugmentedConst<ApiType>;
       /**
        * Generic const
        **/

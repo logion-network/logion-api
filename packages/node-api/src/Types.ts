@@ -1,10 +1,11 @@
-import { LogionNodeRuntimeRegion } from '@polkadot/types/lookup';
+import { LogionRuntimeRegion } from '@polkadot/types/lookup';
 import { AnyJson } from "@polkadot/types-codec/types";
 import { isHex } from "@polkadot/util";
 import { UUID } from "./UUID.js";
 import { ApiPromise } from "@polkadot/api";
 import { Hash } from './Hash.js';
 import { Lgnt } from './Currency.js';
+import { encodeAddress } from "@polkadot/util-crypto";
 
 export interface TypesAccountData {
     available: bigint,
@@ -177,13 +178,24 @@ export class AnyAccountId implements AccountId {
      */
     constructor(api: ApiPromise, address: string, type: AccountType) {
         this.api = api;
-        this.address = address;
+        this.address = AnyAccountId.computeAddress(this.api.consts.system.ss58Prefix.toNumber(), address, type);
         this.type = type;
     }
 
     readonly api: ApiPromise;
     readonly address: string;
     readonly type: AccountType;
+
+    getAddress(prefix: number): string {
+        return AnyAccountId.computeAddress(prefix, this.address, this.type)
+    }
+
+    static computeAddress(prefix: number, address: string, type: AccountType): string {
+        if (type === 'Polkadot') {
+            return encodeAddress(address, prefix);
+        }
+        return address
+    }
 
     isValid(): boolean {
         return this.validate() === undefined;
@@ -294,6 +306,10 @@ export class ValidAccountId implements AccountId {
     equals(other: AccountId): boolean {
         return this.type === other.type && this.address === other.address;
     }
+
+    getAddress(prefix: number): string {
+        return AnyAccountId.computeAddress(prefix, this.address, this.type);
+    }
 }
 
 export class OtherAccountId implements AccountId {
@@ -353,4 +369,4 @@ export interface HostData {
     region: Region;
 }
 
-export type Region = LogionNodeRuntimeRegion["type"];
+export type Region = LogionRuntimeRegion["type"];

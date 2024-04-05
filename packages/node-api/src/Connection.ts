@@ -21,7 +21,7 @@ export const EXPECTED_SPEC_NAME = "logion";
 
 export const EXPECTED_SOLO_VERSION = 164n;
 
-export const EXPECTED_PARA_VERSION = 3n;
+export const EXPECTED_PARA_VERSION = 3000n;
 
 /**
  * A Logion chain client. An instance of this class provides
@@ -61,7 +61,7 @@ export class LogionNodeApiClass {
     constructor(api: ApiPromise) {
         this.polkadot = api;
         this.chainType = this.detectChainType();
-        if(this.chainType !== "Solo") {
+        if(this.chainType !== "Para") {
             throw new Error(`This version of the SDK does not have support for chain type ${ this.chainType }`);
         }
         this.adapters = new Adapters(api);
@@ -78,7 +78,7 @@ export class LogionNodeApiClass {
         if(chainSpecName !== EXPECTED_SPEC_NAME) {
             throw new Error(`Unexpected chain '${chainSpecName}'`);
         }
-    
+
         const chainSpecVersion = this.polkadot.runtimeVersion.specVersion.toBigInt();
         if(chainSpecVersion === EXPECTED_SOLO_VERSION) {
             return "Solo";

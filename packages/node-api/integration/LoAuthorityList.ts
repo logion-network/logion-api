@@ -1,17 +1,19 @@
-import { ALICE, DAVE, FERDIE, setup, signAndSend } from "./Util.js";
+import { setup, signAndSend } from "./Util.js";
 
 export async function addGuestLegalOfficer() {
     const { alice, api } = await setup();
-    const extrinsic = api.polkadot.tx.loAuthorityList.addLegalOfficer(DAVE, {
-        Guest: ALICE,
+    const dave = api.adapters.getValidPolkadotAccountId("5DAAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFy").address;
+
+    const extrinsic = api.polkadot.tx.loAuthorityList.addLegalOfficer(dave, {
+        Guest: alice.address,
     });
     const sudoExtrinsic = api.polkadot.tx.sudo.sudo(extrinsic);
     const result = await signAndSend(alice, sudoExtrinsic);
     expect(result.dispatchError).not.toBeDefined();
-    const entry = await api.polkadot.query.loAuthorityList.legalOfficerSet(DAVE);
+    const entry = await api.polkadot.query.loAuthorityList.legalOfficerSet(dave);
     expect(entry.isSome).toBe(true);
     const host = entry.unwrap().asGuest;
-    expect(host.hostId.toString()).toBe(ALICE);
+    expect(host.hostId.toString()).toBe(alice.address);
 }
 
 export async function updateHostLegalOfficer() {
@@ -22,18 +24,18 @@ export async function updateHostLegalOfficer() {
         nodeId,
         region,
     });
-    const extrinsic = api.polkadot.tx.loAuthorityList.updateLegalOfficer(ALICE, data);
+    const extrinsic = api.polkadot.tx.loAuthorityList.updateLegalOfficer(alice.address, data);
     const sudoExtrinsic = api.polkadot.tx.sudo.sudo(extrinsic);
     const result = await signAndSend(alice, sudoExtrinsic);
     expect(result.dispatchError).not.toBeDefined();
 
-    const entry = await api.polkadot.query.loAuthorityList.legalOfficerSet(ALICE);
+    const entry = await api.polkadot.query.loAuthorityList.legalOfficerSet(alice.address);
     expect(entry.isSome).toBe(true);
     const hostData = entry.unwrap().asHost;
     expect(hostData.region.isEurope).toBe(true);
-    expect(api.adapters.fromLogionNodeRuntimeRegion(hostData.region)).toBe(region);
+    expect(api.adapters.fromLogionRuntimeRegion(hostData.region)).toBe(region);
 
-    const host = await api.queries.getLegalOfficerData(ALICE);
+    const host = await api.queries.getLegalOfficerData(alice.address);
     expect(host.isHost).toBe(true);
     expect(host.guests?.length).toBe(1);
     expect(host.hostAddress).toBeUndefined();
@@ -50,6 +52,7 @@ export async function getAvailableRegions() {
 
 export async function importHost() {
     const { api, alice } = await setup();
+    const ferdie = api.adapters.getValidPolkadotAccountId("5CiPPseXPECbkjWCa6MnjNokrgYjMqmKndv2rSnekmSK2DjL").address;
     const nodeId = "12D3KooWDh3ZkezHgdC1A7MB32m43HHsGPDy1aGoA3svhN4Z8qYt";
     const baseUrl = "https://some-node.logion.network";
     const region = "Europe";
@@ -58,11 +61,11 @@ export async function importHost() {
         baseUrl,
         region,
     });
-    const extrinsic = api.polkadot.tx.loAuthorityList.importHostLegalOfficer(FERDIE, params);
+    const extrinsic = api.polkadot.tx.loAuthorityList.importHostLegalOfficer(ferdie, params);
     const sudoExtrinsic = api.polkadot.tx.sudo.sudo(extrinsic);
     await signAndSend(alice, sudoExtrinsic);
 
-    const host = await api.queries.getLegalOfficerData(FERDIE);
+    const host = await api.queries.getLegalOfficerData(ferdie);
     expect(host.hostData?.nodeId).toBe(nodeId);
     expect(host.hostData?.baseUrl).toBe(baseUrl);
     expect(host.hostData?.region).toBe(region);

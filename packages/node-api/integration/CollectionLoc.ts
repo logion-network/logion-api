@@ -1,8 +1,8 @@
 import { UUID, Hash, Lgnt } from "../src/index.js";
-import { setup, signAndSend, ALICE } from "./Util.js";
+import { setup, signAndSend } from "./Util.js";
 
 export async function createCollectionLocLimitedInSizeTest() {
-    const { api, requester } = await setup();
+    const { api, requester, alice } = await setup();
     const collectionMaxSize = 100;
     const valueFee = Lgnt.fromCanonical(100n);
     const legalFee = Lgnt.fromCanonical(200n);
@@ -10,7 +10,7 @@ export async function createCollectionLocLimitedInSizeTest() {
     const tokensRecordFee = Lgnt.fromCanonical(30n);
     const createExtrinsic = api.polkadot.tx.logionLoc.createCollectionLoc(
         api.adapters.toLocId(COLLECTION_LOC_ID),
-        ALICE,
+        alice.address,
         null,
         collectionMaxSize,
         false,

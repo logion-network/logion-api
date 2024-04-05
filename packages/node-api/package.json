@@ -1,6 +1,6 @@
 {
   "name": "@logion/node-api",
-  "version": "0.28.4",
+  "version": "0.29.0-1",
   "description": "logion API",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -25,7 +25,7 @@
     "build:types": "tsc -p tsconfig-types.json",
     "lint": "yarn eslint src/**",
     "test": "NODE_OPTIONS=--loader=ts-node/esm jasmine --config=jasmine-unit.json",
-    "integration-test": "docker compose up -d && NODE_OPTIONS=--loader=ts-node/esm jasmine --config=jasmine-integration.json ; docker compose down",
+    "integration-test": "NODE_OPTIONS=--loader=ts-node/esm jasmine --config=jasmine-integration.json",
     "generate:defs-meta": "yarn generate:defs && yarn generate:meta",
     "generate:defs": "node --loader ts-node/esm ../../node_modules/.bin/polkadot-types-from-defs --endpoint ws://localhost:9944 --input ./src/interfaces/ --package @logion/node-api/dist/interfaces",
     "generate:meta": "node --loader ts-node/esm ../../node_modules/.bin/polkadot-types-from-chain --endpoint ws://localhost:9944 --output ./src/interfaces/ --package @logion/node-api/dist/interfaces",

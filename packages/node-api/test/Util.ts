@@ -18,9 +18,18 @@ export function mockCodecWithToBigInt<T>(value: bigint): T {
     }) as T;
 }
 
+export const SS58_PREFIX = 2021;
+
 export function mockValidAccountId(address: string): ValidAccountId {
     const api = {
         createType: (_type: string, ...args: any[]) => args,
+        consts: {
+            system: {
+                ss58Prefix: {
+                    toNumber: () => SS58_PREFIX
+                }
+            }
+        }
     } as any;
     return new AnyAccountId(api, address, "Polkadot").toValidAccountId();
 }

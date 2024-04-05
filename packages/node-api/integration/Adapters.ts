@@ -21,6 +21,7 @@ export async function toSponsorshipId() {
 
 export async function toPalletLogionLocMetadataItem() {
     const { api } = await setup();
+    const polkadotAddress = api.adapters.getValidPolkadotAccountId("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb").address;
 
     const sponsorshipId = new UUID();
     const compactSponsorshipId = api.adapters.toSponsorshipId(sponsorshipId);
@@ -41,14 +42,9 @@ export async function toPalletLogionLocMetadataItem() {
     expect(palletItem.submitter.asPolkadot.toString()).toBe(polkadotAddress);
 }
 
-const polkadotAddress = "5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb";
-
 export async function toPalletLogionLocFile() {
     const { api } = await setup();
-
-    const validPolkadotAccountId = api.queries.getValidAccountId(polkadotAddress, "Polkadot");
-
-    const submitter = validPolkadotAccountId;
+    const submitter = api.adapters.getValidPolkadotAccountId("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb");
     const hash = Hash.fromHex("0x91820202c3d0fea0c494b53e3352f1934bc177484e3f41ca2c4bca4572d71cd2");
     const nature = Hash.of("file-nature");
     const size = BigInt(128000);
@@ -61,7 +57,7 @@ export async function toPalletLogionLocFile() {
     expect(palletFile.hash_.toHex()).toBe(hash.toHex());
     expect(palletFile.nature.toHex()).toBe(nature.toHex());
     expect(palletFile.size_.toBigInt()).toBe(size);
-    expect(palletFile.submitter.asPolkadot.toString()).toBe(polkadotAddress);
+    expect(palletFile.submitter.asPolkadot.toString()).toBe(submitter.address);
 }
 
 export async function toCollectionItemToken() {

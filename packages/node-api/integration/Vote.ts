@@ -1,7 +1,7 @@
 import { AnyJson } from "@polkadot/types-codec/types/helpers.js";
 import { IKeyringPair } from "@polkadot/types/types/interfaces.js";
 import { Adapters, LogionNodeApiClass, UUID } from "../src/index.js";
-import { setup, signAndSend, ALICE } from "./Util.js";
+import { setup, signAndSend } from "./Util.js";
 
 export async function createVote() {
     const { alice, requester, api } = await setup();
@@ -21,7 +21,7 @@ async function createClosedLoc(args: { alice: IKeyringPair, requester: IKeyringP
     const locId = new UUID();
     await signAndSend(requester, api.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
         api.adapters.toLocId(locId),
-        ALICE,
+        alice.address,
         10,
         api.adapters.emptyPalletLogionLocItemsParams(),
     ));

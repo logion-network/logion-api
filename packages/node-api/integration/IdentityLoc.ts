@@ -1,4 +1,4 @@
-import { setup, ALICE, REQUESTER, signAndSend } from "./Util.js";
+import { setup, signAndSend } from "./Util.js";
 import { UUID } from "../src/index.js";
 
 export async function createIdentityLocTest() {
@@ -6,7 +6,7 @@ export async function createIdentityLocTest() {
 
     const createLocExtrinsic = api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
         api.adapters.toLocId(IDENTITY_LOC_ID),
-        ALICE,
+        alice.address,
         0n,
         api.adapters.emptyPalletLogionLocItemsParams(),
     );
@@ -20,8 +20,8 @@ export async function createIdentityLocTest() {
     await signAndSend(alice, closeExtrinsic);
 
     const loc = await api.queries.getLegalOfficerCase(IDENTITY_LOC_ID);
-    expect(loc?.owner).toBe(ALICE);
-    expect(loc?.requesterAddress?.address).toBe(REQUESTER);
+    expect(loc?.owner).toBe(alice.address);
+    expect(loc?.requesterAddress?.address).toBe(requester.address);
     expect(loc?.requesterAddress?.type).toBe("Polkadot");
     expect(loc?.closed).toBe(true);
     expect(loc?.locType).toBe("Identity");

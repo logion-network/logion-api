@@ -1,11 +1,11 @@
 import { Lgnt, Adapters, TypesJsonObject } from "../src/index.js";
-import { REQUESTER, setup, signAndSend } from "./Util.js";
+import { setup, signAndSend } from "./Util.js";
 
 export async function transferTokens() {
-    const { alice, api } = await setup();
+    const { alice, requester, api } = await setup();
 
     const transferExtrinsic = api.polkadot.tx.balances.transferAllowDeath(
-        REQUESTER,
+        requester.address,
         Lgnt.from(20000n).canonical
     );
     const result = await signAndSend(alice, transferExtrinsic);
@@ -15,9 +15,9 @@ export async function transferTokens() {
     expect(transferEvent).toBeDefined();
     const data = transferEvent?.data as TypesJsonObject;
     expect(data?.from as string).toBe(alice.address);
-    expect(data?.to as string).toBe(REQUESTER);
+    expect(data?.to as string).toBe(requester.address);
 
-    const balances = await api.queries.getCoinBalances(REQUESTER);
+    const balances = await api.queries.getCoinBalances(requester.address);
     const logionTokenBalance = balances.find(balance => balance.coin.id === 'lgnt');
     expect(logionTokenBalance?.available.coefficient.toNumber()).toBe(20);
     expect(logionTokenBalance?.available.prefix.tenExponent).toBe(3);
