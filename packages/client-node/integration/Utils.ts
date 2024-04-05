@@ -1,4 +1,4 @@
-import { buildApiClass, Lgnt, Numbers, ValidAccountId } from "@logion/node-api";
+import { Lgnt, LogionNodeApiClass, ValidAccountId } from "@logion/node-api";
 import { Keyring } from "@polkadot/api";
 
 import {
@@ -15,11 +15,11 @@ import {
 } from "@logion/client";
 import { NodeAxiosFileUploader } from "../src/index.js";
 
-export const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY";
+export const ALICE = "vQx5kESPn8dWyX4KxMCKqUyCaWUwtui1isX6PVNcZh2Ghjitr";
 export const ALICE_SECRET_SEED = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a";
-export const BOB = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty";
+export const BOB = "vQvWaxNDdzuX5N3qSvGMtjdHcQdw1TAcPNgx4S1Utd3MTxYeN";
 export const BOB_SECRET_SEED = "0x398f0c28f98885e046333d4a41c19cee4c37368a9832c6502f6cfd182e2aef89";
-export const CHARLIE = "5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y";
+export const CHARLIE = "vQvZF2YMgKuQhzfF7T3xDjHjuEmcPSUVEoUDPy1mzuSXzFgca";
 export const CHARLIE_SECRET_SEED = "0xbc1ede780f784bb6991a585e4f6e61522c14e1cae6ad0895fb57b9a205a8f938";
 
 class IntegrationTestSignAndSendStrategy implements SignAndSendStrategy {
@@ -42,22 +42,22 @@ export const TEST_LOGION_CLIENT_CONFIG: LogionClientConfig = {
     buildFileUploader: () => new NodeAxiosFileUploader(),
 };
 
-export const REQUESTER_ADDRESS = "5DPLBrBxniGbGdFe1Lmdpkt6K3aNjhoNPJrSJ51rwcmhH2Tn";
+export const REQUESTER_ADDRESS = "vQtc8ViMVqMFymbKcCgV4VWaEkRKPQzXGtBFJb423qMn56cxf";
 export const REQUESTER_SECRET_SEED = "unique chase zone team upset caution match west enter eyebrow limb wrist";
 
-export const DIRECT_REQUESTER_ADDRESS = "5EPPUZ9XEjeAgJj4DDtYn9thPtE68Nu7ZQDMySG3EP5nGVmV";
+export const DIRECT_REQUESTER_ADDRESS = "vQucBnRK4HNdZBGo2QZbySuaqqFy6ofd24GcEGRGE886A6Nta";
 export const DIRECT_REQUESTER_SECRET_SEED = "pitch move leader grief stool crisp arm menu target hero inner essay";
 
-export const NEW_ADDRESS = "5FWP7ha7wBpRomanrgCFuV8c7gBTsyexzWZR42umqGv8Rpx4";
+export const NEW_ADDRESS = "vQvjBRZjeypopJjem41ugaEpkZ3vUZGNsVNxHM1uxj1vWFVa6";
 export const NEW_SECRET_SEED = "inquiry nose frog devote demand main front caution excess bridge mom voice";
 
-export const ISSUER_ADDRESS = "5FU3mAsShn2b8CAe5cnVShzFNVgJssoXoMdAB9evGvKm5x4N";
+export const ISSUER_ADDRESS = "vQvgr532ykR1ydAEcGxVv7TgPosRKZAXSJE22U8f7AfL8uKUv";
 export const ISSUER_SECRET_SEED = "exit photo know trouble stay hollow gate river upgrade twenty south random";
 
 export const ETHEREUM_ADDRESS = "0x2469a2fd33ad71a3525cc2047bdd4f3ca851e89f";
 export const ETHEREUM_SEED = "0x09dc05bbed08ff234919b84002a1eb6f856a6e949b017289fc7d457e1bb5e9d4";
 
-export const INVITED_CONTRIBUTOR_ADDRESS = "5F42HAi5kvD6Ao4Ze6UBiZDw7BA4zk62twNYRWAVDq3EhdWH";
+export const INVITED_CONTRIBUTOR_ADDRESS = "vQvGpb2scoZCUfm8XqSBcPJv5YYu5g2owPomQiVAg7a3cXGKJ";
 export const INVITED_CONTRIBUTOR_SECRET_SEED = "october minimum future canvas range cruise jealous web renew border hover name";
 
 export interface State {
@@ -110,6 +110,7 @@ export async function setupInitialState(config: LogionClientConfig = TEST_LOGION
         invitedContributorAccount,
     ], signer);
     const legalOfficers = client.legalOfficers;
+    console.log(legalOfficers)
     const alice = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === ALICE));
     const bob = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === BOB));
     const charlie = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === CHARLIE));
@@ -140,7 +141,7 @@ export async function updateConfig(config: Partial<LogionClientConfig>): Promise
 }
 
 export async function initRequesterBalance(config: LogionClientConfig, signer: Signer, requester: string): Promise<void> {
-    const api = await buildApiClass(config.rpcEndpoints);
+    const api = await LogionNodeApiClass.connect(config.rpcEndpoints);
     const setBalance = api.polkadot.tx.balances.forceSetBalance(requester, Lgnt.from(10000).canonical);
     await signer.signAndSend({
         signerId: ALICE,

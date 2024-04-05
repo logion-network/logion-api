@@ -1,23 +1,23 @@
 version: "3.6"
+
+networks:
+  default:
+    name: logion-test
+    external: true
+
 services:
 # ----------------------------------------- Logion node 1 --------------------------------------------------------------
   private-database1:
     image: logionnetwork/logion-postgres:${PG_TAG:-latest}
     environment:
       - POSTGRES_PASSWORD=secret
-  node1:
-    image: logionnetwork/logion-node:${NODE_TAG:-latest}
-    environment:
-      - NODE_KEY=c12b6d18942f5ee8528c8e2baf4e147b5c5c18710926ea492d09cbd9f6c9f82a
-      - CUSTOM_OPTIONS=--alice --no-mdns --rpc-external --rpc-cors all
-      - CHAIN_SPEC=test
   backend1:
     image: logionnetwork/logion-backend:${BACKEND_TAG:-latest}
     environment:
       - JWT_SECRET=c12b6d18942f5ee8528c8e2baf4e147b5c5c18710926ea492d09cbd9f6c9f82a
       - JWT_ISSUER=12D3KooWBmAwcd4PJNJvfV89HwE48nwkRmAgo8Vy3uQEyNNHBox2
       - TYPEORM_HOST=private-database1
-      - WS_PROVIDER_URL=ws://node1:9944
+      - WS_PROVIDER_URL=ws://$RPC_WS
       - OWNER=5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
       - DIRECTORY_URL=http://directory:8080
       - SMTP_ENABLED=false
@@ -27,24 +27,20 @@ services:
       - IPFS_MAX_REPLICA=2
       - ENC_PASSWORD=test
     depends_on:
-      - node1
       - private-database1
       - ipfs-cluster1
   frontend1:
     image: logionnetwork/logion-frontend:${FRONTEND_TAG:-latest}
     ports:
       - 127.0.0.1:8080:80
-      - 127.0.0.1:9944:9944
     volumes:
     - ./front_config.js:/usr/share/nginx/html/config.js
     - ./front_web1.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - backend1
-      - node1
     environment:
       - CERTBOT_EMAIL=user1@invalid.domain
       - BACKEND_HOST_PORT=backend1:8080
-      - NODE_HOST_PORT=node1:9944
   ipfs1:
     image: ipfs/go-ipfs:v0.12.0
     ports:
@@ -68,21 +64,13 @@ services:
     image: logionnetwork/logion-postgres:${PG_TAG:-latest}
     environment:
       - POSTGRES_PASSWORD=secret
-  node2:
-    image: logionnetwork/logion-node:${NODE_TAG:-latest}
-    environment:
-      - NODE_KEY=6ce3be907dbcabf20a9a5a60a712b4256a54196000a8ed4050d352bc113f8c58
-      - CUSTOM_OPTIONS=--bob --no-mdns --bootnodes /dns4/node1/tcp/30333/p2p/12D3KooWBmAwcd4PJNJvfV89HwE48nwkRmAgo8Vy3uQEyNNHBox2 --rpc-external --rpc-cors all
-      - CHAIN_SPEC=test
-    depends_on:
-      - node1
   backend2:
     image: logionnetwork/logion-backend:${BACKEND_TAG:-latest}
     environment:
       - JWT_SECRET=6ce3be907dbcabf20a9a5a60a712b4256a54196000a8ed4050d352bc113f8c58
       - JWT_ISSUER=12D3KooWQYV9dGMFoRzNStwpXztXaBUjtPqi6aU76ZgUriHhKust
       - TYPEORM_HOST=private-database2
-      - WS_PROVIDER_URL=ws://node2:9944
+      - WS_PROVIDER_URL=ws://$RPC_WS
       - OWNER=5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
       - DIRECTORY_URL=http://directory:8080
       - SMTP_ENABLED=false
@@ -92,24 +80,20 @@ services:
       - IPFS_MAX_REPLICA=2
       - ENC_PASSWORD=test
     depends_on:
-      - node2
       - private-database2
       - ipfs-cluster2
   frontend2:
     image: logionnetwork/logion-frontend:${FRONTEND_TAG:-latest}
     ports:
       - 127.0.0.1:8081:80
-      - 127.0.0.1:9945:9944
     volumes:
     - ./front_config.js:/usr/share/nginx/html/config.js
     - ./front_web2.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - backend2
-      - node2
     environment:
       - CERTBOT_EMAIL=user2@invalid.domain
       - BACKEND_HOST_PORT=backend2:8080
-      - NODE_HOST_PORT=node2:9944
   ipfs2:
     image: ipfs/go-ipfs:v0.12.0
     volumes:
@@ -132,21 +116,13 @@ services:
     image: logionnetwork/logion-postgres:${PG_TAG:-latest}
     environment:
       - POSTGRES_PASSWORD=secret
-  node3:
-    image: logionnetwork/logion-node:${NODE_TAG:-latest}
-    environment:
-      - NODE_KEY=3a9d5b35b9fb4c42aafadeca046f6bf56107bd2579687f069b42646684b94d9e
-      - CUSTOM_OPTIONS=--charlie --no-mdns --bootnodes /dns4/node1/tcp/30333/p2p/12D3KooWBmAwcd4PJNJvfV89HwE48nwkRmAgo8Vy3uQEyNNHBox2 --rpc-external --rpc-cors all
-      - CHAIN_SPEC=test
-    depends_on:
-      - node1
   backend3:
     image: logionnetwork/logion-backend:${BACKEND_TAG:-latest}
     environment:
       - JWT_SECRET=3a9d5b35b9fb4c42aafadeca046f6bf56107bd2579687f069b42646684b94d9e
       - JWT_ISSUER=12D3KooWJvyP3VJYymTqG7eH4PM5rN4T2agk5cdNCfNymAqwqcvZ
       - TYPEORM_HOST=private-database3
-      - WS_PROVIDER_URL=ws://node3:9944
+      - WS_PROVIDER_URL=ws://$RPC_WS
       - OWNER=5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y
       - DIRECTORY_URL=http://directory:8080
       - SMTP_ENABLED=false
@@ -156,20 +132,17 @@ services:
       - IPFS_MAX_REPLICA=2
       - ENC_PASSWORD=test
     depends_on:
-      - node3
       - private-database3
       - ipfs-cluster3
   frontend3:
     image: logionnetwork/logion-frontend:${FRONTEND_TAG:-latest}
     ports:
       - 127.0.0.1:8082:80
-      - 127.0.0.1:9946:9944
     volumes:
       - ./front_config.js:/usr/share/nginx/html/config.js
       - ./front_web3.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - backend3
-      - node3
     environment:
       - CERTBOT_EMAIL=user3@invalid.domain
       - BACKEND_HOST_PORT=backend3:8080
@@ -205,8 +178,7 @@ services:
     environment:
       - JWT_SECRET=c12b6d18942f5ee8528c8e2baf4e147b5c5c18710926ea492d09cbd9f6c9f82a
       - JWT_ISSUER=12D3KooWBmAwcd4PJNJvfV89HwE48nwkRmAgo8Vy3uQEyNNHBox2
-      - WS_PROVIDER_URL=ws://node1:9944
+      - WS_PROVIDER_URL=ws://$RPC_WS
       - TYPEORM_HOST=directory-database
     depends_on:
-      - node1
       - directory-database
