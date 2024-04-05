@@ -1,5 +1,4 @@
 import { setup, signAndSend } from "./Util.js";
-import { encodeAddress } from "@polkadot/util-crypto";
 
 export async function addGuestLegalOfficer() {
     const { alice, api } = await setup();

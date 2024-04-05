@@ -26,9 +26,11 @@ import { TestConfigFactory } from "./TestConfigFactory.js";
 import { It, Mock } from "moq.ts";
 import { AccountType, AnyAccountId, Hash, LogionNodeApiClass, UUID, ValidAccountId } from "@logion/node-api";
 
+export const SS58_PREFIX = 2021;
+
 export const ALICE: LegalOfficer = {
     name: "Alice",
-    address: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+    address: "vQx5kESPn8dWyX4KxMCKqUyCaWUwtui1isX6PVNcZh2Ghjitr",
     additionalDetails: "",
     node: "https://alice.logion.network",
     postalAddress: {} as LegalOfficerPostalAddress,
@@ -39,7 +41,7 @@ export const ALICE: LegalOfficer = {
 
 export const BOB: LegalOfficer = {
     name: "Bob",
-    address: "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty",
+    address: "vQvWaxNDdzuX5N3qSvGMtjdHcQdw1TAcPNgx4S1Utd3MTxYeN",
     additionalDetails: "",
     node: "https://bob.logion.network",
     postalAddress: {} as LegalOfficerPostalAddress,
@@ -50,7 +52,7 @@ export const BOB: LegalOfficer = {
 
 export const CHARLIE: LegalOfficer = {
     name: "Charlie",
-    address: "5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y",
+    address: "vQvZF2YMgKuQhzfF7T3xDjHjuEmcPSUVEoUDPy1mzuSXzFgca",
     additionalDetails: "",
     node: "https://charlie.logion.network",
     postalAddress: {} as LegalOfficerPostalAddress,
@@ -247,6 +249,13 @@ export function buildSimpleNodeApi(): LogionNodeApiClass {
         runtimeVersion: {
             specName: { toString: () => "logion" },
             specVersion: { toBigInt: () => 3000n },
+        },
+        consts: {
+            system: {
+                ss58Prefix: {
+                    toNumber: () => SS58_PREFIX
+                }
+            }
         },
     } as unknown as ApiPromise;
     return new LogionNodeApiClass(api);

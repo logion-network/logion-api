@@ -2,11 +2,23 @@ import { AxiosInstance, AxiosResponse } from "axios";
 import { DateTime } from "luxon";
 import { It, Mock } from 'moq.ts';
 
-import { AccountTokens, AuthenticationClient, LegalOfficer, LegalOfficerClass } from "../src/index.js";
-import { AxiosFactory } from "../src/index.js";
-import { Token } from "../src/index.js";
-import { RawSigner, SignRawParameters } from "../src/index.js";
-import { ALICE, buildAliceTokens, buildSimpleNodeApi, buildValidPolkadotAccountId, DIRECTORY_ENDPOINT } from "./Utils.js";
+import {
+    AccountTokens,
+    AuthenticationClient,
+    LegalOfficer,
+    LegalOfficerClass,
+    AxiosFactory,
+    Token,
+    RawSigner,
+    SignRawParameters
+} from "../src/index.js";
+import {
+    ALICE,
+    buildAliceTokens,
+    buildSimpleNodeApi,
+    buildValidPolkadotAccountId,
+    DIRECTORY_ENDPOINT
+} from "./Utils.js";
 import { ValidAccountId } from "@logion/node-api";
 
 describe("AuthenticationClient", () => {
@@ -66,7 +78,7 @@ async function testAuthentication(legalOfficers: LegalOfficer[], expectedEndpoin
             .returns(axiosInstance.object());
     }
 
-    const addresses = [ buildValidPolkadotAccountId("some-address")! ];
+    const addresses = [ buildValidPolkadotAccountId("5GWqG9UVMx4o9fHHx6K4JT8kcw9UnKNozLtHRg7g4aojMf1i")! ];
     const sessionId = "session-id";
     setupSignIn(axiosInstance, addresses, sessionId);
 
@@ -84,8 +96,9 @@ async function testAuthentication(legalOfficers: LegalOfficer[], expectedEndpoin
 
     const tokens = await client.authenticate(addresses, signer.object());
 
+    const expectedToken = `${ addresses[0].address }-token`;
     expect(tokens.get(addresses[0])).toEqual(jasmine.objectContaining({
-        value: "some-address-token"
+        value: expectedToken
     }));
 }
 
@@ -146,9 +159,9 @@ describe("AccountTokens", () => {
 
     const now = DateTime.now();
 
-    const ADDRESS_WITH_VALID_TOKEN = buildValidPolkadotAccountId("1")!;
+    const ADDRESS_WITH_VALID_TOKEN = buildValidPolkadotAccountId("5FhQTfi1CxGAeNmbZj5bRLhnBpydKnMuMnk1wZQAqUUQ3kwE")!;
 
-    const ADDRESS_WITH_EXPIRED_TOKEN = buildValidPolkadotAccountId("2")!;
+    const ADDRESS_WITH_EXPIRED_TOKEN = buildValidPolkadotAccountId("5FS47HBMnYYav1qGz4m5suiAF8zCuMreDPoKuYCxCyzMDtRv")!;
 
     const addresses = [
         ADDRESS_WITH_VALID_TOKEN,
@@ -166,7 +179,7 @@ describe("AccountTokens", () => {
         }
     };
 
-    const OTHER_ADDRESS = buildValidPolkadotAccountId("3")!;
+    const OTHER_ADDRESS = buildValidPolkadotAccountId("5FxbV4wTw4PRjKWHQrjwb43ZZUqjPWWZ3RXRb1NdWsi7T4Xn")!;
 
     const otherTokensRecord: Record<string, Token> = {
         [OTHER_ADDRESS.toKey()]: {
