@@ -2,10 +2,9 @@ import { LogionRuntimeRegion } from '@polkadot/types/lookup';
 import { AnyJson } from "@polkadot/types-codec/types";
 import { isHex } from "@polkadot/util";
 import { UUID } from "./UUID.js";
-import { ApiPromise } from "@polkadot/api";
 import { Hash } from './Hash.js';
 import { Lgnt } from './Currency.js';
-import { encodeAddress } from "@polkadot/util-crypto";
+import { encodeAddress, validateAddress, addressEq } from "@polkadot/util-crypto";
 
 export interface TypesAccountData {
     available: bigint,
@@ -167,35 +166,23 @@ export interface AccountId {
     readonly type: AccountType;
 }
 
+export const SS58_PREFIX = 2021;
+
 export class AnyAccountId implements AccountId {
 
     /**
      * Developers should not construct directly this object but call logionApi.queries.getValidAccountId(address, type).
      *
-     * @param api
      * @param address
      * @param type
      */
-    constructor(api: ApiPromise, address: string, type: AccountType) {
-        this.api = api;
-        this.address = AnyAccountId.computeAddress(this.api.consts.system.ss58Prefix.toNumber(), address, type);
+    constructor(address: string, type: AccountType) {
+        this.address = address;
         this.type = type;
     }
 
-    readonly api: ApiPromise;
     readonly address: string;
     readonly type: AccountType;
-
-    getAddress(prefix: number): string {
-        return AnyAccountId.computeAddress(prefix, this.address, this.type)
-    }
-
-    static computeAddress(prefix: number, address: string, type: AccountType): string {
-        if (type === 'Polkadot') {
-            return encodeAddress(address, prefix);
-        }
-        return address
-    }
 
     isValid(): boolean {
         return this.validate() === undefined;
@@ -207,8 +194,9 @@ export class AnyAccountId implements AccountId {
         }
         if(this.type === "Ethereum" && !isHex(this.address, ETHEREUM_ADDRESS_LENGTH_IN_BITS)) {
             return `Wrong Ethereum address ${this.address}`;
-        } else if(this.type === "Polkadot" && !this.isValidPolkadotAccountId()) {
-            return `Wrong Polkadot address ${this.address}`;
+        } else if(this.type === "Polkadot") {
+            const validation = this.validPolkadotAccountId();
+            return validation !== undefined ? `Wrong Polkadot address ${this.address}: ${validation}` : undefined;
         } else if (this.type === "Bech32" && !this.isValidBech32Address()) {
             return `Wrong Bech32 address ${this.address}`;
         } else {
@@ -216,12 +204,15 @@ export class AnyAccountId implements AccountId {
         }
     }
 
-    private isValidPolkadotAccountId(): boolean {
+    private validPolkadotAccountId(): string | undefined {
         try {
-            this.api.createType('AccountId', this.address);
-            return true;
+            if (validateAddress(this.address, false)) {
+                return undefined
+            } else {
+                return "Not valid"
+            }
         } catch(e) {
-            return false;
+            return String(e);
         }
     }
 
@@ -251,20 +242,25 @@ export class AnyAccountId implements AccountId {
         return accountIdToKey(this);
     }
 
-    static parseKey(api: ApiPromise, key: string): AnyAccountId {
+    static parseKey(key: string): AnyAccountId {
         if(key.startsWith(POLKADOT_PREFIX)) {
-            return new AnyAccountId(api, key.substring(POLKADOT_PREFIX.length), "Polkadot");
+            return new AnyAccountId(key.substring(POLKADOT_PREFIX.length), "Polkadot");
         } else if(key.startsWith(ETHEREUM_PREFIX)) {
-            return new AnyAccountId(api, key.substring(ETHEREUM_PREFIX.length), "Ethereum");
+            return new AnyAccountId(key.substring(ETHEREUM_PREFIX.length), "Ethereum");
         } else if(key.startsWith(BECH32_PREFIX)) {
-            return new AnyAccountId(api, key.substring(BECH32_PREFIX.length), "Bech32");
+            return new AnyAccountId(key.substring(BECH32_PREFIX.length), "Bech32");
         } else {
             throw new Error("Unsupported key format");
         }
     }
 
     equals(other: AccountId): boolean {
-        return this.type === other.type && this.address === other.address;
+        if (this.type !== "Polkadot") {
+            return this.type === other.type && this.address === other.address;
+        } else {
+            return this.type === other.type && addressEq(this.address, other.address);
+
+        }
     }
 }
 
@@ -284,7 +280,7 @@ export class ValidAccountId implements AccountId {
             throw new Error(error);
         }
 
-        this.address = accountId.address;
+        this.address = ValidAccountId.computeAddress(SS58_PREFIX, accountId.address, accountId.type);
         this.type = accountId.type;
     }
 
@@ -299,8 +295,8 @@ export class ValidAccountId implements AccountId {
         return accountIdToKey(this);
     }
 
-    static parseKey(api: ApiPromise, key: string): ValidAccountId {
-        return AnyAccountId.parseKey(api, key).toValidAccountId();
+    static parseKey(key: string): ValidAccountId {
+        return AnyAccountId.parseKey(key).toValidAccountId();
     }
 
     equals(other: AccountId): boolean {
@@ -308,7 +304,14 @@ export class ValidAccountId implements AccountId {
     }
 
     getAddress(prefix: number): string {
-        return AnyAccountId.computeAddress(prefix, this.address, this.type);
+        return ValidAccountId.computeAddress(prefix, this.address, this.type);
+    }
+
+    private static computeAddress(prefix: number, address: string, type: AccountType): string {
+        if (type === 'Polkadot') {
+            return encodeAddress(address, prefix);
+        }
+        return address
     }
 }
 

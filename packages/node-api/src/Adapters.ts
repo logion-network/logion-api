@@ -90,10 +90,10 @@ export class Adapters {
     fromPalletLogionLocLegalOfficerCase(rawLoc: PalletLogionLocLegalOfficerCase): LegalOfficerCase {
         let requesterAddress: ValidAccountId | undefined;
         if(rawLoc.requester.isAccount) {
-            requesterAddress = new AnyAccountId(this.api, rawLoc.requester.asAccount.toString(), "Polkadot").toValidAccountId();
+            requesterAddress = new AnyAccountId(rawLoc.requester.asAccount.toString(), "Polkadot").toValidAccountId();
         } else if(rawLoc.requester.isOtherAccount) {
             if(rawLoc.requester.asOtherAccount.isEthereum) {
-                requesterAddress = new AnyAccountId(this.api, rawLoc.requester.asOtherAccount.asEthereum.toHex(), "Ethereum").toValidAccountId();
+                requesterAddress = new AnyAccountId(rawLoc.requester.asOtherAccount.asEthereum.toHex(), "Ethereum").toValidAccountId();
             } else {
                 throw new Error("Unsupported other account value");
             }
@@ -409,10 +409,10 @@ export class Adapters {
 
     fromPalletLogionLocSupportedAccountId(accountId: PalletLogionLocSupportedAccountId): ValidAccountId {
         if(accountId.isPolkadot) {
-            return new AnyAccountId(this.api, accountId.asPolkadot.toString(), "Polkadot").toValidAccountId();
+            return new AnyAccountId(accountId.asPolkadot.toString(), "Polkadot").toValidAccountId();
         } else if(accountId.isOther) {
             if(accountId.asOther.isEthereum) {
-                return new AnyAccountId(this.api, accountId.asOther.asEthereum.toHex(), "Ethereum").toValidAccountId();
+                return new AnyAccountId(accountId.asOther.asEthereum.toHex(), "Ethereum").toValidAccountId();
             } else {
                 throw new Error(`Unsupported account type ${accountId.asOther.type}`);
             }
@@ -558,7 +558,7 @@ export class Adapters {
     }
 
     getValidAccountId(accountId: string, type: AccountType): ValidAccountId {
-        const anyAccountId = new AnyAccountId(this.api, accountId, type);
+        const anyAccountId = new AnyAccountId(accountId, type);
         return anyAccountId.toValidAccountId();
     }
 

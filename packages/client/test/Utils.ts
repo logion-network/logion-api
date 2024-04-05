@@ -236,8 +236,7 @@ export function buildValidPolkadotAccountId(address: string | undefined): ValidA
 
 export function buildValidAccountId(address: string | undefined, type: AccountType): ValidAccountId | undefined {
     if(address) {
-        const api = buildSimpleNodeApi();
-        return new AnyAccountId(api.polkadot, address, type).toValidAccountId();
+        return new AnyAccountId(address, type).toValidAccountId();
     } else {
         return undefined;
     }
@@ -245,17 +244,9 @@ export function buildValidAccountId(address: string | undefined, type: AccountTy
 
 export function buildSimpleNodeApi(): LogionNodeApiClass {
     const api = {
-        createType: () => undefined,
         runtimeVersion: {
             specName: { toString: () => "logion" },
             specVersion: { toBigInt: () => 3000n },
-        },
-        consts: {
-            system: {
-                ss58Prefix: {
-                    toNumber: () => SS58_PREFIX
-                }
-            }
         },
     } as unknown as ApiPromise;
     return new LogionNodeApiClass(api);
