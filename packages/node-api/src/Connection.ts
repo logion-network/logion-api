@@ -12,8 +12,9 @@ import { ChainTime } from './ChainTime.js';
 import { Vault } from './VaultClass.js';
 import { LocBatch } from './LocBatch.js';
 import { UUID } from './UUID.js';
-import { LegalOfficerCase, VerifiedIssuerType } from './Types.js';
+import { LegalOfficerCase, VerifiedIssuerType, SS58_PREFIX } from './Types.js';
 import { Batching } from "./Batching.js";
+import { Lgnt } from "./Currency.js"
 
 export type ChainType = "Solo" | "Para";
 
@@ -44,6 +45,14 @@ export class LogionNodeApiClass {
             rpc: jsonrpc,
             runtime: definitions.runtime.runtime,
         });
+        const chainPrefix = api.consts.system.ss58Prefix.toNumber();
+        if (chainPrefix !== SS58_PREFIX) {
+            throw new Error(`Chain Prefix ${ chainPrefix } differs from public constant SS58_PREFIX = ${ SS58_PREFIX }`);
+        }
+        const chainDecimals = (await api.rpc.system.properties()).tokenDecimals.unwrap()[0].toNumber();
+        if (chainDecimals !== Lgnt.DECIMALS) {
+            throw new Error(`Chain Decimals ${ chainDecimals } differs from public constant Lgnt.DECIMALS = ${ Lgnt.DECIMALS }`);
+        }
         return new LogionNodeApiClass(api);
     }
 

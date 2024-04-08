@@ -149,7 +149,7 @@ export class AccountTokens {
     }
 
     get addresses(): ValidAccountId[] {
-        return Object.keys(this.store).map(key => ValidAccountId.parseKey(this.api.polkadot, key));
+        return Object.keys(this.store).map(key => ValidAccountId.parseKey(key));
     }
 
     cleanUp(now: DateTime): AccountTokens {

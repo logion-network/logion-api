@@ -4,7 +4,7 @@ import {
     POLKADOT_API_CREATE_TYPE,
     mockValidAccountId,
     mockBool,
-    mockParaRuntimeVersion, SS58_PREFIX,
+    mockParaRuntimeVersion,
 } from "./Util.js";
 import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
 import { BN } from "bn.js";
@@ -151,13 +151,6 @@ function mockPolkadotApiWithAccountData(accountId: string) {
 function mockPolkadotApiForLogionLoc() {
     return {
         runtimeVersion: mockParaRuntimeVersion(),
-        consts: {
-            system: {
-                ss58Prefix: {
-                    toNumber: () => SS58_PREFIX
-                }
-            }
-        },
         query: {
             logionLoc: {
                 locMap: () => Promise.resolve({

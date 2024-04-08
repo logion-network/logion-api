@@ -55,7 +55,7 @@ export class Queries {
         if(accountId === null || accountId === undefined || accountId === '') {
             return false;
         }
-        const anyAccountId = new AnyAccountId(this.api, accountId, type || "Polkadot");
+        const anyAccountId = new AnyAccountId(accountId, type || "Polkadot");
         return anyAccountId.isValid();
     }
 
