@@ -307,6 +307,10 @@ export class ValidAccountId implements AccountId {
         return ValidAccountId.computeAddress(prefix, this.address, this.type);
     }
 
+    static polkadot(address: string): ValidAccountId {
+        return new AnyAccountId(address, "Polkadot").toValidAccountId();
+    }
+
     private static computeAddress(prefix: number, address: string, type: AccountType): string {
         if (type === 'Polkadot') {
             return encodeAddress(address, prefix);

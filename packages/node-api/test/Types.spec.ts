@@ -6,7 +6,7 @@ describe("ValidAccountId", () => {
     const address2021 = "vQxmTQGRHbTsBdDhVLqsksX7c44K8DjVokJUi8ZK58z88tDBx";
 
     function getAccount(address: string): ValidAccountId {
-        const account = new AnyAccountId(address, "Polkadot").toValidAccountId();
+        const account = ValidAccountId.polkadot(address);
         expect(account.type).toEqual("Polkadot");
         expect(account.address).toEqual(address2021);
         expect(account.getAddress(42)).toEqual(address42);
