@@ -5,11 +5,12 @@ import {
 } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
-import { Transaction, TransactionClient } from "./TransactionClient.js";
+import { BackendTransaction, TransactionClient, TransactionError, TransactionType } from "./TransactionClient.js";
 import { SharedState } from "./SharedClient.js";
 import { State } from "./State.js";
 import { BlockchainSubmissionParams } from "./Signer.js";
 import { requireDefined } from "./assertions.js";
+import { Fees } from "./Fees.js";
 
 export interface TransferParam extends BlockchainSubmissionParams {
     destination: ValidAccountId;
@@ -23,8 +24,46 @@ export interface BalanceSharedState extends SharedState {
     readonly recoveredAccount?: ValidAccountId;
 }
 
+export interface Transaction {
+    id: string;
+    from: ValidAccountId;
+    to?: ValidAccountId;
+    pallet: string;
+    method: string;
+    transferValue: string;
+    tip: string;
+    fees: Fees;
+    reserved: string;
+    total: string;
+    createdOn: string;
+    type: TransactionType;
+    transferDirection: TransferDirection;
+    successful: boolean;
+    error?: TransactionError;
+}
+
+export type TransferDirection = "Sent" | "Received" | "None";
+
+export function toTransaction(transaction: BackendTransaction, account: ValidAccountId): Transaction {
+    const from = ValidAccountId.polkadot(transaction.from);
+    const to = transaction.to ? ValidAccountId.polkadot(transaction.to) : undefined;
+    const transferDirection: TransferDirection =
+        !(transaction.pallet === "balances" && transaction.method.startsWith("transfer")) ?
+            'None' :
+            from.equals(account) ?
+                'Sent' :
+                'Received'
+
+    return {
+        ...transaction,
+        from,
+        to,
+        transferDirection
+    };
+}
+
 export async function getBalanceState(sharedState: SharedState & { isRecovery: boolean, recoveredAccount?: ValidAccountId }): Promise<BalanceState> {
-    let targetAccount;
+    let targetAccount: ValidAccountId;
     if(sharedState.isRecovery) {
         targetAccount = requireDefined(sharedState.recoveredAccount);
     } else {
@@ -35,7 +74,7 @@ export async function getBalanceState(sharedState: SharedState & { isRecovery: b
     const balances = await sharedState.nodeApi.queries.getCoinBalances(targetAccount);
     return new BalanceState({
         ...sharedState,
-        transactions,
+        transactions: transactions.map(transaction => toTransaction(transaction, targetAccount)),
         balances,
     });
 }

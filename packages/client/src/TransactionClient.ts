@@ -11,7 +11,22 @@ interface FetchTransactionsSpecification {
     address: string,
 }
 
-export type TransferDirection = "Sent" | "Received" | "None"
+export interface BackendTransaction {
+    id: string,
+    from: string,
+    to?: string,
+    pallet: string,
+    method: string,
+    transferValue: string,
+    tip: string,
+    fees: Fees,
+    reserved: string,
+    total: string,
+    createdOn: string,
+    type: TransactionType,
+    successful: boolean,
+    error?: TransactionError,
+}
 
 // Must remain in sync with type in https://github.com/logion-network/logion-backend-ts/blob/main/src/logion/controllers/components.ts
 export type TransactionType = "EXTRINSIC"
@@ -26,32 +41,10 @@ export type TransactionType = "EXTRINSIC"
     | "TOKENS_RECORD_FEE"
 ;
 
-export interface Transaction {
-    id: string,
-    from: string,
-    to: string,
-    pallet: string,
-    method: string,
-    transferValue: string,
-    tip: string,
-    fees: Fees,
-    reserved: string,
-    total: string,
-    createdOn: string,
-    type: TransactionType,
-    transferDirection: TransferDirection,
-    successful: boolean,
-    error?: TransactionError,
-}
-
 export interface TransactionError {
     section: string,
     name: string,
     details: string
-}
-
-export interface TransactionsSet {
-    transactions: Transaction[],
 }
 
 export class TransactionClient {
@@ -72,36 +65,19 @@ export class TransactionClient {
 
     private readonly currentAccount: ValidAccountId;
 
-    async fetchTransactions(): Promise<Transaction []> {
-        const anyClient = new AnySourceHttpClient<Endpoint, TransactionsSet>(this.networkState, this.axiosFactory);
-        const transactionsSet = await anyClient.fetch(axios => this.getTransactions(axios, {
+    async fetchTransactions(): Promise<BackendTransaction[]> {
+        const anyClient = new AnySourceHttpClient<Endpoint, BackendTransaction[]>(this.networkState, this.axiosFactory);
+        const transactions = await anyClient.fetch(axios => this.getTransactions(axios, {
             address: this.currentAccount.address,
         }));
-        return transactionsSet ? transactionsSet.transactions : []
+        return transactions || [];
     }
 
     private async getTransactions(
         axios: AxiosInstance,
         request: FetchTransactionsSpecification
-    ): Promise<TransactionsSet> {
+    ): Promise<BackendTransaction[]> {
         const response = await axios.put("/api/transaction", request);
-        return {
-            transactions: response.data.transactions.map((transaction: Transaction) => this.enrichTransaction(transaction, request.address))
-        };
-    }
-
-    private enrichTransaction(transaction: Transaction, address: string): Transaction {
-
-        const transferDirection: TransferDirection =
-            !(transaction.pallet === "balances" && transaction.method.startsWith("transfer")) ?
-                'None' :
-                transaction.from === address ?
-                    'Sent' :
-                    'Received'
-
-        return {
-            ...transaction,
-            transferDirection
-        }
+        return response.data.transactions;
     }
 }

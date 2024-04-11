@@ -14,7 +14,7 @@ import {
     buildValidPolkadotAccountId,
     buildSimpleNodeApi
 } from "./Utils.js";
-import { AccountTokens, LogionClient, Transaction, AxiosFactory, BalanceState, Signer, LegalOfficerClass } from "../src/index.js";
+import { AccountTokens, LogionClient, Transaction, AxiosFactory, BalanceState, Signer, LegalOfficerClass, BackendTransaction } from "../src/index.js";
 
 describe("Balance", () => {
 
@@ -55,23 +55,21 @@ describe("Balance", () => {
             createdOn: "",
             successful: true,
         }}
-        const t1: Transaction = {
+        const t1: BackendTransaction = {
             ...transactionBase(200000),
             from: REQUESTER_ADDRESS.address,
             id: "t1",
             to: ALICE.account.address,
-            transferDirection: "Sent",
             type: "EXTRINSIC",
         }
-        const t2: Transaction = {
+        const t2: BackendTransaction = {
             ...transactionBase(300000),
             id: "t2",
             from: BOB.account.address,
             to: REQUESTER_ADDRESS.address,
-            transferDirection: "Received",
             type: "EXTRINSIC",
         }
-        const transactions: Transaction[] = [ t1, t2 ]
+        const transactions: BackendTransaction[] = [ t1, t2 ];
 
         const config = buildTestConfig(testConfigFactory => {
             const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
@@ -92,7 +90,25 @@ describe("Balance", () => {
         const client = (await LogionClient.create(config)).withCurrentAccount(REQUESTER_ADDRESS)
 
         const balanceState = await client.balanceState();
-        expect(balanceState.transactions).toEqual(transactions)
+
+        const clientT1: Transaction = {
+            ...transactionBase(200000),
+            from: REQUESTER_ADDRESS,
+            id: "t1",
+            to: ALICE.account,
+            transferDirection: "Sent",
+            type: "EXTRINSIC",
+        }
+        const clientT2: Transaction = {
+            ...transactionBase(300000),
+            id: "t2",
+            from: BOB.account,
+            to: REQUESTER_ADDRESS,
+            transferDirection: "Received",
+            type: "EXTRINSIC",
+        }
+        const expectedTransactions: Transaction[] = [ clientT1, clientT2 ];
+        expect(balanceState.transactions).toEqual(expectedTransactions)
     })
 
     it("transfers from account", async () => {
@@ -321,7 +337,7 @@ describe("Balance", () => {
 
 const REQUESTER_ADDRESS = buildValidPolkadotAccountId("5ERRWWYABvYjyUG2oLCNifkmcCQT44ijPpQNxtwZZFj86Jjd")!;
 
-function setupFetchTransactions(axiosFactory: Mock<AxiosFactory>, transactions: Transaction [], address: string) {
+function setupFetchTransactions(axiosFactory: Mock<AxiosFactory>, transactions: BackendTransaction[], address: string) {
     const axios = new Mock<AxiosInstance>();
     const response = new Mock<AxiosResponse<any>>();
     response.setup(instance => instance.data).returns({

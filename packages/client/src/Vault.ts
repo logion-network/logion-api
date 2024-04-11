@@ -10,8 +10,9 @@ import { authenticatedCurrentAccount, getDefinedCurrentAccount, SharedState } fr
 import { SignCallback, Signer } from "./Signer.js";
 import { LegalOfficer } from "./Types.js";
 import { requestSort, VaultClient, VaultTransferRequest } from "./VaultClient.js";
-import { Transaction, TransactionClient } from "./TransactionClient.js";
+import { TransactionClient } from "./TransactionClient.js";
 import { State } from "./State.js";
+import { toTransaction, Transaction } from "./Balance.js";
 
 export interface VaultSharedState extends SharedState {
     client: VaultClient,
@@ -48,15 +49,15 @@ export class VaultState extends State {
         const result = await client.fetchAll(sharedState.selectedLegalOfficers);
 
         const vault = VaultState.getVault(sharedState);
-        const vaultAddress = vault.account;
-        const transactionClient = VaultState.newTransactionClient(vaultAddress, sharedState);
+        const vaultAccount = vault.account;
+        const transactionClient = VaultState.newTransactionClient(vaultAccount, sharedState);
         const transactions = await transactionClient.fetchTransactions();
-        const balances = await sharedState.nodeApi.queries.getCoinBalances(vaultAddress);
+        const balances = await sharedState.nodeApi.queries.getCoinBalances(vaultAccount);
 
         return new VaultState({
             ...sharedState,
             ...result,
-            transactions,
+            transactions: transactions.map(transaction => toTransaction(transaction, vaultAccount)),
             balances,
             client,
             vault,
@@ -323,18 +324,18 @@ export class VaultState extends State {
 
     private async _refresh(): Promise<VaultState> {
         const result = await this.sharedState.client.fetchAll(this.sharedState.legalOfficers);
-        const transactionClient = VaultState.newTransactionClient(this.vaultAddress, this.sharedState);
+        const transactionClient = VaultState.newTransactionClient(this.vaultAccount, this.sharedState);
         const transactions = await transactionClient.fetchTransactions();
-        const balances = await this.sharedState.nodeApi.queries.getCoinBalances(this.vaultAddress);
+        const balances = await this.sharedState.nodeApi.queries.getCoinBalances(this.vaultAccount);
         return new VaultState({
             ...this.sharedState,
             ...result,
-            transactions,
+            transactions: transactions.map(transaction => toTransaction(transaction, this.vaultAccount)),
             balances,
         });
     }
 
-    get vaultAddress(): ValidAccountId {
+    get vaultAccount(): ValidAccountId {
         return this.sharedState.vault.account;
     }
 
