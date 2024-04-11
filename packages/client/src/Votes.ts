@@ -24,9 +24,9 @@ export class Votes extends State {
     }
 
     private static async fetchData(client: LogionClient): Promise<VoteData[]> {
-        const currentAddress = client.authenticatedCurrentAccount;
-        const axios = client.getLegalOfficer(currentAddress).buildAxiosToNode();
-        const response = await axios.get(`/api/vote/${ currentAddress.address }`);
+        const currentAccount = client.authenticatedCurrentAccount;
+        const axios = client.getLegalOfficer(currentAccount).buildAxiosToNode();
+        const response = await axios.get(`/api/vote/${ currentAccount.address }`);
         const backendVotes: BackendVote[] = response.data.votes;
         return backendVotes.map(backendVote => ({
             ...backendVote,

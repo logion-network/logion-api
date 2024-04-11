@@ -39,22 +39,22 @@ export function getLegalOfficer(sharedState: SharedState, account: ValidAccountI
     return findOrThrow(sharedState.legalOfficers, lo => lo.account.equals(account), `No legal officer with address ${account.address}`);
 }
 
-export function authenticatedCurrentAddress(sharedState: SharedState): { currentAddress: ValidAccountId, token: Token } {
-    const currentAddress = getDefinedCurrentAddress(sharedState);
-    const token = sharedState.tokens.get(currentAddress);
+export function authenticatedCurrentAccount(sharedState: SharedState): { currentAccount: ValidAccountId, token: Token } {
+    const currentAccount = getDefinedCurrentAccount(sharedState);
+    const token = sharedState.tokens.get(currentAccount);
     if(!token) {
         throw new Error("Current address is not authenticated");
     }
     return {
-        currentAddress,
+        currentAccount,
         token
     };
 }
 
-export function getDefinedCurrentAddress(sharedState: SharedState): ValidAccountId {
-    const { currentAccount: currentAddress } = sharedState;
-    if(!currentAddress) {
+export function getDefinedCurrentAccount(sharedState: SharedState): ValidAccountId {
+    const { currentAccount } = sharedState;
+    if(!currentAccount) {
         throw new Error("No current address");
     }
-    return currentAddress;
+    return currentAccount;
 }

@@ -2,7 +2,7 @@ import { LogionNodeApiClass, OtherAccountId, UUID, Sponsorship, ValidAccountId }
 import { LegalOfficer, LegalOfficerClass } from "./Types.js";
 import { Signer, SignCallback } from "./Signer.js";
 import { LocRequestState, LocsState } from "./Loc.js";
-import { SharedState, getDefinedCurrentAddress } from "./SharedClient.js";
+import { SharedState, getDefinedCurrentAccount } from "./SharedClient.js";
 import { requireDefined } from "./assertions.js";
 import { FetchAllLocsParams } from "./LocClient.js";
 import { LogionClient } from "./LogionClient.js";
@@ -87,7 +87,7 @@ export class SponsorshipState {
     }
 
     private static async getValidSponsorship(sharedState: SharedState, id: UUID): Promise<Sponsorship> {
-        const requester = getDefinedCurrentAddress(sharedState);
+        const requester = getDefinedCurrentAccount(sharedState);
         const sponsorship = await sharedState.nodeApi.queries.getSponsorship(id);
         if (sponsorship === undefined) {
             throw new Error("Sponsorship not found")
@@ -102,7 +102,7 @@ export class SponsorshipState {
         const params: FetchAllLocsParams = {
             legalOfficers: [ this.legalOfficer ],
             spec: {
-                requesterAddress: getDefinedCurrentAddress(this.sharedState).address,
+                requesterAddress: getDefinedCurrentAccount(this.sharedState).address,
                 sponsorshipId: this.id.toString(),
                 locTypes: [ "Identity" ],
                 ownerAddress: this.legalOfficer.account.address,

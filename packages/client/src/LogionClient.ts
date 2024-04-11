@@ -9,7 +9,7 @@ import { DirectoryClient } from "./DirectoryClient.js";
 import { initMultiSourceHttpClientState, MultiSourceHttpClient, Token } from "./Http.js";
 import { getInitialState, ProtectionState } from "./Recovery.js";
 import { RecoveryClient } from "./RecoveryClient.js";
-import { authenticatedCurrentAddress, LegalOfficerEndpoint, LogionClientConfig, SharedState } from "./SharedClient.js";
+import { authenticatedCurrentAccount, LegalOfficerEndpoint, LogionClientConfig, SharedState } from "./SharedClient.js";
 import { RawSigner } from "./Signer.js";
 import { LegalOfficer, LegalOfficerClass } from "./Types.js";
 import { LocsState } from "./Loc.js";
@@ -269,10 +269,10 @@ export class LogionClient {
      */
     async protectionState(): Promise<ProtectionState> {
         this.ensureConnected();
-        const { currentAddress, token } = authenticatedCurrentAddress(this.sharedState);
+        const { currentAccount, token } = authenticatedCurrentAccount(this.sharedState);
         const recoveryClient = new RecoveryClient({
             axiosFactory: this.sharedState.axiosFactory,
-            currentAddress,
+            currentAccount,
             networkState: this.sharedState.networkState,
             token: token.value,
             nodeApi: this.sharedState.nodeApi,
@@ -315,12 +315,12 @@ export class LogionClient {
         const newTokens = await client.authenticate(accounts, signer);
         const tokens = this.tokens.merge(newTokens);
 
-        let currentAddress = this.sharedState.currentAccount;
-        if(!currentAddress && accounts.length === 1) {
-            currentAddress = accounts[0];
+        let currentAccount = this.sharedState.currentAccount;
+        if(!currentAccount && accounts.length === 1) {
+            currentAccount = accounts[0];
         }
 
-        return this.useTokens(tokens).withCurrentAccount(currentAddress);
+        return this.useTokens(tokens).withCurrentAccount(currentAccount);
     }
 
     /**

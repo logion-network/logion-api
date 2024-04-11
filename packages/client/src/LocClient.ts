@@ -25,7 +25,7 @@ import { AxiosInstance } from 'axios';
 
 import { UserIdentity, LegalOfficer, PostalAddress, LegalOfficerClass } from "./Types.js";
 import { NetworkState } from "./NetworkState.js";
-import { authenticatedCurrentAddress, LegalOfficerEndpoint, SharedState, LogionClientConfig } from "./SharedClient.js";
+import { authenticatedCurrentAccount, LegalOfficerEndpoint, SharedState, LogionClientConfig } from "./SharedClient.js";
 import { AxiosFactory } from "./AxiosFactory.js";
 import { requireDefined } from "./assertions.js";
 import { initMultiSourceHttpClientState, MultiSourceHttpClient, aggregateArrays, Token } from "./Http.js";
@@ -323,10 +323,10 @@ export interface CheckTokensRecordDeliveryRequest {
 export class LocMultiClient {
 
     static newLocMultiClient(sharedState: SharedState): LocMultiClient {
-        const { currentAddress, token } = authenticatedCurrentAddress(sharedState);
+        const { currentAccount, token } = authenticatedCurrentAccount(sharedState);
         return new LocMultiClient({
             axiosFactory: sharedState.axiosFactory,
-            currentAddress: currentAddress,
+            currentAccount,
             networkState: sharedState.networkState,
             token: token.value,
             nodeApi: sharedState.nodeApi,
@@ -338,7 +338,7 @@ export class LocMultiClient {
     constructor(params: {
         networkState: NetworkState<LegalOfficerEndpoint>,
         axiosFactory: AxiosFactory,
-        currentAddress: ValidAccountId,
+        currentAccount: ValidAccountId,
         token: string,
         nodeApi: LogionNodeApiClass,
         componentFactory: ComponentFactory,
@@ -346,7 +346,7 @@ export class LocMultiClient {
     }) {
         this.networkState = params.networkState;
         this.axiosFactory = params.axiosFactory;
-        this.currentAddress = params.currentAddress;
+        this.currentAccount = params.currentAccount;
         this.token = params.token;
         this.nodeApi = params.nodeApi;
         this.componentFactory = params.componentFactory;
@@ -355,7 +355,7 @@ export class LocMultiClient {
 
     private readonly networkState: NetworkState<LegalOfficerEndpoint>;
     private readonly axiosFactory: AxiosFactory;
-    private readonly currentAddress: ValidAccountId;
+    private readonly currentAccount: ValidAccountId;
     private readonly token: string;
     private readonly nodeApi: LogionNodeApiClass;
     private readonly componentFactory: ComponentFactory;
@@ -364,7 +364,7 @@ export class LocMultiClient {
     newLocClient(legalOfficer: LegalOfficerClass) {
         return new AuthenticatedLocClient({
             axiosFactory: this.axiosFactory,
-            currentAccount: this.currentAddress,
+            currentAccount: this.currentAccount,
             nodeApi: this.nodeApi,
             legalOfficer,
             componentFactory: this.componentFactory,
@@ -382,7 +382,7 @@ export class LocMultiClient {
         );
 
         const defaultSpec: FetchLocRequestSpecification = {
-            requesterAddress: this.currentAddress.address,
+            requesterAddress: this.currentAccount.address,
             locTypes: [ "Transaction", "Collection", "Identity" ],
             statuses: [ "OPEN", "REVIEW_PENDING", "REVIEW_ACCEPTED", "REVIEW_REJECTED", "CLOSED", "DRAFT" ]
         };
@@ -397,10 +397,10 @@ export class LocMultiClient {
     }
 
     async fetchAllForVerifiedIssuer(legalOfficers: LegalOfficerClass[]): Promise<LocRequest[]> {
-        if (this.currentAddress.type !== "Polkadot") {
+        if (this.currentAccount.type !== "Polkadot") {
             return [];
         }
-        const entries = await this.nodeApi.polkadot.query.logionLoc.locsByVerifiedIssuerMap.entries(this.currentAddress.address);
+        const entries = await this.nodeApi.polkadot.query.logionLoc.locsByVerifiedIssuerMap.entries(this.currentAccount.address);
         const requests: LocRequest[] = [];
         for(const entry of entries) {
             const owner = ValidAccountId.polkadot(entry[0].args[1].toString());

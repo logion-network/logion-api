@@ -6,7 +6,7 @@ import {
 } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
-import { authenticatedCurrentAddress, getDefinedCurrentAddress, SharedState } from "./SharedClient.js";
+import { authenticatedCurrentAccount, getDefinedCurrentAccount, SharedState } from "./SharedClient.js";
 import { SignCallback, Signer } from "./Signer.js";
 import { LegalOfficer } from "./Types.js";
 import { requestSort, VaultClient, VaultTransferRequest } from "./VaultClient.js";
@@ -36,13 +36,13 @@ export type VaultStateCreationParameters = SharedState & {
 export class VaultState extends State {
 
     static async create(sharedState: VaultStateCreationParameters): Promise<VaultState> {
-        const { currentAddress, token } = authenticatedCurrentAddress(sharedState);
+        const { currentAccount, token } = authenticatedCurrentAccount(sharedState);
         const client = new VaultClient({
             axiosFactory: sharedState.axiosFactory,
             networkState: sharedState.networkState,
-            currentAddress: currentAddress.address,
+            currentAddress: currentAccount.address,
             token: token.value,
-            isLegalOfficer: sharedState.legalOfficers.find(legalOfficer => legalOfficer.account.equals(currentAddress)) !== undefined,
+            isLegalOfficer: sharedState.legalOfficers.find(legalOfficer => legalOfficer.account.equals(currentAccount)) !== undefined,
             isRecovery: sharedState.isRecovery,
         });
         const result = await client.fetchAll(sharedState.selectedLegalOfficers);
@@ -82,10 +82,10 @@ export class VaultState extends State {
                 sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.account),
             );
         } else {
-            const { currentAddress } = authenticatedCurrentAddress(sharedState);
+            const { currentAccount } = authenticatedCurrentAccount(sharedState);
             return new Vault(
                 sharedState.nodeApi.polkadot,
-                currentAddress,
+                currentAccount,
                 sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.account),
             );
         }
@@ -147,8 +147,8 @@ export class VaultState extends State {
     }): Promise<VaultState> {
         const { amount, destination, signer, callback, legalOfficer } = params;
 
-        const currentAddress = getDefinedCurrentAddress(this.sharedState);
-        const signerId = currentAddress;
+        const currentAccount = getDefinedCurrentAccount(this.sharedState);
+        const signerId = currentAccount;
 
         let submittable: SubmittableExtrinsic;
         if(this.sharedState.isRecovery) {
@@ -228,7 +228,7 @@ export class VaultState extends State {
         signer: Signer,
         callback?: SignCallback,
     ): Promise<VaultState> {
-        const signerId = getDefinedCurrentAddress(this.sharedState);
+        const signerId = getDefinedCurrentAccount(this.sharedState);
         const amount = Lgnt.fromCanonical(BigInt(request.amount));
 
         let submittable: SubmittableExtrinsic;

@@ -13,7 +13,7 @@ import {
     UpdateParameters
 } from "./RecoveryClient.js";
 
-import { authenticatedCurrentAddress, getDefinedCurrentAddress, getLegalOfficer, SharedState } from "./SharedClient.js";
+import { authenticatedCurrentAccount, getDefinedCurrentAccount, getLegalOfficer, SharedState } from "./SharedClient.js";
 import { LegalOfficerClass, LegalOfficer, PostalAddress, UserIdentity } from "./Types.js";
 import { BalanceState, getBalanceState } from "./Balance.js";
 import { VaultState } from "./Vault.js";
@@ -50,11 +50,11 @@ export interface ProtectionParams {
 }
 
 export interface ProtectionOrRecoveryParams extends ProtectionParams {
-    recoveredAddress?: ValidAccountId;
+    recoveredAccount?: ValidAccountId;
 }
 
 export interface RecoveryParams extends ProtectionParams {
-    recoveredAddress: ValidAccountId;
+    recoveredAccount: ValidAccountId;
 }
 
 function toActionableProtectionRequest(protectionRequest: ProtectionRequest, sharedState: SharedState): ProtectionRequest {
@@ -196,7 +196,7 @@ export class NoProtection extends State {
         const { signer, callback } = params
         const sortedLegalOfficers = [ params.payload.legalOfficer1.account.address, params.payload.legalOfficer2.account.address ].sort();
         await signer.signAndSend({
-            signerId: getDefinedCurrentAddress(this.sharedState),
+            signerId: getDefinedCurrentAccount(this.sharedState),
             submittable: this.sharedState.nodeApi.polkadot.tx.verifiedRecovery.createRecovery(
                 sortedLegalOfficers,
             ),
@@ -224,20 +224,20 @@ export class NoProtection extends State {
 
     async requestRecovery(params: BlockchainSubmission<RecoveryParams>): Promise<PendingProtection> {
         const { payload } = params;
-        const currentAddress = getDefinedCurrentAddress(this.sharedState);
+        const currentAccount = getDefinedCurrentAccount(this.sharedState);
         const activeRecovery = await this.sharedState.nodeApi.queries.getActiveRecovery(
-            payload.recoveredAddress,
-            currentAddress,
+            payload.recoveredAccount,
+            currentAccount,
         );
         if (activeRecovery === undefined) {
-            const recoveryConfig = await this.sharedState.nodeApi.queries.getRecoveryConfig(payload.recoveredAddress);
+            const recoveryConfig = await this.sharedState.nodeApi.queries.getRecoveryConfig(payload.recoveredAccount);
             const legalOfficersAddresses = recoveryConfig ? recoveryConfig.legalOfficers.map(accountId => accountId.address) : [];
             if (legalOfficersAddresses.includes(payload.legalOfficer1.account.address) &&
                 legalOfficersAddresses.includes(payload.legalOfficer2.account.address)
             ) {
                 await params.signer.signAndSend({
-                    signerId: currentAddress,
-                    submittable: this.sharedState.nodeApi.polkadot.tx.recovery.initiateRecovery(payload.recoveredAddress.address),
+                    signerId: currentAccount,
+                    submittable: this.sharedState.nodeApi.polkadot.tx.recovery.initiateRecovery(payload.recoveredAccount.address),
                     callback: params.callback,
                 });
             } else {
@@ -257,16 +257,16 @@ export class NoProtection extends State {
             requesterIdentityLoc: params.requesterIdentityLoc1.toString(),
             legalOfficerAddress: params.legalOfficer1.account.address,
             otherLegalOfficerAddress: params.legalOfficer2.account.address,
-            isRecovery: params.recoveredAddress !== undefined,
-            addressToRecover: params.recoveredAddress?.address || "",
+            isRecovery: params.recoveredAccount !== undefined,
+            addressToRecover: params.recoveredAccount?.address || "",
         });
         const loRecoveryClient2 = newLoRecoveryClient(this.sharedState, params.legalOfficer2);
         const protection2 = await loRecoveryClient2.createProtectionRequest({
             requesterIdentityLoc: params.requesterIdentityLoc2.toString(),
             legalOfficerAddress: params.legalOfficer2.account.address,
             otherLegalOfficerAddress: params.legalOfficer1.account.address,
-            isRecovery: params.recoveredAddress !== undefined,
-            addressToRecover: params.recoveredAddress?.address || "",
+            isRecovery: params.recoveredAccount !== undefined,
+            addressToRecover: params.recoveredAccount?.address || "",
         });
 
         return new PendingProtection({
@@ -292,10 +292,10 @@ export class NoProtection extends State {
 }
 
 function newRecoveryClient(sharedState: SharedState): RecoveryClient {
-    const { currentAddress, token } = authenticatedCurrentAddress(sharedState);
+    const { currentAccount, token } = authenticatedCurrentAccount(sharedState);
     return new RecoveryClient({
+        currentAccount,
         axiosFactory: sharedState.axiosFactory,
-        currentAddress,
         networkState: sharedState.networkState,
         token: token.value,
         nodeApi: sharedState.nodeApi,
@@ -303,7 +303,7 @@ function newRecoveryClient(sharedState: SharedState): RecoveryClient {
 }
 
 function newLoRecoveryClient(sharedState: SharedState, legalOfficer: LegalOfficer): LoRecoveryClient {
-    const { token } = authenticatedCurrentAddress(sharedState);
+    const { token } = authenticatedCurrentAccount(sharedState);
     return new LoRecoveryClient({
         axiosFactory: sharedState.axiosFactory,
         token: token.value,
@@ -567,7 +567,7 @@ export class AcceptedProtection extends State implements WithProtectionParameter
         const { signer, callback } = params
         const sortedLegalOfficers = this.sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.account.address).sort();
         await signer.signAndSend({
-            signerId: getDefinedCurrentAddress(this.sharedState),
+            signerId: getDefinedCurrentAccount(this.sharedState),
             submittable: this.sharedState.nodeApi.polkadot.tx.verifiedRecovery.createRecovery(
                 sortedLegalOfficers,
             ),
@@ -688,7 +688,7 @@ export class PendingRecovery extends State implements WithProtectionParameters, 
         const { signer, callback } = params;
         const addressToRecover = this.protectionParameters.recoveredAddress;
         await signer.signAndSend({
-            signerId: getDefinedCurrentAddress(this.sharedState),
+            signerId: getDefinedCurrentAccount(this.sharedState),
             submittable: this.sharedState.nodeApi.polkadot.tx.recovery.claimRecovery(addressToRecover?.address || ""),
             callback
         });

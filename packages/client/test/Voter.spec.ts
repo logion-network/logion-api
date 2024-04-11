@@ -45,12 +45,12 @@ const LOC = buildLoc(ALICE.account, "CLOSED", "Identity");
 let aliceAxiosMock: Mock<AxiosInstance>;
 let nodeApiMock: Mock<LogionNodeApiClass>;
 
-const currentAddress = ALICE.account;
+const currentAccount = ALICE.account;
 const token = "some-token";
 const tokens = new AccountTokens(
     buildSimpleNodeApi(),
     {
-        [`${currentAddress?.toKey()}`]: {
+        [`${currentAccount?.toKey()}`]: {
             value: token,
             expirationDateTime: DateTime.now().plus({ hours: 1 })
         }
@@ -77,7 +77,7 @@ async function buildSharedState(): Promise<SharedState> {
             nodeApiMock.setup(instance => instance.queries.getLegalOfficerCase(ItIsUuid(new UUID(LOC_REQUEST.id))))
                 .returnsAsync(LOC);
         },
-        currentAddress,
+        currentAccount,
         LEGAL_OFFICERS,
         tokens,
     );

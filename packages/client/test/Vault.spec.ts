@@ -53,8 +53,8 @@ describe("Vault", () => {
     };
     
     it("creates regular transfer", async () => {
-        const currentAddress = REQUESTER;
-        const tokens = buildTokens(currentAddress);
+        const currentAccount = REQUESTER;
+        const tokens = buildTokens(currentAccount);
         const maxWeight = "100000";
         const transfer = buildTransferSubmittable(vaultAccount, maxWeight);
 
@@ -90,7 +90,7 @@ describe("Vault", () => {
                 blockNumber.setup(instance => instance.toString()).returns(expectedPendingRequest.block);
                 nodeApi.setup(instance => instance.polkadot.rpc.chain.getHeader(multisigBlockHash)).returns(Promise.resolve(blockHeader.object()));
             },
-            currentAddress,
+            currentAccount,
             LEGAL_OFFICERS,
             tokens,
         );
@@ -124,8 +124,8 @@ describe("Vault", () => {
     });
 
     it("creates recovery transfer", async () => {
-        const currentAddress = RECOVERING_ADDRESS;
-        const tokens = buildTokens(currentAddress);
+        const currentAccount = RECOVERING_ADDRESS;
+        const tokens = buildTokens(currentAccount);
         const destination = BOB.account;
         const amount = Lgnt.fromCanonical(200n);
         const maxWeight = "100000";
@@ -166,7 +166,7 @@ describe("Vault", () => {
                 blockNumber.setup(instance => instance.toString()).returns(expectedPendingRequest.block);
                 nodeApi.setup(instance => instance.polkadot.rpc.chain.getHeader(asRecoveredBlockHash)).returns(Promise.resolve(blockHeader.object()));
             },
-            currentAddress,
+            currentAccount,
             LEGAL_OFFICERS,
             tokens,
         );
@@ -201,8 +201,8 @@ describe("Vault", () => {
     });
 
     it("cancels regular transfer", async () => {
-        const currentAddress = REQUESTER;
-        const tokens = buildTokens(currentAddress);
+        const currentAccount = REQUESTER;
+        const tokens = buildTokens(currentAccount);
 
         const cancel = new Mock<SubmittableExtrinsic>();
         const signer = new Mock<Signer>();
@@ -233,7 +233,7 @@ describe("Vault", () => {
                 factory.setupAxiosFactoryMock();
                 factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
             },
-            currentAddress,
+            currentAccount,
             LEGAL_OFFICERS,
             tokens,
         );
@@ -263,8 +263,8 @@ describe("Vault", () => {
     });
 
     it("cancels recovery transfer", async () => {
-        const currentAddress = RECOVERING_ADDRESS;
-        const tokens = buildTokens(currentAddress);
+        const currentAccount = RECOVERING_ADDRESS;
+        const tokens = buildTokens(currentAccount);
 
         const asRecovered = new Mock<SubmittableExtrinsic>();
         const signer = new Mock<Signer>();
@@ -298,7 +298,7 @@ describe("Vault", () => {
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.polkadot.tx.recovery.asRecovered(REQUESTER.address, cancel.object())).returns(asRecovered.object());
             },
-            currentAddress,
+            currentAccount,
             LEGAL_OFFICERS,
             tokens,
         );
@@ -329,12 +329,12 @@ describe("Vault", () => {
     });
 });
 
-function buildTokens(currentAddress: ValidAccountId): AccountTokens {
+function buildTokens(currentAccount: ValidAccountId): AccountTokens {
     const token = "some-token";
     return new AccountTokens(
         buildSimpleNodeApi(),
         {
-            [`Polkadot:${currentAddress.address}`]: {
+            [`Polkadot:${currentAccount.address}`]: {
                 value: token,
                 expirationDateTime: DateTime.now().plus({hours: 1})
             }

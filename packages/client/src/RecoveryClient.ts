@@ -75,13 +75,13 @@ export class RecoveryClient {
     constructor(params: {
         networkState: NetworkState<LegalOfficerEndpoint>,
         axiosFactory: AxiosFactory,
-        currentAddress: ValidAccountId,
+        currentAccount: ValidAccountId,
         token: string,
         nodeApi: LogionNodeApiClass,
     }) {
         this.networkState = params.networkState;
         this.axiosFactory = params.axiosFactory;
-        this.currentAddress = params.currentAddress;
+        this.currentAccount = params.currentAccount;
         this.token = params.token;
         this.nodeApi = params.nodeApi;
     }
@@ -90,7 +90,7 @@ export class RecoveryClient {
 
     private readonly axiosFactory: AxiosFactory;
 
-    private readonly currentAddress: ValidAccountId;
+    private readonly currentAccount: ValidAccountId;
 
     private readonly token: string;
 
@@ -105,7 +105,7 @@ export class RecoveryClient {
             this.token
         );
         const allRequests = aggregateArrays(await multiClient.fetch(axios => this.fetchProtectionRequests(axios, {
-            requesterAddress: this.currentAddress.address,
+            requesterAddress: this.currentAccount.address,
             statuses: [ "PENDING", "ACCEPTED", "ACTIVATED", "REJECTED", "CANCELLED", "REJECTED_CANCELLED", "ACCEPTED_CANCELLED" ],
             kind: "ANY",
         })));
@@ -123,8 +123,8 @@ export class RecoveryClient {
             });
         }
 
-        const recoveryConfig = await this.nodeApi.queries.getRecoveryConfig(this.currentAddress);
-        const recoveredAddress = await this.nodeApi.queries.getProxy(this.currentAddress);
+        const recoveryConfig = await this.nodeApi.queries.getRecoveryConfig(this.currentAccount);
+        const recoveredAddress = await this.nodeApi.queries.getProxy(this.currentAccount);
 
         return {
             pendingProtectionRequests,
@@ -166,7 +166,7 @@ export class RecoveryClient {
             this.token
         );
         const result = await multiClient.fetch(axios => this.fetchProtectionRequests(axios, {
-            requesterAddress: this.currentAddress.address,
+            requesterAddress: this.currentAccount.address,
             statuses: [ "ACCEPTED", "ACTIVATED" ],
             kind: "ANY",
         }));

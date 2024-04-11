@@ -110,7 +110,7 @@ export interface SharedStateWithLegalOfficerClasses extends SharedState {
 
 export async function buildAuthenticatedSharedStateUsingTestConfig(
     config: LogionClientConfig,
-    currentAddress: ValidAccountId | undefined,
+    currentAccount: ValidAccountId | undefined,
     legalOfficers: LegalOfficer[],
     tokens: AccountTokens,
 ): Promise<SharedStateWithLegalOfficerClasses> {
@@ -123,7 +123,7 @@ export async function buildAuthenticatedSharedStateUsingTestConfig(
     const legalOfficerClasses = legalOfficers.map(legalOfficer => new LegalOfficerClass({
         legalOfficer,
         axiosFactory,
-        token: tokens.get(currentAddress)?.value,
+        token: tokens.get(currentAccount)?.value,
     }));
     return {
         config,
@@ -132,7 +132,7 @@ export async function buildAuthenticatedSharedStateUsingTestConfig(
         directoryClient,
         networkState,
         nodeApi,
-        currentAccount: currentAddress,
+        currentAccount: currentAccount,
         legalOfficers: legalOfficerClasses,
         allLegalOfficers: legalOfficerClasses,
         tokens,
@@ -142,12 +142,12 @@ export async function buildAuthenticatedSharedStateUsingTestConfig(
 
 export async function buildTestAuthenticatedSharedSate(
     setupComponentFactory: (factory: TestConfigFactory) => void,
-    currentAddress: ValidAccountId | undefined,
+    currentAccount: ValidAccountId | undefined,
     legalOfficers: LegalOfficer[],
     tokens: AccountTokens,
 ): Promise<SharedStateWithLegalOfficerClasses> {
     const config = buildTestConfig(setupComponentFactory);
-    return buildAuthenticatedSharedStateUsingTestConfig(config, currentAddress, legalOfficers, tokens);
+    return buildAuthenticatedSharedStateUsingTestConfig(config, currentAccount, legalOfficers, tokens);
 }
 
 export function mockEmptyOption<T extends Codec>(): Option<T> {

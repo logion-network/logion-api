@@ -910,12 +910,12 @@ let nodeApiMock: Mock<LogionNodeApiClass>;
 let uploaderMock: Mock<FileUploader>;
 
 async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<SharedState> {
-    const currentAddress = isVerifiedIssuer ? ISSUER : REQUESTER;
+    const currentAccount = isVerifiedIssuer ? ISSUER : REQUESTER;
     const token = "some-token";
     const tokens = new AccountTokens(
         buildSimpleNodeApi(),
         {
-            [currentAddress.toKey()]: {
+            [currentAccount.toKey()]: {
                 value: token,
                 expirationDateTime: DateTime.now().plus({ hours: 1 })
             }
@@ -1138,7 +1138,7 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
             nodeApiMock.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny())).returnsAsync(Fees.zero());
             nodeApiMock.setup(instance => instance.fees.ensureEnoughFunds(It.IsAny())).returnsAsync(undefined);
         },
-        currentAddress,
+        currentAccount,
         legalOfficers,
         tokens,
     );
