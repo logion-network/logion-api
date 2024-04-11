@@ -24,8 +24,8 @@ export class ExtensionSigner extends BaseSigner {
     }
 
     async buildSignAndSendFunction(parameters: SignParameters): Promise<SignAndSendFunction> {
-        const extension = await web3FromAddress(parameters.signerId);
-        return statusCallback => parameters.submittable.signAndSend(parameters.signerId, {
+        const extension = await web3FromAddress(parameters.signerId.address);
+        return statusCallback => parameters.submittable.signAndSend(parameters.signerId.address, {
             signer: extension.signer
         }, statusCallback);
     }

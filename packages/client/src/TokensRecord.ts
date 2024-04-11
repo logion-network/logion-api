@@ -1,4 +1,4 @@
-import { Hash, UUID } from "@logion/node-api";
+import { Hash, UUID, ValidAccountId } from "@logion/node-api";
 
 import { LocClient, ClientTokensRecord, UploadableItemFile } from "./LocClient.js";
 import { CheckHashResult } from "./Loc.js";
@@ -39,7 +39,7 @@ export class TokensRecord implements ClientTokensRecord {
         return this.record.addedOn;
     }
 
-    get issuer(): string {
+    get issuer(): ValidAccountId {
         return this.record.issuer;
     }
 

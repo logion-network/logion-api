@@ -30,7 +30,7 @@ export const SS58_PREFIX = 2021;
 
 export const ALICE: LegalOfficer = {
     name: "Alice",
-    address: "vQx5kESPn8dWyX4KxMCKqUyCaWUwtui1isX6PVNcZh2Ghjitr",
+    account: ValidAccountId.polkadot("vQx5kESPn8dWyX4KxMCKqUyCaWUwtui1isX6PVNcZh2Ghjitr"),
     additionalDetails: "",
     node: "https://alice.logion.network",
     postalAddress: {} as LegalOfficerPostalAddress,
@@ -41,7 +41,7 @@ export const ALICE: LegalOfficer = {
 
 export const BOB: LegalOfficer = {
     name: "Bob",
-    address: "vQvWaxNDdzuX5N3qSvGMtjdHcQdw1TAcPNgx4S1Utd3MTxYeN",
+    account: ValidAccountId.polkadot("vQvWaxNDdzuX5N3qSvGMtjdHcQdw1TAcPNgx4S1Utd3MTxYeN"),
     additionalDetails: "",
     node: "https://bob.logion.network",
     postalAddress: {} as LegalOfficerPostalAddress,
@@ -52,7 +52,7 @@ export const BOB: LegalOfficer = {
 
 export const CHARLIE: LegalOfficer = {
     name: "Charlie",
-    address: "vQvZF2YMgKuQhzfF7T3xDjHjuEmcPSUVEoUDPy1mzuSXzFgca",
+    account: ValidAccountId.polkadot("vQvZF2YMgKuQhzfF7T3xDjHjuEmcPSUVEoUDPy1mzuSXzFgca"),
     additionalDetails: "",
     node: "https://charlie.logion.network",
     postalAddress: {} as LegalOfficerPostalAddress,
@@ -67,7 +67,7 @@ export const DIRECTORY_ENDPOINT = "https://directory.logion.network";
 
 export function buildAliceTokens(api: LogionNodeApiClass, expirationDateTime: DateTime): AccountTokens {
     return new AccountTokens(api, {
-        [`Polkadot:${ALICE.address}`]: {
+        [`Polkadot:${ALICE.account.address}`]: {
             value: "alice token",
             expirationDateTime
         }
@@ -76,11 +76,11 @@ export function buildAliceTokens(api: LogionNodeApiClass, expirationDateTime: Da
 
 export function buildAliceAndBobTokens(api: LogionNodeApiClass, expirationDateTime: DateTime): AccountTokens {
     return new AccountTokens(api, {
-        [`Polkadot:${ALICE.address}`]: {
+        [`Polkadot:${ALICE.account.address}`]: {
             value: "alice token",
             expirationDateTime
         },
-        [`Polkadot:${BOB.address}`]: {
+        [`Polkadot:${BOB.account.address}`]: {
             value: "bob token",
             expirationDateTime
         },
@@ -110,20 +110,20 @@ export interface SharedStateWithLegalOfficerClasses extends SharedState {
 
 export async function buildAuthenticatedSharedStateUsingTestConfig(
     config: LogionClientConfig,
-    currentAddress: ValidAccountId | undefined,
+    currentAccount: ValidAccountId | undefined,
     legalOfficers: LegalOfficer[],
     tokens: AccountTokens,
 ): Promise<SharedStateWithLegalOfficerClasses> {
     const componentFactory = (config as any).__componentFactory;
     const axiosFactory = componentFactory.buildAxiosFactory();
     const directoryClient = componentFactory.buildDirectoryClient(config.directoryEndpoint, axiosFactory);
-    const nodesUp: LegalOfficerEndpoint[] = legalOfficers.map(legalOfficer => ({ url: legalOfficer.node, legalOfficer: legalOfficer.address }));
+    const nodesUp: LegalOfficerEndpoint[] = legalOfficers.map(legalOfficer => ({ url: legalOfficer.node, legalOfficer: legalOfficer.account.address }));
     const networkState = componentFactory.buildNetworkState(nodesUp, []);
     const nodeApi = await componentFactory.buildNodeApi(config.rpcEndpoints);
     const legalOfficerClasses = legalOfficers.map(legalOfficer => new LegalOfficerClass({
         legalOfficer,
         axiosFactory,
-        token: tokens.get(currentAddress)?.value,
+        token: tokens.get(currentAccount)?.value,
     }));
     return {
         config,
@@ -132,7 +132,7 @@ export async function buildAuthenticatedSharedStateUsingTestConfig(
         directoryClient,
         networkState,
         nodeApi,
-        currentAddress,
+        currentAccount: currentAccount,
         legalOfficers: legalOfficerClasses,
         allLegalOfficers: legalOfficerClasses,
         tokens,
@@ -142,12 +142,12 @@ export async function buildAuthenticatedSharedStateUsingTestConfig(
 
 export async function buildTestAuthenticatedSharedSate(
     setupComponentFactory: (factory: TestConfigFactory) => void,
-    currentAddress: ValidAccountId | undefined,
+    currentAccount: ValidAccountId | undefined,
     legalOfficers: LegalOfficer[],
     tokens: AccountTokens,
 ): Promise<SharedStateWithLegalOfficerClasses> {
     const config = buildTestConfig(setupComponentFactory);
-    return buildAuthenticatedSharedStateUsingTestConfig(config, currentAddress, legalOfficers, tokens);
+    return buildAuthenticatedSharedStateUsingTestConfig(config, currentAccount, legalOfficers, tokens);
 }
 
 export function mockEmptyOption<T extends Codec>(): Option<T> {
@@ -173,9 +173,9 @@ export const SUCCESSFUL_SUBMISSION: SuccessfulSubmission = {
     events: [],
 };
 
-export const RECOVERED_ADDRESS = buildValidPolkadotAccountId("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb")!;
+export const RECOVERED_ADDRESS = ValidAccountId.polkadot("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb");
 
-export const REQUESTER = buildValidPolkadotAccountId("5EBxoSssqNo23FvsDeUxjyQScnfEiGxJaNwuwqBH2Twe35BX")!;
+export const REQUESTER = ValidAccountId.polkadot("5EBxoSssqNo23FvsDeUxjyQScnfEiGxJaNwuwqBH2Twe35BX");
 
 export const REQUESTER_ID_LOC_ALICE = "354b4c13-aad5-477e-8ad3-b834e880db65";
 export const REQUESTER_ID_LOC_BOB = "feeb0877-3068-4e05-a4a7-65bf37b84eb5";
@@ -257,12 +257,12 @@ export function ItIsUuid(expected: UUID): UUID {
 }
 
 export function mockSigner(args: {
-    signerId: string,
+    signerId: ValidAccountId,
     submittable: SubmittableExtrinsic,
 }): Mock<Signer> {
     const signer = new Mock<Signer>();
     signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params =>
-        params.signerId === args.signerId
+        params.signerId.equals(args.signerId)
         && params.submittable === args.submittable))
     ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
     return signer;

@@ -1,4 +1,4 @@
-import { UUID, Adapters, Hash, Lgnt } from "../src/index.js";
+import { UUID, Adapters, Hash, Lgnt, ValidAccountId } from "../src/index.js";
 import { setup, signAndSend, signAndSendBatch } from "./Util.js";
 
 export async function invitedContributors() {
@@ -25,7 +25,7 @@ export async function invitedContributors() {
         ),
     );
 
-    expect(await api.queries.isInvitedContributorOf(invitedContributor.address, collectionLocId)).toBeFalse();
+    expect(await api.queries.isInvitedContributorOf(ValidAccountId.polkadot(invitedContributor.address), collectionLocId)).toBeFalse();
 
     await signAndSendBatch(requester, [
         api.polkadot.tx.logionLoc.createCollectionLoc(
@@ -47,7 +47,7 @@ export async function invitedContributors() {
         ),
     ]);
 
-    expect(await api.queries.isInvitedContributorOf(invitedContributor.address, collectionLocId)).toBeTrue();
+    expect(await api.queries.isInvitedContributorOf(ValidAccountId.polkadot(invitedContributor.address), collectionLocId)).toBeTrue();
 
     await signAndSend(alice,
         api.polkadot.tx.logionLoc.close(

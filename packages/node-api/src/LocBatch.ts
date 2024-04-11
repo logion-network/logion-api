@@ -1,7 +1,7 @@
 import { ApiPromise } from "@polkadot/api";
 import { UUID } from "./UUID.js";
 import { Adapters } from "./Adapters.js";
-import { LegalOfficerCase, VerifiedIssuerType } from "./Types.js";
+import { LegalOfficerCase, ValidAccountId, VerifiedIssuerType } from "./Types.js";
 
 /**
  * Batches queries on LOCs and their associated Verified Issuers. Query results are cached.
@@ -42,7 +42,7 @@ export class LocBatch {
 
     private async computeLocsVerifiedIssuers(): Promise<Record<string, VerifiedIssuerType[]>> {
         const availableVerifiedIssuers = await this.getAvailableVerifiedIssuers();
-        const potentialIssuers = Object.values(availableVerifiedIssuers).flatMap(issuer => issuer).map(issuer => issuer.address);
+        const potentialIssuers = Object.values(availableVerifiedIssuers).flatMap(issuer => issuer).map(issuer => issuer.account);
         if(potentialIssuers.length === 0) {
             const map: Record<string, VerifiedIssuerType[]> = {};
             this.locIds.forEach(id => {
@@ -54,7 +54,7 @@ export class LocBatch {
         const keys: [string, string][] = [];
         this.locIds.forEach(id => {
             potentialIssuers.forEach(issuer => {
-                keys.push([ id.toDecimalString(), issuer ]);
+                keys.push([ id.toDecimalString(), issuer.address ]);
             });
         });
     
@@ -67,7 +67,7 @@ export class LocBatch {
             if(entries[i].isSome) {
                 const verifiedIssuerAddress = keys[i][1];
                 const owner = locs[locId].owner;
-                const verifiedIssuer = availableVerifiedIssuers[owner].find(issuer => issuer.address === verifiedIssuerAddress);
+                const verifiedIssuer = availableVerifiedIssuers[owner.address].find(issuer => issuer.account.address === verifiedIssuerAddress);
                 if(!verifiedIssuer) {
                     throw new Error("Verified issuer not found");
                 }
@@ -86,7 +86,7 @@ export class LocBatch {
 
     private async computeAvailableVerifiedIssuersMap(): Promise<Record<string, VerifiedIssuerType[]>> {
         const locs = await this.getLocs();
-        const legalOfficerAddresses = Object.values(locs).map(loc => loc.owner);
+        const legalOfficerAddresses = Object.values(locs).map(loc => loc.owner.address);
 
         const map: Record<string, VerifiedIssuerType[]> = {};
         for(const legalOfficerAddress of legalOfficerAddresses) {
@@ -96,12 +96,12 @@ export class LocBatch {
     
                 const entries = await this.api.query.logionLoc.verifiedIssuersMap.entries(legalOfficerAddress);
                 for(const entry of entries) {
-                    const address = entry[0].args[1].toString();
+                    const address = ValidAccountId.polkadot(entry[0].args[1].toString());
                     const issuerOption = entry[1];
                     const identityLocId = this.adapters.fromLocId(issuerOption.unwrap().identityLoc);
     
                     mapEntry.push({
-                        address,
+                        account: address,
                         identityLocId,
                     });
                 }

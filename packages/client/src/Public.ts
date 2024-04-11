@@ -47,7 +47,7 @@ export class PublicApi {
             ...params,
             api: this.sharedState.nodeApi,
         });
-        const legalOfficer = this.sharedState.legalOfficers.find(lo => lo.address === loc.owner);
+        const legalOfficer = this.sharedState.legalOfficers.find(lo => lo.account.equals(loc.owner));
         if (!legalOfficer) {
             return undefined;
         }
@@ -154,7 +154,7 @@ export class PublicLoc {
     }
 
     isLogionIdentityLoc(): boolean {
-        return this._data.locType === "Identity" && !this._data.requesterAddress && !this._data.requesterLocId;
+        return this._data.locType === "Identity" && !this._data.requesterAccountId && !this._data.requesterLocId;
     }
 
     isLogionDataLoc(): boolean {

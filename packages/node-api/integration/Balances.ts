@@ -1,4 +1,4 @@
-import { Lgnt, Adapters, TypesJsonObject } from "../src/index.js";
+import { Lgnt, Adapters, TypesJsonObject, ValidAccountId } from "../src/index.js";
 import { setup, signAndSend } from "./Util.js";
 
 export async function transferTokens() {
@@ -17,7 +17,7 @@ export async function transferTokens() {
     expect(data?.from as string).toBe(alice.address);
     expect(data?.to as string).toBe(requester.address);
 
-    const balances = await api.queries.getCoinBalances(requester.address);
+    const balances = await api.queries.getCoinBalances(ValidAccountId.polkadot(requester.address));
     const logionTokenBalance = balances.find(balance => balance.coin.id === 'lgnt');
     expect(logionTokenBalance?.available.coefficient.toNumber()).toBe(20);
     expect(logionTokenBalance?.available.prefix.tenExponent).toBe(3);

@@ -1,6 +1,7 @@
 import {
     CoinBalance,
     Lgnt,
+    ValidAccountId,
 } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
@@ -8,9 +9,10 @@ import { Transaction, TransactionClient } from "./TransactionClient.js";
 import { SharedState } from "./SharedClient.js";
 import { State } from "./State.js";
 import { BlockchainSubmissionParams } from "./Signer.js";
+import { requireDefined } from "./assertions.js";
 
 export interface TransferParam extends BlockchainSubmissionParams {
-    destination: string;
+    destination: ValidAccountId;
     amount: Lgnt;
 }
 
@@ -18,19 +20,19 @@ export interface BalanceSharedState extends SharedState {
     readonly balances: CoinBalance[];
     readonly transactions: Transaction[];
     readonly isRecovery: boolean;
-    readonly recoveredAddress?: string;
+    readonly recoveredAccount?: ValidAccountId;
 }
 
-export async function getBalanceState(sharedState: SharedState & { isRecovery: boolean, recoveredAddress?: string }): Promise<BalanceState> {
-    let targetAddress;
+export async function getBalanceState(sharedState: SharedState & { isRecovery: boolean, recoveredAccount?: ValidAccountId }): Promise<BalanceState> {
+    let targetAccount;
     if(sharedState.isRecovery) {
-        targetAddress = sharedState.recoveredAddress || "";
+        targetAccount = requireDefined(sharedState.recoveredAccount);
     } else {
-        targetAddress = sharedState.currentAddress?.address || "";
+        targetAccount = requireDefined(sharedState.currentAccount);
     }
-    const client = newTransactionClient(targetAddress, sharedState);
+    const client = newTransactionClient(targetAccount, sharedState);
     const transactions = await client.fetchTransactions();
-    const balances = await sharedState.nodeApi.queries.getCoinBalances(targetAddress);
+    const balances = await sharedState.nodeApi.queries.getCoinBalances(targetAccount);
     return new BalanceState({
         ...sharedState,
         transactions,
@@ -38,11 +40,11 @@ export async function getBalanceState(sharedState: SharedState & { isRecovery: b
     });
 }
 
-function newTransactionClient(currentAddress: string, sharedState: SharedState): TransactionClient {
+function newTransactionClient(currentAccount: ValidAccountId, sharedState: SharedState): TransactionClient {
     return new TransactionClient({
         axiosFactory: sharedState.axiosFactory,
         networkState: sharedState.networkState,
-        currentAddress,
+        currentAccount,
     })
 }
 
@@ -79,22 +81,23 @@ export class BalanceState extends State {
 
         let submittable: SubmittableExtrinsic;
         if(this.sharedState.isRecovery) {
+            const recoveredAccount = requireDefined(this.sharedState.recoveredAccount);
             submittable = this.sharedState.nodeApi.polkadot.tx.recovery.asRecovered(
-                this.sharedState.recoveredAddress || "",
+                recoveredAccount.address,
                 this.sharedState.nodeApi.polkadot.tx.balances.transferKeepAlive(
-                    destination,
+                    destination.address,
                     canonicalAmount,
                 ),
             );
             await this.ensureFundsForFees(submittable);
-            const recoveredAccountData = await this.sharedState.nodeApi.queries.getAccountData(this.sharedState.recoveredAddress || "");
+            const recoveredAccountData = await this.sharedState.nodeApi.queries.getAccountData(recoveredAccount);
             const transferable = BigInt(recoveredAccountData.available);
             if(transferable < canonicalAmount) {
                 throw new Error("Insufficient balance");
             }
         } else {
             submittable = this.sharedState.nodeApi.polkadot.tx.balances.transferKeepAlive(
-                destination,
+                destination.address,
                 canonicalAmount,
             );
             const fees = await this.ensureFundsForFees(submittable);
@@ -106,7 +109,7 @@ export class BalanceState extends State {
         }
 
         await signer.signAndSend({
-            signerId: this.sharedState.currentAddress?.address || "",
+            signerId: requireDefined(this.sharedState.currentAccount),
             submittable,
             callback,
         })
@@ -116,7 +119,7 @@ export class BalanceState extends State {
 
     private async ensureFundsForFees(submittable: SubmittableExtrinsic): Promise<bigint> {
         const fees = await this.sharedState.nodeApi.fees.estimateWithoutStorage({
-            origin: this.sharedState.currentAddress?.address || "",
+            origin: requireDefined(this.sharedState.currentAccount),
             submittable,
         });
         const available = Lgnt.fromCanonicalPrefixedNumber(this.balances[0].available).canonical;
@@ -144,7 +147,7 @@ export class BalanceState extends State {
         let submittable: SubmittableExtrinsic;
         if(this.sharedState.isRecovery) {
             submittable = this.sharedState.nodeApi.polkadot.tx.recovery.asRecovered(
-                this.sharedState.recoveredAddress || "",
+                this.sharedState.recoveredAccount?.address || "",
                 this.sharedState.nodeApi.polkadot.tx.balances.transferAll(
                     destination,
                     keepAlive,
@@ -158,10 +161,10 @@ export class BalanceState extends State {
         }
 
         await signer.signAndSend({
-            signerId: this.sharedState.currentAddress?.address || "",
+            signerId: requireDefined(this.sharedState.currentAccount),
             submittable,
             callback,
-        })
+        });
 
         return this._refresh();
     }

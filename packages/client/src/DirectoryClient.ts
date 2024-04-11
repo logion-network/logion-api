@@ -1,4 +1,4 @@
-import { LogionNodeApiClass, Region } from "@logion/node-api";
+import { LogionNodeApiClass, Region, ValidAccountId } from "@logion/node-api";
 import type { StorageKey } from '@polkadot/types';
 import { AccountId32 } from "@polkadot/types/interfaces/runtime";
 import { Option } from "@polkadot/types-codec";
@@ -50,6 +50,7 @@ export class DirectoryClient {
                     ...offchainData,
                     name: `${offchainData.userIdentity.firstName} ${offchainData.userIdentity.lastName}`,
                     ...hostData,
+                    account: ValidAccountId.polkadot(address),
                 };
                 legalOfficers.push(new LegalOfficerClass({
                     legalOfficer,

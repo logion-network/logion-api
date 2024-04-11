@@ -32,9 +32,9 @@ import {
 
 describe("Vault", () => {
 
-    const vaultAddress = "5GsjmoJBjbKpjQiUHeVmSHuUvgonLvJUyLSHfbKDRYz4GK3V";
+    const vaultAccount = ValidAccountId.polkadot("vQx6Y5fTinEKDENnSUzDC73bdN4Yo2D2PUCq9xaKQKHzS63dr");
 
-    const destination = BOB.address;
+    const destination = BOB.account;
 
     const amount = Lgnt.fromCanonical(200n);
 
@@ -43,9 +43,9 @@ describe("Vault", () => {
         amount: amount.canonical.toString(),
         block: "42",
         createdOn: DateTime.now().toISO(),
-        destination,
+        destination: destination.address,
         index: 1,
-        legalOfficerAddress: ALICE.address,
+        legalOfficerAddress: ALICE.account.address,
         origin: REQUESTER.address,
         requesterIdentity: {} as UserIdentity,
         requesterPostalAddress: {} as PostalAddress,
@@ -53,16 +53,16 @@ describe("Vault", () => {
     };
     
     it("creates regular transfer", async () => {
-        const currentAddress = REQUESTER;
-        const tokens = buildTokens(currentAddress);
+        const currentAccount = REQUESTER;
+        const tokens = buildTokens(currentAccount);
         const maxWeight = "100000";
-        const transfer = buildTransferSubmittable(vaultAddress, maxWeight);
+        const transfer = buildTransferSubmittable(vaultAccount, maxWeight);
 
         const signer = new Mock<Signer>();
         const multisigBlockHash = "0x1234567890abcdef";
         signer.setup(instance => instance.signAndSend(
             It.Is<SignParameters>(param =>
-                param.signerId === REQUESTER.address
+                param.signerId.equals(REQUESTER)
                 && param.submittable === transfer
             )
         )).returns(Promise.resolve({
@@ -72,7 +72,7 @@ describe("Vault", () => {
         }));
 
         const vault = new Mock<Vault>();
-        vault.setup(instance => instance.address).returns(vaultAddress);
+        vault.setup(instance => instance.account).returns(vaultAccount);
         vault.setup(instance => instance.tx.transferFromVault(It.IsAny())).returns(Promise.resolve(transfer));
 
         const client = buildVaultClientForCreation(expectedPendingRequest);
@@ -90,7 +90,7 @@ describe("Vault", () => {
                 blockNumber.setup(instance => instance.toString()).returns(expectedPendingRequest.block);
                 nodeApi.setup(instance => instance.polkadot.rpc.chain.getHeader(multisigBlockHash)).returns(Promise.resolve(blockHeader.object()));
             },
-            currentAddress,
+            currentAccount,
             LEGAL_OFFICERS,
             tokens,
         );
@@ -124,19 +124,19 @@ describe("Vault", () => {
     });
 
     it("creates recovery transfer", async () => {
-        const currentAddress = RECOVERING_ADDRESS;
-        const tokens = buildTokens(currentAddress);
-        const destination = BOB.address;
+        const currentAccount = RECOVERING_ADDRESS;
+        const tokens = buildTokens(currentAccount);
+        const destination = BOB.account;
         const amount = Lgnt.fromCanonical(200n);
         const maxWeight = "100000";
-        const transfer = buildTransferSubmittable(vaultAddress, maxWeight);
+        const transfer = buildTransferSubmittable(vaultAccount, maxWeight);
 
         const asRecovered = new Mock<SubmittableExtrinsic>();
         const signer = new Mock<Signer>();
         const asRecoveredBlockHash = "0x1234567890abcdef";
         signer.setup(instance => instance.signAndSend(
             It.Is<SignParameters>(param =>
-                param.signerId === RECOVERING_ADDRESS.address
+                param.signerId.equals(RECOVERING_ADDRESS)
                 && param.submittable === asRecovered.object()
             )
         )).returns(Promise.resolve({
@@ -146,7 +146,7 @@ describe("Vault", () => {
         }));
 
         const vault = new Mock<Vault>();
-        vault.setup(instance => instance.address).returns(vaultAddress);
+        vault.setup(instance => instance.account).returns(vaultAccount);
         vault.setup(instance => instance.tx.transferFromVault(It.IsAny())).returns(Promise.resolve(transfer));
 
         const client = buildVaultClientForCreation(expectedPendingRequest);
@@ -166,7 +166,7 @@ describe("Vault", () => {
                 blockNumber.setup(instance => instance.toString()).returns(expectedPendingRequest.block);
                 nodeApi.setup(instance => instance.polkadot.rpc.chain.getHeader(asRecoveredBlockHash)).returns(Promise.resolve(blockHeader.object()));
             },
-            currentAddress,
+            currentAccount,
             LEGAL_OFFICERS,
             tokens,
         );
@@ -183,7 +183,7 @@ describe("Vault", () => {
             acceptedVaultTransferRequests,
             selectedLegalOfficers: [ ALICE, BOB ],
             isRecovery: true,
-            recoveredAddress: REQUESTER.address,
+            recoveredAddress: REQUESTER,
             balances: [],
             transactions: [],
             vault: vault.object(),
@@ -201,15 +201,15 @@ describe("Vault", () => {
     });
 
     it("cancels regular transfer", async () => {
-        const currentAddress = REQUESTER;
-        const tokens = buildTokens(currentAddress);
+        const currentAccount = REQUESTER;
+        const tokens = buildTokens(currentAccount);
 
         const cancel = new Mock<SubmittableExtrinsic>();
         const signer = new Mock<Signer>();
         const multisigBlockHash = "0x1234567890abcdef";
         signer.setup(instance => instance.signAndSend(
             It.Is<SignParameters>(param =>
-                param.signerId === REQUESTER.address
+                param.signerId.equals(REQUESTER)
                 && param.submittable === cancel.object()
             )
         )).returns(Promise.resolve({
@@ -221,7 +221,7 @@ describe("Vault", () => {
         const requestToCancel = expectedPendingRequest;
 
         const vault = new Mock<Vault>();
-        vault.setup(instance => instance.address).returns(vaultAddress);
+        vault.setup(instance => instance.account).returns(vaultAccount);
         vault.setup(instance => instance.tx.cancelVaultTransfer(It.IsAny())).returns(cancel.object());
 
         const client = buildVaultClientForCancel(requestToCancel);
@@ -233,7 +233,7 @@ describe("Vault", () => {
                 factory.setupAxiosFactoryMock();
                 factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
             },
-            currentAddress,
+            currentAccount,
             LEGAL_OFFICERS,
             tokens,
         );
@@ -263,15 +263,15 @@ describe("Vault", () => {
     });
 
     it("cancels recovery transfer", async () => {
-        const currentAddress = RECOVERING_ADDRESS;
-        const tokens = buildTokens(currentAddress);
+        const currentAccount = RECOVERING_ADDRESS;
+        const tokens = buildTokens(currentAccount);
 
         const asRecovered = new Mock<SubmittableExtrinsic>();
         const signer = new Mock<Signer>();
         const multisigBlockHash = "0x1234567890abcdef";
         signer.setup(instance => instance.signAndSend(
             It.Is<SignParameters>(param =>
-                param.signerId === RECOVERING_ADDRESS.address
+                param.signerId.equals(RECOVERING_ADDRESS)
                 && param.submittable === asRecovered.object()
             )
         )).returns(Promise.resolve({
@@ -283,7 +283,7 @@ describe("Vault", () => {
         const requestToCancel = expectedPendingRequest;
 
         const vault = new Mock<Vault>();
-        vault.setup(instance => instance.address).returns(vaultAddress);
+        vault.setup(instance => instance.account).returns(vaultAccount);
         const cancel = new Mock<SubmittableExtrinsic>();
         vault.setup(instance => instance.tx.cancelVaultTransfer(It.IsAny())).returns(cancel.object());
 
@@ -298,7 +298,7 @@ describe("Vault", () => {
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.polkadot.tx.recovery.asRecovered(REQUESTER.address, cancel.object())).returns(asRecovered.object());
             },
-            currentAddress,
+            currentAccount,
             LEGAL_OFFICERS,
             tokens,
         );
@@ -315,7 +315,7 @@ describe("Vault", () => {
             acceptedVaultTransferRequests,
             selectedLegalOfficers: [ ALICE, BOB ],
             isRecovery: true,
-            recoveredAddress: REQUESTER.address,
+            recoveredAddress: REQUESTER,
             balances: [],
             transactions: [],
             vault: vault.object(),
@@ -329,12 +329,12 @@ describe("Vault", () => {
     });
 });
 
-function buildTokens(currentAddress: ValidAccountId): AccountTokens {
+function buildTokens(currentAccount: ValidAccountId): AccountTokens {
     const token = "some-token";
     return new AccountTokens(
         buildSimpleNodeApi(),
         {
-            [`Polkadot:${currentAddress.address}`]: {
+            [`Polkadot:${currentAccount.address}`]: {
                 value: token,
                 expirationDateTime: DateTime.now().plus({hours: 1})
             }
@@ -342,9 +342,9 @@ function buildTokens(currentAddress: ValidAccountId): AccountTokens {
     );
 }
 
-function buildTransferSubmittable(vaultAddress: string, weight: string): SubmittableExtrinsic {
+function buildTransferSubmittable(vaultAddress: ValidAccountId, weight: string): SubmittableExtrinsic {
     const transfer = new Mock<SubmittableExtrinsic>();
-    transfer.setup(instance => instance.paymentInfo(vaultAddress)).returns(Promise.resolve({
+    transfer.setup(instance => instance.paymentInfo(vaultAddress.address)).returns(Promise.resolve({
         weight: {
             refTime: weight,
         },

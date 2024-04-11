@@ -63,13 +63,13 @@ export class Queries {
         return this.adapters.getValidAccountId(accountId, type);
     }
 
-    async getAccountData(accountId: string): Promise<TypesAccountData> {
-        const accountInfo = await this.api.query.system.account(accountId);
+    async getAccountData(accountId: ValidAccountId): Promise<TypesAccountData> {
+        const accountInfo = await this.api.query.system.account(accountId.address);
         return this.adapters.fromFrameSystemAccountInfo(accountInfo);
     }
 
-    async getCoinBalances(accountId: string): Promise<CoinBalance[]> {
-        const accountInfo = await this.api.query.system.account(accountId);
+    async getCoinBalances(accountId: ValidAccountId): Promise<CoinBalance[]> {
+        const accountInfo = await this.api.query.system.account(accountId.address);
         const data = this.adapters.fromFrameSystemAccountInfo(accountInfo);
 
         const logAvailable = Currency.Lgnt.fromCanonical(BigInt(data.available)).toCanonicalPrefixedNumber().optimizeScale(3);
@@ -169,32 +169,32 @@ export class Queries {
         }
     }
 
-    async getRecoveryConfig(accountId: string): Promise<TypesRecoveryConfig | undefined> {
-        const recoveryConfig = await this.api.query.recovery.recoverable(accountId);
+    async getRecoveryConfig(accountId: ValidAccountId): Promise<TypesRecoveryConfig | undefined> {
+        const recoveryConfig = await this.api.query.recovery.recoverable(accountId.address);
         if (recoveryConfig.isEmpty) {
             return undefined
         }
         return {
-            legalOfficers: recoveryConfig.unwrap().friends.toArray().map(accountId => accountId.toString())
+            legalOfficers: recoveryConfig.unwrap().friends.toArray().map(accountId => ValidAccountId.polkadot(accountId.toString()))
         };
     }
 
-    async getActiveRecovery(sourceAccount: string, destinationAccount: string): Promise<TypesRecoveryConfig | undefined> {
-        const activeRecovery = await this.api.query.recovery.activeRecoveries(sourceAccount, destinationAccount);
+    async getActiveRecovery(sourceAccountId: ValidAccountId, destinationAccountId: ValidAccountId): Promise<TypesRecoveryConfig | undefined> {
+        const activeRecovery = await this.api.query.recovery.activeRecoveries(sourceAccountId.address, destinationAccountId.address);
         if (activeRecovery.isEmpty) {
             return undefined
         }
         return {
-            legalOfficers: activeRecovery.unwrap().friends.toArray().map(accountId => accountId.toString())
+            legalOfficers: activeRecovery.unwrap().friends.toArray().map(accountId => ValidAccountId.polkadot(accountId.toString()))
         };
     }
 
-    async getProxy(address: string): Promise<string | undefined> {
-        const proxy = await this.api.query.recovery.proxy(address);
+    async getProxy(accountId: ValidAccountId): Promise<ValidAccountId | undefined> {
+        const proxy = await this.api.query.recovery.proxy(accountId.address);
         if (proxy.isEmpty) {
             return undefined
         }
-        return proxy.unwrap().toString();
+        return ValidAccountId.polkadot(proxy.unwrap().toString());
     }
 
     async getSponsorship(sponsorshipId: UUID): Promise<Sponsorship | undefined> {
@@ -206,17 +206,17 @@ export class Queries {
         }
     }
 
-    async getLegalOfficerVerifiedIssuers(legalOfficerAddress: string): Promise<VerifiedIssuerType[]> {
+    async getLegalOfficerVerifiedIssuers(accountId: ValidAccountId): Promise<VerifiedIssuerType[]> {
         const issuers: VerifiedIssuerType[] = [];
 
-        const entries = await this.api.query.logionLoc.verifiedIssuersMap.entries(legalOfficerAddress);
+        const entries = await this.api.query.logionLoc.verifiedIssuersMap.entries(accountId.address);
         for(const entry of entries) {
             const address = entry[0].args[1].toString();
             const issuerOption = entry[1];
             const identityLocId = UUID.fromDecimalStringOrThrow(issuerOption.unwrap().identityLoc.toString());
 
             issuers.push({
-                address,
+                account: ValidAccountId.polkadot(address),
                 identityLocId,
             });
         }
@@ -224,9 +224,9 @@ export class Queries {
         return issuers;
     }
 
-    async getLegalOfficerData(address: string): Promise<LegalOfficerData> {
+    async getLegalOfficerData(accountId: ValidAccountId): Promise<LegalOfficerData> {
         let onchainSettings: LegalOfficerData = {};
-        const legalOfficerData = await this.api.query.loAuthorityList.legalOfficerSet(address);
+        const legalOfficerData = await this.api.query.loAuthorityList.legalOfficerSet(accountId.address);
         if(legalOfficerData.isSome) {
             const someLegalOfficerData = legalOfficerData.unwrap();
             if(someLegalOfficerData.isHost) {
@@ -234,7 +234,7 @@ export class Queries {
                 onchainSettings = {
                     hostData,
                     isHost: true,
-                    guests: await this.getGuestsOf(address),
+                    guests: await this.getGuestsOf(accountId),
                 };
             } else {
                 const hostAddress = someLegalOfficerData.asGuest.toString();
@@ -243,19 +243,19 @@ export class Queries {
                 onchainSettings = {
                     hostData,
                     isHost: false,
-                    hostAddress,
+                    hostAccount: ValidAccountId.polkadot(hostAddress),
                 };
             }
         }
         return onchainSettings;
     }
 
-    private async getGuestsOf(address: string): Promise<string[]> {
+    private async getGuestsOf(accountId: ValidAccountId): Promise<string[]> {
         const legalOfficerData = await this.api.query.loAuthorityList.legalOfficerSet.entries();
         return legalOfficerData
             .filter(entry => entry[1].isSome)
             .filter(entry => entry[1].unwrap().isGuest)
-            .filter(entry => entry[1].unwrap().asGuest.hostId.toString() === address)
+            .filter(entry => entry[1].unwrap().asGuest.hostId.toString() === accountId.address)
             .map(entry => entry[0].args[0].toString());
     }
 
@@ -275,11 +275,11 @@ export class Queries {
         return this.adapters.fromLogionRuntimeRegion(this.adapters.getDefaultLogionRuntimeRegion());
     }
 
-    async isInvitedContributorOf(address: string, locId: UUID): Promise<boolean> {
-        return this.isValidAccountId(address, "Polkadot") && (await this.api.query.logionLoc.invitedContributorsByLocMap(
+    async isInvitedContributorOf(accountId: ValidAccountId, locId: UUID): Promise<boolean> {
+        return (await this.api.query.logionLoc.invitedContributorsByLocMap(
             locId.toDecimalString(),
-            address,
-        )).isSome
+            accountId.address,
+        )).isSome;
     }
 
     get ss58Prefix(): number {

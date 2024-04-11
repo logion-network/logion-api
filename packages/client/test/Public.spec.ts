@@ -163,7 +163,7 @@ describe("PublicLoc", () => {
     });
 });
 
-const LOC = buildLocAndRequest(ALICE.address, "CLOSED", "Collection");
+const LOC = buildLocAndRequest(ALICE.account, "CLOSED", "Collection");
 
 const COLLECTION_ITEM = buildCollectionItem();
 const OFFCHAIN_COLLECTION_ITEM = buildOffchainCollectionItem(LOC.request.id);

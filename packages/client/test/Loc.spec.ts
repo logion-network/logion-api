@@ -87,7 +87,7 @@ describe("LocsState", () => {
 
         expect(locs.legalOfficersWithValidIdentityLoc.length).toEqual(1);
         expect(locs.legalOfficersWithValidIdentityLoc[0]).toBeInstanceOf(LegalOfficerClass);
-        expect(locs.legalOfficersWithValidIdentityLoc[0].address).toEqual(BOB.address);
+        expect(locs.legalOfficersWithValidIdentityLoc[0].account).toEqual(BOB.account);
     })
 
     it("detects that user is not a verified issuer", async() => {
@@ -223,7 +223,7 @@ describe("OpenLoc", () => {
     xit("publishes link", async () => {
         const openLoc = await getOpenLoc();
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await openLoc.publishLink({
             target: EXISTING_LINK_TARGET,
@@ -240,7 +240,7 @@ describe("OpenLoc", () => {
     it("can be voided", async () => {
         const openLoc = await getOpenLoc();
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await openLoc.legalOfficer.voidLoc({
             reason: "Because",
@@ -254,7 +254,7 @@ describe("OpenLoc", () => {
     it("can be voided and replaced", async () => {
         const openLoc = await getOpenLoc();
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await openLoc.legalOfficer.voidLoc({
             reason: "Because",
@@ -273,7 +273,7 @@ describe("OpenLoc", () => {
 async function testClose(autoAck: boolean) {
     const openLoc = await getOpenLoc();
     const signer = new Mock<Signer>();
-    signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+    signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
     await openLoc.legalOfficer.close({
         signer: signer.object(),
@@ -315,7 +315,7 @@ describe("ClosedLoc", () => {
     it("can be voided", async () => {
         const openLoc = await getClosedTransactionLoc();
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await openLoc.legalOfficer.voidLoc({
             reason: "Because",
@@ -329,7 +329,7 @@ describe("ClosedLoc", () => {
     it("can be voided and replaced", async () => {
         const openLoc = await getClosedTransactionLoc();
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await openLoc.legalOfficer.voidLoc({
             reason: "Because",
@@ -344,7 +344,7 @@ describe("ClosedLoc", () => {
     it("can nominate issuer", async () => {
         const closedLoc = await getClosedIdentityLoc();
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await closedLoc.legalOfficer.nominateIssuer({
             signer: signer.object(),
@@ -357,7 +357,7 @@ describe("ClosedLoc", () => {
     it("can dismiss issuer", async () => {
         const closedLoc = await getClosedIdentityLoc();
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await closedLoc.legalOfficer.dismissIssuer({
             signer: signer.object(),
@@ -374,7 +374,7 @@ describe("ClosedCollectionLoc", () => {
         const closedLoc = await getClosedCollectionLoc();
 
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
         await closedLoc.addCollectionItem({
             payload: {
                 itemId: ITEM_ID,
@@ -390,7 +390,7 @@ describe("ClosedCollectionLoc", () => {
         const closedLoc = await getClosedCollectionLoc();
 
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
         await closedLoc.addCollectionItems({
             payload: [
                 {
@@ -411,7 +411,7 @@ describe("ClosedCollectionLoc", () => {
         const closedLoc = await getClosedCollectionLoc();
 
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
         await closedLoc.addCollectionItem({
             payload: {
                 itemId: ITEM_ID,
@@ -429,7 +429,7 @@ describe("ClosedCollectionLoc", () => {
         const closedLoc = await getClosedCollectionLoc();
 
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
         await closedLoc.addCollectionItem({
             payload: {
                 itemId: ITEM_ID,
@@ -447,7 +447,7 @@ describe("ClosedCollectionLoc", () => {
         const closedLoc = await getClosedCollectionLoc();
 
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
         await expectAsync(closedLoc.addCollectionItem({
             payload: {
                 itemId: ITEM_ID,
@@ -510,7 +510,7 @@ describe("ClosedCollectionLoc", () => {
     it("adds tokens record", async () => {
         const closedLoc = await getClosedCollectionLoc();
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await closedLoc.addTokensRecord({
             payload: {
@@ -542,7 +542,7 @@ describe("ClosedCollectionLoc", () => {
     it("adds tokens records", async () => {
         const closedLoc = await getClosedCollectionLoc();
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await closedLoc.addTokensRecords({
             payload: [
@@ -567,7 +567,7 @@ describe("ClosedCollectionLoc", () => {
     it("can be voided", async () => {
         const openLoc = await getClosedCollectionLoc();
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await openLoc.legalOfficer.voidLoc({
             reason: "Because",
@@ -581,7 +581,7 @@ describe("ClosedCollectionLoc", () => {
     it("can be voided and replaced", async () => {
         const openLoc = await getClosedCollectionLoc();
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await openLoc.legalOfficer.voidLoc({
             reason: "Because",
@@ -855,23 +855,23 @@ const legalOfficers: LegalOfficer[] = [ ALICE, BOB, CHARLIE ];
 const ITEM_ID = Hash.fromHex("0x186bf67f32bb45187a1c50286dbd9adf8751874831aeba2a66760a74a9c898cc");
 const ITEM_ID_2 = Hash.fromHex("0x14c85b312b891eae5de44d1d4d5024d36cbce545e686d299624e2a71b9e14712");
 
-const ALICE_DRAFT_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "DRAFT", "Transaction");
-const ALICE_OPEN_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "OPEN", "Transaction");
-const ALICE_CLOSED_TRANSACTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED", "Transaction");
-const ALICE_CLOSED_COLLECTION_LOC = buildLocAndRequest(ALICE.address, "CLOSED", "Collection");
-const ALICE_REQUESTED_SOF_REQUEST = buildLocRequest(ALICE.address, "REVIEW_PENDING", "Transaction");
-const ALICE_REJECTED_TRANSACTION_LOC_REQUEST = buildLocRequest(ALICE.address, "REVIEW_REJECTED", "Transaction");
-const ALICE_CLOSED_IDENTITY_LOC_WITH_VERIFIED_ISSUER = buildLocAndRequest(ALICE.address, "CLOSED", "Identity", undefined, ISSUER);
-const ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER = buildLocAndRequest(ALICE.address, "OPEN", "Transaction");
-const ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER = buildLocAndRequest(ALICE.address, "CLOSED", "Transaction");
+const ALICE_DRAFT_TRANSACTION_LOC = buildLocAndRequest(ALICE.account, "DRAFT", "Transaction");
+const ALICE_OPEN_TRANSACTION_LOC = buildLocAndRequest(ALICE.account, "OPEN", "Transaction");
+const ALICE_CLOSED_TRANSACTION_LOC = buildLocAndRequest(ALICE.account, "CLOSED", "Transaction");
+const ALICE_CLOSED_COLLECTION_LOC = buildLocAndRequest(ALICE.account, "CLOSED", "Collection");
+const ALICE_REQUESTED_SOF_REQUEST = buildLocRequest(ALICE.account, "REVIEW_PENDING", "Transaction");
+const ALICE_REJECTED_TRANSACTION_LOC_REQUEST = buildLocRequest(ALICE.account, "REVIEW_REJECTED", "Transaction");
+const ALICE_CLOSED_IDENTITY_LOC_WITH_VERIFIED_ISSUER = buildLocAndRequest(ALICE.account, "CLOSED", "Identity", undefined, ISSUER);
+const ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER = buildLocAndRequest(ALICE.account, "OPEN", "Transaction");
+const ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER = buildLocAndRequest(ALICE.account, "CLOSED", "Transaction");
 
-const BOB_REQUESTED_TRANSACTION_LOC_REQUEST = buildLocRequest(BOB.address, "REVIEW_PENDING", "Transaction");
-const BOB_OPEN_TRANSACTION_LOC = buildLocAndRequest(BOB.address, "OPEN", "Transaction");
-const BOB_VOID_TRANSACTION_LOC = buildLocAndRequest(BOB.address, "CLOSED", "Transaction", mockVoidInfo());
-const BOB_VOID_COLLECTION_LOC = buildLocAndRequest(BOB.address, "CLOSED", "Collection", mockVoidInfo());
-const BOB_CLOSED_IDENTITY_LOC = buildLocAndRequest(BOB.address, "CLOSED", "Identity");
+const BOB_REQUESTED_TRANSACTION_LOC_REQUEST = buildLocRequest(BOB.account, "REVIEW_PENDING", "Transaction");
+const BOB_OPEN_TRANSACTION_LOC = buildLocAndRequest(BOB.account, "OPEN", "Transaction");
+const BOB_VOID_TRANSACTION_LOC = buildLocAndRequest(BOB.account, "CLOSED", "Transaction", mockVoidInfo());
+const BOB_VOID_COLLECTION_LOC = buildLocAndRequest(BOB.account, "CLOSED", "Collection", mockVoidInfo());
+const BOB_CLOSED_IDENTITY_LOC = buildLocAndRequest(BOB.account, "CLOSED", "Identity");
 
-const CHARLIE_VOID_IDENTITY_LOC = buildLocAndRequest(CHARLIE.address, "CLOSED", "Identity", mockVoidInfo());
+const CHARLIE_VOID_IDENTITY_LOC = buildLocAndRequest(CHARLIE.account, "CLOSED", "Identity", mockVoidInfo());
 
 const ALL_LOCS = [
     ALICE_OPEN_TRANSACTION_LOC,
@@ -910,12 +910,12 @@ let nodeApiMock: Mock<LogionNodeApiClass>;
 let uploaderMock: Mock<FileUploader>;
 
 async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<SharedState> {
-    const currentAddress = isVerifiedIssuer ? ISSUER : REQUESTER;
+    const currentAccount = isVerifiedIssuer ? ISSUER : REQUESTER;
     const token = "some-token";
     const tokens = new AccountTokens(
         buildSimpleNodeApi(),
         {
-            [currentAddress.toKey()]: {
+            [currentAccount.toKey()]: {
                 value: token,
                 expirationDateTime: DateTime.now().plus({ hours: 1 })
             }
@@ -1046,10 +1046,10 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
             nodeApiMock.setup(instance => instance.queries.getLegalOfficerCase).returns(mockGetLegalOfficerCase(ALL_LOCS));
 
             let verifiedIssuer: VerifiedIssuerType | undefined;
-            const verifiedIssuerAddress = ALICE_CLOSED_IDENTITY_LOC_WITH_VERIFIED_ISSUER.loc.requesterAddress?.address || "";
+            const verifiedIssuerAddress = ALICE_CLOSED_IDENTITY_LOC_WITH_VERIFIED_ISSUER.loc.requesterAccountId;
             if(isVerifiedIssuer) {
                 verifiedIssuer = {
-                    address: verifiedIssuerAddress,
+                    account: verifiedIssuerAddress!,
                     identityLocId: new UUID(ALICE_CLOSED_IDENTITY_LOC_WITH_VERIFIED_ISSUER.request.id),
                 };
             }
@@ -1060,7 +1060,7 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
                         {
                             args: [
                                 mockCodecWithToString(ISSUER.address),
-                                mockCodecWithToString(ALICE.address),
+                                mockCodecWithToString(ALICE.account.address),
                                 mockCodecWithToString(new UUID(ALICE_OPEN_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER.request.id).toDecimalString()),
                             ],
                         } as any,
@@ -1070,7 +1070,7 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
                         {
                             args: [
                                 mockCodecWithToString(ISSUER.address),
-                                mockCodecWithToString(ALICE.address),
+                                mockCodecWithToString(ALICE.account.address),
                                 mockCodecWithToString(new UUID(ALICE_CLOSED_TRANSACTION_LOC_WITH_SELECTED_VERIFIED_ISSUER.request.id).toDecimalString()),
                             ],
                         } as any,
@@ -1138,7 +1138,7 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
             nodeApiMock.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny())).returnsAsync(Fees.zero());
             nodeApiMock.setup(instance => instance.fees.ensureEnoughFunds(It.IsAny())).returnsAsync(undefined);
         },
-        currentAddress,
+        currentAccount,
         legalOfficers,
         tokens,
     );
@@ -1212,8 +1212,8 @@ async function getVoidedCollectionLoc() {
 
 function expectDataToMatch(data: LocData, request: LocRequest) {
     expect(data.id.toString()).toBe(request.id.toString());
-    expect(data.ownerAddress).toBe(request.ownerAddress);
-    expect(data.requesterAddress).toEqual(buildValidPolkadotAccountId(request.requesterAddress?.address));
+    expect(data.ownerAccountId.address).toBe(request.ownerAddress);
+    expect(data.requesterAccountId).toEqual(buildValidPolkadotAccountId(request.requesterAddress?.address));
     expect(data.requesterLocId?.toString()).toBe(request.requesterIdentityLoc ? request.requesterIdentityLoc : undefined);
     expect(data.description).toBe(request.description);
     expect(data.locType).toBe(request.locType);
@@ -1296,10 +1296,10 @@ async function testDeleteLink(editable: EditableRequest) {
 
 async function testSelectIssuer(state: OpenLoc | ClosedCollectionLoc) {
     const signer = new Mock<Signer>();
-    signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+    signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
     await state.legalOfficer.selectIssuer({
-        issuer: ISSUER.address,
+        issuer: ISSUER,
         signer: signer.object(),
     });
 
@@ -1309,10 +1309,10 @@ async function testSelectIssuer(state: OpenLoc | ClosedCollectionLoc) {
 
 async function testUnselectIssuer(state: OpenLoc | ClosedCollectionLoc) {
     const signer = new Mock<Signer>();
-    signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId === REQUESTER.address))).returnsAsync(SUCCESSFUL_SUBMISSION);
+    signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
     await state.legalOfficer.unselectIssuer({
-        issuer: ISSUER.address,
+        issuer: ISSUER,
         signer: signer.object(),
     });
 

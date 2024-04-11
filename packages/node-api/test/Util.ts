@@ -14,10 +14,6 @@ export function mockCodecWithToBigInt<T>(value: bigint): T {
     }) as T;
 }
 
-export function mockValidAccountId(address: string): ValidAccountId {
-    return new AnyAccountId(address, "Polkadot").toValidAccountId();
-}
-
 export const POLKADOT_API_CREATE_TYPE = (_type: string, ...args: any[]) => args;
 
 export function mockBool(value: boolean): bool {

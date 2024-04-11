@@ -61,7 +61,7 @@ export class TestConfigFactory {
         this._componentFactory.setup(instance => instance.buildAuthenticationClient(
             It.IsAny(),
             config.directoryEndpoint,
-            It.Is<LegalOfficerClass[]>(value => legalOfficers.map(lo => lo.address).every(item => value.map(lo => lo.address).includes(item))), It.IsAny()
+            It.Is<LegalOfficerClass[]>(value => legalOfficers.map(lo => lo.account).every(item => value.map(lo => lo.account.address).includes(item.address))), It.IsAny()
         )).returns(authenticationClient.object());
         return authenticationClient;
     }

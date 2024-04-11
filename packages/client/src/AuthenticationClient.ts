@@ -100,18 +100,18 @@ export class AuthenticationClient {
     }
 
     async refresh(accountTokens: AccountTokens): Promise<AccountTokens> {
-        const address = accountTokens.addresses[0];
-        const token = accountTokens.get(address);
+        const account = accountTokens.accounts[0];
+        const token = accountTokens.get(account);
         if(!token) {
-            throw new Error(`Cannot refresh with address ${address}`);
+            throw new Error(`Cannot refresh with address ${account.address}`);
         }
         const tokens: Record<string, string> = {};
-        const addresses = accountTokens.addresses;
-        for(let i = 0; i < addresses.length; ++i) {
-            const address = addresses[i];
-            const tokenValue = accountTokens.get(address)?.value;
+        const accounts = accountTokens.accounts;
+        for(let i = 0; i < accounts.length; ++i) {
+            const account = accounts[i];
+            const tokenValue = accountTokens.get(account)?.value;
             if(tokenValue) {
-                tokens[address.toKey()] = tokenValue;
+                tokens[account.toKey()] = tokenValue;
             }
         }
 
@@ -136,28 +136,28 @@ export class AccountTokens {
 
     private store: Record<string, Token>;
 
-    get(address?: ValidAccountId): Token | undefined {
-        return this.store[address?.toKey() || ""];
+    get(account?: ValidAccountId): Token | undefined {
+        return this.store[account?.toKey() || ""];
     }
 
     merge(tokens: AccountTokens): AccountTokens {
         const newStore = { ...this.store };
-        for(const address of tokens.addresses) {
-            newStore[address.toKey()] = tokens.store[address.toKey()];
+        for(const account of tokens.accounts) {
+            newStore[account.toKey()] = tokens.store[account.toKey()];
         }
         return new AccountTokens(tokens.api, newStore);
     }
 
-    get addresses(): ValidAccountId[] {
+    get accounts(): ValidAccountId[] {
         return Object.keys(this.store).map(key => ValidAccountId.parseKey(key));
     }
 
     cleanUp(now: DateTime): AccountTokens {
         const newStore: Record<string, Token> = {};
-        for(const address of this.addresses) {
-            const token = this.get(address);
+        for(const account of this.accounts) {
+            const token = this.get(account);
             if(token && token.expirationDateTime > now) {
-                newStore[address.toKey()] = token;
+                newStore[account.toKey()] = token;
             }
         }
         return new AccountTokens(this.api, newStore);
@@ -167,9 +167,9 @@ export class AccountTokens {
         if(this.length !== other.length) {
             return false;
         }
-        for(const address of this.addresses) {
-            const thisToken = this.get(address);
-            const otherToken = other.get(address);
+        for(const account of this.accounts) {
+            const thisToken = this.get(account);
+            const otherToken = other.get(account);
             if((!thisToken || !otherToken)
                 || !thisToken.expirationDateTime.equals(otherToken.expirationDateTime)) {
                 return false;
@@ -179,14 +179,14 @@ export class AccountTokens {
     }
 
     get length(): number {
-        return this.addresses.length;
+        return this.accounts.length;
     }
 
-    isAuthenticated(now: DateTime, address: ValidAccountId | undefined): boolean {
-        if(address === undefined) {
+    isAuthenticated(now: DateTime, account: ValidAccountId | undefined): boolean {
+        if(account === undefined) {
             return false;
         }
-        const token = this.get(address);
+        const token = this.get(account);
         if(token === undefined) {
             return false;
         } else {
@@ -196,7 +196,7 @@ export class AccountTokens {
 
     earliestExpiration(): DateTime | undefined {
         let earliest: DateTime | undefined;
-        for(const address of this.addresses) {
+        for(const address of this.accounts) {
             const expiration = this.store[address.toKey()].expirationDateTime;
             if(earliest === undefined || earliest > expiration) {
                 earliest = expiration;

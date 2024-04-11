@@ -48,14 +48,14 @@ export type LocAndRequest = {
     loc: LegalOfficerCase
 }
 
-export function buildLocAndRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: VoidInfo, requester: ValidAccountId = REQUESTER): LocAndRequest {
+export function buildLocAndRequest(ownerAddress: ValidAccountId, status: LocRequestStatus, locType: LocType, voidInfo?: VoidInfo, requester: ValidAccountId = REQUESTER): LocAndRequest {
     return {
         request: buildLocRequest(ownerAddress, status, locType, voidInfo !== undefined, requester),
         loc: buildLoc(ownerAddress, status, locType, voidInfo, requester)
     }
 }
 
-export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, locType: LocType, voided?: boolean, requester: ValidAccountId = REQUESTER): LocRequest {
+export function buildLocRequest(ownerAddress: ValidAccountId, status: LocRequestStatus, locType: LocType, voided?: boolean, requester: ValidAccountId = REQUESTER): LocRequest {
     return {
         id: new UUID().toString(),
         createdOn: DateTime.now().toISO(),
@@ -64,7 +64,7 @@ export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, 
         links: [ EXISTING_LINK ],
         metadata: [],
         requesterAddress: requester,
-        ownerAddress,
+        ownerAddress: ownerAddress.address,
         status,
         locType,
         voidInfo: voided ? { reason: "Some voiding reason.", voidedOn: DateTime.now().toISO() } : undefined,
@@ -78,12 +78,12 @@ export function buildLocRequest(ownerAddress: string, status: LocRequestStatus, 
     };
 }
 
-export const ISSUER = buildValidPolkadotAccountId("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb")!;
+export const ISSUER = ValidAccountId.polkadot("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb");
 
-export function buildLoc(ownerAddress: string, status: LocRequestStatus, locType: LocType, voidInfo?: VoidInfo, requester: ValidAccountId = REQUESTER): LegalOfficerCase {
+export function buildLoc(ownerAddress: ValidAccountId, status: LocRequestStatus, locType: LocType, voidInfo?: VoidInfo, requester: ValidAccountId = REQUESTER): LegalOfficerCase {
     return {
         owner: ownerAddress,
-        requesterAddress: requester,
+        requesterAccountId: requester,
         metadata: [],
         files: [
             {
@@ -136,9 +136,9 @@ export function mockVoidInfo(): VoidInfo {
     return {};
 }
 
-export function mockGetLegalOfficerCase(ALL_LOCS: LocAndRequest[]): ((locId: UUID) => Promise<LegalOfficerCase | undefined>) {
+export function mockGetLegalOfficerCase(allLocs: LocAndRequest[]): ((locId: UUID) => Promise<LegalOfficerCase | undefined>) {
     return (id: UUID) => {
-        const locData = ALL_LOCS.find(locData => new UUID(locData.request.id).toString() === id.toString());
+        const locData = allLocs.find(locData => new UUID(locData.request.id).toString() === id.toString());
         if(locData) {
             return Promise.resolve(locData.loc);
         } else {
@@ -147,14 +147,14 @@ export function mockGetLegalOfficerCase(ALL_LOCS: LocAndRequest[]): ((locId: UUI
     };
 }
 
-export function mockLocBatchFactory(ALL_LOCS: LocAndRequest[], verifiedIssuer?: VerifiedIssuerType): ((locIds: UUID[]) => LocBatch) {
+export function mockLocBatchFactory(allLocs: LocAndRequest[], verifiedIssuer?: VerifiedIssuerType): ((locIds: UUID[]) => LocBatch) {
     return (locIds: UUID[]) => {
         const locBatch = new Mock<LocBatch>();
         const stringIds = locIds.map(uuid => uuid.toString());
 
         const getLocsImpl = () => {
             const locs: Record<string, LegalOfficerCase> = {};
-            ALL_LOCS.forEach(locAndRequest => {
+            allLocs.forEach(locAndRequest => {
                 if(stringIds.includes(locAndRequest.request.id)) {
                     locs[new UUID(locAndRequest.request.id).toDecimalString()] = locAndRequest.loc;
                 }
@@ -165,7 +165,7 @@ export function mockLocBatchFactory(ALL_LOCS: LocAndRequest[], verifiedIssuer?: 
 
         const getLocsVerifiedIssuersImpl = () => {
             const locsVerifiedIssuers: Record<string, VerifiedIssuerType[]> = {};
-            ALL_LOCS.forEach(locAndRequest => {
+            allLocs.forEach(locAndRequest => {
                 if(stringIds.includes(locAndRequest.request.id)) {
                     locsVerifiedIssuers[new UUID(locAndRequest.request.id).toDecimalString()] ||= [];
                     if(verifiedIssuer) {
@@ -179,7 +179,7 @@ export function mockLocBatchFactory(ALL_LOCS: LocAndRequest[], verifiedIssuer?: 
 
         const getAvailableVerifiedIssuersImpl = () => {
             const availableVerifiedIssuers: Record<string, VerifiedIssuerType[]> = {};
-            ALL_LOCS.forEach(locAndRequest => {
+            allLocs.forEach(locAndRequest => {
                 if(stringIds.includes(locAndRequest.request.id)) {
                     availableVerifiedIssuers[locAndRequest.request.ownerAddress] ||= [];
                     if(verifiedIssuer) {

@@ -1,4 +1,4 @@
-import { Region } from "@logion/node-api";
+import { Region, ValidAccountId } from "@logion/node-api";
 import { AxiosInstance } from "axios";
 import { AxiosFactory } from "./AxiosFactory";
 
@@ -24,7 +24,7 @@ export interface LegalOfficerPostalAddress extends PostalAddress {
 export interface LegalOfficer {
     userIdentity: UserIdentity;
     postalAddress: LegalOfficerPostalAddress;
-    address: string;
+    account: ValidAccountId;
     additionalDetails: string;
     node: string;
     name: string;
@@ -62,21 +62,20 @@ class Workload {
     addLegalOfficer(legalOfficer: LegalOfficer) {
         const addresses = this.addressesByNode[legalOfficer.node];
         if (addresses === undefined) {
-            this.addressesByNode[legalOfficer.node] = new Set([ legalOfficer.address ]);
+            this.addressesByNode[legalOfficer.node] = new Set([ legalOfficer.account.address ]);
         } else {
-            addresses.add(legalOfficer.address);
+            addresses.add(legalOfficer.account.address);
         }
     }
 
     async getWorkload(legalOfficer: LegalOfficerClass): Promise<number> {
-        const cachedWorkload = this.workloads[legalOfficer.address];
+        const cachedWorkload = this.workloads[legalOfficer.account.address];
         if (cachedWorkload !== undefined && (Date.now() - cachedWorkload.timestamp) < this._cacheTtlMs) {
             return cachedWorkload.workload;
         } else {
             await this.fetchAndStoreWorkload(legalOfficer);
-            return this.workloads[legalOfficer.address].workload;
+            return this.workloads[legalOfficer.account.address].workload;
         }
-
     }
 
     flushCache() {
@@ -115,7 +114,7 @@ export class LegalOfficerClass implements LegalOfficer {
     }) {
         this.userIdentity = args.legalOfficer.userIdentity;
         this.postalAddress = args.legalOfficer.postalAddress;
-        this.address = args.legalOfficer.address;
+        this.account = args.legalOfficer.account;
         this.additionalDetails = args.legalOfficer.additionalDetails;
         this.node = args.legalOfficer.node;
         this.name = args.legalOfficer.name;
@@ -131,7 +130,7 @@ export class LegalOfficerClass implements LegalOfficer {
 
     readonly userIdentity: UserIdentity;
     readonly postalAddress: LegalOfficerPostalAddress;
-    readonly address: string;
+    readonly account: ValidAccountId;
     readonly additionalDetails: string;
     readonly node: string;
     readonly name: string;

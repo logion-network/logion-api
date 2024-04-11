@@ -5,6 +5,7 @@ import { LegalOfficerEndpoint } from "./SharedClient.js";
 import { AxiosFactory } from "./AxiosFactory.js";
 import { AnySourceHttpClient, Endpoint } from "./Http.js";
 import { Fees } from "./Fees.js";
+import { ValidAccountId } from "@logion/node-api";
 
 interface FetchTransactionsSpecification {
     address: string,
@@ -58,23 +59,23 @@ export class TransactionClient {
     constructor(params: {
         networkState: NetworkState<LegalOfficerEndpoint>,
         axiosFactory: AxiosFactory,
-        currentAddress: string,
+        currentAccount: ValidAccountId,
     }) {
         this.networkState = params.networkState;
         this.axiosFactory = params.axiosFactory;
-        this.currentAddress = params.currentAddress;
+        this.currentAccount = params.currentAccount;
     }
 
     private readonly networkState: NetworkState<LegalOfficerEndpoint>;
 
     private readonly axiosFactory: AxiosFactory;
 
-    private readonly currentAddress: string;
+    private readonly currentAccount: ValidAccountId;
 
     async fetchTransactions(): Promise<Transaction []> {
         const anyClient = new AnySourceHttpClient<Endpoint, TransactionsSet>(this.networkState, this.axiosFactory);
         const transactionsSet = await anyClient.fetch(axios => this.getTransactions(axios, {
-            address: this.currentAddress
+            address: this.currentAccount.address,
         }));
         return transactionsSet ? transactionsSet.transactions : []
     }

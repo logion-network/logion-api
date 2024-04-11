@@ -54,7 +54,7 @@ export function signAndSend(keypair: IKeyringPair, extrinsic: SubmittableExtrins
                 if(result.dispatchError) {
                     error(new Error(Adapters.getErrorMessage(result.dispatchError)));
                 } else {
-                    error();
+                    error(new Error("Error without dispatchError"));
                 }
             } else if (result.status.isInBlock) {
                 unsub();
@@ -66,7 +66,7 @@ export function signAndSend(keypair: IKeyringPair, extrinsic: SubmittableExtrins
             }
         })
         .then(_unsub => unsub = _unsub)
-        .catch(() => error());
+        .catch(e => error(e));
     });
 }
 
