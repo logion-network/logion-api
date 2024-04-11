@@ -1,18 +1,17 @@
 import { ApiPromise } from "@polkadot/api";
-import { CollectionItem, Hash, LegalOfficerCase, Lgnt, LogionNodeApiClass, Numbers, UUID } from "../src/index.js";
+import { CollectionItem, Hash, LegalOfficerCase, Lgnt, LogionNodeApiClass, Numbers, UUID, ValidAccountId } from "../src/index.js";
 import {
     POLKADOT_API_CREATE_TYPE,
-    mockValidAccountId,
     mockBool,
     mockParaRuntimeVersion,
 } from "./Util.js";
-import { DEFAULT_LEGAL_OFFICER } from "./TestData.js";
+import { DEFAULT_LEGAL_OFFICER, TEST_WALLET_USER, TEST_WALLET_USER2 } from "./TestData.js";
 import { BN } from "bn.js";
 
 describe("Queries", () => {
 
     it("Getting account data", async () => {
-        const accountId = "accountId";
+        const accountId = TEST_WALLET_USER;
         const api = mockPolkadotApiWithAccountData(accountId);
 
         const logionApi = new LogionNodeApiClass(api);
@@ -23,7 +22,7 @@ describe("Queries", () => {
     });
 
     it("Getting balances", async () => {
-        const accountId = "accountId";
+        const accountId = TEST_WALLET_USER;
         const api = mockPolkadotApiWithAccountData(accountId);
 
         const logionApi = new LogionNodeApiClass(api);
@@ -50,7 +49,7 @@ describe("Queries", () => {
         const loc = await logionApi.queries.getLegalOfficerCase(locId);
 
         expect(loc!.owner).toEqual(DEFAULT_LOC.owner);
-        expect(loc!.requesterAddress?.address).toEqual(DEFAULT_LOC.requesterAddress?.address);
+        expect(loc!.requesterAccountId).toEqual(DEFAULT_LOC.requesterAccountId);
         expect(loc!.metadata).toEqual(DEFAULT_LOC.metadata);
         expect(loc!.files).toEqual(DEFAULT_LOC.files);
         loc!.links.forEach((link, index) => {
@@ -78,20 +77,20 @@ describe("Queries", () => {
         expect(item!.termsAndConditions).toEqual(DEFAULT_ITEM.termsAndConditions);
     });
 
-    it("fetched recovery config", async () => {
-        const accountId = "account";
+    it("fetches recovery config", async () => {
+        const accountId = TEST_WALLET_USER;
         const recoveryConfig = {
             isEmpty: false,
             isNone: false,
             unwrap: () => ({
                 friends: {
                     toArray: () => [
-                        { toString: () => DEFAULT_LEGAL_OFFICER }
+                        { toString: () => DEFAULT_LEGAL_OFFICER.address }
                     ]
                 }
             })
         };
-        const recoverable = (targetAccountId: string) => targetAccountId === accountId ? Promise.resolve(recoveryConfig) : Promise.reject();
+        const recoverable = (targetAccountId: string) => targetAccountId === accountId.address ? Promise.resolve(recoveryConfig) : Promise.reject();
         const api = mockPolkadotApiForRecovery(recoverable);
 
         const logionApi = new LogionNodeApiClass(api);
@@ -101,25 +100,25 @@ describe("Queries", () => {
         expect(config!.legalOfficers).toEqual([ DEFAULT_LEGAL_OFFICER ]);
     });
 
-    it("fetched active recovery", async () => {
-        const accountToRecover = "account1";
-        const recoveringAccount = "account2";
+    it("fetches active recovery", async () => {
+        const accountToRecover = TEST_WALLET_USER;
+        const recoveringAccount = TEST_WALLET_USER2;
         const activeRecovery = {
             isEmpty: false,
             isNone: false,
             unwrap: () => ({
                 friends: {
                     toArray: () => [
-                        { toString: () => DEFAULT_LEGAL_OFFICER }
+                        { toString: () => DEFAULT_LEGAL_OFFICER.address }
                     ]
                 }
             })
         };
-        const recoverable = (source: string, dest: string) =>
-                (source === accountToRecover && dest === recoveringAccount)
+        const activeRecoveries = (source: string, dest: string) =>
+                (source === accountToRecover.address && dest === recoveringAccount.address)
                     ? Promise.resolve(activeRecovery)
                     : Promise.reject();
-        const api = mockPolkadotApiForRecovery(undefined, recoverable);
+        const api = mockPolkadotApiForRecovery(undefined, activeRecoveries);
         const logionApi = new LogionNodeApiClass(api);
         const recovery = await logionApi.queries.getActiveRecovery(accountToRecover, recoveringAccount);
         expect(recovery).toBeDefined()
@@ -127,12 +126,12 @@ describe("Queries", () => {
     });
 })
 
-function mockPolkadotApiWithAccountData(accountId: string) {
+function mockPolkadotApiWithAccountData(accountId: ValidAccountId) {
     return {
         runtimeVersion: mockParaRuntimeVersion(),
         query: {
             system: {
-                account: (id: string) => id === accountId ? {
+                account: (id: string) => id === accountId.address ? {
                     data: {
                         free: {
                             toBigInt: () => 32n,
@@ -156,13 +155,13 @@ function mockPolkadotApiForLogionLoc() {
                 locMap: () => Promise.resolve({
                     isSome: true,
                     unwrap: () => ({
-                        owner: DEFAULT_LOC.owner,
+                        owner: DEFAULT_LOC.owner.address,
                         requester: {
                             isAccount: true,
                             isLoc: false,
                             isOtherAccount: false,
                             asAccount: {
-                                toString: () => DEFAULT_LOC.requesterAddress?.address,
+                                toString: () => DEFAULT_LOC.requesterAccountId?.address,
                             },
                             asLoc: {
                                 toString: () => undefined
@@ -295,12 +294,12 @@ function mockPolkadotApiForLogionLoc() {
 
 export const DEFAULT_LOC: LegalOfficerCase = {
     owner: DEFAULT_LEGAL_OFFICER,
-    requesterAddress: mockValidAccountId("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb"),
+    requesterAccountId: TEST_WALLET_USER,
     metadata: [
         {
             name: Hash.of("meta_name"),
             value: Hash.of("meta_value"),
-            submitter: mockValidAccountId(DEFAULT_LEGAL_OFFICER),
+            submitter: DEFAULT_LEGAL_OFFICER,
             acknowledgedByOwner: true,
             acknowledgedByVerifiedIssuer: false,
         }
@@ -309,7 +308,7 @@ export const DEFAULT_LOC: LegalOfficerCase = {
         {
             hash: Hash.fromHex("0x8fc334610ff6939e55ea65b472fc107df861790b02542ecdbbfeaa2d17ed5abb"),
             nature: Hash.of("file-nature"),
-            submitter: mockValidAccountId(DEFAULT_LEGAL_OFFICER),
+            submitter: DEFAULT_LEGAL_OFFICER,
             size: BigInt(128000),
             acknowledgedByOwner: true,
             acknowledgedByVerifiedIssuer: false,
@@ -319,7 +318,7 @@ export const DEFAULT_LOC: LegalOfficerCase = {
         {
             id: new UUID("90fcde7e-a255-404e-8b15-32963a4e64c0"),
             nature: Hash.of("link-nature"),
-            submitter: mockValidAccountId(DEFAULT_LEGAL_OFFICER),
+            submitter: DEFAULT_LEGAL_OFFICER,
             acknowledgedByOwner: true,
             acknowledgedByVerifiedIssuer: false,
         }

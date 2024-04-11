@@ -163,7 +163,7 @@ export class VaultClient {
             const response = await axios.post('/api/vault-transfer-request', params);
             return {
                 ...response.data,
-                legalOfficerAddress: legalOfficer.address,
+                legalOfficerAddress: legalOfficer.account.address,
             };
         } catch(e) {
             throw newBackendError(e);

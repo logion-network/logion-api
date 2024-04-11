@@ -1,4 +1,4 @@
-import { Numbers, CoinBalance, Currency, Queries, Fees, Lgnt } from "@logion/node-api";
+import { Numbers, CoinBalance, Currency, Queries, Fees, Lgnt, ValidAccountId } from "@logion/node-api";
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { DateTime } from "luxon";
@@ -27,10 +27,10 @@ describe("Balance", () => {
 
             directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
-            nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS.address))
+            nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS))
                 .returns(Promise.resolve([ COIN_BALANCE ]));
         })
-        const client = (await LogionClient.create(config)).withCurrentAddress(REQUESTER_ADDRESS)
+        const client = (await LogionClient.create(config)).withCurrentAccount(REQUESTER_ADDRESS)
 
         const balanceState = await client.balanceState();
 
@@ -59,14 +59,14 @@ describe("Balance", () => {
             ...transactionBase(200000),
             from: REQUESTER_ADDRESS.address,
             id: "t1",
-            to: ALICE.address,
+            to: ALICE.account.address,
             transferDirection: "Sent",
             type: "EXTRINSIC",
         }
         const t2: Transaction = {
             ...transactionBase(300000),
             id: "t2",
-            from: BOB.address,
+            from: BOB.account.address,
             to: REQUESTER_ADDRESS.address,
             transferDirection: "Received",
             type: "EXTRINSIC",
@@ -86,10 +86,10 @@ describe("Balance", () => {
                 axiosFactory: axiosFactory.object(),
             }) ]));
 
-            nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS.address))
+            nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS))
                 .returns(Promise.resolve([ COIN_BALANCE ]));
         })
-        const client = (await LogionClient.create(config)).withCurrentAddress(REQUESTER_ADDRESS)
+        const client = (await LogionClient.create(config)).withCurrentAccount(REQUESTER_ADDRESS)
 
         const balanceState = await client.balanceState();
         expect(balanceState.transactions).toEqual(transactions)
@@ -129,7 +129,7 @@ describe("Balance", () => {
 
                 directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
-                nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS.address))
+                nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS))
                     .returns(Promise.resolve([ COIN_BALANCE ]));
 
                 nodeApi.setup(instance => instance.polkadot.tx.balances.transferKeepAlive(REQUESTER_ADDRESS.address, "200"))
@@ -161,7 +161,7 @@ describe("Balance", () => {
         await balanceState.transfer({
             signer: signer.object(),
             amount,
-            destination: REQUESTER_ADDRESS.address,
+            destination: REQUESTER_ADDRESS,
         });
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
@@ -178,7 +178,7 @@ describe("Balance", () => {
                 }
             }
         );
-        const recoveredAddress = "5EBxoSssqNo23FvsDeUxjyQScnfEiGxJaNwuwqBH2Twe35BX";
+        const recoveredAddress = ValidAccountId.polkadot("5EBxoSssqNo23FvsDeUxjyQScnfEiGxJaNwuwqBH2Twe35BX");
         const asRecovered = new Mock<SubmittableExtrinsic>();
         const amount = Lgnt.fromCanonical(200n);
         const transfer = new Mock<SubmittableExtrinsic>();
@@ -203,7 +203,7 @@ describe("Balance", () => {
 
                 directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
-                nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS.address))
+                nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS))
                     .returns(Promise.resolve([ COIN_BALANCE ]));
 
                 nodeApi.setup(instance => instance.polkadot.tx.balances.transferKeepAlive(REQUESTER_ADDRESS.address, "200"))
@@ -212,13 +212,13 @@ describe("Balance", () => {
                 nodeApi.setup(instance => instance.fees.estimateWithoutStorage(It.IsAny()))
                     .returnsAsync(Fees.zero());
 
-                nodeApi.setup(instance => instance.polkadot.tx.recovery.asRecovered(recoveredAddress, transfer.object()))
+                nodeApi.setup(instance => instance.polkadot.tx.recovery.asRecovered(recoveredAddress.address, transfer.object()))
                     .returns(asRecovered.object());
 
                 nodeApi.setup(instance => instance.queries.getAccountData(recoveredAddress))
                     .returnsAsync({ available: 200n, reserved: 0n, total: 200n });
 
-                setupFetchTransactions(axiosFactory, [], recoveredAddress);
+                setupFetchTransactions(axiosFactory, [], recoveredAddress.address);
             },
             REQUESTER_ADDRESS,
             [ ALICE, BOB ],
@@ -230,7 +230,7 @@ describe("Balance", () => {
             balances,
             transactions: [],
             isRecovery: true,
-            recoveredAddress,
+            recoveredAccount: recoveredAddress,
         });
 
         const signer = new Mock<Signer>();
@@ -242,7 +242,7 @@ describe("Balance", () => {
         await balanceState.transfer({
             signer: signer.object(),
             amount,
-            destination: REQUESTER_ADDRESS.address,
+            destination: REQUESTER_ADDRESS,
         });
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
@@ -282,7 +282,7 @@ describe("Balance", () => {
 
                 directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
-                nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS.address))
+                nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS))
                     .returns(Promise.resolve([ COIN_BALANCE ]));
 
                 nodeApi.setup(instance => instance.polkadot.tx.balances.transferKeepAlive(REQUESTER_ADDRESS.address, "200"))
@@ -306,15 +306,15 @@ describe("Balance", () => {
         });
 
         const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<{ signerId: string, submittable: SubmittableExtrinsic }>(params =>
-            params.signerId === REQUESTER_ADDRESS.address
+        signer.setup(instance => instance.signAndSend(It.Is<{ signerId: ValidAccountId, submittable: SubmittableExtrinsic }>(params =>
+            params.signerId.equals(REQUESTER_ADDRESS)
             && params.submittable === transfer.object()))
         ).returns(Promise.resolve(SUCCESSFUL_SUBMISSION));
 
         await expectAsync(balanceState.transfer({
             signer: signer.object(),
             amount,
-            destination: REQUESTER_ADDRESS.address,
+            destination: REQUESTER_ADDRESS,
         })).toBeRejectedWithError("Insufficient balance");
     })
 })

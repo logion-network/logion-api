@@ -76,8 +76,8 @@ import { MimeType } from "./Mime.js";
 
 export interface LocData extends LocVerifiedIssuers {
     id: UUID
-    ownerAddress: string;
-    requesterAddress?: ValidAccountId;
+    ownerAccountId: ValidAccountId;
+    requesterAccountId?: ValidAccountId;
     requesterLocId?: UUID;
     description: string;
     locType: LocType;
@@ -207,7 +207,7 @@ export class LocsState extends State {
     hasValidIdentityLoc(legalOfficer: LegalOfficer): boolean {
         return LocsState.filter(this._locs, 'Identity', loc =>
             loc instanceof ClosedLoc &&
-            loc.data().ownerAddress === legalOfficer.address
+            loc.data().ownerAccountId.equals(legalOfficer.account)
         ).length > 0;
     }
 
@@ -323,7 +323,7 @@ export class LocsState extends State {
         if (userPostalAddress === undefined) {
             throw new Error("User Postal Address is mandatory for an Identity LOC")
         }
-        if(this._client.currentAddress?.type === "Ethereum" && !params.sponsorshipId) {
+        if(this._client.currentAccount?.type === "Ethereum" && !params.sponsorshipId) {
             throw new Error("Identity LOC requests with an Ethereum address must be sponsored");
         }
         return this.requestLoc({
@@ -333,11 +333,11 @@ export class LocsState extends State {
     }
 
     private async requestLoc(params: CreateAnyLocRequestParams): Promise<DraftRequest | PendingRequest> {
-        const { legalOfficerAddress, locType, description, userIdentity, userPostalAddress, company, draft, template, sponsorshipId } = params;
-        const legalOfficer = getLegalOfficer(this.sharedState, legalOfficerAddress)
+        const { legalOfficerAccountId, locType, description, userIdentity, userPostalAddress, company, draft, template, sponsorshipId } = params;
+        const legalOfficer = getLegalOfficer(this.sharedState, legalOfficerAccountId);
         const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
         const request = await client.createLocRequest({
-            ownerAddress: legalOfficer.address,
+            ownerAddress: legalOfficer.account.address,
             description,
             locType,
             userIdentity,
@@ -406,14 +406,14 @@ export class LocsState extends State {
 
     private async openLoc(params: BlockchainSubmission<CreateAnyLocParams & ItemsParams>): Promise<OpenLoc> {
         const { payload } = params;
-        const { legalOfficerAddress, locType, description, userIdentity, userPostalAddress, company, template, metadata, links, collectionParams } = payload;
+        const { legalOfficerAccountId: legalOfficerAddress, locType, description, userIdentity, userPostalAddress, company, template, metadata, links, collectionParams } = payload;
         const legalOfficer = getLegalOfficer(this.sharedState, legalOfficerAddress)
-        if (this.sharedState.currentAddress?.type !== "Polkadot") {
+        if (this.sharedState.currentAccount?.type !== "Polkadot") {
             throw Error("Direct LOC opening must be done by Polkadot account");
         }
         const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
         const request = await client.createOpenLoc({
-            ownerAddress: legalOfficer.address,
+            ownerAddress: legalOfficer.account.address,
             description,
             locType,
             userIdentity,
@@ -524,7 +524,7 @@ export class LocsState extends State {
         locRequest: LocRequest,
         locBatch: LocBatch,
     ): Promise<AnyLocState> {
-        const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === locRequest.ownerAddress);
+        const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.account.address === locRequest.ownerAddress);
         if (legalOfficer) {
             const client = locMultiClient.newLocClient(legalOfficer);
             const locSharedState: LocSharedState = {
@@ -550,8 +550,8 @@ export class LocsState extends State {
     private getVerifiedIssuerLegalOfficers(locsState: LocsState): LegalOfficerClass[] {
         return locsState.closedLocs["Identity"]
             .filter(loc => loc.data().verifiedIssuer)
-            .map(loc => loc.data().ownerAddress)
-            .map(address => locsState.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === address))
+            .map(loc => loc.data().ownerAccountId)
+            .map(accountId => locsState.sharedState.legalOfficers.find(legalOfficer => legalOfficer.account.equals(accountId)))
             .filter(this.isDefinedLegalOfficer);
     }
 
@@ -577,8 +577,7 @@ export class LocsState extends State {
 
     private computeIsVerifiedIssuer(): boolean {
         return this.closedLocs["Identity"].find(loc => loc.data().verifiedIssuer
-            && loc.data().requesterAddress?.address === this.sharedState.currentAddress?.address
-            && loc.data().requesterAddress?.type === this.sharedState.currentAddress?.type) !== undefined;
+            && loc.data().requesterAccountId?.equals(this.sharedState.currentAccount)) !== undefined;
     }
 
     get openVerifiedIssuerLocs(): Record<LocType, OpenLoc[]> {
@@ -622,7 +621,7 @@ export class LegalOfficerLocsStateCommands {
 
     async createLoc(params: OpenLocParams & BlockchainSubmissionParams): Promise<OpenLoc> {
         const { locType, description, userIdentity, userPostalAddress, company, template, signer, callback } = params;
-        const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.address === this.sharedState.currentAddress?.address);
+        const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.account.equals(this.sharedState.currentAccount));
         if(!legalOfficer) {
             throw new Error("Current user is not a Legal Officer");
         }
@@ -633,7 +632,7 @@ export class LegalOfficerLocsStateCommands {
         }
 
         const request = await client.createLocRequest({
-            ownerAddress: legalOfficer.address,
+            ownerAddress: legalOfficer.account.address,
             requesterIdentityLoc: params.requesterLocId ? params.requesterLocId.toString() : undefined,
             description,
             locType,
@@ -692,7 +691,7 @@ export interface LocSharedState extends SharedState {
 }
 
 export interface CreateLocParams {
-    legalOfficerAddress: string;
+    legalOfficerAccountId: ValidAccountId;
     description: string;
     template?: string;
     legalFee?: Lgnt;
@@ -772,7 +771,7 @@ export abstract class LocRequestState extends State {
         this.locIssuers = locIssuers;
         this.invitedContributors = invitedContributors;
 
-        const owner = locSharedState.allLegalOfficers.find(officer => officer.address === request.ownerAddress);
+        const owner = locSharedState.allLegalOfficers.find(officer => officer.account.address === request.ownerAddress);
         if(!owner) {
             throw new Error("LOC owner is not a registered legal officer");
         }
@@ -859,7 +858,7 @@ export abstract class LocRequestState extends State {
 
     isLogionIdentity(): boolean {
         const loc = this.data();
-        return loc.locType === 'Identity' && !loc.requesterAddress && !loc.requesterLocId;
+        return loc.locType === 'Identity' && !loc.requesterAccountId && !loc.requesterLocId;
     }
 
     isLogionData(): boolean {
@@ -896,7 +895,7 @@ export abstract class LocRequestState extends State {
             closedOn: request.closedOn ? fromIsoString(request.closedOn) : undefined,
             createdOn: fromIsoString(request.createdOn),
             decisionOn: request.decisionOn ? fromIsoString(request.decisionOn) : undefined,
-            requesterAddress: request.requesterAddress ? api.queries.getValidAccountId(request.requesterAddress.address, request.requesterAddress.type) : undefined,
+            requesterAccountId: request.requesterAddress ? api.queries.getValidAccountId(request.requesterAddress.address, request.requesterAddress.type) : undefined,
             requesterLocId: request.requesterIdentityLoc ? new UUID(request.requesterIdentityLoc) : undefined,
             id: new UUID(request.id),
             replacerOf: undefined,
@@ -915,6 +914,7 @@ export abstract class LocRequestState extends State {
             },
             collectionParams: this.toCollectionParams(request.collectionParams),
             invitedContributors,
+            ownerAccountId: ValidAccountId.polkadot(request.ownerAddress),
         };
     }
 
@@ -935,7 +935,7 @@ export abstract class LocRequestState extends State {
             ...loc,
             ...locIssuers,
             id: new UUID(request.id),
-            ownerAddress: loc.owner,
+            ownerAccountId: loc.owner,
             closedOn: request.closedOn ? fromIsoString(request.closedOn) : undefined,
             createdOn: fromIsoString(request.createdOn),
             decisionOn: request.decisionOn ? fromIsoString(request.decisionOn) : undefined,
@@ -1105,18 +1105,18 @@ export abstract class LocRequestState extends State {
     }
 
     isRequester(account?: ValidAccountId): boolean {
-        const candidate = account !== undefined ? account : this.locSharedState.currentAddress;
+        const candidate = account !== undefined ? account : this.locSharedState.currentAccount;
         return this.request.requesterAddress && candidate?.equals(this.request.requesterAddress) || false;
     }
 
     isOwner(account?: ValidAccountId): boolean {
-        const candidate = account !== undefined ? account : this.locSharedState.currentAddress;
+        const candidate = account !== undefined ? account : this.locSharedState.currentAccount;
         return candidate?.type === "Polkadot" && candidate?.address === this.request.ownerAddress;
     }
 
     isVerifiedIssuer(account?: ValidAccountId): boolean {
-        const candidate = account !== undefined ? account : this.locSharedState.currentAddress;
-        return candidate?.type === "Polkadot" && (this.locIssuers.issuers.find(issuer => issuer.address === candidate?.address) !== undefined);
+        const candidate = account !== undefined ? account : this.locSharedState.currentAccount;
+        return candidate?.type === "Polkadot" && (this.locIssuers.issuers.find(issuer => issuer.account.equals(candidate)) !== undefined);
     }
 }
 
@@ -1395,26 +1395,26 @@ implements LegalOfficeReviewCommands {
     }
 
     async accept(args?: BlockchainSubmissionParams): Promise<AcceptedRequest | OpenLoc> {
-        const requesterAccount = this.request.data().requesterAddress;
+        const requesterAccountId = this.request.data().requesterAccountId;
         const requesterLoc = this.request.data().requesterLocId;
         const sponsorshipId = this.request.data().sponsorshipId;
         const locType = this.request.data().locType;
         if(locType === "Transaction") {
             await this.client.acceptTransactionLoc({
                 locId: this.locId,
-                requesterAccount,
+                requesterAccountId,
                 requesterLoc,
                 ...args,
             });
         } else if(locType === "Identity") {
             await this.client.acceptIdentityLoc({
                 locId: this.locId,
-                requesterAccount,
+                requesterAccountId,
                 sponsorshipId,
                 ...args,
             });
         } else {
-            if(!requesterAccount) {
+            if(!requesterAccountId) {
                 throw new Error("Can only accept LOC with polkadot requester");
             }
             await this.client.acceptCollectionLoc({
@@ -1425,20 +1425,20 @@ implements LegalOfficeReviewCommands {
     }
 
     async estimateFeesAccept(): Promise<FeesClass | undefined> {
-        const requesterAccount = this.request.data().requesterAddress;
+        const requesterAccountId = this.request.data().requesterAccountId;
         const requesterLoc = this.request.data().requesterLocId;
         const sponsorshipId = this.request.data().sponsorshipId;
         const locType = this.request.data().locType;
         if(locType === "Transaction") {
             return this.client.estimateFeesAcceptTransactionLoc({
                 locId: this.locId,
-                requesterAccount,
+                requesterAccountId,
                 requesterLoc,
             });
         } else if(locType === "Identity") {
             return this.client.estimateFeesAcceptIdentityLoc({
                 locId: this.locId,
-                requesterAccount,
+                requesterAccountId,
                 sponsorshipId,
             });
         } else {
@@ -1514,7 +1514,7 @@ export class AcceptedRequest extends ReviewedRequest {
         }
         return {
             locId: this.locId,
-            legalOfficerAddress: this.owner.address,
+            legalOfficerAccountId: this.owner.account,
             legalFee: this.request.fees?.legalFee !== undefined ? Lgnt.fromCanonical(BigInt(this.request.fees?.legalFee)) : undefined,
             metadata: this.toAddMetadataParams(autoPublish),
             files: this.toAddFileParams(autoPublish),
@@ -1587,7 +1587,7 @@ export class AcceptedRequest extends ReviewedRequest {
         );
         return {
             locId: this.locId,
-            legalOfficerAddress: this.owner.address,
+            legalOfficerAccountId: this.owner.account,
             valueFee: Lgnt.fromCanonical(BigInt(valueFee)),
             collectionItemFee: Lgnt.fromCanonical(BigInt(collectionItemFee)),
             tokensRecordFee: Lgnt.fromCanonical(BigInt(tokensRecordFee)),
@@ -2038,15 +2038,15 @@ implements LegalOfficerLocWithSelectableIssuersCommands<T> {
         const selectedIssuers = locData.issuers;
 
         return allVerifiedIssuers
-            .filter(issuer => issuer.address !== locData.requesterAddress?.address)
+            .filter(issuer => !issuer.account.equals(locData.requesterAccountId))
             .map(issuer => {
-                const selected = selectedIssuers.find(selectedIssuer => selectedIssuer.address === issuer.address);
+                const selected = selectedIssuers.find(selectedIssuer => selectedIssuer.account.equals(issuer.account));
                 if(selected && selected.firstName && selected.lastName) {
                     return {
                         firstName: selected.firstName,
                         lastName: selected.lastName,
                         identityLocId: selected.identityLocId,
-                        address: selected.address,
+                        account: selected.account,
                         selected: selected.selected || false,
                     };
                 } else {
@@ -2054,7 +2054,7 @@ implements LegalOfficerLocWithSelectableIssuersCommands<T> {
                         firstName: issuer.identity.firstName,
                         lastName: issuer.identity.lastName,
                         identityLocId: issuer.identityLocId,
-                        address: issuer.address,
+                        account: issuer.account,
                         selected: selected?.selected || false,
                     };
                 }
@@ -2069,7 +2069,7 @@ implements LegalOfficerLocWithSelectableIssuersCommands<T> {
         });
     }
 
-    private async setIssuerSelection(params: { issuer: string, selected: boolean } & BlockchainSubmissionParams): Promise<T> {
+    private async setIssuerSelection(params: { issuer: ValidAccountId, selected: boolean } & BlockchainSubmissionParams): Promise<T> {
         await this.client.setIssuerSelection({
             ...params,
             locId: this.request.data().id,
@@ -2088,7 +2088,7 @@ implements LegalOfficerLocWithSelectableIssuersCommands<T> {
 export type VerifiedIssuerWithSelect = VerifiedIssuer & { selected: boolean };
 
 export interface SelectUnselectIssuerParams extends BlockchainSubmissionParams {
-    issuer: string;
+    issuer: ValidAccountId;
 }
 
 export class ClosedLoc extends LocRequestState {
@@ -2122,14 +2122,14 @@ export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommands
             throw new Error("Not an Identity LOC");
         }
 
-        if(!data.requesterAddress || data.requesterAddress.type !== "Polkadot") {
+        if(!data.requesterAccountId || data.requesterAccountId.type !== "Polkadot") {
             throw new Error("Identity LOC has no Polkadot requester");
         }
 
         await this.client.nominateIssuer({
             ...params,
             locId: data.id,
-            requester: data.requesterAddress.address,
+            requester: data.requesterAccountId.address,
         });
 
         return await this.request.refresh() as ClosedLoc;
@@ -2141,13 +2141,13 @@ export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommands
             throw new Error("Not an Identity LOC");
         }
 
-        if(!data.requesterAddress || data.requesterAddress.type !== "Polkadot") {
+        if(!data.requesterAccountId || data.requesterAccountId.type !== "Polkadot") {
             throw new Error("Identity LOC has no Polkadot requester");
         }
 
         await this.client.dismissIssuer({
             ...params,
-            requester: data.requesterAddress.address,
+            requester: data.requesterAccountId.address,
         });
 
         return await this.request.refresh() as ClosedLoc;

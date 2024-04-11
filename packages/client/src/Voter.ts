@@ -1,4 +1,4 @@
-import { LegalOfficerCase, UUID } from "@logion/node-api";
+import { LegalOfficerCase, UUID, ValidAccountId } from "@logion/node-api";
 import { DateTime } from "luxon";
 import { LocSharedState, LocsState, ReadOnlyLocState } from "./Loc.js";
 import { AuthenticatedLocClient, EMPTY_LOC_ISSUERS, LocMultiClient, LocRequest } from "./LocClient.js";
@@ -26,7 +26,7 @@ export class VoterApi {
             return undefined;
         }
         const { loc, locRequest, client } = locAndClient;
-        const legalOfficer = this.sharedState.allLegalOfficers.find(legalOfficer => legalOfficer.address === locRequest.ownerAddress);
+        const legalOfficer = this.sharedState.allLegalOfficers.find(legalOfficer => legalOfficer.account.equals(ValidAccountId.polkadot(locRequest.ownerAddress)));
         if(!legalOfficer) {
             throw new Error(`Unknown legal officer ${locRequest.ownerAddress}`);
         }
@@ -45,11 +45,11 @@ export class VoterApi {
             locId,
             api: this.sharedState.nodeApi,
         });
-        const legalOfficer = this.sharedState.legalOfficers.find(lo => lo.address === loc.owner);
+        const legalOfficer = this.sharedState.legalOfficers.find(lo => lo.account.equals(loc.owner));
         if (!legalOfficer) {
             return undefined;
         }
-        if (!this.sharedState.currentAddress) {
+        if (!this.sharedState.currentAccount) {
             throw new Error("Current address must be set");
         }
         if (!this.logionClient.isTokenValid(DateTime.now())) {
@@ -59,7 +59,7 @@ export class VoterApi {
             ...this.sharedState,
             axiosFactory: this.sharedState.axiosFactory,
             nodeApi: this.sharedState.nodeApi,
-            currentAddress: this.sharedState.currentAddress,
+            currentAccount: this.sharedState.currentAccount,
             legalOfficer,
         });
         const locRequest = await client.getLocRequest({ locId });

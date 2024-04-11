@@ -24,8 +24,8 @@ export class Votes extends State {
     }
 
     private static async fetchData(client: LogionClient): Promise<VoteData[]> {
-        const currentAddress = client.authenticatedCurrentAddress;
-        const axios = client.getLegalOfficer(currentAddress.address).buildAxiosToNode();
+        const currentAddress = client.authenticatedCurrentAccount;
+        const axios = client.getLegalOfficer(currentAddress).buildAxiosToNode();
         const response = await axios.get(`/api/vote/${ currentAddress.address }`);
         const backendVotes: BackendVote[] = response.data.votes;
         return backendVotes.map(backendVote => ({
@@ -157,7 +157,7 @@ export abstract class Vote extends State {
     }
 
     protected currentAddress() {
-        return this._votes.client.authenticatedCurrentAddress.address;
+        return this._votes.client.authenticatedCurrentAccount.address;
     }
 
     abstract refreshVotes(newVotes: Votes): Vote;
@@ -173,7 +173,7 @@ export class PendingVote extends Vote {
             params.result === "Yes",
         );
         await params.signer.signAndSend({
-            signerId: current.currentAddress(),
+            signerId: this._votes.client.authenticatedCurrentAccount,
             submittable,
             callback: params.callback,
         });

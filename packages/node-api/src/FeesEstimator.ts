@@ -1,6 +1,6 @@
 import { ApiPromise } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/promise/types.js";
-import { LocType } from "./Types.js";
+import { LocType, ValidAccountId } from "./Types.js";
 import { Lgnt } from "./Currency.js";
 
 export class Fees {
@@ -104,7 +104,7 @@ export class FeesEstimator {
     private readonly api: ApiPromise;
 
     async estimateWithStorage(params: {
-        origin: string,
+        origin: ValidAccountId,
         submittable: SubmittableExtrinsic,
         size: bigint,
     }): Promise<Fees> {
@@ -116,8 +116,8 @@ export class FeesEstimator {
         return new Fees({ inclusionFee, storageFee });
     }
 
-    private async estimateInclusionFee(origin: string, submittable: SubmittableExtrinsic): Promise<Lgnt> {
-        const dispatchInfo = await submittable.paymentInfo(origin);
+    private async estimateInclusionFee(origin: ValidAccountId, submittable: SubmittableExtrinsic): Promise<Lgnt> {
+        const dispatchInfo = await submittable.paymentInfo(origin.address);
         const partialFee = dispatchInfo.partialFee.toBigInt();
         return Lgnt.fromCanonical(partialFee);
     }
@@ -138,7 +138,7 @@ export class FeesEstimator {
     }
 
     async estimateWithoutStorage(params: {
-        origin: string,
+        origin: ValidAccountId,
         submittable: SubmittableExtrinsic,
     }): Promise<Fees> {
         const inclusionFee = await this.estimateInclusionFee(params.origin, params.submittable);
@@ -146,7 +146,7 @@ export class FeesEstimator {
     }
 
     async estimateCreateLoc(params: {
-        origin: string,
+        origin: ValidAccountId,
         submittable: SubmittableExtrinsic,
         locType: LocType,
         valueFee?: Lgnt,
@@ -167,7 +167,7 @@ export class FeesEstimator {
     }
 
     async estimateAddCollectionItem(params: {
-        origin: string,
+        origin: ValidAccountId,
         submittable: SubmittableExtrinsic,
         numOfEntries: bigint,
         totSize: bigint,
@@ -188,7 +188,7 @@ export class FeesEstimator {
     }
 
     async estimateAddTokensRecord(params: {
-        origin: string,
+        origin: ValidAccountId,
         submittable: SubmittableExtrinsic,
         numOfEntries: bigint,
         totSize: bigint,
@@ -204,10 +204,10 @@ export class FeesEstimator {
         });
     }
 
-    async ensureEnoughFunds(params: { fees: Fees, origin: string }) {
+    async ensureEnoughFunds(params: { fees: Fees, origin: ValidAccountId }) {
         const { fees, origin } = params;
         const totalFees = fees.totalFee.canonical;
-        const accountData = await this.api.query.system.account(origin);
+        const accountData = await this.api.query.system.account(origin.address);
         const existentialDeposit = this.api.consts.balances.existentialDeposit.toBigInt();
         if(accountData.data.free.toBigInt() - existentialDeposit < totalFees) {
             throw new Error("Not enough funds");

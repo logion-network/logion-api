@@ -1,4 +1,4 @@
-import { LogionNodeApiClass, TypesRecoveryConfig } from "@logion/node-api";
+import { LogionNodeApiClass, TypesRecoveryConfig, ValidAccountId } from "@logion/node-api";
 import { AxiosInstance } from "axios";
 
 import { AxiosFactory } from "./AxiosFactory.js";
@@ -59,7 +59,7 @@ export interface FetchAllResult {
     rejectedProtectionRequests: ProtectionRequest[];
     cancelledProtectionRequests: ProtectionRequest[];
     recoveryConfig: TypesRecoveryConfig | undefined;
-    recoveredAddress: string | undefined;
+    recoveredAddress: ValidAccountId | undefined;
 }
 
 export interface UserActionParameters {
@@ -75,7 +75,7 @@ export class RecoveryClient {
     constructor(params: {
         networkState: NetworkState<LegalOfficerEndpoint>,
         axiosFactory: AxiosFactory,
-        currentAddress: string,
+        currentAddress: ValidAccountId,
         token: string,
         nodeApi: LogionNodeApiClass,
     }) {
@@ -90,7 +90,7 @@ export class RecoveryClient {
 
     private readonly axiosFactory: AxiosFactory;
 
-    private readonly currentAddress: string;
+    private readonly currentAddress: ValidAccountId;
 
     private readonly token: string;
 
@@ -105,7 +105,7 @@ export class RecoveryClient {
             this.token
         );
         const allRequests = aggregateArrays(await multiClient.fetch(axios => this.fetchProtectionRequests(axios, {
-            requesterAddress: this.currentAddress,
+            requesterAddress: this.currentAddress.address,
             statuses: [ "PENDING", "ACCEPTED", "ACTIVATED", "REJECTED", "CANCELLED", "REJECTED_CANCELLED", "ACCEPTED_CANCELLED" ],
             kind: "ANY",
         })));
@@ -156,7 +156,7 @@ export class RecoveryClient {
         const initialState = {
             nodesUp: legalOfficers.map(legalOfficer => ({
                 url: legalOfficer.node,
-                legalOfficer: legalOfficer.address
+                legalOfficer: legalOfficer.account.address
             })),
             nodesDown: [],
         };
@@ -166,7 +166,7 @@ export class RecoveryClient {
             this.token
         );
         const result = await multiClient.fetch(axios => this.fetchProtectionRequests(axios, {
-            requesterAddress: this.currentAddress,
+            requesterAddress: this.currentAddress.address,
             statuses: [ "ACCEPTED", "ACTIVATED" ],
             kind: "ANY",
         }));
@@ -225,7 +225,7 @@ export class LoRecoveryClient {
         const { id, otherLegalOfficer } = params;
         try {
             return this.backend().put(`/api/protection-request/${ id }/update`, {
-                otherLegalOfficerAddress: otherLegalOfficer.address
+                otherLegalOfficerAddress: otherLegalOfficer.account.address
             })
         } catch(e) {
             throw newBackendError(e);

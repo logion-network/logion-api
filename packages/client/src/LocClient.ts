@@ -116,7 +116,7 @@ export interface VerifiedIssuer {
     firstName: string;
     lastName: string;
     identityLocId: string;
-    address: string;
+    account: ValidAccountId;
     selected?: boolean;
 }
 
@@ -297,7 +297,7 @@ export interface FetchAllLocsParams {
 }
 
 export interface VerifiedIssuerIdentity {
-    address: string;
+    account: ValidAccountId;
     identity: UserIdentity;
     identityLocId: string;
     selected?: boolean;
@@ -364,7 +364,7 @@ export class LocMultiClient {
     newLocClient(legalOfficer: LegalOfficerClass) {
         return new AuthenticatedLocClient({
             axiosFactory: this.axiosFactory,
-            currentAddress: this.currentAddress,
+            currentAccount: this.currentAddress,
             nodeApi: this.nodeApi,
             legalOfficer,
             componentFactory: this.componentFactory,
@@ -403,9 +403,9 @@ export class LocMultiClient {
         const entries = await this.nodeApi.polkadot.query.logionLoc.locsByVerifiedIssuerMap.entries(this.currentAddress.address);
         const requests: LocRequest[] = [];
         for(const entry of entries) {
-            const owner = entry[0].args[1].toString();
+            const owner = ValidAccountId.polkadot(entry[0].args[1].toString());
             const locId = UUID.fromDecimalStringOrThrow(entry[0].args[2].toString());
-            const legalOfficer = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === owner));
+            const legalOfficer = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.account.equals(owner)));
             const request = await this.newLocClient(legalOfficer).getLocRequest({ locId });
             requests.push(request);
         }
@@ -518,7 +518,7 @@ export interface ClientTokensRecord {
     description: HashString;
     addedOn: string;
     files: UploadableItemFile[];
-    issuer: string;
+    issuer: ValidAccountId;
 }
 
 export interface OffchainTokensRecord {
@@ -773,7 +773,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     constructor(params: {
         axiosFactory: AxiosFactory,
-        currentAddress: ValidAccountId,
+        currentAccount: ValidAccountId,
         nodeApi: LogionNodeApiClass,
         legalOfficer: LegalOfficerClass,
         componentFactory: ComponentFactory,
@@ -784,12 +784,12 @@ export class AuthenticatedLocClient extends LocClient {
             legalOfficer: params.legalOfficer,
             nodeApi: params.nodeApi,
         });
-        this.currentAddress = params.currentAddress;
+        this.currentAccount = params.currentAccount;
         this.componentFactory = params.componentFactory;
         this.config = params.config;
     }
 
-    readonly currentAddress: ValidAccountId;
+    readonly currentAccount: ValidAccountId;
     private readonly componentFactory: ComponentFactory;
     private readonly config: LogionClientConfig;
 
@@ -964,7 +964,7 @@ export class AuthenticatedLocClient extends LocClient {
         const { signer, callback } = parameters;
         try {
             await signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable: this.nodeApi.batching.batchAll(submittables),
                 callback
             });
@@ -1022,7 +1022,7 @@ export class AuthenticatedLocClient extends LocClient {
         const { signer, callback } = parameters;
         try {
             await signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable: this.nodeApi.batching.batchAll(submittables),
                 callback
             });
@@ -1125,7 +1125,7 @@ export class AuthenticatedLocClient extends LocClient {
         const totSize = itemFiles ? itemFiles.map(file => file.size).reduce((cur, prev) => cur + prev, 0n) : 0n;
         const tokenIssuance = itemToken?.issuance;
         return await this.nodeApi.fees.estimateAddCollectionItem({
-            origin: this.currentAddress?.address || "",
+            origin: this.currentAccount,
             submittable,
             numOfEntries,
             totSize,
@@ -1238,41 +1238,41 @@ export class AuthenticatedLocClient extends LocClient {
         request: LocRequest,
         locBatch: LocBatch,
     ): Promise<LocVerifiedIssuers> {
-        if(!this.currentAddress || (request.status !== "OPEN" && request.status !== "CLOSED")) {
+        if(!this.currentAccount || (request.status !== "OPEN" && request.status !== "CLOSED")) {
             return EMPTY_LOC_ISSUERS;
         } else {
             const locId = new UUID(request.id);
             let verifiedIssuer = false;
             if(request.locType === "Identity" && request.status === "CLOSED") {
                 const availableVerifiedIssuers = await locBatch.getAvailableVerifiedIssuers();
-                verifiedIssuer = availableVerifiedIssuers[request.ownerAddress].find(issuer => issuer.address === request.requesterAddress?.address && request.requesterAddress?.type === "Polkadot") !== undefined;
+                verifiedIssuer = availableVerifiedIssuers[request.ownerAddress].find(issuer => issuer.account.equals(request.requesterAddress)) !== undefined;
             }
             const nodeIssuers = (await locBatch.getLocsVerifiedIssuers())[locId.toDecimalString()];
             const chainSelectedIssuers = new Set<string>();
-            nodeIssuers.forEach(issuer => chainSelectedIssuers.add(issuer.address));
+            nodeIssuers.forEach(issuer => chainSelectedIssuers.add(issuer.account.address));
 
             const issuers: VerifiedIssuer[] = [];
-            if((this.currentAddress.address === request.requesterAddress?.address && this.currentAddress.type === request.requesterAddress.type)
-                || (this.currentAddress.address === request.ownerAddress && this.currentAddress.type === "Polkadot")
-                || chainSelectedIssuers.has(this.currentAddress.address)) {
+            if((this.currentAccount.address === request.requesterAddress?.address && this.currentAccount.type === request.requesterAddress.type)
+                || (this.currentAccount.address === request.ownerAddress && this.currentAccount.type === "Polkadot")
+                || chainSelectedIssuers.has(this.currentAccount.address)) {
 
                 const backendIssuers = request.selectedIssuers;
                 const addedIssuers = new Set<string>();
                 for(const maybeSelectedIssuer of backendIssuers) {
-                    addedIssuers.add(maybeSelectedIssuer.address);
+                    addedIssuers.add(maybeSelectedIssuer.account.address);
                     issuers.push({
                         identityLocId: maybeSelectedIssuer.identityLocId.toString(),
-                        address: maybeSelectedIssuer.address,
+                        account: maybeSelectedIssuer.account,
                         firstName: maybeSelectedIssuer?.identity.firstName || "",
                         lastName: maybeSelectedIssuer?.identity.lastName || "",
-                        selected: chainSelectedIssuers.has(maybeSelectedIssuer.address), // Backend may be out-of-date
+                        selected: chainSelectedIssuers.has(maybeSelectedIssuer.account.address), // Backend may be out-of-date
                     });
                 }
                 for(const nodeIssuer of nodeIssuers) {
-                    if(!addedIssuers.has(nodeIssuer.address)) { // Backend may be out-of-date
+                    if(!addedIssuers.has(nodeIssuer.account.address)) { // Backend may be out-of-date
                         issuers.push({
                             identityLocId: nodeIssuer.identityLocId.toString(),
-                            address: nodeIssuer.address,
+                            account: nodeIssuer.account,
                             firstName: "",
                             lastName: "",
                             selected: true,
@@ -1283,7 +1283,7 @@ export class AuthenticatedLocClient extends LocClient {
                 for(const nodeIssuer of nodeIssuers) {
                     issuers.push({
                         identityLocId: nodeIssuer.identityLocId.toString(),
-                        address: nodeIssuer.address,
+                        account: nodeIssuer.account,
                         firstName: "",
                         lastName: "",
                     });
@@ -1297,24 +1297,24 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     async canAddRecord(request: LocRequest): Promise<boolean> {
-        return (this.currentAddress.address === request.requesterAddress?.address && this.currentAddress.type === request.requesterAddress?.type)
-            || this.currentAddress.address === request.ownerAddress
+        return (this.currentAccount.address === request.requesterAddress?.address && this.currentAccount.type === request.requesterAddress?.type)
+            || this.currentAccount.address === request.ownerAddress
             || await this.isIssuerOf(request);
     }
 
     private async isIssuerOf(request: LocRequest): Promise<boolean> {
         const issuers = await this.getLocIssuers(request, this.nodeApi.batch.locs([ new UUID(request.id) ]));
-        return issuers.issuers.find(issuer => issuer.address === this.currentAddress.address && this.currentAddress.type === "Polkadot") !== undefined;
+        return issuers.issuers.find(issuer => issuer.account.equals(this.currentAccount)) !== undefined;
     }
 
     async isInvitedContributorOf(locId: UUID): Promise<boolean> {
-        return this.nodeApi.queries.isInvitedContributorOf(this.currentAddress.address, locId);
+        return this.nodeApi.queries.isInvitedContributorOf(this.currentAccount, locId);
     }
 
     async getInvitedContributors(
         request: LocRequest,
     ): Promise<ValidAccountId[]> {
-        if (!this.currentAddress || (request.status !== "OPEN" && request.status !== "CLOSED")) {
+        if (!this.currentAccount || (request.status !== "OPEN" && request.status !== "CLOSED")) {
             return [];
         } else {
             const locId = new UUID(request.id);
@@ -1328,7 +1328,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     async setInvitedContributor(params: BlockchainSubmission<SetInvitedContributorSelectionParams & FetchParameters>) {
         await params.signer.signAndSend({
-            signerId: this.currentAddress.address,
+            signerId: this.currentAccount,
             submittable: this.setInvitedContributorSubmittable(params.payload),
             callback: params.callback,
         });
@@ -1336,7 +1336,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     async estimateFeesSetInvitedContributor(params: SetInvitedContributorSelectionParams & FetchParameters) {
         return await this.nodeApi.fees.estimateWithoutStorage({
-            origin: this.currentAddress.address,
+            origin: this.currentAccount,
             submittable: this.setInvitedContributorSubmittable(params),
         });
     }
@@ -1375,7 +1375,7 @@ export class AuthenticatedLocClient extends LocClient {
 
         try {
             await signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable,
                 callback
             });
@@ -1445,7 +1445,7 @@ export class AuthenticatedLocClient extends LocClient {
         const numOfEntries = files ? BigInt(files.length) : 0n;
         const totSize = files ? files.map(file => file.size).reduce((cur, prev) => cur + prev, 0n) : 0n;
         return await this.nodeApi.fees.estimateAddTokensRecord({
-            origin: this.currentAddress?.address || "",
+            origin: this.currentAccount,
             submittable,
             numOfEntries,
             totSize,
@@ -1515,7 +1515,7 @@ export class AuthenticatedLocClient extends LocClient {
 
         try {
             await parameters.signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable: this.publishFileSubmittable(parameters),
                 callback: parameters.callback,
             });
@@ -1542,12 +1542,12 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private async ensureEnoughFunds(fees: FeesClass) {
-        await this.nodeApi.fees.ensureEnoughFunds({ origin: this.currentAddress.address, fees });
+        await this.nodeApi.fees.ensureEnoughFunds({ origin: this.currentAccount, fees });
     }
 
     async estimateFeesPublishFile(parameters: EstimateFeesPublishFileParams): Promise<FeesClass> {
         return await this.nodeApi.fees.estimateWithStorage({
-            origin: this.currentAddress.address,
+            origin: this.currentAccount,
             submittable: this.publishFileSubmittable(parameters),
             size: parameters.file.size,
         });
@@ -1568,7 +1568,7 @@ export class AuthenticatedLocClient extends LocClient {
 
         try {
             await parameters.signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable: this.acknowledgeFileSubmittable(parameters),
                 callback: parameters.callback,
             });
@@ -1596,7 +1596,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     async estimateFeesAcknowledgeFile(parameters: { locId: UUID } & RefFileParams): Promise<FeesClass> {
         return await this.nodeApi.fees.estimateWithoutStorage({
-            origin: this.currentAddress.address,
+            origin: this.currentAccount,
             submittable: this.acknowledgeFileSubmittable(parameters)
         });
     }
@@ -1638,7 +1638,7 @@ export class AuthenticatedLocClient extends LocClient {
 
         try {
             await parameters.signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable: this.publishMetadataSubmittable(parameters),
                 callback: parameters.callback,
             });
@@ -1666,7 +1666,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     async estimateFeesPublishMetadata(parameters: EstimateFeesPublishMetadataParams): Promise<FeesClass> {
         return await this.nodeApi.fees.estimateWithoutStorage({
-            origin: this.currentAddress.address,
+            origin: this.currentAccount,
             submittable: this.publishMetadataSubmittable(parameters)
         });
     }
@@ -1692,7 +1692,7 @@ export class AuthenticatedLocClient extends LocClient {
 
         try {
             await parameters.signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable: this.acknowledgeMetadataSubmittable(parameters),
                 callback: parameters.callback,
             });
@@ -1720,7 +1720,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     async estimateFeesAcknowledgeMetadata(parameters: { locId: UUID } & RefMetadataParams): Promise<FeesClass> {
         return await this.nodeApi.fees.estimateWithoutStorage({
-            origin: this.currentAddress.address,
+            origin: this.currentAccount,
             submittable: this.acknowledgeMetadataSubmittable(parameters)
         });
     }
@@ -1759,7 +1759,7 @@ export class AuthenticatedLocClient extends LocClient {
 
         try {
             await parameters.signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable: this.publishLinkSubmittable(parameters),
                 callback: parameters.callback,
             });
@@ -1794,7 +1794,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     async estimateFeesPublishLink(parameters: EstimateFeesPublishLinkParams): Promise<FeesClass> {
         return await this.nodeApi.fees.estimateWithoutStorage({
-            origin: this.currentAddress?.address || "",
+            origin: this.currentAccount,
             submittable: this.publishLinkSubmittable(parameters)
         });
     }
@@ -1807,7 +1807,7 @@ export class AuthenticatedLocClient extends LocClient {
 
         try {
             await parameters.signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable: this.acknowledgeLinkSubmittable(parameters),
                 callback: parameters.callback,
             });
@@ -1835,7 +1835,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     async estimateFeesAcknowledgeLink(parameters: { locId: UUID } & RefLinkParams): Promise<FeesClass> {
         return await this.nodeApi.fees.estimateWithoutStorage({
-            origin: this.currentAddress?.address || "",
+            origin: this.currentAccount,
             submittable: this.acknowledgeLinkSubmittable(parameters)
         });
     }
@@ -1865,7 +1865,7 @@ export class AuthenticatedLocClient extends LocClient {
         if (submittable) {
             const signer = requireDefined(parameters.signer);
             await signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable,
                 callback,
             });
@@ -1874,8 +1874,8 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private acceptTransactionLocSubmittable(parameters: EstimateFeesAcceptTransactionLocParams): SubmittableExtrinsic | undefined {
-        const { locId, requesterAccount, requesterLoc } = parameters;
-        if (requesterAccount) {
+        const { locId, requesterAccountId, requesterLoc } = parameters;
+        if (requesterAccountId) {
             return undefined;
         } else if (requesterLoc) {
             return this.nodeApi.polkadot.tx.logionLoc.createLogionTransactionLoc(
@@ -1891,7 +1891,7 @@ export class AuthenticatedLocClient extends LocClient {
         const submittable = this.acceptTransactionLocSubmittable(parameters);
         if (submittable) {
             return await this.nodeApi.fees.estimateCreateLoc({
-                origin: this.currentAddress?.address || "",
+                origin: this.currentAccount,
                 submittable,
                 locType: 'Transaction',
                 legalFee: Lgnt.zero(),
@@ -1913,7 +1913,7 @@ export class AuthenticatedLocClient extends LocClient {
 
         try {
             await signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable: this.openTransactionLocSubmittable(payload),
                 callback,
             });
@@ -1931,13 +1931,13 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private openTransactionLocSubmittable(parameters: OpenPolkadotLocParams): SubmittableExtrinsic {
-        const { locId, legalOfficerAddress, metadata, files, links } = parameters;
+        const { locId, legalOfficerAccountId, metadata, files, links } = parameters;
         const legalFee = parameters.legalFee === undefined ?
             this.nodeApi.fees.getDefaultLegalFee({ locType: "Transaction" }) :
             parameters.legalFee;
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotTransactionLoc(
             this.nodeApi.adapters.toLocId(locId),
-            legalOfficerAddress,
+            legalOfficerAccountId.address,
             legalFee.canonical,
             this.nodeApi.adapters.toPalletLogionLocItemsParams({
                 metadata: metadata.map(item => this.toMetadataItemParams(item)),
@@ -1950,7 +1950,7 @@ export class AuthenticatedLocClient extends LocClient {
     async estimateFeesOpenTransactionLoc(parameters: OpenPolkadotLocParams & AutoPublish): Promise<FeesClass> {
         const storageSize = this.storageSize(parameters.autoPublish, parameters.files);
         return await this.nodeApi.fees.estimateCreateLoc({
-            origin: this.currentAddress?.address || "",
+            origin: this.currentAccount,
             submittable: this.openTransactionLocSubmittable(parameters),
             locType: 'Transaction',
             legalFee: parameters.legalFee,
@@ -1961,7 +1961,7 @@ export class AuthenticatedLocClient extends LocClient {
     async openLogionTransactionLoc(parameters: { locId: UUID, requesterLocId: UUID } & BlockchainSubmissionParams ) {
         const { signer, callback } = parameters;
         await signer.signAndSend({
-            signerId: this.currentAddress.address,
+            signerId: this.currentAccount,
             submittable: this.openLogionTransactionLocSubmittable(parameters),
             callback,
         });
@@ -1977,7 +1977,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     async estimateFeesOpenLogionTransactionLoc(parameters: { locId: UUID, requesterLocId: UUID } ): Promise<FeesClass> {
         return await this.nodeApi.fees.estimateCreateLoc({
-            origin: this.currentAddress?.address || "",
+            origin: this.currentAccount,
             submittable: this.openLogionTransactionLocSubmittable(parameters),
             locType: 'Transaction',
             legalFee: Lgnt.zero(),
@@ -2019,7 +2019,7 @@ export class AuthenticatedLocClient extends LocClient {
         if (submittable) {
             const signer = requireDefined(parameters.signer);
             await signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable,
                 callback,
             });
@@ -2028,15 +2028,15 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private acceptIdentityLocSubmittable(parameters: EstimateFeesIdentityTransactionLocParams): SubmittableExtrinsic | undefined {
-        const { locId, requesterAccount, sponsorshipId } = parameters;
-        if (requesterAccount) {
-            if (requesterAccount.type === "Polkadot") {
+        const { locId, requesterAccountId, sponsorshipId } = parameters;
+        if (requesterAccountId) {
+            if (requesterAccountId.type === "Polkadot") {
                 return undefined;
             } else {
                 if (!sponsorshipId) {
                     throw new Error("Other Identity LOCs can only be created with a sponsorship");
                 }
-                const otherAccountId = this.nodeApi.queries.getValidAccountId(requesterAccount.address, requesterAccount.type).toOtherAccountId();
+                const otherAccountId = requesterAccountId.toOtherAccountId();
                 return this.nodeApi.polkadot.tx.logionLoc.createOtherIdentityLoc(
                     this.nodeApi.adapters.toLocId(locId),
                     this.nodeApi.adapters.toPalletLogionLocOtherAccountId(otherAccountId),
@@ -2055,7 +2055,7 @@ export class AuthenticatedLocClient extends LocClient {
         const submittable = this.acceptIdentityLocSubmittable(parameters);
         if (submittable) {
             return await this.nodeApi.fees.estimateCreateLoc({
-                origin: this.currentAddress?.address || "",
+                origin: this.currentAccount,
                 submittable,
                 locType: 'Identity',
             });
@@ -2077,7 +2077,7 @@ export class AuthenticatedLocClient extends LocClient {
 
         try {
             await signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable: this.openIdentityLocSubmittable(payload),
                 callback,
             });
@@ -2088,13 +2088,13 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private openIdentityLocSubmittable(parameters: OpenPolkadotLocParams): SubmittableExtrinsic {
-        const { locId, legalOfficerAddress, metadata, files, links } = parameters
+        const { locId, legalOfficerAccountId, metadata, files, links } = parameters
         const legalFee = parameters.legalFee === undefined ?
             this.nodeApi.fees.getDefaultLegalFee({ locType: "Identity" }) :
             parameters.legalFee;
         return this.nodeApi.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
             this.nodeApi.adapters.toLocId(locId),
-            legalOfficerAddress,
+            legalOfficerAccountId.address,
             legalFee.canonical,
             this.nodeApi.adapters.toPalletLogionLocItemsParams({
                 metadata: metadata.map(item => this.toMetadataItemParams(item)),
@@ -2108,7 +2108,7 @@ export class AuthenticatedLocClient extends LocClient {
         return {
             name: Hash.of(item.name),
             value: Hash.of(item.value),
-            submitter: this.currentAddress,
+            submitter: this.currentAccount,
         }
     }
 
@@ -2117,7 +2117,7 @@ export class AuthenticatedLocClient extends LocClient {
             hash: item.file.contentHash,
             nature: Hash.of(item.nature),
             size: item.file.size,
-            submitter: this.currentAddress,
+            submitter: this.currentAccount,
         }
     }
 
@@ -2125,14 +2125,14 @@ export class AuthenticatedLocClient extends LocClient {
         return {
             id: item.target,
             nature: Hash.of(item.nature),
-            submitter: this.currentAddress,
+            submitter: this.currentAccount,
         }
     }
 
     async estimateFeesOpenIdentityLoc(parameters: OpenPolkadotLocParams & AutoPublish) {
         const storageSize = this.storageSize(parameters.autoPublish, parameters.files);
         return await this.nodeApi.fees.estimateCreateLoc({
-            origin: this.currentAddress?.address || "",
+            origin: this.currentAccount,
             submittable: this.openIdentityLocSubmittable(parameters),
             locType: 'Identity',
             legalFee: parameters.legalFee,
@@ -2143,7 +2143,7 @@ export class AuthenticatedLocClient extends LocClient {
     async openLogionIdentityLoc(parameters: { locId: UUID } & BlockchainSubmissionParams ) {
         const { signer, callback } = parameters
         await signer.signAndSend({
-            signerId: this.currentAddress.address,
+            signerId: this.currentAccount,
             submittable: this.openLogionIdentityLocSubmittable(parameters),
             callback,
         });
@@ -2158,7 +2158,7 @@ export class AuthenticatedLocClient extends LocClient {
 
     async estimateFeesOpenLogionIdentityLoc(parameters: { locId: UUID }): Promise<FeesClass> {
         return await this.nodeApi.fees.estimateCreateLoc({
-            origin: this.currentAddress?.address || "",
+            origin: this.currentAccount,
             submittable: this.openLogionIdentityLocSubmittable(parameters),
             locType: 'Identity',
             legalFee: Lgnt.zero(),
@@ -2182,7 +2182,7 @@ export class AuthenticatedLocClient extends LocClient {
 
         try {
             await signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable: this.openCollectionLocSubmittable(payload),
                 callback,
             });
@@ -2193,14 +2193,14 @@ export class AuthenticatedLocClient extends LocClient {
     }
 
     private openCollectionLocSubmittable(parameters: OpenPolkadotLocParams & OpenCollectionLocParams): SubmittableExtrinsic {
-        const { locId, legalOfficerAddress, metadata, files, links, collectionItemFee, tokensRecordFee, valueFee } = parameters;
+        const { locId, legalOfficerAccountId, metadata, files, links, collectionItemFee, tokensRecordFee, valueFee } = parameters;
         const { lastBlockSubmission, maxSize, canUpload } = parameters.collectionParams;
         const legalFee = parameters.legalFee === undefined ?
             this.nodeApi.fees.getDefaultLegalFee({ locType: "Collection" }) :
             parameters.legalFee;
         return this.nodeApi.polkadot.tx.logionLoc.createCollectionLoc(
             this.nodeApi.adapters.toLocId(locId),
-            legalOfficerAddress,
+            legalOfficerAccountId.address,
             lastBlockSubmission || null,
             maxSize || null,
             canUpload,
@@ -2219,7 +2219,7 @@ export class AuthenticatedLocClient extends LocClient {
     async estimateFeesOpenCollectionLoc(parameters: { valueFee: Lgnt } & OpenPolkadotLocParams & OpenCollectionLocParams & AutoPublish) {
         const storageSize = this.storageSize(parameters.autoPublish, parameters.files);
         return await this.nodeApi.fees.estimateCreateLoc({
-            origin: this.currentAddress.address,
+            origin: this.currentAccount,
             submittable: this.openCollectionLocSubmittable(parameters),
             locType: 'Collection',
             valueFee: parameters.valueFee,
@@ -2238,7 +2238,7 @@ export class AuthenticatedLocClient extends LocClient {
         );
 
         const fees = await this.nodeApi.fees.estimateWithoutStorage({
-            origin: this.currentAddress.address,
+            origin: this.currentAccount,
             submittable,
         });
         await this.ensureEnoughFunds(fees);
@@ -2247,7 +2247,7 @@ export class AuthenticatedLocClient extends LocClient {
 
         try {
             await parameters.signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable,
                 callback: parameters.callback,
             });
@@ -2289,7 +2289,7 @@ export class AuthenticatedLocClient extends LocClient {
         }
 
         const fees = await this.nodeApi.fees.estimateWithoutStorage({
-            origin: this.currentAddress.address,
+            origin: this.currentAccount,
             submittable,
         });
         await this.ensureEnoughFunds(fees);
@@ -2298,7 +2298,7 @@ export class AuthenticatedLocClient extends LocClient {
 
         try {
             await signer.signAndSend({
-                signerId: this.currentAddress.address,
+                signerId: this.currentAccount,
                 submittable,
                 callback
             });
@@ -2334,7 +2334,7 @@ export class AuthenticatedLocClient extends LocClient {
             this.nodeApi.adapters.toLocId(parameters.locId),
         );
         await parameters.signer.signAndSend({
-            signerId: this.currentAddress.address,
+            signerId: this.currentAccount,
             submittable,
             callback: parameters.callback,
         });
@@ -2345,7 +2345,7 @@ export class AuthenticatedLocClient extends LocClient {
             parameters.requester,
         );
         await parameters.signer.signAndSend({
-            signerId: this.currentAddress.address,
+            signerId: this.currentAccount,
             submittable,
             callback: parameters.callback,
         });
@@ -2363,11 +2363,11 @@ export class AuthenticatedLocClient extends LocClient {
     async setIssuerSelection(params: SetIssuerSelectionParams) {
         const submittable = this.nodeApi.polkadot.tx.logionLoc.setIssuerSelection(
             this.nodeApi.adapters.toLocId(params.locId),
-            params.issuer,
+            params.issuer.address,
             params.selected,
         );
         await params.signer.signAndSend({
-            signerId: this.currentAddress.address,
+            signerId: this.currentAccount,
             submittable,
             callback: params.callback,
         });
@@ -2378,7 +2378,7 @@ export class AuthenticatedLocClient extends LocClient {
             this.nodeApi.adapters.toLocId(params.locId),
         );
         const result = await params.signer.signAndSend({
-            signerId: this.currentAddress.address,
+            signerId: this.currentAccount,
             submittable,
             callback: params.callback,
         });
@@ -2463,7 +2463,7 @@ export interface AckLinkParams extends RefLinkParams, BlockchainSubmissionParams
 
 export interface OpenPolkadotLocParams {
     locId: UUID;
-    legalOfficerAddress: string;
+    legalOfficerAccountId: ValidAccountId;
     legalFee?: Lgnt;
     metadata: AddMetadataParams[],
     files: AddFileParams[],
@@ -2502,7 +2502,7 @@ export interface VoidParams extends BlockchainSubmissionParams, VoidInfo {
 
 export interface SetIssuerSelectionParams extends BlockchainSubmissionParams {
     locId: UUID;
-    issuer: string;
+    issuer: ValidAccountId;
     selected: boolean;
 }
 
@@ -2513,7 +2513,7 @@ export interface SetInvitedContributorSelectionParams {
 
 export interface EstimateFeesAcceptTransactionLocParams {
     locId: UUID;
-    requesterAccount?: SupportedAccountId;
+    requesterAccountId?: ValidAccountId;
     requesterLoc?: UUID;
 }
 
@@ -2522,7 +2522,7 @@ export interface AcceptTransactionLocParams extends EstimateFeesAcceptTransactio
 
 export interface EstimateFeesIdentityTransactionLocParams {
     locId: UUID;
-    requesterAccount?: SupportedAccountId;
+    requesterAccountId?: ValidAccountId;
     sponsorshipId?: UUID;
 }
 

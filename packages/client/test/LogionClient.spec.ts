@@ -2,8 +2,6 @@ import { DateTime } from 'luxon';
 import { It, Mock, Times } from 'moq.ts';
 import { TestConfigFactory } from './TestConfigFactory.js';
 import {
-    HashOrContent,
-    MimeType,
     AuthenticationClient,
     LogionClient,
     RawSigner,
@@ -19,9 +17,7 @@ import {
     buildTestAuthenticatedSharedSate,
     buildTestConfig,
     LOGION_CLIENT_CONFIG,
-    buildValidPolkadotAccountId,
     buildSimpleNodeApi,
-    MOCK_FILE
 } from './Utils.js';
 import { Hash, LogionNodeApiClass } from '@logion/node-api';
 
@@ -43,7 +39,7 @@ describe("LogionClient", () => {
         const legalOfficers = client.legalOfficers;
 
         expect(legalOfficers.length).toBe(1);
-        expect(legalOfficers[0].address).toBe(ALICE.address);
+        expect(legalOfficers[0].account).toEqual(ALICE.account);
     });
 
     it("uses tokens", async () => {
@@ -71,7 +67,7 @@ describe("LogionClient", () => {
     it("authenticates", async () => {
         const clientLegalOfficers: LegalOfficer[] = [ ALICE ];
         const token = 'token';
-        const addresses = [ buildValidPolkadotAccountId(ALICE.address)! ];
+        const addresses = [ ALICE.account ];
         const signer = new Mock<RawSigner>();
         const tokens = buildAliceTokens(buildSimpleNodeApi(), DateTime.now().plus({hours: 1}));
         const config = buildTestConfig(testConfigFactory => {
@@ -102,7 +98,7 @@ describe("LogionClient", () => {
     it("refreshes tokens", async () => {
         const legalOfficers: LegalOfficer[] = [ ALICE ];
         let authenticationClient: Mock<AuthenticationClient>;
-        const alice = buildValidPolkadotAccountId(ALICE.address);
+        const alice = ALICE.account;
         const tokens = buildAliceTokens(buildSimpleNodeApi(), DateTime.now().plus({minutes: 10}));
         const sharedState = await buildTestAuthenticatedSharedSate(testConfigFactory => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
@@ -121,7 +117,7 @@ describe("LogionClient", () => {
 
     it("skips token refresh if earliest above threshold", async () => {
         const legalOfficers: LegalOfficer[] = [ ALICE ];
-        const alice = buildValidPolkadotAccountId(ALICE.address);
+        const alice = ALICE.account;
         const tokens = buildAliceTokens(buildSimpleNodeApi(), DateTime.now().plus({hours: 1}));
         let authenticationClient: Mock<AuthenticationClient>;
         const sharedState = await buildTestAuthenticatedSharedSate(testConfigFactory => {
@@ -147,18 +143,18 @@ describe("LogionClient", () => {
         testConfigFactory.setupDefaultAxiosInstanceFactory();
         testConfigFactory.setupDefaultNetworkState();
         const api = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-        const alice = buildValidPolkadotAccountId(ALICE.address);
+        const alice = ALICE.account;
         testConfigFactory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, tokens.get(alice)!.value);
-        const bob = buildValidPolkadotAccountId(BOB.address);
+        const bob = BOB.account;
         testConfigFactory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, tokens.get(bob)!.value);
 
         const config = testConfigFactory.buildTestConfig(LOGION_CLIENT_CONFIG);
         const sharedState = await buildAuthenticatedSharedStateUsingTestConfig(config, alice, legalOfficers, tokens);
         const aliceClient = new LogionClient({ ...sharedState });
 
-        const bobClient = aliceClient.withCurrentAddress(bob);
+        const bobClient = aliceClient.withCurrentAccount(bob);
 
-        expect(bobClient.currentAddress).toBe(bob);
+        expect(bobClient.currentAccount).toBe(bob);
         testConfigFactory.verifyComponentFactory(instance => instance.buildDirectoryClient(api.object(), DIRECTORY_ENDPOINT, It.IsAny(), tokens.get(bob)!.value));
     });
 
@@ -166,7 +162,7 @@ describe("LogionClient", () => {
         const legalOfficers: LegalOfficer[] = [ ALICE ];
         const tokens = buildAliceTokens(buildSimpleNodeApi(), DateTime.now().plus({hours: 1}));
 
-        const alice = buildValidPolkadotAccountId(ALICE.address);
+        const alice = ALICE.account;
         const sharedState = await buildTestAuthenticatedSharedSate(testConfigFactory => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
             testConfigFactory.setupDefaultNetworkState();

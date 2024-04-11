@@ -30,7 +30,7 @@ export async function createTransactionLocTest() {
     ]);
 
     const loc = await api.queries.getLegalOfficerCase(TRANSACTION_LOC_ID);
-    expect(loc?.owner).toBe(alice.address);
+    expect(loc?.owner.address).toBe(alice.address);
     expect(loc?.requesterAddress?.address).toBe(requester.address);
     expect(loc?.requesterAddress?.type).toBe("Polkadot");
     expect(loc?.closed).toBe(false);

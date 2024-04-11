@@ -82,7 +82,7 @@ export function initMultiSourceHttpClientState(networkState: NetworkState<LegalO
         initialState = {
             nodesUp: legalOfficers.map(legalOfficer => ({
                 url: legalOfficer.node,
-                legalOfficer: legalOfficer.address
+                legalOfficer: legalOfficer.account.address
             })),
             nodesDown: [],
         };

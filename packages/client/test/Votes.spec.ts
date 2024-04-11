@@ -111,7 +111,7 @@ describe("Votes", () => {
             const votes = await Votes.fetch(client.object());
             const pendingVote = votes.findByIdOrThrow("3") as PendingVote;
             const signer = mockSigner({
-                signerId: ALICE.address,
+                signerId: ALICE.account,
                 submittable: submittable.object(),
             });
             const updatedVote = await pendingVote.castVote({
@@ -132,16 +132,16 @@ describe("Votes", () => {
 
 function mockClient(): Mock<LogionClient> {
     const client = new Mock<LogionClient>();
-    client.setup(client => client.authenticatedCurrentAddress)
-        .returns(doBuildValidPolkadotAccountId(ALICE.address));
+    client.setup(client => client.authenticatedCurrentAccount)
+        .returns(ALICE.account);
 
     const axiosMock = new Mock<AxiosInstance>();
     const response = new Mock<AxiosResponse>();
     response.setup(response => response.data.votes).returns(votesData());
-    axiosMock.setup(axios => axios.get(`/api/vote/${ ALICE.address }`))
+    axiosMock.setup(axios => axios.get(`/api/vote/${ ALICE.account.address }`))
         .returnsAsync(response.object());
 
-    client.setup(client => client.getLegalOfficer(ALICE.address))
+    client.setup(client => client.getLegalOfficer(ALICE.account))
         .returns(new LegalOfficerClass({
             legalOfficer: ALICE,
             axiosFactory: { buildAxiosInstance: () => axiosMock.object() },
@@ -170,9 +170,9 @@ function votesData(): BackendVote[] {
             locId: new UUID().toString(),
             status: "APPROVED",
             ballots: {
-                [ALICE.address]: "Yes",
-                [BOB.address]: "Yes",
-                [CHARLIE.address]: "Yes",
+                [ALICE.account.address]: "Yes",
+                [BOB.account.address]: "Yes",
+                [CHARLIE.account.address]: "Yes",
             },
         },
         {
@@ -181,9 +181,9 @@ function votesData(): BackendVote[] {
             locId: new UUID().toString(),
             status: "REJECTED",
             ballots: {
-                [ALICE.address]: "Yes",
-                [BOB.address]: "No",
-                [CHARLIE.address]: "No",
+                [ALICE.account.address]: "Yes",
+                [BOB.account.address]: "No",
+                [CHARLIE.account.address]: "No",
             },
         },
         {

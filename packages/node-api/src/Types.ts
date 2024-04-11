@@ -50,8 +50,8 @@ export interface Link extends LinkParams, LocItemAck {
 }
 
 export interface LegalOfficerCase {
-    owner: string;
-    requesterAddress?: ValidAccountId;
+    owner: ValidAccountId;
+    requesterAccountId?: ValidAccountId;
     requesterLocId?: UUID;
     metadata: MetadataItem[];
     files: File[];
@@ -111,7 +111,7 @@ export interface TermsAndConditionsElement {
 }
 
 export function isLogionIdentityLoc(loc: LegalOfficerCase): boolean {
-    return loc.locType === 'Identity' && !loc.requesterAddress && !loc.requesterLocId;
+    return loc.locType === 'Identity' && !loc.requesterAccountId && !loc.requesterLocId;
 }
 
 export function isLogionDataLoc(loc: LegalOfficerCase): boolean {
@@ -150,11 +150,11 @@ export interface TypesTokensRecordFile {
 export interface TypesTokensRecord {
     description: Hash;
     files: TypesTokensRecordFile[];
-    submitter: string;
+    submitter: ValidAccountId;
 }
 
 export interface TypesRecoveryConfig {
-    legalOfficers: string[];
+    legalOfficers: ValidAccountId[];
 }
 
 export type AccountType = "Polkadot" | "Ethereum" | "Bech32";
@@ -254,7 +254,21 @@ export class AnyAccountId implements AccountId {
         }
     }
 
-    equals(other: AccountId): boolean {
+    equals(other?: AccountId | null): boolean {
+        if(!this.isValid() || other === undefined || other === null) {
+            return false;
+        }
+
+        let otherAnyAccount;
+        if(other instanceof AnyAccountId) {
+            otherAnyAccount = other;
+        } else {
+            otherAnyAccount = new AnyAccountId(other.address, other.type);
+        }
+
+        if(!otherAnyAccount.isValid()) {
+            return false;
+        }
         if (this.type !== "Polkadot") {
             return this.type === other.type && this.address === other.address;
         } else {
@@ -280,12 +294,18 @@ export class ValidAccountId implements AccountId {
             throw new Error(error);
         }
 
-        this.address = ValidAccountId.computeAddress(SS58_PREFIX, accountId.address, accountId.type);
-        this.type = accountId.type;
+        this.anyAccountId = new AnyAccountId(ValidAccountId.computeAddress(SS58_PREFIX, accountId.address, accountId.type), accountId.type);
     }
 
-    readonly address: string;
-    readonly type: AccountType;
+    private anyAccountId: AnyAccountId;
+
+    get address() {
+        return this.anyAccountId.address;
+    }
+
+    get type() {
+        return this.anyAccountId.type;
+    }
 
     toOtherAccountId(): OtherAccountId {
         return new OtherAccountId(this);
@@ -299,8 +319,18 @@ export class ValidAccountId implements AccountId {
         return AnyAccountId.parseKey(key).toValidAccountId();
     }
 
-    equals(other: AccountId): boolean {
-        return this.type === other.type && this.address === other.address;
+    equals(other?: AccountId | null): boolean {
+        if(other === undefined || other === null) {
+            return false;
+        }
+        if(other instanceof ValidAccountId) {
+            return this.anyAccountId.equals(other.anyAccountId);
+        } else if(other instanceof AnyAccountId) {
+            return this.anyAccountId.equals(other);
+        } else {
+            const anyAddress = new AnyAccountId(other.address, other.type);
+            return this.anyAccountId.equals(anyAddress);
+        }
     }
 
     getAddress(prefix: number): string {
@@ -346,27 +376,27 @@ export class OtherAccountId implements AccountId {
         return this.validAccountId;
     }
 
-    equals(other: AccountId): boolean {
+    equals(other?: AccountId | null): boolean {
         return this.validAccountId.equals(other);
     }
 }
 
 export interface Sponsorship {
-    sponsor: AccountId;
-    sponsoredAccount: AccountId;
-    legalOfficer: AccountId;
+    sponsor: ValidAccountId;
+    sponsoredAccount: ValidAccountId;
+    legalOfficer: ValidAccountId;
     locId: UUID | undefined;
 }
 
 export interface VerifiedIssuerType {
-    address: string;
+    account: ValidAccountId;
     identityLocId: UUID;
 }
 
 export interface LegalOfficerData {
     hostData?: Partial<HostData>;
     isHost?: boolean;
-    hostAddress?: string;
+    hostAccount?: ValidAccountId;
     guests?: string[];
 }
 

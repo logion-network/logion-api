@@ -1,3 +1,4 @@
+import { ValidAccountId } from "../src/Types.js";
 import { setup, signAndSend } from "./Util.js";
 
 export async function addGuestLegalOfficer() {
@@ -35,7 +36,7 @@ export async function updateHostLegalOfficer() {
     expect(hostData.region.isEurope).toBe(true);
     expect(api.adapters.fromLogionRuntimeRegion(hostData.region)).toBe(region);
 
-    const host = await api.queries.getLegalOfficerData(alice.address);
+    const host = await api.queries.getLegalOfficerData(ValidAccountId.polkadot(alice.address));
     expect(host.isHost).toBe(true);
     expect(host.guests?.length).toBe(1);
     expect(host.hostAddress).toBeUndefined();
@@ -65,7 +66,7 @@ export async function importHost() {
     const sudoExtrinsic = api.polkadot.tx.sudo.sudo(extrinsic);
     await signAndSend(alice, sudoExtrinsic);
 
-    const host = await api.queries.getLegalOfficerData(ferdie);
+    const host = await api.queries.getLegalOfficerData(ValidAccountId.polkadot(ferdie));
     expect(host.hostData?.nodeId).toBe(nodeId);
     expect(host.hostData?.baseUrl).toBe(baseUrl);
     expect(host.hostData?.region).toBe(region);

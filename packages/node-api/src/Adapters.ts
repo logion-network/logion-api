@@ -42,7 +42,6 @@ import {
     OtherAccountId,
     MetadataItemParams,
     Sponsorship,
-    AccountId,
     AccountType,
     HostData,
     Region,
@@ -88,19 +87,19 @@ export class Adapters {
     }
 
     fromPalletLogionLocLegalOfficerCase(rawLoc: PalletLogionLocLegalOfficerCase): LegalOfficerCase {
-        let requesterAddress: ValidAccountId | undefined;
+        let requesterAccountId: ValidAccountId | undefined;
         if(rawLoc.requester.isAccount) {
-            requesterAddress = new AnyAccountId(rawLoc.requester.asAccount.toString(), "Polkadot").toValidAccountId();
+            requesterAccountId = new AnyAccountId(rawLoc.requester.asAccount.toString(), "Polkadot").toValidAccountId();
         } else if(rawLoc.requester.isOtherAccount) {
             if(rawLoc.requester.asOtherAccount.isEthereum) {
-                requesterAddress = new AnyAccountId(rawLoc.requester.asOtherAccount.asEthereum.toHex(), "Ethereum").toValidAccountId();
+                requesterAccountId = new AnyAccountId(rawLoc.requester.asOtherAccount.asEthereum.toHex(), "Ethereum").toValidAccountId();
             } else {
-                throw new Error("Unsupported other account value");
+                throw new Error("Unsupported other account type");
             }
         }
         return {
-            owner: rawLoc.owner.toString(),
-            requesterAddress,
+            owner: ValidAccountId.polkadot(rawLoc.owner.toString()),
+            requesterAccountId,
             requesterLocId: rawLoc.requester.isLoc ? UUID.fromDecimalString(rawLoc.requester.asLoc.toString()) : undefined,
             metadata: rawLoc.metadata.toArray().map(rawItem => ({
                 name: Hash.fromHex(rawItem.name.toHex()),
@@ -510,7 +509,7 @@ export class Adapters {
                 size: file.size_.toString(),
                 hash: Hash.fromHex(file.hash_.toHex()),
             })),
-            submitter: substrateObject.submitter.toString(),
+            submitter: ValidAccountId.polkadot(substrateObject.submitter.toString()),
         };
     }
 
@@ -539,15 +538,15 @@ export class Adapters {
         }
     }
 
-    toAccountId(account: PalletLogionLocSupportedAccountId): AccountId {
-        let type: string = account.type;
-        if (account.isPolkadot) {
-            return this.getValidAccountId(account.toString(), "Polkadot");
-        } else if (account.isOther) {
-            const otherAccount = account.asOther;
+    toAccountId(accountId: PalletLogionLocSupportedAccountId): ValidAccountId {
+        let type: string = accountId.type;
+        if (accountId.isPolkadot) {
+            return this.getValidAccountId(accountId.toString(), "Polkadot");
+        } else if (accountId.isOther) {
+            const otherAccount = accountId.asOther;
             type = otherAccount.type;
             if (otherAccount.isEthereum) {
-                return this.getValidAccountId(account.asOther.asEthereum.toHex(), "Ethereum")
+                return this.getValidAccountId(accountId.asOther.asEthereum.toHex(), "Ethereum")
             }
         }
         throw new Error(`Unsupported account type: ${ type }`);

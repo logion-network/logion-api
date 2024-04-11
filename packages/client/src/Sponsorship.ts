@@ -1,4 +1,4 @@
-import { LogionNodeApiClass, OtherAccountId, UUID, Sponsorship } from "@logion/node-api";
+import { LogionNodeApiClass, OtherAccountId, UUID, Sponsorship, ValidAccountId } from "@logion/node-api";
 import { LegalOfficer, LegalOfficerClass } from "./Types.js";
 import { Signer, SignCallback } from "./Signer.js";
 import { LocRequestState, LocsState } from "./Loc.js";
@@ -10,14 +10,14 @@ import { LogionClient } from "./LogionClient.js";
 export class SponsorshipApi {
 
     constructor(args: {
-        signerId: string,
+        signerId: ValidAccountId,
         api: LogionNodeApiClass,
     }) {
         this.signerId = args.signerId;
         this.api = args.api;
     }
 
-    private readonly signerId: string;
+    private readonly signerId: ValidAccountId;
     private readonly api: LogionNodeApiClass;
 
     async sponsor(args: {
@@ -30,7 +30,7 @@ export class SponsorshipApi {
         const submittable = this.api.polkadot.tx.logionLoc.sponsor(
             this.api.adapters.toSponsorshipId(args.sponsorshipId),
             this.api.adapters.toPalletLogionLocSupportedAccountId(args.sponsoredAccount.toValidAccountId()),
-            args.legalOfficer.address,
+            args.legalOfficer.account.address,
         );
         await args.signer.signAndSend({
             signerId: this.signerId,
@@ -82,7 +82,7 @@ export class SponsorshipState {
     }): Promise<SponsorshipState> {
         const { sharedState, client, id } = params;
         const sponsorship = await this.getValidSponsorship(sharedState, id);
-        const legalOfficer = requireDefined(sharedState.allLegalOfficers.find(lo => lo.address === sponsorship.legalOfficer.address));
+        const legalOfficer = requireDefined(sharedState.allLegalOfficers.find(lo => lo.account.equals(sponsorship.legalOfficer)));
         return new SponsorshipState(sharedState, client, id, sponsorship, legalOfficer).refresh(false);
     }
 
@@ -105,7 +105,7 @@ export class SponsorshipState {
                 requesterAddress: getDefinedCurrentAddress(this.sharedState).address,
                 sponsorshipId: this.id.toString(),
                 locTypes: [ "Identity" ],
-                ownerAddress: this.legalOfficer.address,
+                ownerAddress: this.legalOfficer.account.address,
                 statuses: [],
             }
         };

@@ -27,8 +27,8 @@ export class InvitedContributorApi {
 
     async findLocById(params: FetchParameters): Promise<InvitedContributorLoc | undefined> {
 
-        if (!this.sharedState.currentAddress) {
-            throw new Error("Current address must be set");
+        if (!this.sharedState.currentAccount) {
+            throw new Error("Current account must be set");
         }
         if (!this.logionClient.isTokenValid(DateTime.now())) {
             throw new Error("Client must be authenticated");
@@ -37,7 +37,7 @@ export class InvitedContributorApi {
         if (loc === undefined) {
             return undefined;
         }
-        const legalOfficer = this.sharedState.legalOfficers.find(lo => lo.address === loc.data.ownerAddress);
+        const legalOfficer = this.sharedState.legalOfficers.find(lo => lo.account.equals(loc.data.ownerAccountId));
         if (!legalOfficer) {
             return undefined;
         }
@@ -45,7 +45,7 @@ export class InvitedContributorApi {
             ...this.sharedState,
             axiosFactory: this.sharedState.axiosFactory,
             nodeApi: this.sharedState.nodeApi,
-            currentAddress: this.sharedState.currentAddress,
+            currentAccount: this.sharedState.currentAccount,
             legalOfficer,
         });
 

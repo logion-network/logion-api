@@ -12,7 +12,7 @@ import { ChainTime } from './ChainTime.js';
 import { Vault } from './VaultClass.js';
 import { LocBatch } from './LocBatch.js';
 import { UUID } from './UUID.js';
-import { LegalOfficerCase, VerifiedIssuerType, SS58_PREFIX } from './Types.js';
+import { LegalOfficerCase, VerifiedIssuerType, SS58_PREFIX, ValidAccountId } from './Types.js';
 import { Batching } from "./Batching.js";
 import { Lgnt } from "./Currency.js"
 
@@ -106,7 +106,7 @@ export class LogionNodeApiClass {
         now: () => ChainTime.now(this.polkadot),
     }
 
-    vault(requester: string, legalOfficers: string[]) {
+    vault(requester: ValidAccountId, legalOfficers: ValidAccountId[]) {
         return new Vault(this.polkadot, requester, legalOfficers);
     }
 

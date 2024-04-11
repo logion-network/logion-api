@@ -97,7 +97,7 @@ describe("FeesEstimator", () => {
         const expectedInclusionFee = BigInt(42);
         dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToBigInt(expectedInclusionFee));
         const submittable = new Mock<SubmittableExtrinsic>();
-        submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
+        submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER.address)).returns(Promise.resolve(dispatchInfo.object()));
 
         const expectedStorageFee = BigInt(100);
         const queryFileStorageFee = () => Promise.resolve({ toBigInt: () => expectedStorageFee } as Balance );
@@ -122,7 +122,7 @@ describe("FeesEstimator", () => {
         const expectedInclusionFee = BigInt(42);
         dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToBigInt(expectedInclusionFee));
         const submittable = new Mock<SubmittableExtrinsic>();
-        submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
+        submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER.address)).returns(Promise.resolve(dispatchInfo.object()));
 
         const api = mockPolkadotApiForFeesEstimator({});
         const estimator = new FeesEstimator(api);
@@ -144,7 +144,7 @@ describe("FeesEstimator", () => {
         const expectedInclusionFee = BigInt(42);
         dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToBigInt(expectedInclusionFee));
         const submittable = new Mock<SubmittableExtrinsic>();
-        submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
+        submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER.address)).returns(Promise.resolve(dispatchInfo.object()));
 
         const expectedLegalFee = BigInt(1000);
 
@@ -173,7 +173,7 @@ describe("FeesEstimator", () => {
         const expectedInclusionFee = BigInt(42);
         dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToBigInt(expectedInclusionFee));
         const submittable = new Mock<SubmittableExtrinsic>();
-        submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
+        submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER.address)).returns(Promise.resolve(dispatchInfo.object()));
 
         const expectedStorageFee = BigInt(100);
         const queryFileStorageFee = () => Promise.resolve({ toBigInt: () => expectedStorageFee } as Balance );
@@ -208,7 +208,7 @@ describe("FeesEstimator", () => {
         const expectedInclusionFee = BigInt(42);
         dispatchInfo.setup(instance => instance.partialFee).returns(mockCodecWithToBigInt(expectedInclusionFee));
         const submittable = new Mock<SubmittableExtrinsic>();
-        submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER)).returns(Promise.resolve(dispatchInfo.object()));
+        submittable.setup(instance => instance.paymentInfo(DEFAULT_LEGAL_OFFICER.address)).returns(Promise.resolve(dispatchInfo.object()));
 
         const expectedStorageFee = BigInt(100);
         const queryFileStorageFee = () => Promise.resolve({ toBigInt: () => expectedStorageFee } as Balance );

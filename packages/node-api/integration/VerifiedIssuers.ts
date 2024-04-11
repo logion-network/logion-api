@@ -1,4 +1,4 @@
-import { UUID, Adapters, Hash, Lgnt } from "../src/index.js";
+import { UUID, Adapters, Hash, Lgnt, ValidAccountId } from "../src/index.js";
 import { setup, signAndSend, signAndSendBatch } from "./Util.js";
 
 export async function verifiedIssuers() {
@@ -108,13 +108,13 @@ export async function verifiedIssuers() {
     ]);
 
     expect((await api.polkadot.query.logionLoc.verifiedIssuersMap(alice.address, issuer.address)).isSome).toBe(true);
-    expect((await api.queries.getLegalOfficerVerifiedIssuers(alice.address)).length).toBe(1);
+    expect((await api.queries.getLegalOfficerVerifiedIssuers(ValidAccountId.polkadot(alice.address))).length).toBe(1);
 
     const batch = api.batch.locs([ collectionLocId ]);
 
     const collectionVerifiedIssuers = await batch.getLocsVerifiedIssuers();
     expect(collectionVerifiedIssuers[collectionLocId.toDecimalString()].length).toBe(1);
-    expect(collectionVerifiedIssuers[collectionLocId.toDecimalString()][0].address).toBe(issuer.address);
+    expect(collectionVerifiedIssuers[collectionLocId.toDecimalString()][0].account.address).toBe(issuer.address);
     expect(collectionVerifiedIssuers[collectionLocId.toDecimalString()][0].identityLocId.toString()).toBe(issuerIdentityLocId.toString());
 
     const recordId = "0x5b2ef8140cfcf72237f2182b9f5eb05eb643a26f9a823e5e804d5543976a4fb9";

@@ -19,10 +19,10 @@ describe("Workload", () => {
         const axiosFactory = new Mock<AxiosFactory>();
         const axiosInstance = new Mock<AxiosInstance>();
         const workloads: Record<string, number> = {};
-        workloads[legalOfficer.address] = workload;
+        workloads[legalOfficer.account.address] = workload;
         axiosInstance.setup(instance => instance.put(
             `/api/workload`,
-            It.Is<{ legalOfficerAddresses: string[] }>(params => params.legalOfficerAddresses.includes(legalOfficer.address)))
+            It.Is<{ legalOfficerAddresses: string[] }>(params => params.legalOfficerAddresses.includes(legalOfficer.account.address)))
         )
             .returns(Promise.resolve({ data: { workloads } } as AxiosResponse));
         axiosFactory.setup(instance => instance.buildAxiosInstance(legalOfficer.node, token))
@@ -89,11 +89,11 @@ describe("Workload", () => {
         const axiosFactory = new Mock<AxiosFactory>();
         const axiosInstance = new Mock<AxiosInstance>();
         const workloads: Record<string, number> = {};
-        workloads[ALICE.address] = 42;
-        workloads[BOB.address] = 24;
+        workloads[ALICE.account.address] = 42;
+        workloads[BOB.account.address] = 24;
         axiosInstance.setup(instance => instance.put(
             `/api/workload`,
-            It.Is<{ legalOfficerAddresses: string[] }>(params => params.legalOfficerAddresses.includes(ALICE.address) && params.legalOfficerAddresses.includes(BOB.address)))
+            It.Is<{ legalOfficerAddresses: string[] }>(params => params.legalOfficerAddresses.includes(ALICE.account.address) && params.legalOfficerAddresses.includes(BOB.account.address)))
         )
             .returns(Promise.resolve({ data: { workloads } } as AxiosResponse));
         axiosFactory.setup(instance => instance.buildAxiosInstance(sameNode, aliceToken))

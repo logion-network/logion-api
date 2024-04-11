@@ -50,7 +50,7 @@ export class LogionClient {
         );
         const allLegalOfficers = await directoryClient.getLegalOfficers();
         const legalOfficers = allLegalOfficers.filter(legalOfficer => legalOfficer.node);
-        const nodesUp: LegalOfficerEndpoint[] = legalOfficers.map(legalOfficer => ({ url: legalOfficer.node, legalOfficer: legalOfficer.address }));
+        const nodesUp: LegalOfficerEndpoint[] = legalOfficers.map(legalOfficer => ({ url: legalOfficer.node, legalOfficer: legalOfficer.account.address }));
         const sharedState: SharedState = {
             config,
             componentFactory,
@@ -61,7 +61,7 @@ export class LogionClient {
             allLegalOfficers,
             networkState: componentFactory.buildNetworkState(nodesUp, []),
             tokens: new AccountTokens(nodeApi, {}),
-            currentAddress: undefined,
+            currentAccount: undefined,
         };
         return new LogionClient(sharedState);
     }
@@ -89,17 +89,17 @@ export class LogionClient {
     }
 
     /**
-     * The current address used to query data and sign extrinsics.
+     * The current account used to query data and sign extrinsics.
      */
-    get currentAddress(): ValidAccountId | undefined {
-        return this.sharedState.currentAddress;
+    get currentAccount(): ValidAccountId | undefined {
+        return this.sharedState.currentAccount;
     }
 
     /**
-     * The current address if authenticated (see {@link authenticate}). Throws an error otherwise.
+     * The current account if authenticated (see {@link authenticate}). Throws an error otherwise.
      */
-    get authenticatedCurrentAddress(): ValidAccountId {
-        const address = this.currentAddress;
+    get authenticatedCurrentAccount(): ValidAccountId {
+        const address = this.currentAccount;
         if(!address) {
             throw new Error("Not authenticated");
         }
@@ -107,7 +107,7 @@ export class LogionClient {
     }
 
     /**
-     * The JWT tokens attached to authenticated addresses.
+     * The JWT tokens attached to authenticated accounts.
      */
     get tokens(): AccountTokens {
         return this.sharedState.tokens;
@@ -149,7 +149,7 @@ export class LogionClient {
      */
     useTokens(tokens: AccountTokens): LogionClient {
         this.ensureConnected();
-        const token = tokens.get(this.currentAddress)?.value;
+        const token = tokens.get(this.currentAccount)?.value;
         const sharedState = this.refreshLegalOfficers(this.sharedState, token);
         return new LogionClient({
             ...sharedState,
@@ -205,20 +205,20 @@ export class LogionClient {
     }
 
     /**
-     * Sets current address.
+     * Sets current account.
      * 
-     * @param currentAddress The address to use as current.
-     * @returns A client instance with provided current address.
+     * @param currentAccount The account to use as current.
+     * @returns A client instance with provided current account.
      */
-    withCurrentAddress(currentAddress?: ValidAccountId): LogionClient {
+    withCurrentAccount(currentAccount?: ValidAccountId): LogionClient {
         this.ensureConnected();
         let directoryClient: DirectoryClient;
-        if(currentAddress !== undefined) {
+        if(currentAccount !== undefined) {
             directoryClient = this.sharedState.componentFactory.buildDirectoryClient(
                 this.sharedState.nodeApi,
                 this.sharedState.config.directoryEndpoint,
                 this.sharedState.axiosFactory,
-                this.sharedState.tokens.get(currentAddress)?.value,
+                this.sharedState.tokens.get(currentAccount)?.value,
             );
         } else {
             directoryClient = this.sharedState.componentFactory.buildDirectoryClient(
@@ -227,11 +227,11 @@ export class LogionClient {
                 this.sharedState.axiosFactory,
             );
         }
-        const token = this.sharedState.tokens.get(currentAddress)?.value;
+        const token = this.sharedState.tokens.get(currentAccount)?.value;
         const sharedState = this.refreshLegalOfficers(this.sharedState, token);
         return new LogionClient({
             ...sharedState,
-            currentAddress,
+            currentAccount,
             directoryClient,
         });
     }
@@ -250,14 +250,14 @@ export class LogionClient {
         return new LogionClient({
             ...this.sharedState,
             tokens: new AccountTokens(this.sharedState.nodeApi, {}),
-            currentAddress: undefined,
+            currentAccount: undefined,
             directoryClient,
         });
     }
 
     private get token(): Token | undefined {
-        if(this.sharedState.currentAddress) {
-            return this.sharedState.tokens.get(this.sharedState.currentAddress);
+        if(this.sharedState.currentAccount) {
+            return this.sharedState.tokens.get(this.sharedState.currentAccount);
         } else {
             return undefined;
         }
@@ -272,7 +272,7 @@ export class LogionClient {
         const { currentAddress, token } = authenticatedCurrentAddress(this.sharedState);
         const recoveryClient = new RecoveryClient({
             axiosFactory: this.sharedState.axiosFactory,
-            currentAddress: currentAddress.address,
+            currentAddress,
             networkState: this.sharedState.networkState,
             token: token.value,
             nodeApi: this.sharedState.nodeApi,
@@ -287,7 +287,7 @@ export class LogionClient {
      * @returns True if the token did not yet expire, false if it did.
      */
     isTokenValid(now: DateTime): boolean {
-        return this.sharedState.tokens.isAuthenticated(now, this.currentAddress);
+        return this.sharedState.tokens.isAuthenticated(now, this.currentAccount);
     }
 
     /**
@@ -300,11 +300,11 @@ export class LogionClient {
      * A call to this method will merge the retrieved tokens with the ones already available.
      * Older tokens are replaced.
      * 
-     * @param addresses The addresses for which an authentication token must be retrieved.
+     * @param accounts The addresses for which an authentication token must be retrieved.
      * @param signer The signer that will sign the challenge.
      * @returns An instance of client with retrived JWT tokens.
      */
-    async authenticate(addresses: ValidAccountId[], signer: RawSigner): Promise<LogionClient> {
+    async authenticate(accounts: ValidAccountId[], signer: RawSigner): Promise<LogionClient> {
         this.ensureConnected();
         const client = this.sharedState.componentFactory.buildAuthenticationClient(
             this.sharedState.nodeApi,
@@ -312,49 +312,49 @@ export class LogionClient {
             this.sharedState.legalOfficers,
             this.sharedState.axiosFactory
         );
-        const newTokens = await client.authenticate(addresses, signer);
+        const newTokens = await client.authenticate(accounts, signer);
         const tokens = this.tokens.merge(newTokens);
 
-        let currentAddress = this.sharedState.currentAddress;
-        if(!currentAddress && addresses.length === 1) {
-            currentAddress = addresses[0];
+        let currentAddress = this.sharedState.currentAccount;
+        if(!currentAddress && accounts.length === 1) {
+            currentAddress = accounts[0];
         }
 
-        return this.useTokens(tokens).withCurrentAddress(currentAddress);
+        return this.useTokens(tokens).withCurrentAccount(currentAddress);
     }
 
     /**
      * Tells if a given address is associated with a legal officer.
-     * @param address An SS58 Polkadot address.
+     * @param accountId An SS58 Polkadot address.
      * @returns True if the provided address is linked to a legal officer, false otherwise.
      */
-    isLegalOfficer(address: string): boolean {
+    isLegalOfficer(accountId: ValidAccountId): boolean {
         this.ensureConnected();
-        return this.sharedState.allLegalOfficers.find(legalOfficer => legalOfficer.address === address) !== undefined;
+        return this.sharedState.allLegalOfficers.find(legalOfficer => legalOfficer.account.equals(accountId)) !== undefined;
     }
 
     /**
-     * Gets the {@link LegalOfficerClass} associated with provided address. Will throw an error
-     * if no legal officer is linked to the address.
-     * @param address An SS58 Polkadot address.
+     * Gets the {@link LegalOfficerClass} associated with provided account. Will throw an error
+     * if no legal officer is linked to the account.
+     * @param accountId A Polkadot account.
      * @returns An instance of {@link LegalOfficerClass}
      */
-    getLegalOfficer(address: string): LegalOfficerClass {
-        const legalOfficer = this.sharedState.allLegalOfficers.find(legalOfficer => legalOfficer.address === address);
+    getLegalOfficer(accountId: ValidAccountId): LegalOfficerClass {
+        const legalOfficer = this.sharedState.allLegalOfficers.find(legalOfficer => legalOfficer.account.equals(accountId));
         if(!legalOfficer) {
-            throw new Error(`No legal officer with address ${address}`);
+            throw new Error(`No legal officer with address ${accountId}`);
         }
         return legalOfficer;
     }
 
     /**
      * Queries Logion blockchain to check if a given address is attached to a legal officer.
-     * @param address An SS58 Polkadot address.
-     * @returns True if provided address is attached to a legal officer.
+     * @param accountId A Polkadot account.
+     * @returns True if provided account is attached to a legal officer.
      */
-    async isRegisteredLegalOfficer(address: string): Promise<boolean> {
+    async isRegisteredLegalOfficer(accountId: ValidAccountId): Promise<boolean> {
         this.ensureConnected();
-        const option = await this.sharedState.nodeApi.polkadot.query.loAuthorityList.legalOfficerSet(address);
+        const option = await this.sharedState.nodeApi.polkadot.query.loAuthorityList.legalOfficerSet(accountId.address);
         return option.isSome;
     }
 
@@ -386,7 +386,7 @@ export class LogionClient {
      */
     buildMultiSourceHttpClient(): MultiSourceHttpClient<LegalOfficerEndpoint> {
         const initialState = initMultiSourceHttpClientState(this.sharedState.networkState, this.sharedState.legalOfficers);
-        const token = this.sharedState.tokens.get(this.sharedState.currentAddress);
+        const token = this.sharedState.tokens.get(this.sharedState.currentAccount);
         if(!token) {
             throw new Error("Authentication required");
         }
@@ -437,7 +437,7 @@ export class LogionClient {
      */
     async balanceState(): Promise<BalanceState> {
         this.ensureConnected();
-        if(!this.sharedState.currentAddress) {
+        if(!this.sharedState.currentAccount) {
             throw new Error("Current address was not selected");
         }
         return getBalanceState({
@@ -448,12 +448,12 @@ export class LogionClient {
 
     /**
      * Queries the blockchain to tell if provided address is protected (see {@link ProtectionState}).
-     * @param address An SS58 Polkadot address.
+     * @param accountId An SS58 Polkadot address.
      * @returns True if the address is protected, false otherwise.
      */
-    async isProtected(address: string): Promise<boolean> {
+    async isProtected(accountId: ValidAccountId): Promise<boolean> {
         this.ensureConnected();
-        const config = await this.sharedState.nodeApi.queries.getRecoveryConfig(address);
+        const config = await this.sharedState.nodeApi.queries.getRecoveryConfig(accountId);
         return config !== undefined;
     }
 
@@ -521,7 +521,7 @@ export class LogionClient {
         this.ensureConnected();
         return new SponsorshipApi({
             api: this.sharedState.nodeApi,
-            signerId: requireDefined(this.currentAddress?.address),
+            signerId: requireDefined(this.currentAccount),
         });
     }
 

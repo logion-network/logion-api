@@ -36,7 +36,7 @@ describe("AuthenticationClient", () => {
         const axiosFactory = new Mock<AxiosFactory>();
         const api = buildSimpleNodeApi();
         const tokens = buildAliceTokens(api, DateTime.now().plus({hours: 1}));
-        const alice = buildValidPolkadotAccountId(ALICE.address)!;
+        const alice = ALICE.account;
         const token = tokens.get(alice)!.value;
         const legalOfficers = [ new LegalOfficerClass({ legalOfficer: ALICE, axiosFactory: axiosFactory.object(), token }) ];
 
@@ -192,7 +192,7 @@ describe("AccountTokens", () => {
         const api = buildSimpleNodeApi();
         const tokens = new AccountTokens(api, tokensRecord);
         expect(tokens.length).toBe(2);
-        expect(tokens.addresses).toEqual(addresses);
+        expect(tokens.accounts).toEqual(addresses);
         expect(tokens.get(ADDRESS_WITH_VALID_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_VALID_TOKEN.toKey()]);
         expect(tokens.get(ADDRESS_WITH_EXPIRED_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_EXPIRED_TOKEN.toKey()]);
     });
@@ -203,9 +203,9 @@ describe("AccountTokens", () => {
 
         expect(merged.length).toBe(3);
 
-        expect(merged.addresses).toContain(ADDRESS_WITH_VALID_TOKEN);
-        expect(merged.addresses).toContain(ADDRESS_WITH_EXPIRED_TOKEN);
-        expect(merged.addresses).toContain(OTHER_ADDRESS);
+        expect(merged.accounts).toContain(ADDRESS_WITH_VALID_TOKEN);
+        expect(merged.accounts).toContain(ADDRESS_WITH_EXPIRED_TOKEN);
+        expect(merged.accounts).toContain(OTHER_ADDRESS);
 
         expect(merged.get(ADDRESS_WITH_VALID_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_VALID_TOKEN.toKey()]);
         expect(merged.get(ADDRESS_WITH_EXPIRED_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_EXPIRED_TOKEN.toKey()]);
@@ -216,7 +216,7 @@ describe("AccountTokens", () => {
         const api = buildSimpleNodeApi();
         const tokens = new AccountTokens(api, tokensRecord).cleanUp(now);
         expect(tokens.length).toBe(1);
-        expect(tokens.addresses).toContain(ADDRESS_WITH_VALID_TOKEN);
+        expect(tokens.accounts).toContain(ADDRESS_WITH_VALID_TOKEN);
         expect(tokens.get(ADDRESS_WITH_VALID_TOKEN)).toEqual(tokensRecord[ADDRESS_WITH_VALID_TOKEN.toKey()]);
     });
 

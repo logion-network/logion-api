@@ -32,11 +32,11 @@ export interface SharedState {
     legalOfficers: LegalOfficerClass[];
     allLegalOfficers: LegalOfficerClass[];
     tokens: AccountTokens;
-    currentAddress?: ValidAccountId;
+    currentAccount?: ValidAccountId;
 }
 
-export function getLegalOfficer(sharedState: SharedState, address: string): LegalOfficerClass {
-    return findOrThrow(sharedState.legalOfficers, lo => lo.address === address, `No legal officer with address ${address}`);
+export function getLegalOfficer(sharedState: SharedState, account: ValidAccountId): LegalOfficerClass {
+    return findOrThrow(sharedState.legalOfficers, lo => lo.account.equals(account), `No legal officer with address ${account.address}`);
 }
 
 export function authenticatedCurrentAddress(sharedState: SharedState): { currentAddress: ValidAccountId, token: Token } {
@@ -52,7 +52,7 @@ export function authenticatedCurrentAddress(sharedState: SharedState): { current
 }
 
 export function getDefinedCurrentAddress(sharedState: SharedState): ValidAccountId {
-    const { currentAddress } = sharedState;
+    const { currentAccount: currentAddress } = sharedState;
     if(!currentAddress) {
         throw new Error("No current address");
     }

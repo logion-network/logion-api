@@ -33,7 +33,7 @@ export interface RawSigner {
 export type SignCallback = (result: ISubmittableResult) => void;
 
 export interface SignParameters {
-    signerId: string;
+    signerId: ValidAccountId;
     submittable: SubmittableExtrinsic;
     callback?: SignCallback;
     strategy?: SignAndSendStrategy;
@@ -204,7 +204,7 @@ export class KeyringSigner extends BaseSigner {
     }
 
     async buildSignAndSendFunction(parameters: SignParameters): Promise<SignAndSendFunction> {
-        const keypair = this.keyring.getPair(parameters.signerId);
+        const keypair = this.keyring.getPair(parameters.signerId.address);
         return statusCallback => parameters.submittable.signAndSend(keypair, statusCallback);
     }
 }

@@ -1,6 +1,7 @@
 import {
     TypesRecoveryConfig,
     UUID,
+    ValidAccountId,
 } from "@logion/node-api";
 import {
     FetchAllResult,
@@ -37,7 +38,7 @@ export interface RecoverySharedState extends SharedState {
     cancelledProtectionRequests: ProtectionRequest[];
     allRequests: ProtectionRequest[];
     recoveryConfig?: TypesRecoveryConfig;
-    recoveredAddress?: string;
+    recoveredAddress?: ValidAccountId;
     selectedLegalOfficers: LegalOfficerClass[];
 }
 
@@ -49,15 +50,15 @@ export interface ProtectionParams {
 }
 
 export interface ProtectionOrRecoveryParams extends ProtectionParams {
-    recoveredAddress?: string
+    recoveredAddress?: ValidAccountId;
 }
 
 export interface RecoveryParams extends ProtectionParams {
-    recoveredAddress: string
+    recoveredAddress: ValidAccountId;
 }
 
 function toActionableProtectionRequest(protectionRequest: ProtectionRequest, sharedState: SharedState): ProtectionRequest {
-    const legalOfficer = getLegalOfficer(sharedState, protectionRequest.legalOfficerAddress);
+    const legalOfficer = getLegalOfficer(sharedState, ValidAccountId.polkadot(protectionRequest.legalOfficerAddress));
     const loRecoveryClient = newLoRecoveryClient(sharedState, legalOfficer);
     if (protectionRequest.status === 'ACTIVATED' || protectionRequest.status.includes("CANCELLED")) {
         return protectionRequest;
@@ -101,46 +102,48 @@ export function getInitialState(data: FetchAllResult, pSharedState: SharedState)
     if(recoveryConfig === undefined && recoveredAddress === undefined && numberOfRequests === 0) {
         return new NoProtection({ ...sharedState });
     } else if (recoveryConfig !== undefined && recoveredAddress === undefined && numberOfRequests === 0) {
+        const recoveryConfigLegalOfficers = recoveryConfig.legalOfficers.map(legalOfficer => legalOfficer.address);
         return new ActiveProtection({
             ...sharedState,
-            selectedLegalOfficers: sharedState.legalOfficers.filter(legalOfficer => recoveryConfig.legalOfficers.includes(legalOfficer.address)),
+            selectedLegalOfficers: sharedState.legalOfficers.filter(legalOfficer => recoveryConfigLegalOfficers.includes(legalOfficer.account.address)),
         });
     } else if (recoveryConfig !== undefined && recoveredAddress !== undefined) {
+        const recoveryConfigLegalOfficers = recoveryConfig.legalOfficers.map(legalOfficer => legalOfficer.address);
         return new ClaimedRecovery({
             ...sharedState,
-            selectedLegalOfficers: sharedState.legalOfficers.filter(legalOfficer => recoveryConfig.legalOfficers.includes(legalOfficer.address)),
+            selectedLegalOfficers: sharedState.legalOfficers.filter(legalOfficer => recoveryConfigLegalOfficers.includes(legalOfficer.account.address)),
         });
     } else if (recoveryConfig !== undefined && recoveredAddress === undefined && data.acceptedProtectionRequests.length > 0 && data.acceptedProtectionRequests[0].isRecovery) {
-        const legalOfficer1 = getLegalOfficer(sharedState, data.acceptedProtectionRequests[0].legalOfficerAddress);
-        const legalOfficer2 = getLegalOfficer(sharedState, data.acceptedProtectionRequests[1].legalOfficerAddress);
+        const legalOfficer1 = getLegalOfficer(sharedState, ValidAccountId.polkadot(data.acceptedProtectionRequests[0].legalOfficerAddress));
+        const legalOfficer2 = getLegalOfficer(sharedState, ValidAccountId.polkadot(data.acceptedProtectionRequests[1].legalOfficerAddress));
         return new PendingRecovery({
             ...sharedState,
             selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
         });
     } else if (recoveryConfig === undefined && recoveredAddress === undefined && data.acceptedProtectionRequests.length === 2) {
-        const legalOfficer1 = getLegalOfficer(sharedState, data.acceptedProtectionRequests[0].legalOfficerAddress);
-        const legalOfficer2 = getLegalOfficer(sharedState, data.acceptedProtectionRequests[1].legalOfficerAddress);
+        const legalOfficer1 = getLegalOfficer(sharedState, ValidAccountId.polkadot(data.acceptedProtectionRequests[0].legalOfficerAddress));
+        const legalOfficer2 = getLegalOfficer(sharedState, ValidAccountId.polkadot(data.acceptedProtectionRequests[1].legalOfficerAddress));
         return new AcceptedProtection({
             ...sharedState,
             selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
         });
     } else if (recoveryConfig === undefined && recoveredAddress === undefined && pendingProtectionRequests.length === 2) {
-        const legalOfficer1 = getLegalOfficer(sharedState, data.pendingProtectionRequests[0].legalOfficerAddress);
-        const legalOfficer2 = getLegalOfficer(sharedState, data.pendingProtectionRequests[1].legalOfficerAddress);
+        const legalOfficer1 = getLegalOfficer(sharedState, ValidAccountId.polkadot(data.pendingProtectionRequests[0].legalOfficerAddress));
+        const legalOfficer2 = getLegalOfficer(sharedState, ValidAccountId.polkadot(data.pendingProtectionRequests[1].legalOfficerAddress));
         return new PendingProtection({
             ...sharedState,
             selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
         });
     } else if (recoveryConfig === undefined && recoveredAddress === undefined && pendingProtectionRequests.length === 1 && acceptedProtectionRequests.length === 1) {
-        const legalOfficer1 = getLegalOfficer(sharedState, pendingProtectionRequests[0].legalOfficerAddress);
-        const legalOfficer2 = getLegalOfficer(sharedState, acceptedProtectionRequests[0].legalOfficerAddress);
+        const legalOfficer1 = getLegalOfficer(sharedState, ValidAccountId.polkadot(pendingProtectionRequests[0].legalOfficerAddress));
+        const legalOfficer2 = getLegalOfficer(sharedState, ValidAccountId.polkadot(acceptedProtectionRequests[0].legalOfficerAddress));
         return new PendingProtection({
             ...sharedState,
             selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
         });
     } else if (recoveryConfig === undefined && recoveredAddress === undefined && rejectedProtectionRequests.length > 0) {
-        const legalOfficer1 = getLegalOfficer(sharedState, rejectedProtectionRequests[0].legalOfficerAddress);
-        const legalOfficer2 = getLegalOfficer(sharedState, rejectedProtectionRequests[0].otherLegalOfficerAddress);
+        const legalOfficer1 = getLegalOfficer(sharedState, ValidAccountId.polkadot(rejectedProtectionRequests[0].legalOfficerAddress));
+        const legalOfficer2 = getLegalOfficer(sharedState, ValidAccountId.polkadot(rejectedProtectionRequests[0].otherLegalOfficerAddress));
         return new RejectedRecovery({
             ...sharedState,
             selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
@@ -148,10 +151,11 @@ export function getInitialState(data: FetchAllResult, pSharedState: SharedState)
     } else {
         let selectedLegalOfficers: LegalOfficerClass[] = [];
         if (recoveryConfig !== undefined) {
-            selectedLegalOfficers = sharedState.legalOfficers.filter(legalOfficer => recoveryConfig.legalOfficers.includes(legalOfficer.address));
+            const recoveryConfigLegalOfficers = recoveryConfig.legalOfficers.map(legalOfficer => legalOfficer.address);
+            selectedLegalOfficers = sharedState.legalOfficers.filter(legalOfficer => recoveryConfigLegalOfficers.includes(legalOfficer.account.address));
         } else if (allRequests.length > 0) {
             const selectedLegalOfficersAddresses = [ allRequests[0].legalOfficerAddress, allRequests[0].otherLegalOfficerAddress ];
-            selectedLegalOfficers = sharedState.legalOfficers.filter(legalOfficer => selectedLegalOfficersAddresses.includes(legalOfficer.address));
+            selectedLegalOfficers = sharedState.legalOfficers.filter(legalOfficer => selectedLegalOfficersAddresses.includes(legalOfficer.account.address));
         }
         return new UnavailableProtection({
             ...sharedState,
@@ -190,9 +194,9 @@ export class NoProtection extends State {
 
     private async _activateProtection(params: BlockchainSubmission<ProtectionParams>): Promise<ActiveProtection> {
         const { signer, callback } = params
-        const sortedLegalOfficers = [ params.payload.legalOfficer1.address, params.payload.legalOfficer2.address ].sort();
+        const sortedLegalOfficers = [ params.payload.legalOfficer1.account.address, params.payload.legalOfficer2.account.address ].sort();
         await signer.signAndSend({
-            signerId: getDefinedCurrentAddress(this.sharedState).address,
+            signerId: getDefinedCurrentAddress(this.sharedState),
             submittable: this.sharedState.nodeApi.polkadot.tx.verifiedRecovery.createRecovery(
                 sortedLegalOfficers,
             ),
@@ -211,7 +215,7 @@ export class NoProtection extends State {
             cancelledProtectionRequests: [],
             allRequests: [],
             recoveryConfig: {
-                legalOfficers: sortedLegalOfficers
+                legalOfficers: sortedLegalOfficers.map(address => ValidAccountId.polkadot(address)),
             }
         };
 
@@ -223,17 +227,17 @@ export class NoProtection extends State {
         const currentAddress = getDefinedCurrentAddress(this.sharedState);
         const activeRecovery = await this.sharedState.nodeApi.queries.getActiveRecovery(
             payload.recoveredAddress,
-            currentAddress.address,
+            currentAddress,
         );
         if (activeRecovery === undefined) {
             const recoveryConfig = await this.sharedState.nodeApi.queries.getRecoveryConfig(payload.recoveredAddress);
-            if (recoveryConfig &&
-                recoveryConfig.legalOfficers.includes(payload.legalOfficer1.address) &&
-                recoveryConfig.legalOfficers.includes(payload.legalOfficer2.address)
+            const legalOfficersAddresses = recoveryConfig ? recoveryConfig.legalOfficers.map(accountId => accountId.address) : [];
+            if (legalOfficersAddresses.includes(payload.legalOfficer1.account.address) &&
+                legalOfficersAddresses.includes(payload.legalOfficer2.account.address)
             ) {
                 await params.signer.signAndSend({
-                    signerId: currentAddress.address,
-                    submittable: this.sharedState.nodeApi.polkadot.tx.recovery.initiateRecovery(payload.recoveredAddress),
+                    signerId: currentAddress,
+                    submittable: this.sharedState.nodeApi.polkadot.tx.recovery.initiateRecovery(payload.recoveredAddress.address),
                     callback: params.callback,
                 });
             } else {
@@ -251,18 +255,18 @@ export class NoProtection extends State {
         const loRecoveryClient1 = newLoRecoveryClient(this.sharedState, params.legalOfficer1);
         const protection1 = await loRecoveryClient1.createProtectionRequest({
             requesterIdentityLoc: params.requesterIdentityLoc1.toString(),
-            legalOfficerAddress: params.legalOfficer1.address,
-            otherLegalOfficerAddress: params.legalOfficer2.address,
+            legalOfficerAddress: params.legalOfficer1.account.address,
+            otherLegalOfficerAddress: params.legalOfficer2.account.address,
             isRecovery: params.recoveredAddress !== undefined,
-            addressToRecover: params.recoveredAddress || "",
+            addressToRecover: params.recoveredAddress?.address || "",
         });
         const loRecoveryClient2 = newLoRecoveryClient(this.sharedState, params.legalOfficer2);
         const protection2 = await loRecoveryClient2.createProtectionRequest({
             requesterIdentityLoc: params.requesterIdentityLoc2.toString(),
-            legalOfficerAddress: params.legalOfficer2.address,
-            otherLegalOfficerAddress: params.legalOfficer1.address,
+            legalOfficerAddress: params.legalOfficer2.account.address,
+            otherLegalOfficerAddress: params.legalOfficer1.account.address,
             isRecovery: params.recoveredAddress !== undefined,
-            addressToRecover: params.recoveredAddress || "",
+            addressToRecover: params.recoveredAddress?.address || "",
         });
 
         return new PendingProtection({
@@ -291,7 +295,7 @@ function newRecoveryClient(sharedState: SharedState): RecoveryClient {
     const { currentAddress, token } = authenticatedCurrentAddress(sharedState);
     return new RecoveryClient({
         axiosFactory: sharedState.axiosFactory,
-        currentAddress: currentAddress.address,
+        currentAddress,
         networkState: sharedState.networkState,
         token: token.value,
         nodeApi: sharedState.nodeApi,
@@ -330,7 +334,7 @@ export interface ProtectionParameters {
 
     readonly postalAddress?: PostalAddress; // Only defined on recovery
 
-    readonly recoveredAddress: string | undefined;
+    readonly recoveredAddress: ValidAccountId | undefined;
 
     readonly isRecovery: boolean;
 
@@ -346,8 +350,8 @@ export interface WithProtectionParameters {
 
 function buildProtectionParameters(sharedState: RecoverySharedState): ProtectionParameters {
     const isRecovery = sharedState.recoveredAddress !== undefined || sharedState.allRequests.length > 0 && sharedState.allRequests[0].isRecovery;
-    const request1 = sharedState.allRequests.find(request => request.legalOfficerAddress === sharedState.selectedLegalOfficers[0].address);
-    const request2 = sharedState.allRequests.find(request => request.legalOfficerAddress === sharedState.selectedLegalOfficers[1].address);
+    const request1 = sharedState.allRequests.find(request => request.legalOfficerAddress === sharedState.selectedLegalOfficers[0].account.address);
+    const request2 = sharedState.allRequests.find(request => request.legalOfficerAddress === sharedState.selectedLegalOfficers[1].account.address);
     const states: LegalOfficerProtectionState[] = [];
     if(request1 !== undefined) {
         states.push(buildProtectionState(sharedState.selectedLegalOfficers[0], request1));
@@ -360,7 +364,7 @@ function buildProtectionParameters(sharedState: RecoverySharedState): Protection
         states,
         postalAddress: request1?.userPostalAddress,
         userIdentity: request1?.userIdentity,
-        recoveredAddress: request1?.addressToRecover || undefined,
+        recoveredAddress: request1?.addressToRecover ? ValidAccountId.polkadot(request1?.addressToRecover) : undefined,
         isRecovery,
         isActive: sharedState.recoveryConfig !== undefined,
         isClaimed: sharedState.recoveredAddress !== undefined,
@@ -537,7 +541,7 @@ export class RejectedRecovery extends State implements WithProtectionParameters 
     }
 
     private async _resubmit(currentLegalOfficer: LegalOfficer): Promise<PendingProtection> {
-        const request = this.sharedState.allRequests.find(request => request.legalOfficerAddress === currentLegalOfficer.address);
+        const request = this.sharedState.allRequests.find(request => request.legalOfficerAddress === currentLegalOfficer.account.address);
         if (request && (request instanceof ReSubmittableRequest || request instanceof UpdatableReSubmittableRequest)) {
             await request.resubmit();
             return await new PendingProtection(this.sharedState).refresh() as PendingProtection;
@@ -561,9 +565,9 @@ export class AcceptedProtection extends State implements WithProtectionParameter
 
     private async _activate(params: BlockchainSubmissionParams): Promise<PendingRecovery> {
         const { signer, callback } = params
-        const sortedLegalOfficers = this.sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.address).sort();
+        const sortedLegalOfficers = this.sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.account.address).sort();
         await signer.signAndSend({
-            signerId: getDefinedCurrentAddress(this.sharedState).address,
+            signerId: getDefinedCurrentAddress(this.sharedState),
             submittable: this.sharedState.nodeApi.polkadot.tx.verifiedRecovery.createRecovery(
                 sortedLegalOfficers,
             ),
@@ -572,7 +576,7 @@ export class AcceptedProtection extends State implements WithProtectionParameter
         const newSharedState = {
             ...this.sharedState,
             recoveryConfig: {
-                legalOfficers: sortedLegalOfficers
+                legalOfficers: sortedLegalOfficers.map(address => ValidAccountId.polkadot(address)),
             }
         };
 
@@ -682,10 +686,10 @@ export class PendingRecovery extends State implements WithProtectionParameters, 
 
     private async _claimRecovery(params: BlockchainSubmissionParams): Promise<ClaimedRecovery> {
         const { signer, callback } = params;
-        const addressToRecover = this.protectionParameters.recoveredAddress || "";
+        const addressToRecover = this.protectionParameters.recoveredAddress;
         await signer.signAndSend({
-            signerId: getDefinedCurrentAddress(this.sharedState).address,
-            submittable: this.sharedState.nodeApi.polkadot.tx.recovery.claimRecovery(addressToRecover),
+            signerId: getDefinedCurrentAddress(this.sharedState),
+            submittable: this.sharedState.nodeApi.polkadot.tx.recovery.claimRecovery(addressToRecover?.address || ""),
             callback
         });
         return new ClaimedRecovery({
