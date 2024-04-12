@@ -334,7 +334,7 @@ export interface ProtectionParameters {
 
     readonly postalAddress?: PostalAddress; // Only defined on recovery
 
-    readonly recoveredAddress: ValidAccountId | undefined;
+    readonly recoveredAccount: ValidAccountId | undefined;
 
     readonly isRecovery: boolean;
 
@@ -364,7 +364,7 @@ function buildProtectionParameters(sharedState: RecoverySharedState): Protection
         states,
         postalAddress: request1?.userPostalAddress,
         userIdentity: request1?.userIdentity,
-        recoveredAddress: request1?.addressToRecover ? ValidAccountId.polkadot(request1?.addressToRecover) : undefined,
+        recoveredAccount: request1?.addressToRecover ? ValidAccountId.polkadot(request1?.addressToRecover) : undefined,
         isRecovery,
         isActive: sharedState.recoveryConfig !== undefined,
         isClaimed: sharedState.recoveredAddress !== undefined,
@@ -686,7 +686,7 @@ export class PendingRecovery extends State implements WithProtectionParameters, 
 
     private async _claimRecovery(params: BlockchainSubmissionParams): Promise<ClaimedRecovery> {
         const { signer, callback } = params;
-        const addressToRecover = this.protectionParameters.recoveredAddress;
+        const addressToRecover = this.protectionParameters.recoveredAccount;
         await signer.signAndSend({
             signerId: getDefinedCurrentAccount(this.sharedState),
             submittable: this.sharedState.nodeApi.polkadot.tx.recovery.claimRecovery(addressToRecover?.address || ""),

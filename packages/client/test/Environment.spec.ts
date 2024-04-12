@@ -13,13 +13,13 @@ describe("Environment", () => {
     it("creates config from environment", () => {
         const config = createLogionClientConfig(Environment.TEST, () => fileUploader);
         expect(config.directoryEndpoint).toEqual("https://test-directory.logion.network");
-        expect(config.rpcEndpoints).toEqual([ "wss://test-rpc01.logion.network" ]);
+        expect(config.rpcEndpoints).toEqual([ "wss://test-para-rpc01.logion.network" ]);
     })
 
     it("creates config from environment string", () => {
         const config = createLogionClientConfig("TEST", () => fileUploader);
         expect(config.directoryEndpoint).toEqual("https://test-directory.logion.network");
-        expect(config.rpcEndpoints).toEqual([ "wss://test-rpc01.logion.network" ]);
+        expect(config.rpcEndpoints).toEqual([ "wss://test-para-rpc01.logion.network" ]);
     })
 
     it("fails to create config from unknown environment", () => {

@@ -45,15 +45,15 @@ export class LogionNodeApiClass {
             rpc: jsonrpc,
             runtime: definitions.runtime.runtime,
         });
-        const chainPrefix = api.consts.system.ss58Prefix.toNumber();
-        if (chainPrefix !== SS58_PREFIX) {
-            throw new Error(`Chain Prefix ${ chainPrefix } differs from public constant SS58_PREFIX = ${ SS58_PREFIX }`);
-        }
+
+        const logionApi = new LogionNodeApiClass(api);
+
         const chainDecimals = (await api.rpc.system.properties()).tokenDecimals.unwrap()[0].toNumber();
         if (chainDecimals !== Lgnt.DECIMALS) {
             throw new Error(`Chain Decimals ${ chainDecimals } differs from public constant Lgnt.DECIMALS = ${ Lgnt.DECIMALS }`);
         }
-        return new LogionNodeApiClass(api);
+
+        return logionApi;
     }
 
     private static buildProvider(endpoint: string | string[]): WsProvider {
@@ -72,6 +72,10 @@ export class LogionNodeApiClass {
         this.chainType = this.detectChainType();
         if(this.chainType !== "Para") {
             throw new Error(`This version of the SDK does not have support for chain type ${ this.chainType }`);
+        }
+        const chainPrefix = api.consts.system.ss58Prefix.toNumber();
+        if (chainPrefix !== SS58_PREFIX) {
+            throw new Error(`Chain Prefix ${ chainPrefix } differs from public constant SS58_PREFIX = ${ SS58_PREFIX }`);
         }
         this.adapters = new Adapters(api);
         this.fees = new FeesEstimator(api);

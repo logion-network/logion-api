@@ -1,5 +1,5 @@
 import type { Codec } from '@polkadot/types-codec/types';
-import { AnyAccountId, EXPECTED_PARA_VERSION, EXPECTED_SOLO_VERSION, EXPECTED_SPEC_NAME, ValidAccountId } from '../src/index.js';
+import { EXPECTED_PARA_VERSION, EXPECTED_SOLO_VERSION, EXPECTED_SPEC_NAME, SS58_PREFIX } from '../src/index.js';
 import { bool } from "@polkadot/types-codec";
 
 export function mockCodecWithToString<T extends Codec>(value: string): T {
@@ -64,5 +64,19 @@ export function mockRuntimeVersionUnexpectedSpecVersion() {
         specVersion: {
             toBigInt: () => 42n,
         },
+    };
+}
+
+export function mockParaConsts() {
+    return mockConsts(SS58_PREFIX);
+}
+
+export function mockConsts(ss58Prefix: number) {
+    return {
+        system: {
+            ss58Prefix: {
+                toNumber: () => ss58Prefix,
+            }
+        }
     };
 }
