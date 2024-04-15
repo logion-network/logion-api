@@ -59,7 +59,7 @@ export interface FetchAllResult {
     rejectedProtectionRequests: ProtectionRequest[];
     cancelledProtectionRequests: ProtectionRequest[];
     recoveryConfig: TypesRecoveryConfig | undefined;
-    recoveredAddress: ValidAccountId | undefined;
+    recoveredAccount: ValidAccountId | undefined;
 }
 
 export interface UserActionParameters {
@@ -124,7 +124,7 @@ export class RecoveryClient {
         }
 
         const recoveryConfig = await this.nodeApi.queries.getRecoveryConfig(this.currentAccount);
-        const recoveredAddress = await this.nodeApi.queries.getProxy(this.currentAccount);
+        const recoveredAccount = await this.nodeApi.queries.getProxy(this.currentAccount);
 
         return {
             pendingProtectionRequests,
@@ -132,7 +132,7 @@ export class RecoveryClient {
             rejectedProtectionRequests,
             cancelledProtectionRequests,
             recoveryConfig,
-            recoveredAddress
+            recoveredAccount,
         };
     }
 
