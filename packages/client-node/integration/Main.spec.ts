@@ -23,7 +23,7 @@ import { invitedContributors } from "./InvitedContributors.js";
 
 describe("Logion SDK", () => {
 
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 300000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 600000;
 
     let state: State;
 
@@ -36,7 +36,7 @@ describe("Logion SDK", () => {
     });
 
     it("fetches workload", async () => {
-        await workload(state, ALICE, BOB);
+        await workload(state);
     });
 
     it("estimates fees", async () => {

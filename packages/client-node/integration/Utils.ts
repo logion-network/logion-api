@@ -1,11 +1,10 @@
-import { Lgnt, LogionNodeApiClass, ValidAccountId } from "@logion/node-api";
+import { Lgnt, LogionNodeApiClass, ValidAccountId, AnyAccountId } from "@logion/node-api";
 import { Keyring } from "@polkadot/api";
 
 import {
     FullSigner,
     KeyringSigner,
     SignAndSendStrategy,
-    Signer,
     LogionClientConfig,
     ISubmittableResult,
     LogionClient,
@@ -14,6 +13,8 @@ import {
     requireDefined,
 } from "@logion/client";
 import { NodeAxiosFileUploader } from "../src/index.js";
+import { waitFor } from "@logion/client/dist/Polling.js";
+import { Duration } from "luxon";
 
 export const ALICE = "vQx5kESPn8dWyX4KxMCKqUyCaWUwtui1isX6PVNcZh2Ghjitr";
 export const ALICE_SECRET_SEED = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a";
@@ -38,7 +39,7 @@ export function buildSigner(seeds: string []): FullSigner {
 
 export const TEST_LOGION_CLIENT_CONFIG: LogionClientConfig = {
     directoryEndpoint: "http://localhost:8090",
-    rpcEndpoints: [ 'ws://localhost:9944', 'ws://localhost:9945' ],
+    rpcEndpoints: [ 'ws://localhost:9944' ],
     buildFileUploader: () => new NodeAxiosFileUploader(),
 };
 
@@ -69,16 +70,23 @@ export interface State {
     requesterAccount: ValidAccountId,
     directRequesterAccount: ValidAccountId,
     newAccount: ValidAccountId,
-    aliceAccount: ValidAccountId,
-    bobAccount: ValidAccountId,
-    charlieAccount: ValidAccountId,
     issuerAccount: ValidAccountId,
     ethereumAccount: ValidAccountId,
     invitedContributorAccount: ValidAccountId,
 }
 
 export async function setupInitialState(config: LogionClientConfig = TEST_LOGION_CLIENT_CONFIG): Promise<State> {
-    const anonymousClient = await LogionClient.create(config);
+    let anonymousClient = await LogionClient.create(config);
+
+    await waitFor<LegalOfficerClass[]>({
+        pollingParameters: {
+            period: Duration.fromMillis(2000),
+            maxRetries: 50,
+        },
+        producer: async _ => anonymousClient.directoryClient.getLegalOfficers(),
+        predicate: legalOfficers => legalOfficers.length === 3 && legalOfficers.map(llo => llo.node).every(node => node.startsWith("http://localhost")),
+    })
+
     const signer = buildSigner([
         REQUESTER_SECRET_SEED,
         DIRECT_REQUESTER_SECRET_SEED,
@@ -89,15 +97,18 @@ export async function setupInitialState(config: LogionClientConfig = TEST_LOGION
         ISSUER_SECRET_SEED,
         INVITED_CONTRIBUTOR_SECRET_SEED,
     ]);
-    const requesterAccount = anonymousClient.logionApi.queries.getValidAccountId(REQUESTER_ADDRESS, "Polkadot");
-    const directRequesterAccount = anonymousClient.logionApi.queries.getValidAccountId(DIRECT_REQUESTER_ADDRESS, "Polkadot");
-    const newAccount = anonymousClient.logionApi.queries.getValidAccountId(NEW_ADDRESS, "Polkadot");
-    const aliceAccount = anonymousClient.logionApi.queries.getValidAccountId(ALICE, "Polkadot");
-    const bobAccount = anonymousClient.logionApi.queries.getValidAccountId(BOB, "Polkadot");
-    const charlieAccount = anonymousClient.logionApi.queries.getValidAccountId(CHARLIE, "Polkadot");
-    const issuerAccount = anonymousClient.logionApi.queries.getValidAccountId(ISSUER_ADDRESS, "Polkadot");
-    const ethereumAccount = anonymousClient.logionApi.queries.getValidAccountId(ETHEREUM_ADDRESS, "Ethereum");
-    const invitedContributorAccount = anonymousClient.logionApi.queries.getValidAccountId(INVITED_CONTRIBUTOR_ADDRESS, "Polkadot");
+    const requesterAccount = ValidAccountId.polkadot(REQUESTER_ADDRESS)
+    const directRequesterAccount = ValidAccountId.polkadot(DIRECT_REQUESTER_ADDRESS);
+    const newAccount = ValidAccountId.polkadot(NEW_ADDRESS);
+    const aliceAccount = ValidAccountId.polkadot(ALICE);
+    const bobAccount = ValidAccountId.polkadot(BOB);
+    const charlieAccount = ValidAccountId.polkadot(CHARLIE);
+    const issuerAccount = ValidAccountId.polkadot(ISSUER_ADDRESS);
+    const ethereumAccount = new AnyAccountId(ETHEREUM_ADDRESS, "Ethereum").toValidAccountId();
+    const invitedContributorAccount = ValidAccountId.polkadot(INVITED_CONTRIBUTOR_ADDRESS);
+
+    anonymousClient = await LogionClient.create(config);
+
     const client = await anonymousClient.authenticate([
         requesterAccount,
         directRequesterAccount,
@@ -110,10 +121,10 @@ export async function setupInitialState(config: LogionClientConfig = TEST_LOGION
         invitedContributorAccount,
     ], signer);
     const legalOfficers = client.legalOfficers;
-    console.log(legalOfficers)
-    const alice = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === ALICE));
-    const bob = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === BOB));
-    const charlie = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === CHARLIE));
+    console.log(legalOfficers.map(llo => `${ llo.name }:${ llo.account.address }`))
+    const alice = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.account.equals(aliceAccount)));
+    const bob = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.account.equals(bobAccount)));
+    const charlie = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.account.equals(charlieAccount)));
     return {
         client,
         signer,
@@ -123,9 +134,6 @@ export async function setupInitialState(config: LogionClientConfig = TEST_LOGION
         requesterAccount,
         directRequesterAccount,
         newAccount,
-        aliceAccount,
-        bobAccount,
-        charlieAccount,
         issuerAccount,
         ethereumAccount,
         invitedContributorAccount,
@@ -140,11 +148,12 @@ export async function updateConfig(config: Partial<LogionClientConfig>): Promise
     return setupInitialState(newConfig);
 }
 
-export async function initRequesterBalance(config: LogionClientConfig, signer: Signer, requester: string): Promise<void> {
-    const api = await LogionNodeApiClass.connect(config.rpcEndpoints);
-    const setBalance = api.polkadot.tx.balances.forceSetBalance(requester, Lgnt.from(10000).canonical);
+export async function initAccountBalance(state: State, account: ValidAccountId): Promise<void> {
+    const { alice, client, signer } = state
+    const api = await LogionNodeApiClass.connect(client.config.rpcEndpoints);
+    const setBalance = api.polkadot.tx.balances.forceSetBalance(account.address, Lgnt.from(10000).canonical);
     await signer.signAndSend({
-        signerId: ALICE,
+        signerId: alice.account,
         submittable: api.polkadot.tx.sudo.sudo(setBalance),
     });
 }
@@ -154,11 +163,11 @@ export async function tearDown(state: State) {
 }
 
 export async function findWithLegalOfficerClient(client: LogionClient, loc: LocRequestState): Promise<LocRequestState> {
-    if(!client.currentAddress) {
+    if(!client.currentAccount) {
         throw new Error("Client must be authenticated");
     }
     const locType = loc.data().locType;
     const locStatus = loc.data().status;
-    let aliceLocs = await client.locsState({ spec: { ownerAddress: client.currentAddress.address, locTypes: [locType], statuses: [locStatus] } });
+    let aliceLocs = await client.locsState({ spec: { ownerAddress: client.currentAccount.address, locTypes: [locType], statuses: [locStatus] } });
     return aliceLocs.findById(loc.locId);
 }

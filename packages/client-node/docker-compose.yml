@@ -1,5 +1,3 @@
-version: "3.6"
-
 networks:
   default:
     name: logion-test
@@ -41,6 +39,7 @@ services:
     environment:
       - CERTBOT_EMAIL=user1@invalid.domain
       - BACKEND_HOST_PORT=backend1:8080
+      - NODE_HOST_PORT=$RPC_WS
   ipfs1:
     image: ipfs/go-ipfs:v0.12.0
     ports:
@@ -94,6 +93,7 @@ services:
     environment:
       - CERTBOT_EMAIL=user2@invalid.domain
       - BACKEND_HOST_PORT=backend2:8080
+      - NODE_HOST_PORT=$RPC_WS
   ipfs2:
     image: ipfs/go-ipfs:v0.12.0
     volumes:
@@ -146,7 +146,7 @@ services:
     environment:
       - CERTBOT_EMAIL=user3@invalid.domain
       - BACKEND_HOST_PORT=backend3:8080
-      - NODE_HOST_PORT=node3:9944
+      - NODE_HOST_PORT=$RPC_WS
   ipfs3:
     image: ipfs/go-ipfs:v0.12.0
     volumes:

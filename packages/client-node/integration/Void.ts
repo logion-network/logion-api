@@ -2,9 +2,9 @@ import { VoidedLoc } from "@logion/client";
 import { State } from "./Utils.js";
 
 export async function voidTransactionLoc(state: State) {
-    const { aliceAccount, signer } = state;
-    const client = state.client.withCurrentAddress(aliceAccount);
-    let locsState = await client.locsState({ spec: { ownerAddress: aliceAccount.address, locTypes: ["Transaction"], statuses: ["CLOSED"] }});
+    const { alice, signer } = state;
+    const client = state.client.withCurrentAccount(alice.account);
+    let locsState = await client.locsState({ spec: { ownerAddress: alice.account.address, locTypes: ["Transaction"], statuses: ["CLOSED"] }});
     const closedLoc = locsState.closedLocs['Transaction'][0];
 
     const voidLoc = await closedLoc.legalOfficer.voidLoc({

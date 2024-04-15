@@ -20,21 +20,20 @@ import {
 
 import {
     State,
-    TEST_LOGION_CLIENT_CONFIG,
     findWithLegalOfficerClient,
-    initRequesterBalance,
+    initAccountBalance,
     updateConfig
 } from "./Utils.js";
 import { NodeFile } from "../src/index.js";
 
 export async function requestTransactionLoc(state: State, linkTarget: UUID): Promise<UUID> {
-    const { alice, aliceAccount, newAccount, signer } = state;
-    const client = state.client.withCurrentAddress(newAccount);
+    const { alice, newAccount, signer } = state;
+    const client = state.client.withCurrentAccount(newAccount);
     let locsState = await client.locsState();
 
     // Create DRAFT LOC
     let draftRequest = await locsState.requestTransactionLoc({
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         description: "This is a Transaction LOC",
         draft: true,
     }) as DraftRequest;
@@ -79,8 +78,8 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID): Pro
     expect(pendingRequest.data().metadata[0].status).toBe("REVIEW_PENDING");
 
     // Rework rejected LOC
-    const aliceClient = state.client.withCurrentAddress(aliceAccount);
-    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, statuses: [ "REVIEW_PENDING", "OPEN" ], locTypes: [ "Transaction" ] } });
+    const aliceClient = state.client.withCurrentAccount(alice.account);
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.account.address, statuses: [ "REVIEW_PENDING", "OPEN" ], locTypes: [ "Transaction" ] } });
     let alicePendingLoc = aliceLocs.findById(pendingRequest.data().id) as PendingRequest;
     alicePendingLoc = await alicePendingLoc.legalOfficer.reviewMetadata({ nameHash, decision: "REJECT", rejectReason: "Invalid value" });
     let aliceRejectedLoc = await alicePendingLoc.legalOfficer.reject("Because.") as RejectedRequest;
@@ -193,13 +192,13 @@ export async function requestTransactionLoc(state: State, linkTarget: UUID): Pro
 }
 
 export async function openTransactionLocWithAutoPublish(state: State, linkTarget: UUID) {
-    const { alice, aliceAccount, newAccount, signer } = state;
-    const client = state.client.withCurrentAddress(newAccount);
+    const { alice, newAccount, signer } = state;
+    const client = state.client.withCurrentAccount(newAccount);
     let locsState = await client.locsState();
 
     // Create DRAFT LOC
     let draftRequest = await locsState.requestTransactionLoc({
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         description: "This is a Transaction LOC",
         draft: true,
     }) as DraftRequest;
@@ -249,8 +248,8 @@ export async function openTransactionLocWithAutoPublish(state: State, linkTarget
     expect(pendingRequest).toBeInstanceOf(PendingRequest);
 
     // Alice accepts all items
-    const aliceClient = state.client.withCurrentAddress(aliceAccount);
-    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, statuses: [ "REVIEW_PENDING", "OPEN" ], locTypes: [ "Transaction" ] } });
+    const aliceClient = state.client.withCurrentAccount(alice.account);
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.account.address, statuses: [ "REVIEW_PENDING", "OPEN" ], locTypes: [ "Transaction" ] } });
     let alicePendingLoc = aliceLocs.findById(pendingRequest.data().id) as PendingRequest;
     // metadata
     alicePendingLoc = await alicePendingLoc.legalOfficer.reviewMetadata({ nameHash, decision: "ACCEPT" });
@@ -291,12 +290,12 @@ function checkData(data: LocData, locRequestStatus: LocRequestStatus) {
 }
 
 export async function transactionLocWithCustomLegalFee(state: State) {
-    const { alice, aliceAccount, newAccount, signer } = state;
-    const client = state.client.withCurrentAddress(newAccount);
+    const { alice, newAccount, signer } = state;
+    const client = state.client.withCurrentAccount(newAccount);
     let locsState = await client.locsState();
 
     let draftRequest = await locsState.requestTransactionLoc({
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         description: "This is a Transaction LOC",
         draft: true,
         legalFee: Lgnt.zero(),
@@ -307,8 +306,8 @@ export async function transactionLocWithCustomLegalFee(state: State) {
 
     // Open LOC
     let pendingRequest = await draftRequest.submit();
-    const aliceClient = state.client.withCurrentAddress(aliceAccount);
-    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, statuses: [ "REVIEW_PENDING", "OPEN" ], locTypes: [ "Transaction" ] } });
+    const aliceClient = state.client.withCurrentAccount(alice.account);
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.account.address, statuses: [ "REVIEW_PENDING", "OPEN" ], locTypes: [ "Transaction" ] } });
     let alicePendingLoc = aliceLocs.findById(pendingRequest.data().id) as PendingRequest;
     await alicePendingLoc.legalOfficer.accept({ signer }) as AcceptedRequest;
     let acceptedLoc = await pendingRequest.refresh() as AcceptedRequest;
@@ -319,15 +318,15 @@ export async function transactionLocWithCustomLegalFee(state: State) {
 
 export async function collectionLoc(state: State) {
 
-    const { alice, aliceAccount, newAccount, signer } = state;
-    const client = state.client.withCurrentAddress(newAccount);
+    const { alice, newAccount, signer } = state;
+    const client = state.client.withCurrentAccount(newAccount);
     let locsState = await client.locsState();
 
-    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, newAccount.address);
+    await initAccountBalance(state, newAccount);
 
     const collectionItemFee = Lgnt.fromCanonical(50n);
     const pendingRequest = await locsState.requestCollectionLoc({
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         description: "This is a Collection LOC",
         draft: false,
         valueFee: Lgnt.fromCanonical(100n),
@@ -349,8 +348,8 @@ export async function collectionLoc(state: State) {
     expect(locsState.pendingRequests["Collection"][0].data().status).toBe("REVIEW_PENDING");
 
     const locId = pendingRequest.locId;
-    const aliceClient = client.withCurrentAddress(aliceAccount);
-    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, locTypes: ["Collection"], statuses: ["REVIEW_PENDING"] } });
+    const aliceClient = client.withCurrentAccount(alice.account);
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.account.address, locTypes: ["Collection"], statuses: ["REVIEW_PENDING"] } });
     let alicePendingRequest = aliceLocs.findById(locId) as PendingRequest;
     let aliceAcceptedLoc = await alicePendingRequest.legalOfficer.accept();
 
@@ -418,19 +417,19 @@ export async function collectionLoc(state: State) {
 
 export async function collectionLocWithUpload(state: State) {
 
-    const { alice, aliceAccount, newAccount, signer } = state;
-    let client = state.client.withCurrentAddress(newAccount);
+    const { alice, newAccount, signer } = state;
+    let client = state.client.withCurrentAccount(newAccount);
     let locsState = await client.locsState();
 
-    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, newAccount.address);
+    await initAccountBalance(state, newAccount);
 
     const logionClassificationLocRequest = await locsState.requestTransactionLoc({
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         description: "This is the Logion Classification LOC",
         draft: false,
     }) as PendingRequest;
 
-    let aliceClient = client.withCurrentAddress(aliceAccount);
+    let aliceClient = client.withCurrentAccount(alice.account);
     let aliceLogionClassificationLocRequest = await findWithLegalOfficerClient(aliceClient, logionClassificationLocRequest) as PendingRequest;
     const aliceLogionClassificationAcceptedRequest = await aliceLogionClassificationLocRequest.legalOfficer.accept({ signer }) as AcceptedRequest;
     const logionClassificationAcceptedRequest = await logionClassificationLocRequest.refresh() as AcceptedRequest;
@@ -444,7 +443,7 @@ export async function collectionLocWithUpload(state: State) {
 
     locsState = logionClassificationOpenLoc.locsState();
     const creativeCommonsLocRequest = await locsState.requestTransactionLoc({
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         description: "This is the LOC acting usage of CreativeCommons on logion",
         draft: false,
     }) as PendingRequest;
@@ -463,12 +462,12 @@ export async function collectionLocWithUpload(state: State) {
         logionClassificationLoc: logionClassificationOpenLoc.locId,
         creativeCommonsLoc: creativeCommonsOpenLoc.locId,
     })
-    client = state.client.withCurrentAddress(newAccount);
-    aliceClient = state.client.withCurrentAddress(aliceAccount);
+    client = state.client.withCurrentAccount(newAccount);
+    aliceClient = state.client.withCurrentAccount(alice.account);
 
     locsState = await client.locsState();
     const pendingRequest = await locsState.requestCollectionLoc({
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         description: "This is a Collection LOC with upload",
         draft: false,
         valueFee: Lgnt.fromCanonical(100n),
@@ -630,10 +629,10 @@ export async function collectionLocWithUpload(state: State) {
 }
 
 export async function otherIdentityLoc(state: State): Promise<UUID> {
-    const { alice, aliceAccount, ethereumAccount, signer } = state;
+    const { alice, ethereumAccount, signer } = state;
 
     const sponsorshipId = new UUID();
-    const aliceClient = state.client.withCurrentAddress(aliceAccount);
+    const aliceClient = state.client.withCurrentAccount(alice.account);
     await aliceClient.sponsorship.sponsor({
         sponsorshipId,
         sponsoredAccount: ethereumAccount.toOtherAccountId(),
@@ -641,11 +640,11 @@ export async function otherIdentityLoc(state: State): Promise<UUID> {
         signer,
     });
 
-    const client = state.client.withCurrentAddress(ethereumAccount);
+    const client = state.client.withCurrentAccount(ethereumAccount);
     let locsState = await client.locsState();
 
     const pendingRequest = await locsState.requestIdentityLoc({
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         description: "This is an Identity LOC",
         userIdentity: {
             email: "john.doe@invalid.domain",
@@ -679,8 +678,8 @@ export async function otherIdentityLoc(state: State): Promise<UUID> {
 }
 
 export async function logionIdentityLoc(state: State) {
-    const { aliceAccount, signer } = state;
-    const client = state.client.withCurrentAddress(aliceAccount);
+    const { alice, signer } = state;
+    const client = state.client.withCurrentAccount(alice.account);
     let locsState = await client.locsState();
 
     let openLogionIdentityLoc = await locsState.legalOfficer.createLoc({

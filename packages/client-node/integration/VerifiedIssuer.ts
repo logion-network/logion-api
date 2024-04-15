@@ -5,18 +5,18 @@ import {
     AcceptedRequest,
     PendingRequest, OpenLoc, MimeType, waitFor
 } from "@logion/client";
-import { State, ISSUER_ADDRESS, initRequesterBalance, TEST_LOGION_CLIENT_CONFIG } from "./Utils.js";
+import { State, initAccountBalance } from "./Utils.js";
 import { NodeFile } from "../src/index.js";
 
 export async function verifiedIssuer(state: State) {
-    const { alice, aliceAccount, issuerAccount, newAccount, signer } = state;
+    const { alice, issuerAccount, newAccount, signer } = state;
 
-    const issuerClient = state.client.withCurrentAddress(issuerAccount);
+    const issuerClient = state.client.withCurrentAccount(issuerAccount);
 
-    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, signer, ISSUER_ADDRESS);
+    await initAccountBalance(state, issuerAccount);
     let issuerLocsState = await issuerClient.locsState();
     const pendingRequest = await issuerLocsState.requestIdentityLoc({
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         description: "This is a verified issuer Identity LOC",
         userIdentity: {
             email: "john.doe.trusted@invalid.domain",
@@ -35,8 +35,8 @@ export async function verifiedIssuer(state: State) {
     });
     const issuerIdentityLocId = pendingRequest.data().id;
 
-    const aliceClient = state.client.withCurrentAddress(aliceAccount);
-    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: aliceAccount.address, locTypes: ["Identity"], statuses: ["REVIEW_PENDING"] } });
+    const aliceClient = state.client.withCurrentAccount(alice.account);
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.account.address, locTypes: ["Identity"], statuses: ["REVIEW_PENDING"] } });
     const alicePending = aliceLocs.findById(issuerIdentityLocId) as PendingRequest;
     const aliceAccepted = await alicePending.legalOfficer.accept();
 
@@ -51,17 +51,17 @@ export async function verifiedIssuer(state: State) {
     let aliceClosed = await aliceOpen.legalOfficer.close({ signer, autoAck: false }) as ClosedLoc;
     aliceClosed = await aliceClosed.legalOfficer.nominateIssuer({ signer });
 
-    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, signer, newAccount.address);
-    const requesterClient = state.client.withCurrentAddress(newAccount);
+    await initAccountBalance(state, newAccount);
+    const requesterClient = state.client.withCurrentAccount(newAccount);
     let userLocsState = await requesterClient.locsState();
     let pendingLocRequest = await userLocsState.requestTransactionLoc({
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         description: "Some LOC with verified issuer",
         draft: false,
     }) as PendingRequest;
     const transactionLocId = pendingLocRequest.data().id;
 
-    aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: aliceAccount.address, locTypes: ["Transaction"], statuses: ["REVIEW_PENDING"] } });
+    aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.account.address, locTypes: ["Transaction"], statuses: ["REVIEW_PENDING"] } });
     const alicePendingTransaction = aliceLocs.findById(transactionLocId) as PendingRequest;
     const aliceAcceptedTransaction = await alicePendingTransaction.legalOfficer.accept() as AcceptedRequest;
 
@@ -70,7 +70,7 @@ export async function verifiedIssuer(state: State) {
 
     let aliceOpenTransaction = await aliceAcceptedTransaction.refresh() as OpenLoc;
     aliceOpenTransaction = await aliceOpenTransaction.legalOfficer.selectIssuer({
-        issuer: ISSUER_ADDRESS,
+        issuer: issuerAccount,
         signer,
     });
     openLoc = await openLoc.refresh() as OpenLoc;
@@ -122,7 +122,7 @@ export async function verifiedIssuer(state: State) {
     // Issuer unselection
     aliceOpenTransaction = await aliceOpenTransaction.refresh() as OpenLoc;
     aliceOpenTransaction = await aliceOpenTransaction.legalOfficer.unselectIssuer({
-        issuer: ISSUER_ADDRESS,
+        issuer: issuerAccount,
         signer
     });
 

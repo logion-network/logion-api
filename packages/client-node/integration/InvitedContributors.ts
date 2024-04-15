@@ -11,21 +11,20 @@ import {
 } from "@logion/client";
 import {
     State,
-    initRequesterBalance,
-    TEST_LOGION_CLIENT_CONFIG,
+    initAccountBalance,
     INVITED_CONTRIBUTOR_ADDRESS
 } from "./Utils.js";
 import { NodeFile } from "../src/index.js";
 
 export async function invitedContributors(state: State) {
-    const { alice, aliceAccount, invitedContributorAccount, newAccount, signer } = state;
+    const { alice, invitedContributorAccount, newAccount, signer } = state;
 
-    const invitedContributorClient = state.client.withCurrentAddress(invitedContributorAccount);
+    const invitedContributorClient = state.client.withCurrentAccount(invitedContributorAccount);
 
-    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, signer, INVITED_CONTRIBUTOR_ADDRESS);
+    await initAccountBalance(state, invitedContributorAccount);
     let invitedContributorLocsState = await invitedContributorClient.locsState();
     const pendingRequest = await invitedContributorLocsState.requestIdentityLoc({
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         description: "This is an invited contributor Identity LOC",
         userIdentity: {
             email: "john.doe.trusted@invalid.domain",
@@ -44,8 +43,8 @@ export async function invitedContributors(state: State) {
     });
     const invitedContributorIdentityLocId = pendingRequest.data().id;
 
-    const aliceClient = state.client.withCurrentAddress(aliceAccount);
-    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: aliceAccount.address, locTypes: ["Identity"], statuses: ["REVIEW_PENDING"] } });
+    const aliceClient = state.client.withCurrentAccount(alice.account);
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.account.address, locTypes: ["Identity"], statuses: ["REVIEW_PENDING"] } });
     const alicePending = aliceLocs.findById(invitedContributorIdentityLocId) as PendingRequest;
     const aliceAccepted = await alicePending.legalOfficer.accept();
 
@@ -59,10 +58,10 @@ export async function invitedContributors(state: State) {
     });
     await aliceOpen.legalOfficer.close({ signer, autoAck: false }) as ClosedLoc;
 
-    const requesterClient = state.client.withCurrentAddress(newAccount);
+    const requesterClient = state.client.withCurrentAccount(newAccount);
     let userLocsState = await requesterClient.locsState();
     let pendingLocRequest = await userLocsState.requestCollectionLoc({
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         description: "Some LOC with invited contributor",
         draft: false,
         legalFee: Lgnt.zero(),
@@ -76,7 +75,7 @@ export async function invitedContributors(state: State) {
     }) as PendingRequest;
     const collectionLocId = pendingLocRequest.data().id;
 
-    aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: aliceAccount.address, locTypes: ["Collection"], statuses: ["REVIEW_PENDING"] } });
+    aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.account.address, locTypes: ["Collection"], statuses: ["REVIEW_PENDING"] } });
     const alicePendingCollection = aliceLocs.findById(collectionLocId) as PendingRequest;
     await alicePendingCollection.legalOfficer.accept();
 

@@ -7,16 +7,16 @@ import {
     PendingRequest,
     AcceptedRequest, OpenLoc, waitFor, BalanceState
 } from "@logion/client";
-import { initRequesterBalance, State, TEST_LOGION_CLIENT_CONFIG, ISSUER_ADDRESS } from "./Utils.js";
+import { initAccountBalance, State } from "./Utils.js";
 import { NodeFile } from "../src/index.js";
 
 export async function tokensRecords(state: State) {
-    const { client, alice, aliceAccount, newAccount, issuerAccount, signer } = state;
+    const { client, alice, newAccount, issuerAccount, signer } = state;
 
-    const userClient = state.client.withCurrentAddress(newAccount);
+    const userClient = state.client.withCurrentAccount(newAccount);
     const tokensRecordFee = Lgnt.fromCanonical(50n);
     let collectionLoc: LocRequestState = await (await userClient.locsState()).requestCollectionLoc({
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         description: "Some LOC with records",
         draft: false,
         valueFee: Lgnt.fromCanonical(100n),
@@ -28,8 +28,8 @@ export async function tokensRecords(state: State) {
         }
     });
     const collectionLocId = collectionLoc.locId;
-    const aliceClient = client.withCurrentAddress(aliceAccount);
-    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, locTypes: ["Collection"], statuses: ["REVIEW_PENDING"] } });
+    const aliceClient = client.withCurrentAccount(alice.account);
+    let aliceLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.account.address, locTypes: ["Collection"], statuses: ["REVIEW_PENDING"] } });
     let alicePendingRequest = aliceLocs.findById(collectionLocId) as PendingRequest;
     let aliceAcceptedLoc = await alicePendingRequest.legalOfficer.accept();
 
@@ -37,12 +37,12 @@ export async function tokensRecords(state: State) {
     await acceptedLoc.open({ signer, autoPublish: false });
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
 
-    aliceOpenLoc = await aliceOpenLoc.legalOfficer.selectIssuer({ issuer: ISSUER_ADDRESS, signer });
+    aliceOpenLoc = await aliceOpenLoc.legalOfficer.selectIssuer({ issuer: issuerAccount, signer });
     await aliceOpenLoc.legalOfficer.close({ signer, autoAck: false });
 
-    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, state.signer, ISSUER_ADDRESS);
+    await initAccountBalance(state, issuerAccount);
 
-    const issuerClient = state.client.withCurrentAddress(issuerAccount);
+    const issuerClient = state.client.withCurrentAccount(issuerAccount);
     let closedCollectionLoc = (await issuerClient.locsState()).findById(collectionLocId) as ClosedCollectionLoc;
 
     const recordId = Hash.of("record-id");
