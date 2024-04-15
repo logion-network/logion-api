@@ -38,7 +38,7 @@ export interface RecoverySharedState extends SharedState {
     cancelledProtectionRequests: ProtectionRequest[];
     allRequests: ProtectionRequest[];
     recoveryConfig?: TypesRecoveryConfig;
-    recoveredAddress?: ValidAccountId;
+    recoveredAccount?: ValidAccountId;
     selectedLegalOfficers: LegalOfficerClass[];
 }
 
@@ -77,7 +77,7 @@ function toActionableProtectionRequest(protectionRequest: ProtectionRequest, sha
 }
 
 export function getInitialState(data: FetchAllResult, pSharedState: SharedState): ProtectionState {
-    const { recoveryConfig, recoveredAddress } = data;
+    const { recoveryConfig, recoveredAccount } = data;
     const toActionableRequest = (request: ProtectionRequest) => toActionableProtectionRequest(request, pSharedState)
     const pendingProtectionRequests = data.pendingProtectionRequests.map(toActionableRequest);
     const acceptedProtectionRequests = data.acceptedProtectionRequests.map(toActionableRequest);
@@ -95,53 +95,53 @@ export function getInitialState(data: FetchAllResult, pSharedState: SharedState)
         cancelledProtectionRequests,
         allRequests,
         recoveryConfig,
-        recoveredAddress,
+        recoveredAccount,
         selectedLegalOfficers: []
     };
 
-    if(recoveryConfig === undefined && recoveredAddress === undefined && numberOfRequests === 0) {
+    if(recoveryConfig === undefined && recoveredAccount === undefined && numberOfRequests === 0) {
         return new NoProtection({ ...sharedState });
-    } else if (recoveryConfig !== undefined && recoveredAddress === undefined && numberOfRequests === 0) {
+    } else if (recoveryConfig !== undefined && recoveredAccount === undefined && numberOfRequests === 0) {
         const recoveryConfigLegalOfficers = recoveryConfig.legalOfficers.map(legalOfficer => legalOfficer.address);
         return new ActiveProtection({
             ...sharedState,
             selectedLegalOfficers: sharedState.legalOfficers.filter(legalOfficer => recoveryConfigLegalOfficers.includes(legalOfficer.account.address)),
         });
-    } else if (recoveryConfig !== undefined && recoveredAddress !== undefined) {
+    } else if (recoveryConfig !== undefined && recoveredAccount !== undefined) {
         const recoveryConfigLegalOfficers = recoveryConfig.legalOfficers.map(legalOfficer => legalOfficer.address);
         return new ClaimedRecovery({
             ...sharedState,
             selectedLegalOfficers: sharedState.legalOfficers.filter(legalOfficer => recoveryConfigLegalOfficers.includes(legalOfficer.account.address)),
         });
-    } else if (recoveryConfig !== undefined && recoveredAddress === undefined && data.acceptedProtectionRequests.length > 0 && data.acceptedProtectionRequests[0].isRecovery) {
+    } else if (recoveryConfig !== undefined && recoveredAccount === undefined && data.acceptedProtectionRequests.length > 0 && data.acceptedProtectionRequests[0].isRecovery) {
         const legalOfficer1 = getLegalOfficer(sharedState, ValidAccountId.polkadot(data.acceptedProtectionRequests[0].legalOfficerAddress));
         const legalOfficer2 = getLegalOfficer(sharedState, ValidAccountId.polkadot(data.acceptedProtectionRequests[1].legalOfficerAddress));
         return new PendingRecovery({
             ...sharedState,
             selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
         });
-    } else if (recoveryConfig === undefined && recoveredAddress === undefined && data.acceptedProtectionRequests.length === 2) {
+    } else if (recoveryConfig === undefined && recoveredAccount === undefined && data.acceptedProtectionRequests.length === 2) {
         const legalOfficer1 = getLegalOfficer(sharedState, ValidAccountId.polkadot(data.acceptedProtectionRequests[0].legalOfficerAddress));
         const legalOfficer2 = getLegalOfficer(sharedState, ValidAccountId.polkadot(data.acceptedProtectionRequests[1].legalOfficerAddress));
         return new AcceptedProtection({
             ...sharedState,
             selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
         });
-    } else if (recoveryConfig === undefined && recoveredAddress === undefined && pendingProtectionRequests.length === 2) {
+    } else if (recoveryConfig === undefined && recoveredAccount === undefined && pendingProtectionRequests.length === 2) {
         const legalOfficer1 = getLegalOfficer(sharedState, ValidAccountId.polkadot(data.pendingProtectionRequests[0].legalOfficerAddress));
         const legalOfficer2 = getLegalOfficer(sharedState, ValidAccountId.polkadot(data.pendingProtectionRequests[1].legalOfficerAddress));
         return new PendingProtection({
             ...sharedState,
             selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
         });
-    } else if (recoveryConfig === undefined && recoveredAddress === undefined && pendingProtectionRequests.length === 1 && acceptedProtectionRequests.length === 1) {
+    } else if (recoveryConfig === undefined && recoveredAccount === undefined && pendingProtectionRequests.length === 1 && acceptedProtectionRequests.length === 1) {
         const legalOfficer1 = getLegalOfficer(sharedState, ValidAccountId.polkadot(pendingProtectionRequests[0].legalOfficerAddress));
         const legalOfficer2 = getLegalOfficer(sharedState, ValidAccountId.polkadot(acceptedProtectionRequests[0].legalOfficerAddress));
         return new PendingProtection({
             ...sharedState,
             selectedLegalOfficers: [ legalOfficer1, legalOfficer2 ],
         });
-    } else if (recoveryConfig === undefined && recoveredAddress === undefined && rejectedProtectionRequests.length > 0) {
+    } else if (recoveryConfig === undefined && recoveredAccount === undefined && rejectedProtectionRequests.length > 0) {
         const legalOfficer1 = getLegalOfficer(sharedState, ValidAccountId.polkadot(rejectedProtectionRequests[0].legalOfficerAddress));
         const legalOfficer2 = getLegalOfficer(sharedState, ValidAccountId.polkadot(rejectedProtectionRequests[0].otherLegalOfficerAddress));
         return new RejectedRecovery({
@@ -349,7 +349,7 @@ export interface WithProtectionParameters {
 }
 
 function buildProtectionParameters(sharedState: RecoverySharedState): ProtectionParameters {
-    const isRecovery = sharedState.recoveredAddress !== undefined || sharedState.allRequests.length > 0 && sharedState.allRequests[0].isRecovery;
+    const isRecovery = sharedState.recoveredAccount !== undefined || sharedState.allRequests.length > 0 && sharedState.allRequests[0].isRecovery;
     const request1 = sharedState.allRequests.find(request => request.legalOfficerAddress === sharedState.selectedLegalOfficers[0].account.address);
     const request2 = sharedState.allRequests.find(request => request.legalOfficerAddress === sharedState.selectedLegalOfficers[1].account.address);
     const states: LegalOfficerProtectionState[] = [];
@@ -367,7 +367,7 @@ function buildProtectionParameters(sharedState: RecoverySharedState): Protection
         recoveredAccount: request1?.addressToRecover ? ValidAccountId.polkadot(request1?.addressToRecover) : undefined,
         isRecovery,
         isActive: sharedState.recoveryConfig !== undefined,
-        isClaimed: sharedState.recoveredAddress !== undefined,
+        isClaimed: sharedState.recoveredAccount !== undefined,
     };
 }
 
@@ -395,7 +395,7 @@ export class UnavailableProtection extends State implements WithProtectionParame
     }
 
     get isRecovery(): boolean {
-        return this.sharedState.recoveredAddress !== undefined
+        return this.sharedState.recoveredAccount !== undefined
             || (this.sharedState.allRequests.length > 0 && this.sharedState.allRequests[0].isRecovery);
     }
 
@@ -694,7 +694,7 @@ export class PendingRecovery extends State implements WithProtectionParameters, 
         });
         return new ClaimedRecovery({
             ...this.sharedState,
-            recoveredAddress: addressToRecover
+            recoveredAccount: addressToRecover
         });
     }
 

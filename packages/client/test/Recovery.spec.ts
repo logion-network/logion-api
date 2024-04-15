@@ -45,7 +45,7 @@ describe("Recovery's getInitialState", () => {
             rejectedProtectionRequests: [],
             cancelledProtectionRequests: [],
             recoveryConfig: undefined,
-            recoveredAddress: undefined,
+            recoveredAccount: undefined,
         };
         await testGetInitialState(data, NoProtection);
     });
@@ -59,7 +59,7 @@ describe("Recovery's getInitialState", () => {
             recoveryConfig: {
                 legalOfficers: legalOfficers.map(legalOfficer => legalOfficer.account)
             },
-            recoveredAddress: undefined,
+            recoveredAccount: undefined,
         };
         await testGetInitialState(data, ActiveProtection);
     });
@@ -76,7 +76,7 @@ describe("Recovery's getInitialState", () => {
             recoveryConfig: {
                 legalOfficers: legalOfficers.map(legalOfficer => legalOfficer.account)
             },
-            recoveredAddress: RECOVERED_ADDRESS,
+            recoveredAccount: RECOVERED_ADDRESS,
         };
         await testGetInitialState(data, ClaimedRecovery);
     });
@@ -91,7 +91,7 @@ describe("Recovery's getInitialState", () => {
             rejectedProtectionRequests: [],
             cancelledProtectionRequests: [],
             recoveryConfig: undefined,
-            recoveredAddress: undefined,
+            recoveredAccount: undefined,
         };
         await testGetInitialState(data, AcceptedProtection);
     });
@@ -106,7 +106,7 @@ describe("Recovery's getInitialState", () => {
             rejectedProtectionRequests: [],
             cancelledProtectionRequests: [],
             recoveryConfig: undefined,
-            recoveredAddress: undefined,
+            recoveredAccount: undefined,
         };
         await testGetInitialState(data, PendingProtection);
     });
@@ -122,7 +122,7 @@ describe("Recovery's getInitialState", () => {
             rejectedProtectionRequests: [],
             cancelledProtectionRequests: [],
             recoveryConfig: undefined,
-            recoveredAddress: undefined,
+            recoveredAccount: undefined,
         };
         await testGetInitialState(data, PendingProtection);
     });
@@ -137,7 +137,7 @@ describe("Recovery's getInitialState", () => {
             rejectedProtectionRequests: [],
             cancelledProtectionRequests: [],
             recoveryConfig: undefined,
-            recoveredAddress: undefined,
+            recoveredAccount: undefined,
         };
         await testGetInitialState(data, AcceptedProtection);
     });
@@ -154,7 +154,7 @@ describe("Recovery's getInitialState", () => {
             recoveryConfig: {
                 legalOfficers: legalOfficers.map(legalOfficer => legalOfficer.account)
             },
-            recoveredAddress: RECOVERED_ADDRESS,
+            recoveredAccount: RECOVERED_ADDRESS,
         };
         await testGetInitialState(data, ClaimedRecovery);
     });

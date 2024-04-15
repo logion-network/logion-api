@@ -22,7 +22,7 @@ export interface VaultSharedState extends SharedState {
     acceptedVaultTransferRequests: VaultTransferRequest[],
     selectedLegalOfficers: LegalOfficer[],
     isRecovery: boolean,
-    recoveredAddress?: ValidAccountId,
+    recoveredAccount?: ValidAccountId,
     balances: CoinBalance[],
     transactions: Transaction[],
     vault: Vault,
@@ -31,7 +31,7 @@ export interface VaultSharedState extends SharedState {
 export type VaultStateCreationParameters = SharedState & {
     selectedLegalOfficers: LegalOfficer[],
     isRecovery: boolean,
-    recoveredAddress?: ValidAccountId,
+    recoveredAccount?: ValidAccountId,
 };
 
 export class VaultState extends State {
@@ -74,7 +74,7 @@ export class VaultState extends State {
 
     private static getVault(sharedState: VaultStateCreationParameters): Vault {
         if(sharedState.isRecovery) {
-            if(!sharedState.recoveredAddress) {
+            if(!sharedState.recoveredAccount) {
                 throw new Error("No recovered address defined");
             }
             return new Vault(
@@ -93,10 +93,10 @@ export class VaultState extends State {
     }
 
     private static getDefinedRecoveredAddress(sharedState: VaultStateCreationParameters): ValidAccountId {
-        if(!sharedState.recoveredAddress) {
+        if(!sharedState.recoveredAccount) {
             throw new Error("No recovered address defined");
         }
-        return sharedState.recoveredAddress;
+        return sharedState.recoveredAccount;
     }
 
     constructor(state: VaultSharedState) {
@@ -198,7 +198,7 @@ export class VaultState extends State {
             destination,
         });
         return this.sharedState.nodeApi.polkadot.tx.recovery.asRecovered(
-            this.sharedState.recoveredAddress?.address || "",
+            this.sharedState.recoveredAccount?.address || "",
             transfer
         );
     }
