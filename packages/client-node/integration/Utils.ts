@@ -1,5 +1,5 @@
 import { Lgnt, LogionNodeApiClass, ValidAccountId, AnyAccountId } from "@logion/node-api";
-import { Keyring } from "@polkadot/api";
+import { Keyring, ApiPromise } from "@polkadot/api";
 
 import {
     FullSigner,
@@ -13,8 +13,6 @@ import {
     requireDefined,
 } from "@logion/client";
 import { NodeAxiosFileUploader } from "../src/index.js";
-import { waitFor } from "@logion/client/dist/Polling.js";
-import { Duration } from "luxon";
 
 export const ALICE = "vQx5kESPn8dWyX4KxMCKqUyCaWUwtui1isX6PVNcZh2Ghjitr";
 export const ALICE_SECRET_SEED = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a";
@@ -75,17 +73,8 @@ export interface State {
     invitedContributorAccount: ValidAccountId,
 }
 
-export async function setupInitialState(config: LogionClientConfig = TEST_LOGION_CLIENT_CONFIG): Promise<State> {
+export async function setupInitialState(config: LogionClientConfig = TEST_LOGION_CLIENT_CONFIG, mustUpdateLLOs = true): Promise<State> {
     let anonymousClient = await LogionClient.create(config);
-
-    await waitFor<LegalOfficerClass[]>({
-        pollingParameters: {
-            period: Duration.fromMillis(2000),
-            maxRetries: 50,
-        },
-        producer: async _ => anonymousClient.directoryClient.getLegalOfficers(),
-        predicate: legalOfficers => legalOfficers.length === 3 && legalOfficers.map(llo => llo.node).every(node => node.startsWith("http://localhost")),
-    })
 
     const signer = buildSigner([
         REQUESTER_SECRET_SEED,
@@ -107,6 +96,16 @@ export async function setupInitialState(config: LogionClientConfig = TEST_LOGION
     const ethereumAccount = new AnyAccountId(ETHEREUM_ADDRESS, "Ethereum").toValidAccountId();
     const invitedContributorAccount = ValidAccountId.polkadot(INVITED_CONTRIBUTOR_ADDRESS);
 
+    if (mustUpdateLLOs) {
+        await updateLegalOfficers({
+            api: anonymousClient.logionApi.polkadot,
+            signer,
+            aliceAccount,
+            bobAccount,
+            charlieAccount
+        });
+    }
+
     anonymousClient = await LogionClient.create(config);
 
     const client = await anonymousClient.authenticate([
@@ -121,7 +120,9 @@ export async function setupInitialState(config: LogionClientConfig = TEST_LOGION
         invitedContributorAccount,
     ], signer);
     const legalOfficers = client.legalOfficers;
-    console.log(legalOfficers.map(llo => `${ llo.name }:${ llo.account.address }`))
+    if (mustUpdateLLOs) {
+        console.log(legalOfficers.map(llo => `${ llo.name }:${ llo.account.address }`))
+    }
     const alice = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.account.equals(aliceAccount)));
     const bob = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.account.equals(bobAccount)));
     const charlie = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.account.equals(charlieAccount)));
@@ -140,12 +141,57 @@ export async function setupInitialState(config: LogionClientConfig = TEST_LOGION
     };
 }
 
+async function updateLegalOfficers(params: { api: ApiPromise, aliceAccount: ValidAccountId, bobAccount: ValidAccountId, charlieAccount: ValidAccountId, signer: FullSigner }): Promise<void> {
+    const { api, aliceAccount, bobAccount, charlieAccount, signer } = params;
+
+    const llo1 = signer.signAndSend({
+        signerId: aliceAccount,
+        submittable: api.tx.loAuthorityList.updateLegalOfficer(
+            aliceAccount.address,
+            {
+                Host: {
+                    nodeId: "0x0024080112201ce5f00ef6e89374afb625f1ae4c1546d31234e87e3c3f51a62b91dd6bfa57df",
+                    baseUrl: "http://localhost:8080",
+                    region: "Europe",
+                }
+            }
+        ),
+    });
+    const llo2 = signer.signAndSend({
+        signerId: bobAccount,
+        submittable: api.tx.loAuthorityList.updateLegalOfficer(
+            bobAccount.address,
+            {
+                Host: {
+                    nodeId: "0x002408011220dacde7714d8551f674b8bb4b54239383c76a2b286fa436e93b2b7eb226bf4de7",
+                    baseUrl: "http://localhost:8081",
+                    region: "Europe",
+                }
+            }
+        ),
+    });
+    const llo3 = signer.signAndSend({
+        signerId: charlieAccount,
+        submittable: api.tx.loAuthorityList.updateLegalOfficer(
+            charlieAccount.address,
+            {
+                Host: {
+                    nodeId: "0x002408011220876a7b4984f98006dc8d666e28b60de307309835d775e7755cc770328cdacf2e",
+                    baseUrl: "http://localhost:8082",
+                    region: "Europe",
+                }
+            }
+        ),
+    });
+    await Promise.all([llo1, llo2, llo3]);
+}
+
 export async function updateConfig(config: Partial<LogionClientConfig>): Promise<State> {
     const newConfig: LogionClientConfig = {
         ...TEST_LOGION_CLIENT_CONFIG,
         ...config,
     };
-    return setupInitialState(newConfig);
+    return setupInitialState(newConfig, false);
 }
 
 export async function initAccountBalance(state: State, account: ValidAccountId): Promise<void> {
