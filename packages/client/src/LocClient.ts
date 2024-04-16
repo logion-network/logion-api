@@ -148,7 +148,7 @@ export interface LocRequest {
     company?: string;
     iDenfy?: IdenfyVerificationSession;
     voteId?: string | null;
-    selectedIssuers: VerifiedIssuerIdentity[];
+    selectedIssuers: BackendVerifiedIssuerIdentity[];
     template?: string;
     sponsorshipId?: string;
     fees?: BackendLocFees;
@@ -296,8 +296,8 @@ export interface FetchAllLocsParams {
     spec?: FetchLocRequestSpecification;
 }
 
-export interface VerifiedIssuerIdentity {
-    account: ValidAccountId;
+export interface BackendVerifiedIssuerIdentity {
+    address: string;
     identity: UserIdentity;
     identityLocId: string;
     selected?: boolean;
@@ -1259,13 +1259,13 @@ export class AuthenticatedLocClient extends LocClient {
                 const backendIssuers = request.selectedIssuers;
                 const addedIssuers = new Set<string>();
                 for(const maybeSelectedIssuer of backendIssuers) {
-                    addedIssuers.add(maybeSelectedIssuer.account.address);
+                    addedIssuers.add(maybeSelectedIssuer.address);
                     issuers.push({
                         identityLocId: maybeSelectedIssuer.identityLocId.toString(),
-                        account: maybeSelectedIssuer.account,
+                        account: ValidAccountId.polkadot(maybeSelectedIssuer.address),
                         firstName: maybeSelectedIssuer?.identity.firstName || "",
                         lastName: maybeSelectedIssuer?.identity.lastName || "",
-                        selected: chainSelectedIssuers.has(maybeSelectedIssuer.account.address), // Backend may be out-of-date
+                        selected: chainSelectedIssuers.has(maybeSelectedIssuer.address), // Backend may be out-of-date
                     });
                 }
                 for(const nodeIssuer of nodeIssuers) {
@@ -2351,7 +2351,7 @@ export class AuthenticatedLocClient extends LocClient {
         });
     }
 
-    async getLegalOfficerVerifiedIssuers(): Promise<VerifiedIssuerIdentity[]> {
+    async getLegalOfficerVerifiedIssuers(): Promise<BackendVerifiedIssuerIdentity[]> {
         try {
             const response = await this.backend().get("/api/issuers-identity");
             return response.data.issuers;

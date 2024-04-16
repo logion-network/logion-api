@@ -2038,9 +2038,9 @@ implements LegalOfficerLocWithSelectableIssuersCommands<T> {
         const selectedIssuers = locData.issuers;
 
         return allVerifiedIssuers
-            .filter(issuer => !issuer.account.equals(locData.requesterAccountId))
+            .filter(issuer => issuer.address !== locData.requesterAccountId?.address)
             .map(issuer => {
-                const selected = selectedIssuers.find(selectedIssuer => selectedIssuer.account.equals(issuer.account));
+                const selected = selectedIssuers.find(selectedIssuer => selectedIssuer.account.address === issuer.address);
                 if(selected && selected.firstName && selected.lastName) {
                     return {
                         firstName: selected.firstName,
@@ -2054,7 +2054,7 @@ implements LegalOfficerLocWithSelectableIssuersCommands<T> {
                         firstName: issuer.identity.firstName,
                         lastName: issuer.identity.lastName,
                         identityLocId: issuer.identityLocId,
-                        account: issuer.account,
+                        account: ValidAccountId.polkadot(issuer.address),
                         selected: selected?.selected || false,
                     };
                 }
