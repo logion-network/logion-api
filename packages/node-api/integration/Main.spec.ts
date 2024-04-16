@@ -25,6 +25,8 @@ import { toPalletLogionLocOtherAccountId, toSponsorshipId, toPalletLogionLocMeta
 import { badOriginError, moduleError } from "./Error.js";
 import { createIdentityLocTest } from "./IdentityLoc.js";
 import { handleTime } from "./ChainTime.js";
+import { handleProtection, handleRecovery } from "./Protection.js";
+import { handleVault } from "./Vault.js";
 
 describe("Logion Node API", () => {
 
@@ -77,4 +79,8 @@ describe("Logion Node API", () => {
     it("supports invited contributors", invitedContributors);
 
     it("handles time", handleTime);
+
+    it("handles protection", handleProtection);
+    it("handles vault", handleVault);
+    it("handles recovery", handleRecovery);
 });

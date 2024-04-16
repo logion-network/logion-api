@@ -33,7 +33,8 @@ export class Vault {
     ) {
         this.api = api;
         this.requester = requester;
-        this.legalOfficers = [ ...legalOfficers ].sort();
+        this.legalOfficers = [ ...legalOfficers ];
+        this.sortedLegalOfficers = this.legalOfficers.map(account => account.address).sort();
         this.account = Vault.getVaultAccountId(this.requester, this.legalOfficers);
     }
 
@@ -41,6 +42,7 @@ export class Vault {
     private requester: ValidAccountId;
     private legalOfficers: ValidAccountId[];
     readonly account: ValidAccountId;
+    private sortedLegalOfficers: string[];
 
     static getVaultAccountId(requesterAddress: ValidAccountId, legalOfficers: ValidAccountId[]): ValidAccountId {
         const signatories: string[] = [ requesterAddress.address, ...legalOfficers.map(accountId => accountId.address) ].sort();
@@ -56,7 +58,7 @@ export class Vault {
             if(existingMultisig.isSome) {
                 throw new Error("A similar transfer has already been requested and is pending");
             }
-            return this.api.tx.vault.requestCall(this.legalOfficers.map(accountId => accountId.address), submittable.method.hash, weight);
+            return this.api.tx.vault.requestCall(this.sortedLegalOfficers, submittable.method.hash, weight);
         },
 
         approveVaultTransfer: async (parameters: ApproveVaultOutTransferParameters): Promise<SubmittableExtrinsic> => {
@@ -84,8 +86,7 @@ export class Vault {
             const { amount, destination, block, index } = parameters;
             const actualAmount = amount.canonical;
             const call = this.api.tx.balances.transferAllowDeath(destination.address, actualAmount);
-            const sortedLegalOfficers = [ ...this.legalOfficers.map(accountId => accountId.address) ].sort();
-            return this.api.tx.multisig.cancelAsMulti(Vault.THRESHOLD, sortedLegalOfficers, { height: block, index }, call.method.hash)
+            return this.api.tx.multisig.cancelAsMulti(Vault.THRESHOLD, this.sortedLegalOfficers, { height: block, index }, call.method.hash)
         },
     }
 
