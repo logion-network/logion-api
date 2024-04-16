@@ -1,6 +1,5 @@
 import { Numbers, CoinBalance, Lgnt } from "@logion/node-api";
 import { BalanceState, waitFor } from "@logion/client";
-import { Duration } from "luxon";
 
 import { State } from "./Utils.js";
 
@@ -11,21 +10,24 @@ export async function transfers(state: State) {
     const aliceClient = client.withCurrentAccount(alice.account)
     let aliceState = await aliceClient.balanceState();
 
-    checkBalance(aliceState, "99.99k", "100.00k");
+    let aliceSnapshot = takeSnapshot(aliceState);
     expect(aliceState.transactions.length).toBe(0);
     aliceState = await aliceState.transfer({
         signer,
         amount: Lgnt.from(5000n),
         destination: requesterAccount,
     });
-    checkBalance(aliceState, "94.99k", "95.00k");
+    checkBalanceDelta(aliceState, "-4.99k", aliceSnapshot);
     aliceState = await waitFor({
-        pollingParameters: {
-            period: Duration.fromMillis(1000),
-            maxRetries: 50,
-        },
         producer: async state => state ? await state.refresh() : aliceState,
-        predicate: state => state.transactions.length === 2,
+        predicate: state => {
+            if (state.transactions.length > 0) {
+                const transaction = state.transactions[0];
+                return transaction.pallet === "balances" && transaction.method === "transferKeepAlive"
+            } else {
+                return false;
+            }
+        }
     });
     expect(aliceState.transactions[0].fees.inclusion).toBeGreaterThan(0);
     expect(aliceState.transactions[0].fees.storage).toBeUndefined();
@@ -35,6 +37,8 @@ export async function transfers(state: State) {
     const userClient = client.withCurrentAccount(requesterAccount)
     let userState = await userClient.balanceState();
 
+    aliceSnapshot = takeSnapshot(await aliceState.refresh());
+
     checkBalance(userState, "5.00k");
     userState = await userState.transfer({
         signer,
@@ -43,22 +47,39 @@ export async function transfers(state: State) {
     });
     checkBalance(userState, "2.99k");
 
-    // TODO: the balance of a LO is not stable as it increases with block rewards
-    //       this integration test should be rewritten with regular users.
-    //
     // Alice checks her balance.
-    // aliceState = await aliceState.refresh();
-    // checkBalance(aliceState, "97.00k"); // is sometimes 96.99k depending on block reward.
+    aliceState = await aliceState.refresh();
+    checkBalanceDelta(aliceState, "2.00k", aliceSnapshot);
 }
 
-export function checkBalance(balanceState: BalanceState, ...expectedValues: string[]) {
+export function checkBalance(balanceState: BalanceState, expectedValue: string) {
     const balance = balanceState.balances[0];
-    checkCoinBalance(balance, ...expectedValues);
+    checkCoinBalance(balance, expectedValue);
 }
 
-export function checkCoinBalance(balance: CoinBalance, ...expectedValues: string[]) {
+export function takeSnapshot(balanceState: BalanceState): CoinBalance {
+    return balanceState.balances[0];
+}
+
+export function checkBalanceDelta(current: BalanceState, expectedDelta: string, previous: CoinBalance) {
+    checkCoinBalanceDelta(takeSnapshot(current), expectedDelta, previous);
+}
+
+export function checkCoinBalanceDelta(current: CoinBalance, expectedDelta: string, previous: CoinBalance) {
+    expect(current.coin).toEqual(previous.coin);
+    const delta: CoinBalance = {
+        coin: current.coin,
+        available: current.available.subtract(previous.available),
+        reserved: current.reserved.subtract(previous.reserved),
+        total: current.total.subtract(previous.total),
+        level: current.level - previous.level,
+    }
+    checkCoinBalance(delta, expectedDelta);
+}
+
+export function checkCoinBalance(balance: CoinBalance, expectedValue: string) {
     const formatted = formatBalance(balance);
-    expect(expectedValues).toContain(formatted)
+    expect(expectedValue).toEqual(formatted)
 }
 
 export function formatBalance(balance: CoinBalance): string {

@@ -17,13 +17,14 @@ import {
 import { IdentityLocs } from "./Protection.js";
 import { aliceAcceptsTransfer } from "./Vault.js";
 import { initAccountBalance, NEW_ADDRESS, REQUESTER_ADDRESS, State } from "./Utils.js";
+import debugLog = jasmine.debugLog;
 
 export async function requestRecoveryAndCancel(state: State, identityLocs: IdentityLocs) {
     const { client, signer, alice, charlie, newAccount } = state;
 
     const pending = await requestRecovery(state, identityLocs) as PendingProtection;
 
-    console.log("LO's - Alice and Charlie Rejecting")
+    debugLog("LO's - Alice and Charlie Rejecting")
     await rejectRequest(client, signer, charlie, newAccount, "Your protection request is not complete");
     await rejectRequest(client, signer, alice, newAccount, "Some info is missing");
 
@@ -45,7 +46,7 @@ export async function rejectRequest(
     const response = await axios.put("/api/protection-request", {
         legalOfficerAddress: legalOfficer.account.address,
         statuses: [ "PENDING" ],
-        requester: requester.address,
+        requesterAddress: requester.address,
     });
     const request: ProtectionRequest = response.data.requests[0];
 
@@ -66,7 +67,7 @@ export async function acceptRequest(
     const response = await axios.put("/api/protection-request", {
         legalOfficerAddress: legalOfficer.account.address,
         statuses: [ "PENDING" ],
-        requesterAddress: requester
+        requesterAddress: requester.address,
     });
     const request: ProtectionRequest = response.data.requests[0];
 
@@ -127,23 +128,23 @@ export async function requestRecoveryWithResubmit(state: State, identityLocs: Id
 
     const requested = await requestRecovery(state, identityLocs);
 
-    console.log("LO's - Alice Rejecting")
+    debugLog("LO's - Alice Rejecting")
     await rejectRequest(client, signer, alice, newAccount, "for some reason");
 
-    console.log("User resubmitting to Alice");
+    debugLog("User resubmitting to Alice");
     const rejected = await requested.refresh() as RejectedRecovery;
     const pending = await rejected.resubmit(alice);
 
-    console.log("LO's - Accepting and vouching")
+    debugLog("LO's - Accepting and vouching")
     await acceptRequestAndVouch(client.config, client, signer, alice, REQUESTER_ADDRESS, newAccount);
     await acceptRequestAndVouch(client.config, client, signer, charlie, REQUESTER_ADDRESS, newAccount);
 
-    console.log("Activating")
+    debugLog("Activating")
     const accepted = await pending.refresh() as AcceptedProtection;
     let pendingRecovery = await accepted.activate({ signer }) as PendingRecovery;
     pendingRecovery = await pendingRecovery.waitForFullyReady();
 
-    console.log("Claiming")
+    debugLog("Claiming")
     await pendingRecovery.claimRecovery({ signer });
 }
 
@@ -152,7 +153,7 @@ export async function recoverLostVault(state: State) {
 
     const claimed = await getClaimedRecovery(state);
 
-    console.log("Transfer from recovered vault")
+    debugLog("Transfer from recovered vault")
     const newVault = await claimed.vaultState();
     let recoveredVault = await claimed.recoveredVaultState();
     recoveredVault = await recoveredVault.createVaultTransferRequest({
@@ -163,7 +164,7 @@ export async function recoverLostVault(state: State) {
     });
     const pendingRequest = recoveredVault.pendingVaultTransferRequests[0];
 
-    console.log("Alice accepts transfer from recovered vault")
+    debugLog("Alice accepts transfer from recovered vault")
     await aliceAcceptsTransfer(state, pendingRequest, claimed);
 }
 
@@ -180,7 +181,7 @@ export async function recoverLostAccount(state: State) {
 
     const claimed = await getClaimedRecovery(state);
 
-    console.log("Transfer from recovered account")
+    debugLog("Transfer from recovered account")
     const recoveredBalance = await claimed.recoveredBalanceState();
     await recoveredBalance.transferAll({
         signer,
@@ -199,7 +200,7 @@ async function requestRecovery(state: State, identityLocs: IdentityLocs): Promis
     const current = await authenticatedClient.protectionState();
     expect(current).toBeInstanceOf(NoProtection);
     if(current instanceof NoProtection) {
-        console.log("Requesting recovery")
+        debugLog("Requesting recovery")
         return await current.requestRecovery({
             payload: {
                 recoveredAccount: requesterAccount,

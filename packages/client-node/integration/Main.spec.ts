@@ -1,4 +1,4 @@
-import { setupInitialState, State, tearDown, ALICE, BOB } from "./Utils.js";
+import { setupInitialState, State, tearDown } from "./Utils.js";
 import { enablesProtection, requestValidIdentity } from "./Protection.js";
 import { transferAndCannotPayFees, transfers, transferWithInsufficientFunds } from "./Balance.js";
 import { providesVault } from "./Vault.js";
@@ -23,7 +23,7 @@ import { invitedContributors } from "./InvitedContributors.js";
 
 describe("Logion SDK", () => {
 
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 600000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1200000;
 
     let state: State;
 

@@ -13,7 +13,7 @@ export interface WaitForParameters<T> {
 
 export const DEFAULT_POLLING_PARAMETERS: PollingParameters = {
     period: Duration.fromMillis(1000),
-    maxRetries: 20,
+    maxRetries: 40,
 };
 
 export function waitFor<T>(params: WaitForParameters<T>): Promise<T> {

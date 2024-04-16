@@ -11,6 +11,7 @@ import {
 import { initAccountBalance, State } from "./Utils.js";
 import { ClosedLoc } from "@logion/client/dist/Loc";
 import { LegalOfficerClass } from "@logion/client/dist/Types";
+import debugLog = jasmine.debugLog;
 
 export interface IdentityLocs {
     alice: UUID,
@@ -36,7 +37,7 @@ async function activateProtection(state: State, identityLocs: IdentityLocs): Pro
 
     const authenticatedClient = client.withCurrentAccount(requesterAccount);
 
-    console.log("Requesting protection")
+    debugLog("Requesting protection")
     const current = await authenticatedClient.protectionState();
     expect(current).toBeInstanceOf(NoProtection);
 
@@ -57,7 +58,7 @@ async function activateProtection(state: State, identityLocs: IdentityLocs): Pro
 
 async function createsIdentityLoc(state: State, account: ValidAccountId, legalOfficer: LegalOfficerClass): Promise<ClosedLoc> {
     const { client, signer } = state;
-    console.log("Setting balance of %s", account.address)
+    debugLog(`Setting balance of ${ account.address }`)
     await initAccountBalance(state, account);
 
     const authenticatedClient = client.withCurrentAccount(account);
