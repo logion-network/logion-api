@@ -1,4 +1,4 @@
-import { LogionNodeApiClass, AnyAccountId } from "@logion/node-api";
+import { LogionNodeApiClass, ValidAccountId } from "@logion/node-api";
 import { isHex } from "@polkadot/util";
 
 export interface ItemTokenWithRestrictedType {
@@ -95,7 +95,7 @@ export function validateToken(api: LogionNodeApiClass, itemToken: ItemTokenWithR
                     error: "token ID's 'id' field is not a string",
                 };
             }
-            
+
             return { valid: true };
         } else {
             return result;
@@ -103,10 +103,7 @@ export function validateToken(api: LogionNodeApiClass, itemToken: ItemTokenWithR
     } else if(itemToken.type.includes("erc20")) {
         return validateErcToken(itemToken).result;
     } else if(itemToken.type === "owner") {
-        if (
-            isHex(itemToken.id, ETHEREUM_ADDRESS_LENGTH_IN_BITS) ||
-            AnyAccountId.isValidBech32Address(itemToken.id, "erd1") ||
-            api.queries.isValidAccountId(itemToken.id)) {
+        if (ValidAccountId.fromUnknown(itemToken.id) !== undefined) {
             return { valid: true };
         } else {
             return {
@@ -145,8 +142,6 @@ export function validateToken(api: LogionNodeApiClass, itemToken: ItemTokenWithR
 export function isErcNft(type: TokenType): boolean {
     return type.includes("erc721") || type.includes("erc1155");
 }
-
-const ETHEREUM_ADDRESS_LENGTH_IN_BITS = 20 * 8;
 
 export function validateErcToken(itemToken: ItemTokenWithRestrictedType): { result: TokenValidationResult, idObject?: any } { // eslint-disable-line @typescript-eslint/no-explicit-any
     let idObject;

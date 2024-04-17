@@ -4,7 +4,8 @@ import { isHex } from "@polkadot/util";
 import { UUID } from "./UUID.js";
 import { Hash } from './Hash.js';
 import { Lgnt } from './Currency.js';
-import { encodeAddress, validateAddress, addressEq } from "@polkadot/util-crypto";
+import { encodeAddress, addressEq, base58Decode, checkAddressChecksum } from "@polkadot/util-crypto";
+import { bech32 } from "bech32";
 
 export interface TypesAccountData {
     available: bigint,
@@ -158,6 +159,7 @@ export interface TypesRecoveryConfig {
 }
 
 export type AccountType = "Polkadot" | "Ethereum" | "Bech32";
+const ACCOUNT_TYPES: AccountType[] = ["Polkadot", "Ethereum", "Bech32"];
 
 export const ETHEREUM_ADDRESS_LENGTH_IN_BITS = 20 * 8;
 
@@ -189,7 +191,7 @@ export class AnyAccountId implements AccountId {
     }
 
     validate(): string | undefined {
-        if(!["Polkadot", "Ethereum", "Bech32"].includes(this.type)) {
+        if(!ACCOUNT_TYPES.includes(this.type)) {
             return `Unsupported address type ${this.type}`;
         }
         if(this.type === "Ethereum" && !isHex(this.address, ETHEREUM_ADDRESS_LENGTH_IN_BITS)) {
@@ -206,32 +208,28 @@ export class AnyAccountId implements AccountId {
 
     private validPolkadotAccountId(): string | undefined {
         try {
-            if (validateAddress(this.address, false)) {
+            const decoded = base58Decode(this.address);
+            const [isValid,,,] = checkAddressChecksum(decoded);
+            if (isValid) {
                 return undefined
             } else {
-                return "Not valid"
+                return "Invalid decoded address"
             }
-        } catch(e) {
-            return String(e);
+        } catch(error) {
+            return (error as Error).message
         }
-    }
-
-    static isValidBech32Address(address: string, prefix?: string): boolean {
-        if (prefix && !address.startsWith(prefix)) {
-            return false;
-        }
-        // TODO Improve by verifying the checksum
-        // @see https://github.com/sipa/bech32/blob/master/ref/javascript/bech32.js#L95
-        for (let p = 0; p < address.length; ++p) {
-            if (address.charCodeAt(p) < 33 || address.charCodeAt(p) > 126) {
-                return false;
-            }
-        }
-        return true;
     }
 
     isValidBech32Address(prefix?: string): boolean {
-        return AnyAccountId.isValidBech32Address(this.address, prefix);
+        try {
+            if (prefix && !this.address.startsWith(prefix)) {
+                return false;
+            }
+            const decoded = bech32.decode(this.address);
+            return prefix === undefined || decoded.prefix === prefix;
+        } catch (error) {
+            return false;
+        }
     }
 
     toValidAccountId(): ValidAccountId {
@@ -294,7 +292,7 @@ export class ValidAccountId implements AccountId {
             throw new Error(error);
         }
 
-        this.anyAccountId = new AnyAccountId(ValidAccountId.computeAddress(SS58_PREFIX, accountId.address, accountId.type), accountId.type);
+        this.anyAccountId = new AnyAccountId(ValidAccountId.normalizeAddress(accountId.address, accountId.type), accountId.type);
     }
 
     private anyAccountId: AnyAccountId;
@@ -341,11 +339,41 @@ export class ValidAccountId implements AccountId {
         return new AnyAccountId(address, "Polkadot").toValidAccountId();
     }
 
+    static ethereum(address: string): ValidAccountId {
+        return new AnyAccountId(address, "Ethereum").toValidAccountId();
+    }
+
+    static bech32(address: string): ValidAccountId {
+        return new AnyAccountId(address, "Bech32").toValidAccountId();
+    }
+
+    /**
+     * Attempt to guess the account type from a given address, and instantiate
+     * the corresponding valid account.
+     * Warning: this method should NOT be used whenever caller site knows the account type.
+     * In this case use {@link polkadot}, {@link ethereum}, {@link bech32} or {@link ValidAccountId:constructor}
+     *
+     * @param address the address.
+     * @returns a valid account or undefined.
+     */
+    static fromUnknown(address: string): ValidAccountId | undefined {
+        for (const type of ACCOUNT_TYPES) {
+            const account = new AnyAccountId(address, type);
+            if (account.isValid()) {
+                return account.toValidAccountId();
+            }
+        }
+    }
+
+    private static normalizeAddress(address: string, type: AccountType): string {
+        return this.computeAddress(SS58_PREFIX, address, type)
+    }
+
     private static computeAddress(prefix: number, address: string, type: AccountType): string {
         if (type === 'Polkadot') {
             return encodeAddress(address, prefix);
         }
-        return address
+        return address.toLowerCase();
     }
 }
 
