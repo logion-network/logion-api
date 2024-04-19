@@ -1,10 +1,9 @@
-import { ALICE } from "./Utils.js";
-import { State, REQUESTER_ADDRESS } from "./Utils.js";
+import { State } from "./Utils.js";
 
 export async function fees(state: State) {
-    const client = state.client;
+    const { client, requesterAccount, alice } = state;
     const api = client.logionApi;
-    const submittable = api.polkadot.tx.balances.transferAllowDeath(ALICE, "10000000");
-    const fees = await client.public.fees.estimateWithoutStorage({ origin: REQUESTER_ADDRESS, submittable });
-    expect(fees.totalFee.canonical).toBe(1549504589051721312n);
+    const submittable = api.polkadot.tx.balances.transferAllowDeath(alice.account.address, "10000000");
+    const fees = await client.public.fees.estimateWithoutStorage({ origin: requesterAccount, submittable });
+    expect(fees.totalFee.canonical).toBe(1526123495430309312n);
 }

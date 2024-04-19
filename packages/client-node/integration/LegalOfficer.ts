@@ -1,22 +1,20 @@
-import { ALICE, State } from "./Utils.js";
-
+import { State } from "./Utils.js";
 export async function backendConfig(state: State) {
-    const { client, requesterAccount } = state;
+    const { client, requesterAccount, alice } = state;
 
-    const authenticatedClient = client.withCurrentAddress(requesterAccount);
-    const alice = authenticatedClient.getLegalOfficer(ALICE);
-    const config = await alice.getConfig();
-
+    const authenticatedClient = client.withCurrentAccount(requesterAccount);
+    const llo = authenticatedClient.getLegalOfficer(alice.account);
+    const config = await llo.getConfig();
     expect(config.features.iDenfy).toBe(false);
     expect(config.features.vote).toBe(false);
 }
 
-export async function workload(state: State, ...legalOfficerAddresses: string[]) {
-    const { client, requesterAccount } = state;
+export async function workload(state: State) {
+    const { client, requesterAccount, alice, bob } = state;
 
-    const authenticatedClient = client.withCurrentAddress(requesterAccount);
-    for (const address of legalOfficerAddresses) {
-        const legalOfficer = authenticatedClient.getLegalOfficer(address);
+    const authenticatedClient = client.withCurrentAccount(requesterAccount);
+    for (const account of [ alice.account, bob.account ]) {
+        const legalOfficer = authenticatedClient.getLegalOfficer(account);
         const workload = await legalOfficer.getWorkload();
         expect(workload).toBe(0);
     }

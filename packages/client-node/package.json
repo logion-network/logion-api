@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "build": "yarn lint && tsc -p tsconfig.json",
-    "integration-test": "docker compose up -d && node ./scripts/init_onchain_data.js && ./scripts/integration_test_db_setup.sh && NODE_OPTIONS=--loader=ts-node/esm jasmine --config=jasmine-integration.json ; docker compose down",
+    "integration-test": "docker compose up -d && ./scripts/integration_test_db_setup.sh && NODE_OPTIONS=--loader=ts-node/esm jasmine --config=jasmine-integration.json ; docker compose down",
     "lint": "yarn eslint src/**",
     "test": "NODE_OPTIONS=--loader=ts-node/esm jasmine --config=jasmine.json",
     "clean": "rm -rf dist"

@@ -1,23 +1,23 @@
-import { buildApiClass, Lgnt } from "@logion/node-api";
+import { LogionNodeApiClass, Lgnt, ValidAccountId } from "@logion/node-api";
 import { ActiveProtection, VaultTransferRequest, WithProtectionParameters } from "@logion/client";
 
-import { REQUESTER_ADDRESS, State } from "./Utils.js";
+import { State } from "./Utils.js";
 import { checkCoinBalance } from "./Balance.js";
 
 export async function providesVault(state: State) {
     const { client, signer, alice, requesterAccount } = state;
 
-    const userClient = client.withCurrentAddress(requesterAccount);
+    const userClient = client.withCurrentAccount(requesterAccount);
     let activeProtection = (await userClient.protectionState()) as ActiveProtection;
     activeProtection = await activeProtection.waitForFullyReady();
 
     // Transfer to vault
     let vaultState = await activeProtection.vaultState();
-    const vaultAddress = vaultState.vaultAddress;
+    const vaultAccount = vaultState.vaultAccount;
     let balanceState = await userClient.balanceState();
     balanceState = await balanceState.transfer({
         signer,
-        destination: vaultAddress,
+        destination: vaultAccount,
         amount: Lgnt.from(5n),
     });
     vaultState = await vaultState.refresh();
@@ -27,7 +27,7 @@ export async function providesVault(state: State) {
     vaultState = await vaultState.createVaultTransferRequest({
         legalOfficer: alice,
         amount: Lgnt.from(1n),
-        destination: REQUESTER_ADDRESS,
+        destination: requesterAccount,
         signer
     });
     const pendingRequest = vaultState.pendingVaultTransferRequests[0];
@@ -43,19 +43,19 @@ export async function providesVault(state: State) {
 }
 
 export async function aliceAcceptsTransfer(state: State, request: VaultTransferRequest, activeProtection: WithProtectionParameters) {
-    const { client, signer, aliceAccount, requesterAccount } = state;
+    const { client, signer, alice, requesterAccount } = state;
 
-    const api = await buildApiClass(client.config.rpcEndpoints);
+    const api = await LogionNodeApiClass.connect(client.config.rpcEndpoints);
 
-    const signerId = aliceAccount.address;
+    const signerId = alice.account;
     const amount = Lgnt.fromCanonical(BigInt(request!.amount));
     const vault = api.vault(
-        requesterAccount.address,
-        activeProtection.protectionParameters.legalOfficers.map(legalOfficer => legalOfficer.address),
+        requesterAccount,
+        activeProtection.protectionParameters.legalOfficers.map(legalOfficer => legalOfficer.account),
     );
     const submittable = await vault.tx.approveVaultTransfer({
         signerId,
-        destination: request!.destination,
+        destination: ValidAccountId.polkadot(request!.destination),
         amount,
         block: BigInt(request!.block),
         index: request!.index,
@@ -65,7 +65,7 @@ export async function aliceAcceptsTransfer(state: State, request: VaultTransferR
         submittable,
     });
 
-    const authenticated = client.withCurrentAddress(aliceAccount);
-    const axios = authenticated.getLegalOfficer(aliceAccount.address).buildAxiosToNode();
+    const authenticated = client.withCurrentAccount(alice.account);
+    const axios = authenticated.getLegalOfficer(alice.account).buildAxiosToNode();
     await axios.post(`/api/vault-transfer-request/${request.id}/accept`);
 }

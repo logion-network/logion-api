@@ -1,8 +1,7 @@
 import { NodeFile } from "../src/index.js";
 import {
     State,
-    initRequesterBalance,
-    TEST_LOGION_CLIENT_CONFIG,
+    initAccountBalance,
     DIRECT_REQUESTER_ADDRESS,
     findWithLegalOfficerClient,
 } from "./Utils.js";
@@ -24,16 +23,16 @@ import {
 import { Lgnt, UUID } from "@logion/node-api";
 
 export async function openIdentityLoc(state: State): Promise<UUID> {
-    const { directRequesterAccount, signer, alice, aliceAccount } = state;
-    const client = state.client.withCurrentAddress(directRequesterAccount);
+    const { directRequesterAccount, signer, alice } = state;
+    const client = state.client.withCurrentAccount(directRequesterAccount);
     let locsState = await client.locsState();
 
-    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, signer, directRequesterAccount.address);
+    await initAccountBalance(state, directRequesterAccount);
 
     const items = provideItems("identity", []);
     const openLoc = await locsState.openIdentityLoc({
         description: "Direct Identity",
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         template: "a-template",
         legalFee: Lgnt.fromCanonical(15n),
         files: items.files,
@@ -56,7 +55,7 @@ export async function openIdentityLoc(state: State): Promise<UUID> {
     });
     checkData(openLoc.data(), items);
 
-    const aliceClient = state.client.withCurrentAddress(aliceAccount);
+    const aliceClient = state.client.withCurrentAccount(alice.account);
     let aliceOpenLoc = await findWithLegalOfficerClient(aliceClient, openLoc) as OpenLoc;
     aliceOpenLoc = await waitFor<OpenLoc>({
         producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : aliceOpenLoc.refresh() as Promise<OpenLoc>,
@@ -69,12 +68,12 @@ export async function openIdentityLoc(state: State): Promise<UUID> {
 
 export async function openTransactionLoc(state: State, linkedLoc: UUID): Promise<UUID> {
     const { directRequesterAccount, signer, alice } = state;
-    const client = state.client.withCurrentAddress(directRequesterAccount);
+    const client = state.client.withCurrentAccount(directRequesterAccount);
     let locsState = await client.locsState();
     const items = provideItems("transaction", [ linkedLoc ]);
     const openLoc = await locsState.openTransactionLoc({
         description: "Direct Transaction",
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         template: "a-template",
         legalFee: Lgnt.fromCanonical(15n),
         files: items.files,
@@ -98,12 +97,12 @@ function allItemsHaveAddedOn(loc: LocData) {
 
 export async function openCollectionLoc(state: State, linkedLoc1: UUID, linkedLoc2: UUID): Promise<void> {
     const { directRequesterAccount, signer, alice } = state;
-    const client = state.client.withCurrentAddress(directRequesterAccount);
+    const client = state.client.withCurrentAccount(directRequesterAccount);
     let locsState = await client.locsState();
     const items = provideItems("collection", [ linkedLoc1, linkedLoc2 ]);
     const openLoc = await locsState.openCollectionLoc({
         description: "Direct Collection",
-        legalOfficerAddress: alice.address,
+        legalOfficerAccountId: alice.account,
         template: "a-template",
         legalFee: Lgnt.fromCanonical(15n),
         files: items.files,
@@ -139,9 +138,10 @@ function checkData(data: LocData, items: ItemsParams) {
     expect(data.fees.legalFee?.canonical).toEqual(15n)
     expect(data.template).toEqual("a-template")
     expect(data.requesterLocId).toBeUndefined();
-    expect(data.requesterAddress?.address).toEqual(DIRECT_REQUESTER_ADDRESS);
-    expect(data.requesterAddress?.type).toEqual("Polkadot");
-    expect(data.ownerAddress).toEqual(ALICE);
+    expect(data.requesterAccountId?.address).toEqual(DIRECT_REQUESTER_ADDRESS);
+    expect(data.requesterAccountId?.type).toEqual("Polkadot");
+    expect(data.ownerAccountId.address).toEqual(ALICE);
+    expect(data.ownerAccountId.type).toEqual("Polkadot");
 
     expect(data.files.length).toEqual(items.files.length);
     expect(data.metadata.length).toEqual(items.metadata.length);

@@ -16,16 +16,17 @@ import {
 } from "@logion/client";
 import { IdentityLocs } from "./Protection.js";
 import { aliceAcceptsTransfer } from "./Vault.js";
-import { initRequesterBalance, NEW_ADDRESS, REQUESTER_ADDRESS, State } from "./Utils.js";
+import { initAccountBalance, NEW_ADDRESS, REQUESTER_ADDRESS, State } from "./Utils.js";
+import debugLog = jasmine.debugLog;
 
 export async function requestRecoveryAndCancel(state: State, identityLocs: IdentityLocs) {
-    const { client, signer, alice, aliceAccount, charlie, charlieAccount } = state;
+    const { client, signer, alice, charlie, newAccount } = state;
 
     const pending = await requestRecovery(state, identityLocs) as PendingProtection;
 
-    console.log("LO's - Alice and Charlie Rejecting")
-    await rejectRequest(client, signer, charlie, charlieAccount, NEW_ADDRESS, "Your protection request is not complete");
-    await rejectRequest(client, signer, alice, aliceAccount, NEW_ADDRESS, "Some info is missing");
+    debugLog("LO's - Alice and Charlie Rejecting")
+    await rejectRequest(client, signer, charlie, newAccount, "Your protection request is not complete");
+    await rejectRequest(client, signer, alice, newAccount, "Some info is missing");
 
     const rejected = await pending.refresh() as RejectedRecovery;
 
@@ -37,16 +38,15 @@ export async function rejectRequest(
     client: LogionClient,
     signer: FullSigner,
     legalOfficer: LegalOfficer,
-    legalOfficerAccount: ValidAccountId,
-    requesterAddress: string,
+    requester: ValidAccountId,
     reason: string,
 ) {
-    const axios = await buildLegalOfficerAxios(client, signer, legalOfficer, legalOfficerAccount);
+    const axios = await buildLegalOfficerAxios(client, signer, legalOfficer, legalOfficer.account);
 
     const response = await axios.put("/api/protection-request", {
-        legalOfficerAddress: legalOfficer.address,
+        legalOfficerAddress: legalOfficer.account.address,
         statuses: [ "PENDING" ],
-        requesterAddress
+        requesterAddress: requester.address,
     });
     const request: ProtectionRequest = response.data.requests[0];
 
@@ -60,24 +60,22 @@ export async function acceptRequest(
     client: LogionClient,
     signer: FullSigner,
     legalOfficer: LegalOfficer,
-    legalOfficerAccount: ValidAccountId,
-    requesterAddress: string,
+    requester: ValidAccountId,
 ) {
-    const legalOfficerAddress = legalOfficer.address;
-    const axios = await buildLegalOfficerAxios(client, signer, legalOfficer, legalOfficerAccount);
+    const axios = await buildLegalOfficerAxios(client, signer, legalOfficer, legalOfficer.account);
 
     const response = await axios.put("/api/protection-request", {
-        legalOfficerAddress: legalOfficer.address,
+        legalOfficerAddress: legalOfficer.account.address,
         statuses: [ "PENDING" ],
-        requesterAddress
+        requesterAddress: requester.address,
     });
     const request: ProtectionRequest = response.data.requests[0];
 
     const identityLocId = await createAndCloseIdentityLoc(
         config,
         signer,
-        legalOfficerAddress,
-        request.requesterAddress
+        legalOfficer.account,
+        requester,
     );
 
     await axios.post(`/api/protection-request/${ request.id }/accept`, {
@@ -88,16 +86,16 @@ export async function acceptRequest(
 async function createAndCloseIdentityLoc(
     config: LogionClientConfig,
     signer: FullSigner,
-    legalOfficerAddress: string,
-    requesterAddress: string
+    legalOfficer: ValidAccountId,
+    requester: ValidAccountId
 ): Promise<UUID> {
     const api = await buildApiClass(config.rpcEndpoints);
     const identityLocId = new UUID();
     await signer.signAndSend({
-        signerId: requesterAddress,
+        signerId: requester,
         submittable: api.polkadot.tx.logionLoc.createPolkadotIdentityLoc(
             api.adapters.toLocId(identityLocId),
-            legalOfficerAddress,
+            legalOfficer.address,
             api.fees.getDefaultLegalFee({ locType: "Identity" }).canonical,
             {
                 metadata: [],
@@ -107,7 +105,7 @@ async function createAndCloseIdentityLoc(
         )
     });
     await signer.signAndSend({
-        signerId: legalOfficerAddress,
+        signerId: legalOfficer,
         submittable: api.polkadot.tx.logionLoc.close(api.adapters.toLocId(identityLocId), null, false)
     });
     return identityLocId;
@@ -126,27 +124,27 @@ async function buildLegalOfficerAxios(
 }
 
 export async function requestRecoveryWithResubmit(state: State, identityLocs: IdentityLocs) {
-    const { client, signer, alice, aliceAccount, charlie, charlieAccount } = state;
+    const { client, signer, alice, charlie, newAccount } = state;
 
     const requested = await requestRecovery(state, identityLocs);
 
-    console.log("LO's - Alice Rejecting")
-    await rejectRequest(client, signer, alice, aliceAccount, NEW_ADDRESS, "for some reason");
+    debugLog("LO's - Alice Rejecting")
+    await rejectRequest(client, signer, alice, newAccount, "for some reason");
 
-    console.log("User resubmitting to Alice");
+    debugLog("User resubmitting to Alice");
     const rejected = await requested.refresh() as RejectedRecovery;
     const pending = await rejected.resubmit(alice);
 
-    console.log("LO's - Accepting and vouching")
-    await acceptRequestAndVouch(client.config, client, signer, alice, aliceAccount, REQUESTER_ADDRESS, NEW_ADDRESS);
-    await acceptRequestAndVouch(client.config, client, signer, charlie, charlieAccount, REQUESTER_ADDRESS, NEW_ADDRESS);
+    debugLog("LO's - Accepting and vouching")
+    await acceptRequestAndVouch(client.config, client, signer, alice, REQUESTER_ADDRESS, newAccount);
+    await acceptRequestAndVouch(client.config, client, signer, charlie, REQUESTER_ADDRESS, newAccount);
 
-    console.log("Activating")
+    debugLog("Activating")
     const accepted = await pending.refresh() as AcceptedProtection;
     let pendingRecovery = await accepted.activate({ signer }) as PendingRecovery;
     pendingRecovery = await pendingRecovery.waitForFullyReady();
 
-    console.log("Claiming")
+    debugLog("Claiming")
     await pendingRecovery.claimRecovery({ signer });
 }
 
@@ -155,24 +153,24 @@ export async function recoverLostVault(state: State) {
 
     const claimed = await getClaimedRecovery(state);
 
-    console.log("Transfer from recovered vault")
+    debugLog("Transfer from recovered vault")
     const newVault = await claimed.vaultState();
     let recoveredVault = await claimed.recoveredVaultState();
     recoveredVault = await recoveredVault.createVaultTransferRequest({
         legalOfficer: alice,
         amount: Lgnt.fromCanonicalPrefixedNumber(recoveredVault.balances[0].available),
-        destination: newVault.vaultAddress,
+        destination: newVault.vaultAccount,
         signer,
     });
     const pendingRequest = recoveredVault.pendingVaultTransferRequests[0];
 
-    console.log("Alice accepts transfer from recovered vault")
+    debugLog("Alice accepts transfer from recovered vault")
     await aliceAcceptsTransfer(state, pendingRequest, claimed);
 }
 
 async function getClaimedRecovery(state: State) {
     const { client, newAccount } = state;
-    const authenticatedClient = client.withCurrentAddress(newAccount);
+    const authenticatedClient = client.withCurrentAccount(newAccount);
     const accepted = await authenticatedClient.protectionState() as ClaimedRecovery;
     expect(accepted).toBeInstanceOf(ClaimedRecovery);
     return accepted;
@@ -183,7 +181,7 @@ export async function recoverLostAccount(state: State) {
 
     const claimed = await getClaimedRecovery(state);
 
-    console.log("Transfer from recovered account")
+    debugLog("Transfer from recovered account")
     const recoveredBalance = await claimed.recoveredBalanceState();
     await recoveredBalance.transferAll({
         signer,
@@ -193,21 +191,21 @@ export async function recoverLostAccount(state: State) {
 }
 
 async function requestRecovery(state: State, identityLocs: IdentityLocs): Promise<PendingProtection> {
-    const { client, signer, alice, charlie, newAccount } = state;
+    const { client, signer, alice, charlie, newAccount, requesterAccount } = state;
 
-    await initRequesterBalance(client.config, signer, NEW_ADDRESS);
+    await initAccountBalance(state, newAccount);
 
-    const authenticatedClient = client.withCurrentAddress(newAccount);
+    const authenticatedClient = client.withCurrentAccount(newAccount);
 
     const current = await authenticatedClient.protectionState();
     expect(current).toBeInstanceOf(NoProtection);
     if(current instanceof NoProtection) {
-        console.log("Requesting recovery")
+        debugLog("Requesting recovery")
         return await current.requestRecovery({
             payload: {
-                recoveredAddress: REQUESTER_ADDRESS,
-                legalOfficer1: authenticatedClient.getLegalOfficer(alice.address),
-                legalOfficer2: authenticatedClient.getLegalOfficer(charlie.address),
+                recoveredAccount: requesterAccount,
+                legalOfficer1: authenticatedClient.getLegalOfficer(alice.account),
+                legalOfficer2: authenticatedClient.getLegalOfficer(charlie.account),
                 requesterIdentityLoc1: identityLocs.alice,
                 requesterIdentityLoc2: identityLocs.charlie,
             },
@@ -223,24 +221,23 @@ async function acceptRequestAndVouch(
     client: LogionClient,
     signer: FullSigner,
     legalOfficer: LegalOfficer,
-    legalOfficerAccount: ValidAccountId,
     lostAddress: string,
-    requesterAddress: string,
+    requesterAddress: ValidAccountId,
 ) {
-    await acceptRequest(config, client, signer, legalOfficer, legalOfficerAccount, requesterAddress)
+    await acceptRequest(config, client, signer, legalOfficer, requesterAddress)
     await vouchRecovery(config, signer, legalOfficer, lostAddress, requesterAddress)
 }
 
 async function vouchRecovery(
     config: LogionClientConfig,
     signer: FullSigner,
-    legalOfficerAddress: LegalOfficer,
+    legalOfficer: LegalOfficer,
     lost: string,
-    rescuer: string,
+    rescuer: ValidAccountId,
 ): Promise<void> {
     const api = await buildApiClass(config.rpcEndpoints);
     await signer.signAndSend({
-        signerId: legalOfficerAddress.address,
-        submittable: api.polkadot.tx.recovery.vouchRecovery(lost, rescuer)
+        signerId: legalOfficer.account,
+        submittable: api.polkadot.tx.recovery.vouchRecovery(lost, rescuer.address)
     })
 }

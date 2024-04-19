@@ -8,9 +8,10 @@ import {
     OpenLoc,
     waitFor
 } from '@logion/client';
-import { initRequesterBalance, State, TEST_LOGION_CLIENT_CONFIG } from "./Utils.js";
+import { initAccountBalance, State } from "./Utils.js";
 import { ClosedLoc } from "@logion/client/dist/Loc";
 import { LegalOfficerClass } from "@logion/client/dist/Types";
+import debugLog = jasmine.debugLog;
 
 export interface IdentityLocs {
     alice: UUID,
@@ -19,10 +20,10 @@ export interface IdentityLocs {
 }
 
 export async function requestValidIdentity(state: State, account: ValidAccountId): Promise<IdentityLocs> {
-    const { alice, aliceAccount, bob, bobAccount, charlie, charlieAccount } = state
-    const idByAlice = await createsIdentityLoc(state, account, alice, aliceAccount);
-    const idByBob = await createsIdentityLoc(state, account, bob, bobAccount);
-    const idByCharlie = await createsIdentityLoc(state, account, charlie, charlieAccount);
+    const { alice, bob, charlie } = state
+    const idByAlice = await createsIdentityLoc(state, account, alice);
+    const idByBob = await createsIdentityLoc(state, account, bob);
+    const idByCharlie = await createsIdentityLoc(state, account, charlie);
     return { alice: idByAlice.data().id, bob: idByBob.data().id, charlie: idByCharlie.data().id }
 }
 
@@ -34,17 +35,17 @@ export async function enablesProtection(state: State, identityLocs: IdentityLocs
 async function activateProtection(state: State, identityLocs: IdentityLocs): Promise<ActiveProtection> {
     const { client, alice, charlie, requesterAccount, signer } = state;
 
-    const authenticatedClient = client.withCurrentAddress(requesterAccount);
+    const authenticatedClient = client.withCurrentAccount(requesterAccount);
 
-    console.log("Requesting protection")
+    debugLog("Requesting protection")
     const current = await authenticatedClient.protectionState();
     expect(current).toBeInstanceOf(NoProtection);
 
     if (current instanceof NoProtection) {
         return await current.activateProtection({
             payload: {
-                legalOfficer1: authenticatedClient.getLegalOfficer(alice.address),
-                legalOfficer2: authenticatedClient.getLegalOfficer(charlie.address),
+                legalOfficer1: authenticatedClient.getLegalOfficer(alice.account),
+                legalOfficer2: authenticatedClient.getLegalOfficer(charlie.account),
                 requesterIdentityLoc1: identityLocs.alice,
                 requesterIdentityLoc2: identityLocs.charlie,
             },
@@ -55,16 +56,16 @@ async function activateProtection(state: State, identityLocs: IdentityLocs): Pro
     }
 }
 
-async function createsIdentityLoc(state: State, account: ValidAccountId, legalOfficer: LegalOfficerClass, legalOfficerAccount: ValidAccountId): Promise<ClosedLoc> {
+async function createsIdentityLoc(state: State, account: ValidAccountId, legalOfficer: LegalOfficerClass): Promise<ClosedLoc> {
     const { client, signer } = state;
-    console.log("Setting balance of %s", account.address)
-    await initRequesterBalance(TEST_LOGION_CLIENT_CONFIG, signer, account.address);
+    debugLog(`Setting balance of ${ account.address }`)
+    await initAccountBalance(state, account);
 
-    const authenticatedClient = client.withCurrentAddress(account);
+    const authenticatedClient = client.withCurrentAccount(account);
     const locsState = await authenticatedClient.locsState();
 
     const pendingRequest = await locsState.requestIdentityLoc({
-        legalOfficerAddress: legalOfficer.address,
+        legalOfficerAccountId: legalOfficer.account,
         description: "Identity LOC",
         draft: false,
         userIdentity: {
@@ -85,8 +86,8 @@ async function createsIdentityLoc(state: State, account: ValidAccountId, legalOf
     const identityLocId = pendingRequest.data().id;
 
     // LLO Accepts
-    const lloClient = state.client.withCurrentAddress(legalOfficerAccount);
-    let lloLocs = await lloClient.locsState({ spec: { ownerAddress: legalOfficerAccount.address, locTypes: ["Identity"], statuses: ["REVIEW_PENDING"] } });
+    const lloClient = state.client.withCurrentAccount(legalOfficer.account);
+    let lloLocs = await lloClient.locsState({ spec: { ownerAddress: legalOfficer.account.address, locTypes: ["Identity"], statuses: ["REVIEW_PENDING"] } });
     const lloPending = lloLocs.findById(identityLocId) as PendingRequest;
     const lloAccepted = await lloPending.legalOfficer.accept();
 

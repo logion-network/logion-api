@@ -1,11 +1,10 @@
-import { buildApiClass, Lgnt, Numbers, ValidAccountId } from "@logion/node-api";
-import { Keyring } from "@polkadot/api";
+import { Lgnt, LogionNodeApiClass, ValidAccountId, AnyAccountId } from "@logion/node-api";
+import { Keyring, ApiPromise } from "@polkadot/api";
 
 import {
     FullSigner,
     KeyringSigner,
     SignAndSendStrategy,
-    Signer,
     LogionClientConfig,
     ISubmittableResult,
     LogionClient,
@@ -15,11 +14,11 @@ import {
 } from "@logion/client";
 import { NodeAxiosFileUploader } from "../src/index.js";
 
-export const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY";
+export const ALICE = "vQx5kESPn8dWyX4KxMCKqUyCaWUwtui1isX6PVNcZh2Ghjitr";
 export const ALICE_SECRET_SEED = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a";
-export const BOB = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty";
+export const BOB = "vQvWaxNDdzuX5N3qSvGMtjdHcQdw1TAcPNgx4S1Utd3MTxYeN";
 export const BOB_SECRET_SEED = "0x398f0c28f98885e046333d4a41c19cee4c37368a9832c6502f6cfd182e2aef89";
-export const CHARLIE = "5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y";
+export const CHARLIE = "vQvZF2YMgKuQhzfF7T3xDjHjuEmcPSUVEoUDPy1mzuSXzFgca";
 export const CHARLIE_SECRET_SEED = "0xbc1ede780f784bb6991a585e4f6e61522c14e1cae6ad0895fb57b9a205a8f938";
 
 class IntegrationTestSignAndSendStrategy implements SignAndSendStrategy {
@@ -38,26 +37,26 @@ export function buildSigner(seeds: string []): FullSigner {
 
 export const TEST_LOGION_CLIENT_CONFIG: LogionClientConfig = {
     directoryEndpoint: "http://localhost:8090",
-    rpcEndpoints: [ 'ws://localhost:9944', 'ws://localhost:9945' ],
+    rpcEndpoints: [ 'ws://localhost:9944' ],
     buildFileUploader: () => new NodeAxiosFileUploader(),
 };
 
-export const REQUESTER_ADDRESS = "5DPLBrBxniGbGdFe1Lmdpkt6K3aNjhoNPJrSJ51rwcmhH2Tn";
+export const REQUESTER_ADDRESS = "vQtc8ViMVqMFymbKcCgV4VWaEkRKPQzXGtBFJb423qMn56cxf";
 export const REQUESTER_SECRET_SEED = "unique chase zone team upset caution match west enter eyebrow limb wrist";
 
-export const DIRECT_REQUESTER_ADDRESS = "5EPPUZ9XEjeAgJj4DDtYn9thPtE68Nu7ZQDMySG3EP5nGVmV";
+export const DIRECT_REQUESTER_ADDRESS = "vQucBnRK4HNdZBGo2QZbySuaqqFy6ofd24GcEGRGE886A6Nta";
 export const DIRECT_REQUESTER_SECRET_SEED = "pitch move leader grief stool crisp arm menu target hero inner essay";
 
-export const NEW_ADDRESS = "5FWP7ha7wBpRomanrgCFuV8c7gBTsyexzWZR42umqGv8Rpx4";
+export const NEW_ADDRESS = "vQvjBRZjeypopJjem41ugaEpkZ3vUZGNsVNxHM1uxj1vWFVa6";
 export const NEW_SECRET_SEED = "inquiry nose frog devote demand main front caution excess bridge mom voice";
 
-export const ISSUER_ADDRESS = "5FU3mAsShn2b8CAe5cnVShzFNVgJssoXoMdAB9evGvKm5x4N";
+export const ISSUER_ADDRESS = "vQvgr532ykR1ydAEcGxVv7TgPosRKZAXSJE22U8f7AfL8uKUv";
 export const ISSUER_SECRET_SEED = "exit photo know trouble stay hollow gate river upgrade twenty south random";
 
 export const ETHEREUM_ADDRESS = "0x2469a2fd33ad71a3525cc2047bdd4f3ca851e89f";
 export const ETHEREUM_SEED = "0x09dc05bbed08ff234919b84002a1eb6f856a6e949b017289fc7d457e1bb5e9d4";
 
-export const INVITED_CONTRIBUTOR_ADDRESS = "5F42HAi5kvD6Ao4Ze6UBiZDw7BA4zk62twNYRWAVDq3EhdWH";
+export const INVITED_CONTRIBUTOR_ADDRESS = "vQvGpb2scoZCUfm8XqSBcPJv5YYu5g2owPomQiVAg7a3cXGKJ";
 export const INVITED_CONTRIBUTOR_SECRET_SEED = "october minimum future canvas range cruise jealous web renew border hover name";
 
 export interface State {
@@ -69,16 +68,14 @@ export interface State {
     requesterAccount: ValidAccountId,
     directRequesterAccount: ValidAccountId,
     newAccount: ValidAccountId,
-    aliceAccount: ValidAccountId,
-    bobAccount: ValidAccountId,
-    charlieAccount: ValidAccountId,
     issuerAccount: ValidAccountId,
     ethereumAccount: ValidAccountId,
     invitedContributorAccount: ValidAccountId,
 }
 
-export async function setupInitialState(config: LogionClientConfig = TEST_LOGION_CLIENT_CONFIG): Promise<State> {
-    const anonymousClient = await LogionClient.create(config);
+export async function setupInitialState(config: LogionClientConfig = TEST_LOGION_CLIENT_CONFIG, mustUpdateLLOs = true): Promise<State> {
+    let anonymousClient = await LogionClient.create(config);
+
     const signer = buildSigner([
         REQUESTER_SECRET_SEED,
         DIRECT_REQUESTER_SECRET_SEED,
@@ -89,15 +86,28 @@ export async function setupInitialState(config: LogionClientConfig = TEST_LOGION
         ISSUER_SECRET_SEED,
         INVITED_CONTRIBUTOR_SECRET_SEED,
     ]);
-    const requesterAccount = anonymousClient.logionApi.queries.getValidAccountId(REQUESTER_ADDRESS, "Polkadot");
-    const directRequesterAccount = anonymousClient.logionApi.queries.getValidAccountId(DIRECT_REQUESTER_ADDRESS, "Polkadot");
-    const newAccount = anonymousClient.logionApi.queries.getValidAccountId(NEW_ADDRESS, "Polkadot");
-    const aliceAccount = anonymousClient.logionApi.queries.getValidAccountId(ALICE, "Polkadot");
-    const bobAccount = anonymousClient.logionApi.queries.getValidAccountId(BOB, "Polkadot");
-    const charlieAccount = anonymousClient.logionApi.queries.getValidAccountId(CHARLIE, "Polkadot");
-    const issuerAccount = anonymousClient.logionApi.queries.getValidAccountId(ISSUER_ADDRESS, "Polkadot");
-    const ethereumAccount = anonymousClient.logionApi.queries.getValidAccountId(ETHEREUM_ADDRESS, "Ethereum");
-    const invitedContributorAccount = anonymousClient.logionApi.queries.getValidAccountId(INVITED_CONTRIBUTOR_ADDRESS, "Polkadot");
+    const requesterAccount = ValidAccountId.polkadot(REQUESTER_ADDRESS)
+    const directRequesterAccount = ValidAccountId.polkadot(DIRECT_REQUESTER_ADDRESS);
+    const newAccount = ValidAccountId.polkadot(NEW_ADDRESS);
+    const aliceAccount = ValidAccountId.polkadot(ALICE);
+    const bobAccount = ValidAccountId.polkadot(BOB);
+    const charlieAccount = ValidAccountId.polkadot(CHARLIE);
+    const issuerAccount = ValidAccountId.polkadot(ISSUER_ADDRESS);
+    const ethereumAccount = new AnyAccountId(ETHEREUM_ADDRESS, "Ethereum").toValidAccountId();
+    const invitedContributorAccount = ValidAccountId.polkadot(INVITED_CONTRIBUTOR_ADDRESS);
+
+    if (mustUpdateLLOs) {
+        await updateLegalOfficers({
+            api: anonymousClient.logionApi.polkadot,
+            signer,
+            aliceAccount,
+            bobAccount,
+            charlieAccount
+        });
+    }
+
+    anonymousClient = await LogionClient.create(config);
+
     const client = await anonymousClient.authenticate([
         requesterAccount,
         directRequesterAccount,
@@ -110,9 +120,12 @@ export async function setupInitialState(config: LogionClientConfig = TEST_LOGION
         invitedContributorAccount,
     ], signer);
     const legalOfficers = client.legalOfficers;
-    const alice = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === ALICE));
-    const bob = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === BOB));
-    const charlie = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.address === CHARLIE));
+    if (mustUpdateLLOs) {
+        console.log(legalOfficers.map(llo => `${ llo.name }:${ llo.account.address }`))
+    }
+    const alice = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.account.equals(aliceAccount)));
+    const bob = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.account.equals(bobAccount)));
+    const charlie = requireDefined(legalOfficers.find(legalOfficer => legalOfficer.account.equals(charlieAccount)));
     return {
         client,
         signer,
@@ -122,13 +135,55 @@ export async function setupInitialState(config: LogionClientConfig = TEST_LOGION
         requesterAccount,
         directRequesterAccount,
         newAccount,
-        aliceAccount,
-        bobAccount,
-        charlieAccount,
         issuerAccount,
         ethereumAccount,
         invitedContributorAccount,
     };
+}
+
+async function updateLegalOfficers(params: { api: ApiPromise, aliceAccount: ValidAccountId, bobAccount: ValidAccountId, charlieAccount: ValidAccountId, signer: FullSigner }): Promise<void> {
+    const { api, aliceAccount, bobAccount, charlieAccount, signer } = params;
+
+    const llo1 = signer.signAndSend({
+        signerId: aliceAccount,
+        submittable: api.tx.loAuthorityList.updateLegalOfficer(
+            aliceAccount.address,
+            {
+                Host: {
+                    nodeId: "0x0024080112201ce5f00ef6e89374afb625f1ae4c1546d31234e87e3c3f51a62b91dd6bfa57df",
+                    baseUrl: "http://localhost:8080",
+                    region: "Europe",
+                }
+            }
+        ),
+    });
+    const llo2 = signer.signAndSend({
+        signerId: bobAccount,
+        submittable: api.tx.loAuthorityList.updateLegalOfficer(
+            bobAccount.address,
+            {
+                Host: {
+                    nodeId: "0x002408011220dacde7714d8551f674b8bb4b54239383c76a2b286fa436e93b2b7eb226bf4de7",
+                    baseUrl: "http://localhost:8081",
+                    region: "Europe",
+                }
+            }
+        ),
+    });
+    const llo3 = signer.signAndSend({
+        signerId: charlieAccount,
+        submittable: api.tx.loAuthorityList.updateLegalOfficer(
+            charlieAccount.address,
+            {
+                Host: {
+                    nodeId: "0x002408011220876a7b4984f98006dc8d666e28b60de307309835d775e7755cc770328cdacf2e",
+                    baseUrl: "http://localhost:8082",
+                    region: "Europe",
+                }
+            }
+        ),
+    });
+    await Promise.all([llo1, llo2, llo3]);
 }
 
 export async function updateConfig(config: Partial<LogionClientConfig>): Promise<State> {
@@ -136,14 +191,15 @@ export async function updateConfig(config: Partial<LogionClientConfig>): Promise
         ...TEST_LOGION_CLIENT_CONFIG,
         ...config,
     };
-    return setupInitialState(newConfig);
+    return setupInitialState(newConfig, false);
 }
 
-export async function initRequesterBalance(config: LogionClientConfig, signer: Signer, requester: string): Promise<void> {
-    const api = await buildApiClass(config.rpcEndpoints);
-    const setBalance = api.polkadot.tx.balances.forceSetBalance(requester, Lgnt.from(10000).canonical);
+export async function initAccountBalance(state: State, account: ValidAccountId): Promise<void> {
+    const { alice, client, signer } = state
+    const api = await LogionNodeApiClass.connect(client.config.rpcEndpoints);
+    const setBalance = api.polkadot.tx.balances.forceSetBalance(account.address, Lgnt.from(10000).canonical);
     await signer.signAndSend({
-        signerId: ALICE,
+        signerId: alice.account,
         submittable: api.polkadot.tx.sudo.sudo(setBalance),
     });
 }
@@ -153,11 +209,11 @@ export async function tearDown(state: State) {
 }
 
 export async function findWithLegalOfficerClient(client: LogionClient, loc: LocRequestState): Promise<LocRequestState> {
-    if(!client.currentAddress) {
+    if(!client.currentAccount) {
         throw new Error("Client must be authenticated");
     }
     const locType = loc.data().locType;
     const locStatus = loc.data().status;
-    let aliceLocs = await client.locsState({ spec: { ownerAddress: client.currentAddress.address, locTypes: [locType], statuses: [locStatus] } });
+    let aliceLocs = await client.locsState({ spec: { ownerAddress: client.currentAccount.address, locTypes: [locType], statuses: [locStatus] } });
     return aliceLocs.findById(loc.locId);
 }

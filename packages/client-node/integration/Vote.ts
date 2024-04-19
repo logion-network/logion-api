@@ -2,11 +2,11 @@ import { ClosedLoc, PendingVote, Votes, waitFor } from "@logion/client";
 import { State } from "./Utils.js";
 
 export async function votingProcess(state: State) {
-    const { client, alice, aliceAccount, bobAccount, charlieAccount, signer } = state;
+    const { client, alice, bob, charlie, signer } = state;
 
-    const aliceClient = client.withCurrentAddress(aliceAccount);
-    const closedIdentityLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.address, locTypes: ["Identity"], statuses: ["CLOSED"] } });
-    const votableLoc = closedIdentityLocs.closedLocs["Identity"].find(loc => loc.data().requesterAddress !== undefined && loc.data().requesterAddress?.type === "Polkadot") as ClosedLoc;
+    const aliceClient = client.withCurrentAccount(alice.account);
+    const closedIdentityLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.account.address, locTypes: ["Identity"], statuses: ["CLOSED"] } });
+    const votableLoc = closedIdentityLocs.closedLocs["Identity"].find(loc => loc.data().requesterAccountId !== undefined && loc.data().requesterAccountId?.type === "Polkadot") as ClosedLoc;
 
     await votableLoc.legalOfficer.requestVote({ signer });
 
@@ -18,14 +18,14 @@ export async function votingProcess(state: State) {
     let pendingVote = votes.votes[0] as PendingVote;
     pendingVote = await pendingVote.castVote({ result: "Yes", signer });
 
-    const bobClient = client.withCurrentAddress(bobAccount);
+    const bobClient = client.withCurrentAccount(bob.account);
     const bobVotes = await bobClient.voter.getVotes();
     let bobPendingVote = bobVotes.votes[0] as PendingVote;
     const bobLoc = bobClient.voter.findLocById(bobPendingVote.data.locId);
     expect(bobLoc).toBeDefined();
     bobPendingVote = await bobPendingVote.castVote({ result: "No", signer });
 
-    const charlieClient = client.withCurrentAddress(charlieAccount);
+    const charlieClient = client.withCurrentAccount(charlie.account);
     const charlieVotes = await charlieClient.voter.getVotes();
     let charliePendingVote = charlieVotes.votes[0] as PendingVote;
     await charliePendingVote.castVote({ result: "No", signer });
