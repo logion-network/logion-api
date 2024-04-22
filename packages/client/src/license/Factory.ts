@@ -38,7 +38,8 @@ export class MergedTermsAndConditionsElement {
 
 /**
  * Creates a new Terms and Conditions, based on given type.
- * @param termsAndConditions the Terms and Conditions elements, as stored on the chain.
+ * @param onchainTCs the Terms and Conditions elements, as stored on the chain.
+ * @param offchainTCs the Terms and Conditions elements, as stored on the off-chain backend.
  * @return an array of terms and conditions element
  * @group TermsAndConditions
  */
