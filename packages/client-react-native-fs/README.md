@@ -10,10 +10,4 @@ Use your favorite package manager (e.g. yarn) and install package `@logion/clien
 
 ## Usage
 
-This module provides `ReactNativeFsFile` and `ReactNativeFileUploader` classes.
-
-An instance of `ReactNativeFileUploader` (use the zero-argument constructor) must be provided to `LogionClient.create(...)`.
-
-`ReactNativeFsFile` instances (the constructor takes takes a single string argument, the path) must be passed to SDK whenever needed.
-
-See [core client](../client/README.md).
+See [documentation](https://logion-network.github.io/logion-api/).

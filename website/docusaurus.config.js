@@ -79,14 +79,14 @@ const config = {
             label: 'Introduction',
           },
           {
-            to: '/docs/category/extension',
-            position: 'left',
-            label: 'Extension',
-          },
-          {
             to: '/docs/category/client',
             position: 'left',
             label: 'Client',
+          },
+          {
+            to: '/docs/category/extension',
+            position: 'left',
+            label: 'Extension',
           },
           {
             to: '/docs/reference/modules',

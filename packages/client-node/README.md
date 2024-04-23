@@ -8,7 +8,7 @@ Use your favorite package manager (e.g. yarn) and install package `@logion/clien
 
 ## Usage
 
-See [core client](../client/README.md).
+See [documentation](https://logion-network.github.io/logion-api/).
 
 ## Integration tests
 

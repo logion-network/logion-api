@@ -37,14 +37,18 @@ For below example to work, you will need a valid Identity LOC with both alice an
 const legalOfficers = authenticatedClient.getLegalOfficers();
 const locsState = await authenticatedClient.locsState();
 
-const alice = authenticatedClient.getLegalOfficer("5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY");
-const bob = authenticatedClient.getLegalOfficer("5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty");
+const alice = authenticatedClient.getLegalOfficer(
+    ValidAccountId.polkadot("vQx5kESPn8dWyX4KxMCKqUyCaWUwtui1isX6PVNcZh2Ghjitr")
+);
+const bob = authenticatedClient.getLegalOfficer(
+    ValidAccountId.polkadot("vQvWaxNDdzuX5N3qSvGMtjdHcQdw1TAcPNgx4S1Utd3MTxYeN")
+);
 const aliceLoc = locsState.closedLocs.Identity.find(
-    loc => loc.data().ownerAddress === alice.address
+    loc => loc.data().ownerAccountId.equals(alice.account)
         && loc.data().voidInfo === undefined
 );
 const bobLoc = locsState.closedLocs.Identity.find(
-    loc => loc.data().ownerAddress === bob.address
+    loc => loc.data().ownerAccountId.equals(bob.account)
         && loc.data().voidInfo === undefined
 );
 ```
@@ -76,9 +80,9 @@ let vaultState = await activeProtection.vaultState();
 const vaultAddress = vaultState.vaultAddress;
 vaultState = await vaultState.createVaultTransferRequest({
     legalOfficer: alice,
-    amount: new PrefixedNumber("1", NONE),
-    destination: REQUESTER_ADDRESS,
-    signer
+    amount: Lgnt.from(1n),
+    destination: ValidAccountId.polkadot("vQvZF2YMgKuQhzfF7T3xDjHjuEmcPSUVEoUDPy1mzuSXzFgca"),
+    signer,
 });
 const pendingRequest = vaultState.pendingVaultTransferRequests[0];
 ```
@@ -120,7 +124,7 @@ Recovery must be requested to the **same Legal Officers** who accepted to protec
 const noProtection = await authenticatedClient.protectionState() as NoProtection;
 const pending = await noProtection.requestRecovery({
     payload: {
-        recoveredAddress: REQUESTER_ADDRESS,
+        recoveredAddress: ValidAccountId.polkadot("vQv6hV73oeb7cJHXaWsw3K4bmgHjzxj9zm3nZtZPsxbsvhcTk"),
         legalOfficer1: alice,
         legalOfficer2: bob,
         requesterIdentityLoc1: aliceLoc,
@@ -155,7 +159,7 @@ const claimed = await pendingRecovery.claimRecovery(signer);
 const recoveredBalance = await claimed.recoveredBalanceState();
 await recoveredBalance.transfer({
     signer,
-    destination: NEW_ADDRESS,
+    destination: ValidAccountId.polkadot("vQuQm7K3Qt1nQYDzqQzCPQj6b4AQFPZgD5FLnEpBTvCx1rVix"),
     amount: recoveredBalance.balances[0].available,
 });
 ```
