@@ -1,0 +1,994 @@
+<!doctype html>
+<html lang="en" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-reference/modules/client" data-has-hydrated="false">
+<head>
+<meta charset="UTF-8">
+<meta name="generator" content="Docusaurus v3.1.1">
+<title data-rh="true">client | Logion SDK</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://logion-network.github.io/logion-api/docs/reference/modules/client"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="client | Logion SDK"><meta data-rh="true" name="description" content="Reference / Modules / client"><meta data-rh="true" property="og:description" content="Reference / Modules / client"><link data-rh="true" rel="icon" href="/logion-api/img/logion32.png"><link data-rh="true" rel="canonical" href="https://logion-network.github.io/logion-api/docs/reference/modules/client"><link data-rh="true" rel="alternate" href="https://logion-network.github.io/logion-api/docs/reference/modules/client" hreflang="en"><link data-rh="true" rel="alternate" href="https://logion-network.github.io/logion-api/docs/reference/modules/client" hreflang="x-default"><link rel="stylesheet" href="/logion-api/assets/css/styles.f44ebf99.css">
+<script src="/logion-api/assets/js/runtime~main.2d815f58.js" defer="defer"></script>
+<script src="/logion-api/assets/js/main.99e97b77.js" defer="defer"></script>
+</head>
+<body class="navigation-with-keyboard">
+<script>!function(){function t(t){document.documentElement.setAttribute("data-theme",t)}var e=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return localStorage.getItem("theme")}catch(t){}}();t(null!==e?e:"light")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><div role="region" aria-label="Skip to main content"><a class="skipToContent_oPtH" href="#__docusaurus_skipToContent_fallback">Skip to main content</a></div><nav aria-label="Main" class="navbar navbar--fixed-top"><div class="navbar__inner"><div class="navbar__items"><button aria-label="Toggle navigation bar" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/logion-api/"><div class="navbar__logo"><img src="/logion-api/img/logion218-twitter.png" alt="logion Logo" class="themedComponent_siVc themedComponent--light_hHel"><img src="/logion-api/img/logion218-twitter.png" alt="logion Logo" class="themedComponent_siVc themedComponent--dark_yETr"></div><b class="navbar__title text--truncate">Logion SDK</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/logion-api/docs/intro">Introduction</a><a class="navbar__item navbar__link" href="/logion-api/docs/category/extension">Extension</a><a class="navbar__item navbar__link" href="/logion-api/docs/category/client">Client</a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/logion-api/docs/reference/modules">Reference</a></div><div class="navbar__items navbar__items--right"><a href="https://github.com/logion-network/logion-api" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPrP"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a><div class="toggle_ki11 colorModeToggle_Hewu"><button class="clean-btn toggleButton_MMFG toggleButtonDisabled_Uw7m" type="button" disabled="" title="Switch between dark and light mode (currently light mode)" aria-label="Switch between dark and light mode (currently light mode)" aria-live="polite"><svg viewBox="0 0 24 24" width="24" height="24" class="lightToggleIcon_lgto"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" class="darkToggleIcon_U96C"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg></button></div><div class="navbarSearchContainer_bzqh"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="main-wrapper mainWrapper_MB5r"><div class="docsWrapper__sE8"><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_iEvu" type="button"></button><div class="docRoot_DfVB"><aside class="theme-doc-sidebar-container docSidebarContainer_c7NB"><div class="sidebarViewport_KYo0"><div class="sidebar_CUen"><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_jmj1"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/logion-api/docs/intro">Introduction</a></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist" aria-expanded="false" href="/logion-api/docs/category/client">Client</a><button aria-label="Expand sidebar category &#x27;Client&#x27;" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist" aria-expanded="false" href="/logion-api/docs/category/extension">Extension</a><button aria-label="Expand sidebar category &#x27;Extension&#x27;" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist menu__link--active" aria-expanded="true" href="/logion-api/docs/category/reference">Reference</a><button aria-label="Collapse sidebar category &#x27;Reference&#x27;" type="button" class="clean-btn menu__caret"></button></div><ul style="display:block;overflow:visible;height:auto" class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/logion-api/docs/reference/modules">Packages</a></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist menu__link--sublist-caret" aria-expanded="false" tabindex="0" href="/logion-api/docs/reference/classes/client.AbstractTermsAndConditionsElement">classes</a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist menu__link--sublist-caret" aria-expanded="false" tabindex="0" href="/logion-api/docs/reference/enums/client.CheckResultType">enums</a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist menu__link--sublist-caret" aria-expanded="false" tabindex="0" href="/logion-api/docs/reference/interfaces/client.AcceptIdentityLocParams">interfaces</a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist menu__link--sublist-caret menu__link--active" aria-expanded="true" tabindex="0" href="/logion-api/docs/reference/modules/client">modules</a></div><ul style="display:block;overflow:visible;height:auto" class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/logion-api/docs/reference/modules/client">client</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/logion-api/docs/reference/modules/client_browser">client_browser</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/logion-api/docs/reference/modules/client_expo">client_expo</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/logion-api/docs/reference/modules/client_node">client_node</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/logion-api/docs/reference/modules/client_react_native_fs">client_react_native_fs</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/logion-api/docs/reference/modules/crossmint">crossmint</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/logion-api/docs/reference/modules/extension">extension</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/logion-api/docs/reference/modules/multiversx">multiversx</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/logion-api/docs/reference/modules/node_api.Currency">node_api.Currency</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/logion-api/docs/reference/modules/node_api.Numbers">node_api.Numbers</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link" tabindex="0" href="/logion-api/docs/reference/modules/node_api">node_api</a></li></ul></li></ul></li></ul></nav></div></div></aside><main class="docMainContainer_a9sJ"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_Qr34"><div class="docItemContainer_tjFy"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_T5ub" aria-label="Breadcrumbs"><ul class="breadcrumbs" itemscope="" itemtype="https://schema.org/BreadcrumbList"><li class="breadcrumbs__item"><a aria-label="Home page" class="breadcrumbs__link" href="/logion-api/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_sfvy"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li itemscope="" itemprop="itemListElement" itemtype="https://schema.org/ListItem" class="breadcrumbs__item"><a class="breadcrumbs__link" itemprop="item" href="/logion-api/docs/category/reference"><span itemprop="name">Reference</span></a><meta itemprop="position" content="1"></li><li class="breadcrumbs__item"><span class="breadcrumbs__link">modules</span><meta itemprop="position" content="2"></li><li itemscope="" itemprop="itemListElement" itemtype="https://schema.org/ListItem" class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link" itemprop="name">client</span><meta itemprop="position" content="3"></li></ul></nav><div class="tocCollapsible_wXna theme-doc-toc-mobile tocMobile_Ojys"><button type="button" class="clean-btn tocCollapsibleButton_iI2p">On this page</button></div><div class="theme-doc-markdown markdown"><p><a href="/logion-api/docs/reference/modules">Reference</a> / <a href="/logion-api/docs/reference/modules">Modules</a> / client</p>
+<h1>Module: client</h1>
+<p>Exposes tools enabling interaction with a Logion network.
+An instance of <a href="/logion-api/docs/reference/classes/client.LogionClient">LogionClient</a> must be created.
+Most features of the client require authentication.</p>
+<h2 class="anchor anchorWithStickyNavbar_JmGV" id="table-of-contents">Table of contents<a href="#table-of-contents" class="hash-link" aria-label="Direct link to Table of contents" title="Direct link to Table of contents">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="enumerations">Enumerations<a href="#enumerations" class="hash-link" aria-label="Direct link to Enumerations" title="Direct link to Enumerations">​</a></h3>
+<ul>
+<li><a href="/logion-api/docs/reference/enums/client.CheckResultType">CheckResultType</a></li>
+<li><a href="/logion-api/docs/reference/enums/client.Environment">Environment</a></li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="classes">Classes<a href="#classes" class="hash-link" aria-label="Direct link to Classes" title="Direct link to Classes">​</a></h3>
+<ul>
+<li><a href="/logion-api/docs/reference/classes/client.AcceptedProtection">AcceptedProtection</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.AcceptedRequest">AcceptedRequest</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.AccountTokens">AccountTokens</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.ActiveProtection">ActiveProtection</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.AnySourceHttpClient">AnySourceHttpClient</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.ApprovedVote">ApprovedVote</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.AuthenticatedLocClient">AuthenticatedLocClient</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.AuthenticationClient">AuthenticationClient</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.AxiosFactory">AxiosFactory</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.AxiosFileUploader">AxiosFileUploader</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.BalanceState">BalanceState</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.BaseSigner">BaseSigner</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.CancellableRequest">CancellableRequest</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.ClaimedRecovery">ClaimedRecovery</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.ClientToken">ClientToken</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.ClosedCollectionLoc">ClosedCollectionLoc</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.ClosedLoc">ClosedLoc</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.CollectionItem">CollectionItem</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.DefaultSignAndSendStrategy">DefaultSignAndSendStrategy</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.DirectoryClient">DirectoryClient</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.DraftRequest">DraftRequest</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.EditableRequest">EditableRequest</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.File">File</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.HashOrContent">HashOrContent</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.HashString">HashString</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.InvitedContributorApi">InvitedContributorApi</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.InvitedContributorLoc">InvitedContributorLoc</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.KeyringSigner">KeyringSigner</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LegalOfficeReviewCommandsImpl">LegalOfficeReviewCommandsImpl</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LegalOfficerClass">LegalOfficerClass</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LegalOfficerClosedCollectionLocCommands">LegalOfficerClosedCollectionLocCommands</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LegalOfficerClosedLocCommands">LegalOfficerClosedLocCommands</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LegalOfficerCommands">LegalOfficerCommands</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LegalOfficerLocWithSelectableIssuersCommandsImpl">LegalOfficerLocWithSelectableIssuersCommandsImpl</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LegalOfficerLocsStateCommands">LegalOfficerLocsStateCommands</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LegalOfficerNonVoidedCommandsImpl">LegalOfficerNonVoidedCommandsImpl</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LegalOfficerOpenRequestCommands">LegalOfficerOpenRequestCommands</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LegalOfficerPendingRequestCommands">LegalOfficerPendingRequestCommands</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LegalOfficerRestrictedDeliveryCommandsImpl">LegalOfficerRestrictedDeliveryCommandsImpl</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LoRecoveryClient">LoRecoveryClient</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LocClient">LocClient</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LocMultiClient">LocMultiClient</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LocRequestState">LocRequestState</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LocsState">LocsState</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LogionClient">LogionClient</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.MergedTermsAndConditionsElement">MergedTermsAndConditionsElement</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.MimeType">MimeType</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.MultiSourceHttpClient">MultiSourceHttpClient</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.NetworkState">NetworkState</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.NoProtection">NoProtection</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.OpenLoc">OpenLoc</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.PendingProtection">PendingProtection</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.PendingRecovery">PendingRecovery</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.PendingRequest">PendingRequest</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.PendingVote">PendingVote</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.PublicApi">PublicApi</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.PublicLoc">PublicLoc</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.PublicLocClient">PublicLocClient</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.ReSubmittableRequest">ReSubmittableRequest</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.ReadOnlyLocState">ReadOnlyLocState</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.RejectedRecovery">RejectedRecovery</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.RejectedRequest">RejectedRequest</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.RejectedVote">RejectedVote</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.ReviewedRequest">ReviewedRequest</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.SponsorshipApi">SponsorshipApi</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.SponsorshipState">SponsorshipState</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.State">State</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.TokensRecord">TokensRecord</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.TransactionClient">TransactionClient</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.UnavailableProtection">UnavailableProtection</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.UpdatableReSubmittableRequest">UpdatableReSubmittableRequest</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.UpdatableRequest">UpdatableRequest</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.VaultClient">VaultClient</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.VaultState">VaultState</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.VoidedCollectionLoc">VoidedCollectionLoc</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.VoidedLoc">VoidedLoc</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.Vote">Vote</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.VoterApi">VoterApi</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.Votes">Votes</a></li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="interfaces">Interfaces<a href="#interfaces" class="hash-link" aria-label="Direct link to Interfaces" title="Direct link to Interfaces">​</a></h3>
+<ul>
+<li><a href="/logion-api/docs/reference/interfaces/client.AcceptIdentityLocParams">AcceptIdentityLocParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.AcceptTransactionLocParams">AcceptTransactionLocParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.AckFileParams">AckFileParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.AckLinkParams">AckLinkParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.AckMetadataParams">AckMetadataParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.AddCollectionItemParams">AddCollectionItemParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.AddFileParams">AddFileParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.AddLinkParams">AddLinkParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.AddMetadataParams">AddMetadataParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.AddTokensRecordParams">AddTokensRecordParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.AutoPublish">AutoPublish</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.BackendCollectionParams">BackendCollectionParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.BackendConfig">BackendConfig</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.BackendLocFees">BackendLocFees</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.BackendTransaction">BackendTransaction</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.BackendVerifiedIssuerIdentity">BackendVerifiedIssuerIdentity</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.BackendVote">BackendVote</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.BalanceSharedState">BalanceSharedState</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.BaseLoc">BaseLoc</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.BlockchainBatchSubmission">BlockchainBatchSubmission</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.BlockchainSubmission">BlockchainSubmission</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.BlockchainSubmissionParams">BlockchainSubmissionParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CheckCertifiedCopyResult">CheckCertifiedCopyResult</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CheckCollectionDeliveryRequest">CheckCollectionDeliveryRequest</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CheckHashResult">CheckHashResult</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CheckTokensRecordDeliveryRequest">CheckTokensRecordDeliveryRequest</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ClientItemFile">ClientItemFile</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ClientTokensRecord">ClientTokensRecord</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CloseLocParams">CloseLocParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CollectionDelivery">CollectionDelivery</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CollectionParams">CollectionParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ComponentFactory">ComponentFactory</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CoreComponentFactory">CoreComponentFactory</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CreateCollectionLocParams">CreateCollectionLocParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CreateCollectionLocRequestParams">CreateCollectionLocRequestParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CreateIdentityLocParams">CreateIdentityLocParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CreateIdentityLocRequestParams">CreateIdentityLocRequestParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CreateLocParams">CreateLocParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CreateLocRequest">CreateLocRequest</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CreateLocRequestParams">CreateLocRequestParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CreateOpenLoc">CreateOpenLoc</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CreateProtectionRequest">CreateProtectionRequest</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CreateSofRequest">CreateSofRequest</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CreateSofRequestParams">CreateSofRequestParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.CreateVaultTransferRequest">CreateVaultTransferRequest</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.Delivery">Delivery</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.DirectoryLegalOfficer">DirectoryLegalOfficer</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.Endpoint">Endpoint</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.EstimateFeesAcceptTransactionLocParams">EstimateFeesAcceptTransactionLocParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.EstimateFeesIdentityTransactionLocParams">EstimateFeesIdentityTransactionLocParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.EstimateFeesPublishFileParams">EstimateFeesPublishFileParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.EstimateFeesPublishLinkParams">EstimateFeesPublishLinkParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.EstimateFeesPublishMetadataParams">EstimateFeesPublishMetadataParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.Fees">Fees</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.FetchAllLocsParams">FetchAllLocsParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.FetchAllResult">FetchAllResult</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.FetchLocRequestSpecification">FetchLocRequestSpecification</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.FetchParameters">FetchParameters</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.FetchVaultTransferRequest">FetchVaultTransferRequest</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.FileDescription">FileDescription</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.FileToUpload">FileToUpload</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.FileUploadParameters">FileUploadParameters</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.FileUploader">FileUploader</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.FormDataLike">FormDataLike</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.GetDeliveriesRequest">GetDeliveriesRequest</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.GetTokensRecordDeliveriesRequest">GetTokensRecordDeliveriesRequest</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.GetTokensRecordsRequest">GetTokensRecordsRequest</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.HasDraft">HasDraft</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.HasIdentity">HasIdentity</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.HasJwtToken">HasJwtToken</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.HashAndSize">HashAndSize</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ISubmittableResult">ISubmittableResult</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.IdenfyVerificationCreation">IdenfyVerificationCreation</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.IdenfyVerificationSession">IdenfyVerificationSession</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ItemDeliveries">ItemDeliveries</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ItemDelivery">ItemDelivery</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ItemDeliveryMatch">ItemDeliveryMatch</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ItemLifecycle">ItemLifecycle</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ItemTokenWithRestrictedType">ItemTokenWithRestrictedType</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ItemsParams">ItemsParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LegalOfficeReviewCommands">LegalOfficeReviewCommands</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LegalOfficer">LegalOfficer</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LegalOfficerCommandsConstructorArgs">LegalOfficerCommandsConstructorArgs</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LegalOfficerDecision">LegalOfficerDecision</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LegalOfficerEndpoint">LegalOfficerEndpoint</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LegalOfficerLocWithSelectableIssuersCommands">LegalOfficerLocWithSelectableIssuersCommands</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LegalOfficerNonVoidedCommands">LegalOfficerNonVoidedCommands</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LegalOfficerPostalAddress">LegalOfficerPostalAddress</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LegalOfficerProtectionState">LegalOfficerProtectionState</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LegalOfficerRestrictedDeliveryCommands">LegalOfficerRestrictedDeliveryCommands</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LocCollectionItem">LocCollectionItem</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LocData">LocData</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LocFees">LocFees</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LocFile">LocFile</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LocLink">LocLink</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LocMetadataItem">LocMetadataItem</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LocRequest">LocRequest</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LocRequestVoidInfo">LocRequestVoidInfo</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LocSharedState">LocSharedState</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LocVerifiedIssuers">LocVerifiedIssuers</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LogionClientConfig">LogionClientConfig</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.MergedFile">MergedFile</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.MergedLink">MergedLink</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.MergedMetadataItem">MergedMetadataItem</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.MultiSourceHttpClientState">MultiSourceHttpClientState</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.NameValue">NameValue</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.OffchainCollectionItem">OffchainCollectionItem</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.OffchainCollectionItemFile">OffchainCollectionItemFile</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.OffchainCollectionItemToken">OffchainCollectionItemToken</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.OffchainTermsAndConditionsElement">OffchainTermsAndConditionsElement</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.OffchainTokensRecord">OffchainTokensRecord</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.OffchainTokensRecordFile">OffchainTokensRecordFile</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.OpenCollectionLocParams">OpenCollectionLocParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.OpenLocParams">OpenLocParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.OpenPolkadotLocParams">OpenPolkadotLocParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.PollingParameters">PollingParameters</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.PostalAddress">PostalAddress</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ProtectionOrRecoveryParams">ProtectionOrRecoveryParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ProtectionParameters">ProtectionParameters</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ProtectionParams">ProtectionParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ProtectionRequest">ProtectionRequest</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.PublishFileParams">PublishFileParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.PublishLinkParams">PublishLinkParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.PublishMetadataParams">PublishMetadataParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.RawSigner">RawSigner</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.RecoveryParams">RecoveryParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.RecoverySharedState">RecoverySharedState</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.RefFileParams">RefFileParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.RefLinkParams">RefLinkParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.RefMetadataParams">RefMetadataParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ReviewFileParams">ReviewFileParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ReviewLinkParams">ReviewLinkParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ReviewMetadataParams">ReviewMetadataParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.ReviewParams">ReviewParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.SelectUnselectIssuerParams">SelectUnselectIssuerParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.SetInvitedContributorSelectionParams">SetInvitedContributorSelectionParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.SetIssuerSelectionParams">SetIssuerSelectionParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.SharedState">SharedState</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.SignAndSendStrategy">SignAndSendStrategy</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.SignParameters">SignParameters</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.SignRawParameters">SignRawParameters</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.Signer">Signer</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.SuccessfulSubmission">SuccessfulSubmission</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.SupportedAccountId">SupportedAccountId</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.Token">Token</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.TokenValidationResult">TokenValidationResult</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.Transaction">Transaction</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.TransactionError">TransactionError</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.TransferAllParam">TransferAllParam</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.TransferParam">TransferParam</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.TypedFile">TypedFile</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.TypedSignature">TypedSignature</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.UpdateParameters">UpdateParameters</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.UploadCollectionItemFileParams">UploadCollectionItemFileParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.UploadTokensRecordFileParams">UploadTokensRecordFileParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.UploadableCollectionItem">UploadableCollectionItem</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.UploadableItemFile">UploadableItemFile</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.UserActionParameters">UserActionParameters</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.UserIdentity">UserIdentity</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.VaultSharedState">VaultSharedState</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.VaultTransferRequest">VaultTransferRequest</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.VaultTransferRequestDecision">VaultTransferRequestDecision</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.VerifiedIssuer">VerifiedIssuer</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.VoidParams">VoidParams</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.VoteData">VoteData</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.WaitForParameters">WaitForParameters</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.WithActiveProtection">WithActiveProtection</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.WithProtectionParameters">WithProtectionParameters</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.WithRefresh">WithRefresh</a></li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="type-aliases">Type Aliases<a href="#type-aliases" class="hash-link" aria-label="Direct link to Type Aliases" title="Direct link to Type Aliases">​</a></h3>
+<ul>
+<li><a href="/logion-api/docs/reference/modules/client#anylocstate">AnyLocState</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#creativecommonscode">CreativeCommonsCode</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#environmentstring">EnvironmentString</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#fullsigner">FullSigner</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#idenfysessionstatus">IdenfySessionStatus</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#itemstatus">ItemStatus</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#language">Language</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#locrequeststatus">LocRequestStatus</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#multiresponse">MultiResponse</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#networktype">NetworkType</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#offchainlocstate">OffchainLocState</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#onchainlocstate">OnchainLocState</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#protectionrequeststatus">ProtectionRequestStatus</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#protectionstate">ProtectionState</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#query">Query</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#reviewresult">ReviewResult</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#reviewablerequest">ReviewableRequest</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#signandsendfunction">SignAndSendFunction</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#signcallback">SignCallback</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#signaturetype">SignatureType</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#tokenidtype">TokenIdType</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#tokentype">TokenType</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#transactiontype">TransactionType</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#transferdirection">TransferDirection</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#vaultstatecreationparameters">VaultStateCreationParameters</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#vaulttransferrequeststatus">VaultTransferRequestStatus</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#verifiedissuerwithselect">VerifiedIssuerWithSelect</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#voteresult">VoteResult</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#votestatus">VoteStatus</a></li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="variables">Variables<a href="#variables" class="hash-link" aria-label="Direct link to Variables" title="Direct link to Variables">​</a></h3>
+<ul>
+<li><a href="/logion-api/docs/reference/modules/client#corecomponentfactoryinstance">CoreComponentFactoryInstance</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#default_polling_parameters">DEFAULT_POLLING_PARAMETERS</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#empty_loc_issuers">EMPTY_LOC_ISSUERS</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#iso_datetime_pattern">ISO_DATETIME_PATTERN</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#terms_and_conditions_types">TERMS_AND_CONDITIONS_TYPES</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#values">values</a></li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="functions">Functions<a href="#functions" class="hash-link" aria-label="Direct link to Functions" title="Direct link to Functions">​</a></h3>
+<ul>
+<li><a href="/logion-api/docs/reference/modules/client#aggregatearrays">aggregateArrays</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#allup">allUp</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#authenticatedcurrentaccount">authenticatedCurrentAccount</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#buildcomponentfactory">buildComponentFactory</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#checkcertifiedcopy">checkCertifiedCopy</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#createlogionclientconfig">createLogionClientConfig</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#downloadfile">downloadFile</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#fromisostring">fromIsoString</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#generateethereumtokenitemid">generateEthereumTokenItemId</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#generatepsp34tokenitemid">generatePSP34TokenItemId</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#getbalancestate">getBalanceState</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#getcollectionitem">getCollectionItem</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#getdefinedcurrentaccount">getDefinedCurrentAccount</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#getinitialstate">getInitialState</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#getlegalofficer">getLegalOfficer</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#gettokensrecord">getTokensRecord</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#gettokensrecords">getTokensRecords</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#hashattributes">hashAttributes</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#initmultisourcehttpclientstate">initMultiSourceHttpClientState</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#isercnft">isErcNft</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#ismultiversxesdtid">isMultiversxESDTId</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#issingularkusamaid">isSingularKusamaId</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#istokencompatiblewith">isTokenCompatibleWith</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#istokentype">isTokenType</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#isvalidmime">isValidMime</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#requestsort">requestSort</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#requiredefined">requireDefined</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#toblockchainsubmission">toBlockchainSubmission</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#tofeesclass">toFeesClass</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#toisostring">toIsoString</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#totransaction">toTransaction</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#validateerctoken">validateErcToken</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#validatepsp34tokenid">validatePsp34TokenId</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#validatetoken">validateToken</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#waitfor">waitFor</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#withadditional">withAdditional</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#withlocid">withLocId</a></li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="termsandconditions">TermsAndConditions<a href="#termsandconditions" class="hash-link" aria-label="Direct link to TermsAndConditions" title="Direct link to TermsAndConditions">​</a></h3>
+<ul>
+<li><a href="/logion-api/docs/reference/classes/client.AbstractTermsAndConditionsElement">AbstractTermsAndConditionsElement</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.CreativeCommons">CreativeCommons</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.LogionClassification">LogionClassification</a></li>
+<li><a href="/logion-api/docs/reference/classes/client.SpecificLicense">SpecificLicense</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.LogionClassificationParameters">LogionClassificationParameters</a></li>
+<li><a href="/logion-api/docs/reference/interfaces/client.TermsAndConditionsElement">TermsAndConditionsElement</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#logiontransferredright">LogionTransferredRight</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#logiontransferredrightcode">LogionTransferredRightCode</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#logiontransferredrightdescription">LogionTransferredRightDescription</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#termsandconditionselementtype">TermsAndConditionsElementType</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#logionlicenseitems">logionLicenseItems</a></li>
+<li><a href="/logion-api/docs/reference/modules/client#newtermsandconditions">newTermsAndConditions</a></li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_JmGV" id="type-aliases-1">Type Aliases<a href="#type-aliases-1" class="hash-link" aria-label="Direct link to Type Aliases" title="Direct link to Type Aliases">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="anylocstate">AnyLocState<a href="#anylocstate" class="hash-link" aria-label="Direct link to AnyLocState" title="Direct link to AnyLocState">​</a></h3>
+<p>Ƭ <strong>AnyLocState</strong>: <a href="/logion-api/docs/reference/modules/client#offchainlocstate"><code>OffchainLocState</code></a> | <a href="/logion-api/docs/reference/modules/client#onchainlocstate"><code>OnchainLocState</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in">Defined in<a href="#defined-in" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Loc.ts#L751" target="_blank" rel="noopener noreferrer">packages/client/src/Loc.ts:751</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="creativecommonscode">CreativeCommonsCode<a href="#creativecommonscode" class="hash-link" aria-label="Direct link to CreativeCommonsCode" title="Direct link to CreativeCommonsCode">​</a></h3>
+<p>Ƭ <strong>CreativeCommonsCode</strong>: typeof <a href="/logion-api/docs/reference/modules/client#values"><code>values</code></a> extends <code>Set</code>&lt;infer T&gt; ? <code>T</code> : <code>never</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-1">Defined in<a href="#defined-in-1" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/CreativeCommons.ts#L6" target="_blank" rel="noopener noreferrer">packages/client/src/license/CreativeCommons.ts:6</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="environmentstring">EnvironmentString<a href="#environmentstring" class="hash-link" aria-label="Direct link to EnvironmentString" title="Direct link to EnvironmentString">​</a></h3>
+<p>Ƭ <strong>EnvironmentString</strong>: keyof typeof <a href="/logion-api/docs/reference/enums/client.Environment"><code>Environment</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-2">Defined in<a href="#defined-in-2" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Environment.ts#L33" target="_blank" rel="noopener noreferrer">packages/client/src/Environment.ts:33</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="fullsigner">FullSigner<a href="#fullsigner" class="hash-link" aria-label="Direct link to FullSigner" title="Direct link to FullSigner">​</a></h3>
+<p>Ƭ <strong>FullSigner</strong>: <a href="/logion-api/docs/reference/interfaces/client.RawSigner"><code>RawSigner</code></a> &amp; <a href="/logion-api/docs/reference/interfaces/client.Signer"><code>Signer</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-3">Defined in<a href="#defined-in-3" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Signer.ts#L53" target="_blank" rel="noopener noreferrer">packages/client/src/Signer.ts:53</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="idenfysessionstatus">IdenfySessionStatus<a href="#idenfysessionstatus" class="hash-link" aria-label="Direct link to IdenfySessionStatus" title="Direct link to IdenfySessionStatus">​</a></h3>
+<p>Ƭ <strong>IdenfySessionStatus</strong>: <code>&quot;APPROVED&quot;</code> | <code>&quot;DENIED&quot;</code> | <code>&quot;SUSPECTED&quot;</code> | <code>&quot;EXPIRED&quot;</code> | <code>&quot;PENDING&quot;</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-4">Defined in<a href="#defined-in-4" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/LocClient.ts#L163" target="_blank" rel="noopener noreferrer">packages/client/src/LocClient.ts:163</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="itemstatus">ItemStatus<a href="#itemstatus" class="hash-link" aria-label="Direct link to ItemStatus" title="Direct link to ItemStatus">​</a></h3>
+<p>Ƭ <strong>ItemStatus</strong>: <code>&quot;DRAFT&quot;</code> | <code>&quot;REVIEW_PENDING&quot;</code> | <code>&quot;REVIEW_ACCEPTED&quot;</code> | <code>&quot;REVIEW_REJECTED&quot;</code> | <code>&quot;PUBLISHED&quot;</code> | <code>&quot;ACKNOWLEDGED&quot;</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-5">Defined in<a href="#defined-in-5" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/LocClient.ts#L60" target="_blank" rel="noopener noreferrer">packages/client/src/LocClient.ts:60</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="language">Language<a href="#language" class="hash-link" aria-label="Direct link to Language" title="Direct link to Language">​</a></h3>
+<p>Ƭ <strong>Language</strong>: <code>&quot;en&quot;</code> | <code>&quot;fr&quot;</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-6">Defined in<a href="#defined-in-6" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Types.ts#L35" target="_blank" rel="noopener noreferrer">packages/client/src/Types.ts:35</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="locrequeststatus">LocRequestStatus<a href="#locrequeststatus" class="hash-link" aria-label="Direct link to LocRequestStatus" title="Direct link to LocRequestStatus">​</a></h3>
+<p>Ƭ <strong>LocRequestStatus</strong>: <code>&quot;DRAFT&quot;</code> | <code>&quot;REVIEW_PENDING&quot;</code> | <code>&quot;REVIEW_REJECTED&quot;</code> | <code>&quot;REVIEW_ACCEPTED&quot;</code> | <code>&quot;OPEN&quot;</code> | <code>&quot;CLOSED&quot;</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-7">Defined in<a href="#defined-in-7" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/LocClient.ts#L165" target="_blank" rel="noopener noreferrer">packages/client/src/LocClient.ts:165</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="multiresponse">MultiResponse<a href="#multiresponse" class="hash-link" aria-label="Direct link to MultiResponse" title="Direct link to MultiResponse">​</a></h3>
+<p>Ƭ <strong>MultiResponse</strong>&lt;<code>R</code>&gt;: <code>Record</code>&lt;<code>string</code>, <code>R</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="type-parameters">Type parameters<a href="#type-parameters" class="hash-link" aria-label="Direct link to Type parameters" title="Direct link to Type parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th></tr></thead><tbody><tr><td style="text-align:left"><code>R</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-8">Defined in<a href="#defined-in-8" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Http.ts#L19" target="_blank" rel="noopener noreferrer">packages/client/src/Http.ts:19</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="networktype">NetworkType<a href="#networktype" class="hash-link" aria-label="Direct link to NetworkType" title="Direct link to NetworkType">​</a></h3>
+<p>Ƭ <strong>NetworkType</strong>: <code>&quot;ETHEREUM&quot;</code> | <code>&quot;POLKADOT&quot;</code> | <code>&quot;MULTIVERSX&quot;</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-9">Defined in<a href="#defined-in-9" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Token.ts#L33" target="_blank" rel="noopener noreferrer">packages/client/src/Token.ts:33</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="offchainlocstate">OffchainLocState<a href="#offchainlocstate" class="hash-link" aria-label="Direct link to OffchainLocState" title="Direct link to OffchainLocState">​</a></h3>
+<p>Ƭ <strong>OffchainLocState</strong>: <a href="/logion-api/docs/reference/classes/client.DraftRequest"><code>DraftRequest</code></a> | <a href="/logion-api/docs/reference/classes/client.PendingRequest"><code>PendingRequest</code></a> | <a href="/logion-api/docs/reference/classes/client.RejectedRequest"><code>RejectedRequest</code></a> | <a href="/logion-api/docs/reference/classes/client.AcceptedRequest"><code>AcceptedRequest</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-10">Defined in<a href="#defined-in-10" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Loc.ts#L753" target="_blank" rel="noopener noreferrer">packages/client/src/Loc.ts:753</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="onchainlocstate">OnchainLocState<a href="#onchainlocstate" class="hash-link" aria-label="Direct link to OnchainLocState" title="Direct link to OnchainLocState">​</a></h3>
+<p>Ƭ <strong>OnchainLocState</strong>: <a href="/logion-api/docs/reference/classes/client.OpenLoc"><code>OpenLoc</code></a> | <a href="/logion-api/docs/reference/classes/client.ClosedLoc"><code>ClosedLoc</code></a> | <a href="/logion-api/docs/reference/classes/client.ClosedCollectionLoc"><code>ClosedCollectionLoc</code></a> | <a href="/logion-api/docs/reference/classes/client.VoidedLoc"><code>VoidedLoc</code></a> | <a href="/logion-api/docs/reference/classes/client.VoidedCollectionLoc"><code>VoidedCollectionLoc</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-11">Defined in<a href="#defined-in-11" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Loc.ts#L755" target="_blank" rel="noopener noreferrer">packages/client/src/Loc.ts:755</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="protectionrequeststatus">ProtectionRequestStatus<a href="#protectionrequeststatus" class="hash-link" aria-label="Direct link to ProtectionRequestStatus" title="Direct link to ProtectionRequestStatus">​</a></h3>
+<p>Ƭ <strong>ProtectionRequestStatus</strong>: <code>&quot;PENDING&quot;</code> | <code>&quot;REJECTED&quot;</code> | <code>&quot;ACCEPTED&quot;</code> | <code>&quot;ACTIVATED&quot;</code> | <code>&quot;CANCELLED&quot;</code> | <code>&quot;REJECTED_CANCELLED&quot;</code> | <code>&quot;ACCEPTED_CANCELLED&quot;</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-12">Defined in<a href="#defined-in-12" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/RecoveryClient.ts#L16" target="_blank" rel="noopener noreferrer">packages/client/src/RecoveryClient.ts:16</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="protectionstate">ProtectionState<a href="#protectionstate" class="hash-link" aria-label="Direct link to ProtectionState" title="Direct link to ProtectionState">​</a></h3>
+<p>Ƭ <strong>ProtectionState</strong>: <a href="/logion-api/docs/reference/classes/client.NoProtection"><code>NoProtection</code></a> | <a href="/logion-api/docs/reference/classes/client.PendingProtection"><code>PendingProtection</code></a> | <a href="/logion-api/docs/reference/classes/client.AcceptedProtection"><code>AcceptedProtection</code></a> | <a href="/logion-api/docs/reference/classes/client.ActiveProtection"><code>ActiveProtection</code></a> | <a href="/logion-api/docs/reference/classes/client.PendingRecovery"><code>PendingRecovery</code></a> | <a href="/logion-api/docs/reference/classes/client.ClaimedRecovery"><code>ClaimedRecovery</code></a> | <a href="/logion-api/docs/reference/classes/client.UnavailableProtection"><code>UnavailableProtection</code></a> | <a href="/logion-api/docs/reference/classes/client.RejectedRecovery"><code>RejectedRecovery</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-13">Defined in<a href="#defined-in-13" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Recovery.ts#L24" target="_blank" rel="noopener noreferrer">packages/client/src/Recovery.ts:24</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="query">Query<a href="#query" class="hash-link" aria-label="Direct link to Query" title="Direct link to Query">​</a></h3>
+<p>Ƭ <strong>Query</strong>&lt;<code>E</code>, <code>R</code>&gt;: (<code>axios</code>: <code>AxiosInstance</code>, <code>endpoint</code>: <code>E</code>) =&gt; <code>Promise</code>&lt;<code>R</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="type-parameters-1">Type parameters<a href="#type-parameters-1" class="hash-link" aria-label="Direct link to Type parameters" title="Direct link to Type parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th></tr></thead><tbody><tr><td style="text-align:left"><code>E</code></td></tr><tr><td style="text-align:left"><code>R</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="type-declaration">Type declaration<a href="#type-declaration" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
+<p>▸ (<code>axios</code>, <code>endpoint</code>): <code>Promise</code>&lt;<code>R</code>&gt;</p>
+<h5 class="anchor anchorWithStickyNavbar_JmGV" id="parameters">Parameters<a href="#parameters" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h5>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>axios</code></td><td style="text-align:left"><code>AxiosInstance</code></td></tr><tr><td style="text-align:left"><code>endpoint</code></td><td style="text-align:left"><code>E</code></td></tr></tbody></table>
+<h5 class="anchor anchorWithStickyNavbar_JmGV" id="returns">Returns<a href="#returns" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h5>
+<p><code>Promise</code>&lt;<code>R</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-14">Defined in<a href="#defined-in-14" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Http.ts#L33" target="_blank" rel="noopener noreferrer">packages/client/src/Http.ts:33</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="reviewresult">ReviewResult<a href="#reviewresult" class="hash-link" aria-label="Direct link to ReviewResult" title="Direct link to ReviewResult">​</a></h3>
+<p>Ƭ <strong>ReviewResult</strong>: <code>&quot;ACCEPT&quot;</code> | <code>&quot;REJECT&quot;</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-15">Defined in<a href="#defined-in-15" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/LocClient.ts#L2409" target="_blank" rel="noopener noreferrer">packages/client/src/LocClient.ts:2409</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="reviewablerequest">ReviewableRequest<a href="#reviewablerequest" class="hash-link" aria-label="Direct link to ReviewableRequest" title="Direct link to ReviewableRequest">​</a></h3>
+<p>Ƭ <strong>ReviewableRequest</strong>: <a href="/logion-api/docs/reference/classes/client.OpenLoc"><code>OpenLoc</code></a> | <a href="/logion-api/docs/reference/classes/client.PendingRequest"><code>PendingRequest</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-16">Defined in<a href="#defined-in-16" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Loc.ts#L1263" target="_blank" rel="noopener noreferrer">packages/client/src/Loc.ts:1263</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="signandsendfunction">SignAndSendFunction<a href="#signandsendfunction" class="hash-link" aria-label="Direct link to SignAndSendFunction" title="Direct link to SignAndSendFunction">​</a></h3>
+<p>Ƭ <strong>SignAndSendFunction</strong>: (<code>statusCallback</code>: (<code>result</code>: <a href="/logion-api/docs/reference/interfaces/client.ISubmittableResult"><code>ISubmittableResult</code></a>) =&gt; <code>void</code>) =&gt; <code>Promise</code>&lt;() =&gt; <code>void</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="type-declaration-1">Type declaration<a href="#type-declaration-1" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
+<p>▸ (<code>statusCallback</code>): <code>Promise</code>&lt;() =&gt; <code>void</code>&gt;</p>
+<h5 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-1">Parameters<a href="#parameters-1" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h5>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>statusCallback</code></td><td style="text-align:left">(<code>result</code>: <a href="/logion-api/docs/reference/interfaces/client.ISubmittableResult"><code>ISubmittableResult</code></a>) =&gt; <code>void</code></td></tr></tbody></table>
+<h5 class="anchor anchorWithStickyNavbar_JmGV" id="returns-1">Returns<a href="#returns-1" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h5>
+<p><code>Promise</code>&lt;() =&gt; <code>void</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-17">Defined in<a href="#defined-in-17" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Signer.ts#L55" target="_blank" rel="noopener noreferrer">packages/client/src/Signer.ts:55</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="signcallback">SignCallback<a href="#signcallback" class="hash-link" aria-label="Direct link to SignCallback" title="Direct link to SignCallback">​</a></h3>
+<p>Ƭ <strong>SignCallback</strong>: (<code>result</code>: <a href="/logion-api/docs/reference/interfaces/client.ISubmittableResult"><code>ISubmittableResult</code></a>) =&gt; <code>void</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="type-declaration-2">Type declaration<a href="#type-declaration-2" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
+<p>▸ (<code>result</code>): <code>void</code></p>
+<h5 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-2">Parameters<a href="#parameters-2" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h5>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>result</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.ISubmittableResult"><code>ISubmittableResult</code></a></td></tr></tbody></table>
+<h5 class="anchor anchorWithStickyNavbar_JmGV" id="returns-2">Returns<a href="#returns-2" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h5>
+<p><code>void</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-18">Defined in<a href="#defined-in-18" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Signer.ts#L33" target="_blank" rel="noopener noreferrer">packages/client/src/Signer.ts:33</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="signaturetype">SignatureType<a href="#signaturetype" class="hash-link" aria-label="Direct link to SignatureType" title="Direct link to SignatureType">​</a></h3>
+<p>Ƭ <strong>SignatureType</strong>: <code>&quot;POLKADOT&quot;</code> | <code>&quot;ETHEREUM&quot;</code> | <code>&quot;CROSSMINT_ETHEREUM&quot;</code> | <code>&quot;MULTIVERSX&quot;</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-19">Defined in<a href="#defined-in-19" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Signer.ts#L21" target="_blank" rel="noopener noreferrer">packages/client/src/Signer.ts:21</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="tokenidtype">TokenIdType<a href="#tokenidtype" class="hash-link" aria-label="Direct link to TokenIdType" title="Direct link to TokenIdType">​</a></h3>
+<p>Ƭ <strong>TokenIdType</strong>: <code>&quot;U8&quot;</code> | <code>&quot;U16&quot;</code> | <code>&quot;U32&quot;</code> | <code>&quot;U64&quot;</code> | <code>&quot;U128&quot;</code> | <code>&quot;Bytes&quot;</code></p>
+<p>This is a rewrite of the function <code>get_item_id</code> implemented by Logion Smart Contract:
+<a href="https://github.com/logion-network/logion-ink/blob/41d7aeb1ac746d8a557f0592f82f0bcb206f6e7a/logics/impls/logion.rs#L38-L43" target="_blank" rel="noopener noreferrer">https://github.com/logion-network/logion-ink/blob/41d7aeb1ac746d8a557f0592f82f0bcb206f6e7a/logics/impls/logion.rs#L38-L43</a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-20">Defined in<a href="#defined-in-20" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/PSP34.ts#L8" target="_blank" rel="noopener noreferrer">packages/client/src/PSP34.ts:8</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="tokentype">TokenType<a href="#tokentype" class="hash-link" aria-label="Direct link to TokenType" title="Direct link to TokenType">​</a></h3>
+<p>Ƭ <strong>TokenType</strong>: <code>&quot;ethereum_erc721&quot;</code> | <code>&quot;ethereum_erc1155&quot;</code> | <code>&quot;goerli_erc721&quot;</code> | <code>&quot;goerli_erc1155&quot;</code> | <code>&quot;singular_kusama&quot;</code> | <code>&quot;polygon_erc721&quot;</code> | <code>&quot;polygon_erc1155&quot;</code> | <code>&quot;polygon_mumbai_erc721&quot;</code> | <code>&quot;polygon_mumbai_erc1155&quot;</code> | <code>&quot;ethereum_erc20&quot;</code> | <code>&quot;goerli_erc20&quot;</code> | <code>&quot;polygon_erc20&quot;</code> | <code>&quot;polygon_mumbai_erc20&quot;</code> | <code>&quot;owner&quot;</code> | <code>&quot;multiversx_devnet_esdt&quot;</code> | <code>&quot;multiversx_testnet_esdt&quot;</code> | <code>&quot;multiversx_esdt&quot;</code> | <code>&quot;astar_psp34&quot;</code> | <code>&quot;astar_shiden_psp34&quot;</code> | <code>&quot;astar_shibuya_psp34&quot;</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-21">Defined in<a href="#defined-in-21" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Token.ts#L10" target="_blank" rel="noopener noreferrer">packages/client/src/Token.ts:10</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="transactiontype">TransactionType<a href="#transactiontype" class="hash-link" aria-label="Direct link to TransactionType" title="Direct link to TransactionType">​</a></h3>
+<p>Ƭ <strong>TransactionType</strong>: <code>&quot;EXTRINSIC&quot;</code> | <code>&quot;VAULT_OUT&quot;</code> | <code>&quot;LEGAL_FEE&quot;</code> | <code>&quot;STORAGE_FEE&quot;</code> | <code>&quot;CERTIFICATE_FEE&quot;</code> | <code>&quot;OTHER_FEES&quot;</code> | <code>&quot;VALUE_FEE&quot;</code> | <code>&quot;RESERVE&quot;</code> | <code>&quot;COLLECTION_ITEM_FEE&quot;</code> | <code>&quot;TOKENS_RECORD_FEE&quot;</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-22">Defined in<a href="#defined-in-22" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/TransactionClient.ts#L32" target="_blank" rel="noopener noreferrer">packages/client/src/TransactionClient.ts:32</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="transferdirection">TransferDirection<a href="#transferdirection" class="hash-link" aria-label="Direct link to TransferDirection" title="Direct link to TransferDirection">​</a></h3>
+<p>Ƭ <strong>TransferDirection</strong>: <code>&quot;Sent&quot;</code> | <code>&quot;Received&quot;</code> | <code>&quot;None&quot;</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-23">Defined in<a href="#defined-in-23" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Balance.ts#L45" target="_blank" rel="noopener noreferrer">packages/client/src/Balance.ts:45</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="vaultstatecreationparameters">VaultStateCreationParameters<a href="#vaultstatecreationparameters" class="hash-link" aria-label="Direct link to VaultStateCreationParameters" title="Direct link to VaultStateCreationParameters">​</a></h3>
+<p>Ƭ <strong>VaultStateCreationParameters</strong>: <a href="/logion-api/docs/reference/interfaces/client.SharedState"><code>SharedState</code></a> &amp; { <code>isRecovery</code>: <code>boolean</code> ; <code>recoveredAccount?</code>: <code>ValidAccountId</code> ; <code>selectedLegalOfficers</code>: <a href="/logion-api/docs/reference/interfaces/client.LegalOfficer"><code>LegalOfficer</code></a>[]  }</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-24">Defined in<a href="#defined-in-24" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Vault.ts#L31" target="_blank" rel="noopener noreferrer">packages/client/src/Vault.ts:31</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="vaulttransferrequeststatus">VaultTransferRequestStatus<a href="#vaulttransferrequeststatus" class="hash-link" aria-label="Direct link to VaultTransferRequestStatus" title="Direct link to VaultTransferRequestStatus">​</a></h3>
+<p>Ƭ <strong>VaultTransferRequestStatus</strong>: <code>&quot;ACCEPTED&quot;</code> | <code>&quot;PENDING&quot;</code> | <code>&quot;REJECTED&quot;</code> | <code>&quot;CANCELLED&quot;</code> | <code>&quot;REJECTED_CANCELLED&quot;</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-25">Defined in<a href="#defined-in-25" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/VaultClient.ts#L9" target="_blank" rel="noopener noreferrer">packages/client/src/VaultClient.ts:9</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="verifiedissuerwithselect">VerifiedIssuerWithSelect<a href="#verifiedissuerwithselect" class="hash-link" aria-label="Direct link to VerifiedIssuerWithSelect" title="Direct link to VerifiedIssuerWithSelect">​</a></h3>
+<p>Ƭ <strong>VerifiedIssuerWithSelect</strong>: <a href="/logion-api/docs/reference/interfaces/client.VerifiedIssuer"><code>VerifiedIssuer</code></a> &amp; { <code>selected</code>: <code>boolean</code>  }</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-26">Defined in<a href="#defined-in-26" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Loc.ts#L2088" target="_blank" rel="noopener noreferrer">packages/client/src/Loc.ts:2088</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="voteresult">VoteResult<a href="#voteresult" class="hash-link" aria-label="Direct link to VoteResult" title="Direct link to VoteResult">​</a></h3>
+<p>Ƭ <strong>VoteResult</strong>: <code>&quot;Yes&quot;</code> | <code>&quot;No&quot;</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-27">Defined in<a href="#defined-in-27" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Votes.ts#L132" target="_blank" rel="noopener noreferrer">packages/client/src/Votes.ts:132</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="votestatus">VoteStatus<a href="#votestatus" class="hash-link" aria-label="Direct link to VoteStatus" title="Direct link to VoteStatus">​</a></h3>
+<p>Ƭ <strong>VoteStatus</strong>: <code>&quot;PENDING&quot;</code> | <code>&quot;APPROVED&quot;</code> | <code>&quot;REJECTED&quot;</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-28">Defined in<a href="#defined-in-28" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Votes.ts#L120" target="_blank" rel="noopener noreferrer">packages/client/src/Votes.ts:120</a></p>
+<h2 class="anchor anchorWithStickyNavbar_JmGV" id="variables-1">Variables<a href="#variables-1" class="hash-link" aria-label="Direct link to Variables" title="Direct link to Variables">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="corecomponentfactoryinstance">CoreComponentFactoryInstance<a href="#corecomponentfactoryinstance" class="hash-link" aria-label="Direct link to CoreComponentFactoryInstance" title="Direct link to CoreComponentFactoryInstance">​</a></h3>
+<p>• <code>Const</code> <strong>CoreComponentFactoryInstance</strong>: <a href="/logion-api/docs/reference/interfaces/client.CoreComponentFactory"><code>CoreComponentFactory</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-29">Defined in<a href="#defined-in-29" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/ComponentFactory.ts#L92" target="_blank" rel="noopener noreferrer">packages/client/src/ComponentFactory.ts:92</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="default_polling_parameters">DEFAULT_POLLING_PARAMETERS<a href="#default_polling_parameters" class="hash-link" aria-label="Direct link to DEFAULT_POLLING_PARAMETERS" title="Direct link to DEFAULT_POLLING_PARAMETERS">​</a></h3>
+<p>• <code>Const</code> <strong>DEFAULT_POLLING_PARAMETERS</strong>: <a href="/logion-api/docs/reference/interfaces/client.PollingParameters"><code>PollingParameters</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-30">Defined in<a href="#defined-in-30" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Polling.ts#L14" target="_blank" rel="noopener noreferrer">packages/client/src/Polling.ts:14</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="empty_loc_issuers">EMPTY_LOC_ISSUERS<a href="#empty_loc_issuers" class="hash-link" aria-label="Direct link to EMPTY_LOC_ISSUERS" title="Direct link to EMPTY_LOC_ISSUERS">​</a></h3>
+<p>• <code>Const</code> <strong>EMPTY_LOC_ISSUERS</strong>: <a href="/logion-api/docs/reference/interfaces/client.LocVerifiedIssuers"><code>LocVerifiedIssuers</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-31">Defined in<a href="#defined-in-31" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/LocClient.ts#L2481" target="_blank" rel="noopener noreferrer">packages/client/src/LocClient.ts:2481</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="iso_datetime_pattern">ISO_DATETIME_PATTERN<a href="#iso_datetime_pattern" class="hash-link" aria-label="Direct link to ISO_DATETIME_PATTERN" title="Direct link to ISO_DATETIME_PATTERN">​</a></h3>
+<p>• <code>Const</code> <strong>ISO_DATETIME_PATTERN</strong>: <code>RegExp</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-32">Defined in<a href="#defined-in-32" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/DateTimeUtil.ts#L12" target="_blank" rel="noopener noreferrer">packages/client/src/DateTimeUtil.ts:12</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="terms_and_conditions_types">TERMS_AND_CONDITIONS_TYPES<a href="#terms_and_conditions_types" class="hash-link" aria-label="Direct link to TERMS_AND_CONDITIONS_TYPES" title="Direct link to TERMS_AND_CONDITIONS_TYPES">​</a></h3>
+<p>• <code>Const</code> <strong>TERMS_AND_CONDITIONS_TYPES</strong>: readonly [<code>&quot;logion_classification&quot;</code>, <code>&quot;specific_license&quot;</code>, <code>&quot;CC4.0&quot;</code>]</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-33">Defined in<a href="#defined-in-33" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/TermsAndConditions.ts#L3" target="_blank" rel="noopener noreferrer">packages/client/src/license/TermsAndConditions.ts:3</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="values">values<a href="#values" class="hash-link" aria-label="Direct link to values" title="Direct link to values">​</a></h3>
+<p>• <code>Const</code> <strong>values</strong>: <code>Set</code>&lt;<code>&quot;BY&quot;</code> | <code>&quot;BY-SA&quot;</code> | <code>&quot;BY-NC&quot;</code> | <code>&quot;BY-NC-SA&quot;</code> | <code>&quot;BY-ND&quot;</code> | <code>&quot;BY-NC-ND&quot;</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-34">Defined in<a href="#defined-in-34" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/CreativeCommons.ts#L5" target="_blank" rel="noopener noreferrer">packages/client/src/license/CreativeCommons.ts:5</a></p>
+<h2 class="anchor anchorWithStickyNavbar_JmGV" id="functions-1">Functions<a href="#functions-1" class="hash-link" aria-label="Direct link to Functions" title="Direct link to Functions">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="aggregatearrays">aggregateArrays<a href="#aggregatearrays" class="hash-link" aria-label="Direct link to aggregateArrays" title="Direct link to aggregateArrays">​</a></h3>
+<p>▸ <strong>aggregateArrays</strong>&lt;<code>E</code>&gt;(<code>response</code>): <code>E</code>[]</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="type-parameters-2">Type parameters<a href="#type-parameters-2" class="hash-link" aria-label="Direct link to Type parameters" title="Direct link to Type parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th></tr></thead><tbody><tr><td style="text-align:left"><code>E</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-3">Parameters<a href="#parameters-3" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>response</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/modules/client#multiresponse"><code>MultiResponse</code></a>&lt;<code>E</code>[]&gt;</td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-3">Returns<a href="#returns-3" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>E</code>[]</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-35">Defined in<a href="#defined-in-35" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Http.ts#L141" target="_blank" rel="noopener noreferrer">packages/client/src/Http.ts:141</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="allup">allUp<a href="#allup" class="hash-link" aria-label="Direct link to allUp" title="Direct link to allUp">​</a></h3>
+<p>▸ <strong>allUp</strong>&lt;<code>E</code>&gt;(<code>endpoints</code>): <a href="/logion-api/docs/reference/interfaces/client.MultiSourceHttpClientState"><code>MultiSourceHttpClientState</code></a>&lt;<code>E</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="type-parameters-3">Type parameters<a href="#type-parameters-3" class="hash-link" aria-label="Direct link to Type parameters" title="Direct link to Type parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>E</code></td><td style="text-align:left">extends <a href="/logion-api/docs/reference/interfaces/client.Endpoint"><code>Endpoint</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-4">Parameters<a href="#parameters-4" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>endpoints</code></td><td style="text-align:left"><code>E</code>[]</td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-4">Returns<a href="#returns-4" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><a href="/logion-api/docs/reference/interfaces/client.MultiSourceHttpClientState"><code>MultiSourceHttpClientState</code></a>&lt;<code>E</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-36">Defined in<a href="#defined-in-36" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Http.ts#L26" target="_blank" rel="noopener noreferrer">packages/client/src/Http.ts:26</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="authenticatedcurrentaccount">authenticatedCurrentAccount<a href="#authenticatedcurrentaccount" class="hash-link" aria-label="Direct link to authenticatedCurrentAccount" title="Direct link to authenticatedCurrentAccount">​</a></h3>
+<p>▸ <strong>authenticatedCurrentAccount</strong>(<code>sharedState</code>): <code>Object</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-5">Parameters<a href="#parameters-5" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>sharedState</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.SharedState"><code>SharedState</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-5">Returns<a href="#returns-5" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>Object</code></p>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>currentAccount</code></td><td style="text-align:left"><code>ValidAccountId</code></td></tr><tr><td style="text-align:left"><code>token</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.Token"><code>Token</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-37">Defined in<a href="#defined-in-37" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/SharedClient.ts#L42" target="_blank" rel="noopener noreferrer">packages/client/src/SharedClient.ts:42</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="buildcomponentfactory">buildComponentFactory<a href="#buildcomponentfactory" class="hash-link" aria-label="Direct link to buildComponentFactory" title="Direct link to buildComponentFactory">​</a></h3>
+<p>▸ <strong>buildComponentFactory</strong>(<code>buildFileUploader</code>): <a href="/logion-api/docs/reference/interfaces/client.ComponentFactory"><code>ComponentFactory</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-6">Parameters<a href="#parameters-6" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>buildFileUploader</code></td><td style="text-align:left">() =&gt; <a href="/logion-api/docs/reference/interfaces/client.FileUploader"><code>FileUploader</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-6">Returns<a href="#returns-6" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><a href="/logion-api/docs/reference/interfaces/client.ComponentFactory"><code>ComponentFactory</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-38">Defined in<a href="#defined-in-38" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/ComponentFactory.ts#L104" target="_blank" rel="noopener noreferrer">packages/client/src/ComponentFactory.ts:104</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="checkcertifiedcopy">checkCertifiedCopy<a href="#checkcertifiedcopy" class="hash-link" aria-label="Direct link to checkCertifiedCopy" title="Direct link to checkCertifiedCopy">​</a></h3>
+<p>▸ <strong>checkCertifiedCopy</strong>(<code>deliveries</code>, <code>hash</code>): <a href="/logion-api/docs/reference/interfaces/client.CheckCertifiedCopyResult"><code>CheckCertifiedCopyResult</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-7">Parameters<a href="#parameters-7" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>deliveries</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.ItemDeliveries"><code>ItemDeliveries</code></a></td></tr><tr><td style="text-align:left"><code>hash</code></td><td style="text-align:left"><code>Hash</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-7">Returns<a href="#returns-7" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><a href="/logion-api/docs/reference/interfaces/client.CheckCertifiedCopyResult"><code>CheckCertifiedCopyResult</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-39">Defined in<a href="#defined-in-39" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Deliveries.ts#L3" target="_blank" rel="noopener noreferrer">packages/client/src/Deliveries.ts:3</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="createlogionclientconfig">createLogionClientConfig<a href="#createlogionclientconfig" class="hash-link" aria-label="Direct link to createLogionClientConfig" title="Direct link to createLogionClientConfig">​</a></h3>
+<p>▸ <strong>createLogionClientConfig</strong>(<code>env</code>, <code>buildFileUploader</code>): <a href="/logion-api/docs/reference/interfaces/client.LogionClientConfig"><code>LogionClientConfig</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-8">Parameters<a href="#parameters-8" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>env</code></td><td style="text-align:left"><code>&quot;DEV&quot;</code> | <code>&quot;TEST&quot;</code> | <code>&quot;MVP&quot;</code> | <a href="/logion-api/docs/reference/enums/client.Environment"><code>Environment</code></a></td></tr><tr><td style="text-align:left"><code>buildFileUploader</code></td><td style="text-align:left">() =&gt; <a href="/logion-api/docs/reference/interfaces/client.FileUploader"><code>FileUploader</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-8">Returns<a href="#returns-8" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><a href="/logion-api/docs/reference/interfaces/client.LogionClientConfig"><code>LogionClientConfig</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-40">Defined in<a href="#defined-in-40" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Environment.ts#L35" target="_blank" rel="noopener noreferrer">packages/client/src/Environment.ts:35</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="downloadfile">downloadFile<a href="#downloadfile" class="hash-link" aria-label="Direct link to downloadFile" title="Direct link to downloadFile">​</a></h3>
+<p>▸ <strong>downloadFile</strong>(<code>axios</code>, <code>url</code>): <code>Promise</code>&lt;<a href="/logion-api/docs/reference/interfaces/client.TypedFile"><code>TypedFile</code></a>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-9">Parameters<a href="#parameters-9" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>axios</code></td><td style="text-align:left"><code>AxiosInstance</code></td></tr><tr><td style="text-align:left"><code>url</code></td><td style="text-align:left"><code>string</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-9">Returns<a href="#returns-9" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>Promise</code>&lt;<a href="/logion-api/docs/reference/interfaces/client.TypedFile"><code>TypedFile</code></a>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-41">Defined in<a href="#defined-in-41" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Http.ts#L154" target="_blank" rel="noopener noreferrer">packages/client/src/Http.ts:154</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="fromisostring">fromIsoString<a href="#fromisostring" class="hash-link" aria-label="Direct link to fromIsoString" title="Direct link to fromIsoString">​</a></h3>
+<p>▸ <strong>fromIsoString</strong>(<code>isoString</code>): <code>DateTime</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-10">Parameters<a href="#parameters-10" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>isoString</code></td><td style="text-align:left"><code>string</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-10">Returns<a href="#returns-10" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>DateTime</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-42">Defined in<a href="#defined-in-42" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/DateTimeUtil.ts#L14" target="_blank" rel="noopener noreferrer">packages/client/src/DateTimeUtil.ts:14</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="generateethereumtokenitemid">generateEthereumTokenItemId<a href="#generateethereumtokenitemid" class="hash-link" aria-label="Direct link to generateEthereumTokenItemId" title="Direct link to generateEthereumTokenItemId">​</a></h3>
+<p>▸ <strong>generateEthereumTokenItemId</strong>(<code>nonce</code>, <code>tokenId</code>): <code>Hash</code></p>
+<p>This is a rewrite of the function <code>getItemId</code> implemented by Logion Smart Contract:
+<a href="https://github.com/logion-network/logion-solidity/blob/main/contracts/Logion.sol" target="_blank" rel="noopener noreferrer">https://github.com/logion-network/logion-solidity/blob/main/contracts/Logion.sol</a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-11">Parameters<a href="#parameters-11" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>nonce</code></td><td style="text-align:left"><code>string</code></td></tr><tr><td style="text-align:left"><code>tokenId</code></td><td style="text-align:left"><code>string</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-11">Returns<a href="#returns-11" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>Hash</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-43">Defined in<a href="#defined-in-43" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Ethereum.ts#L7" target="_blank" rel="noopener noreferrer">packages/client/src/Ethereum.ts:7</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="generatepsp34tokenitemid">generatePSP34TokenItemId<a href="#generatepsp34tokenitemid" class="hash-link" aria-label="Direct link to generatePSP34TokenItemId" title="Direct link to generatePSP34TokenItemId">​</a></h3>
+<p>▸ <strong>generatePSP34TokenItemId</strong>(<code>nonce</code>, <code>tokenId</code>): <code>Hash</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-12">Parameters<a href="#parameters-12" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>nonce</code></td><td style="text-align:left"><code>string</code></td></tr><tr><td style="text-align:left"><code>tokenId</code></td><td style="text-align:left"><code>Object</code></td></tr><tr><td style="text-align:left"><code>tokenId.type</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/modules/client#tokenidtype"><code>TokenIdType</code></a></td></tr><tr><td style="text-align:left"><code>tokenId.value</code></td><td style="text-align:left"><code>string</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-12">Returns<a href="#returns-12" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>Hash</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-44">Defined in<a href="#defined-in-44" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/PSP34.ts#L10" target="_blank" rel="noopener noreferrer">packages/client/src/PSP34.ts:10</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="getbalancestate">getBalanceState<a href="#getbalancestate" class="hash-link" aria-label="Direct link to getBalanceState" title="Direct link to getBalanceState">​</a></h3>
+<p>▸ <strong>getBalanceState</strong>(<code>sharedState</code>): <code>Promise</code>&lt;<a href="/logion-api/docs/reference/classes/client.BalanceState"><code>BalanceState</code></a>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-13">Parameters<a href="#parameters-13" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>sharedState</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.SharedState"><code>SharedState</code></a> &amp; { <code>isRecovery</code>: <code>boolean</code> ; <code>recoveredAccount?</code>: <code>ValidAccountId</code>  }</td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-13">Returns<a href="#returns-13" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>Promise</code>&lt;<a href="/logion-api/docs/reference/classes/client.BalanceState"><code>BalanceState</code></a>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-45">Defined in<a href="#defined-in-45" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Balance.ts#L65" target="_blank" rel="noopener noreferrer">packages/client/src/Balance.ts:65</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="getcollectionitem">getCollectionItem<a href="#getcollectionitem" class="hash-link" aria-label="Direct link to getCollectionItem" title="Direct link to getCollectionItem">​</a></h3>
+<p>▸ <strong>getCollectionItem</strong>(<code>parameters</code>): <code>Promise</code>&lt;<a href="/logion-api/docs/reference/classes/client.CollectionItem"><code>CollectionItem</code></a> | <code>undefined</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-14">Parameters<a href="#parameters-14" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>parameters</code></td><td style="text-align:left"><code>Object</code></td></tr><tr><td style="text-align:left"><code>parameters.itemId</code></td><td style="text-align:left"><code>Hash</code></td></tr><tr><td style="text-align:left"><code>parameters.locClient</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/classes/client.LocClient"><code>LocClient</code></a></td></tr><tr><td style="text-align:left"><code>parameters.locId</code></td><td style="text-align:left"><code>UUID</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-14">Returns<a href="#returns-14" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>Promise</code>&lt;<a href="/logion-api/docs/reference/classes/client.CollectionItem"><code>CollectionItem</code></a> | <code>undefined</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-46">Defined in<a href="#defined-in-46" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Loc.ts#L2169" target="_blank" rel="noopener noreferrer">packages/client/src/Loc.ts:2169</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="getdefinedcurrentaccount">getDefinedCurrentAccount<a href="#getdefinedcurrentaccount" class="hash-link" aria-label="Direct link to getDefinedCurrentAccount" title="Direct link to getDefinedCurrentAccount">​</a></h3>
+<p>▸ <strong>getDefinedCurrentAccount</strong>(<code>sharedState</code>): <code>ValidAccountId</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-15">Parameters<a href="#parameters-15" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>sharedState</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.SharedState"><code>SharedState</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-15">Returns<a href="#returns-15" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>ValidAccountId</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-47">Defined in<a href="#defined-in-47" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/SharedClient.ts#L54" target="_blank" rel="noopener noreferrer">packages/client/src/SharedClient.ts:54</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="getinitialstate">getInitialState<a href="#getinitialstate" class="hash-link" aria-label="Direct link to getInitialState" title="Direct link to getInitialState">​</a></h3>
+<p>▸ <strong>getInitialState</strong>(<code>data</code>, <code>pSharedState</code>): <a href="/logion-api/docs/reference/modules/client#protectionstate"><code>ProtectionState</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-16">Parameters<a href="#parameters-16" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>data</code></td><td style="text-align:left"><code>FetchAllResult</code></td></tr><tr><td style="text-align:left"><code>pSharedState</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.SharedState"><code>SharedState</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-16">Returns<a href="#returns-16" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><a href="/logion-api/docs/reference/modules/client#protectionstate"><code>ProtectionState</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-48">Defined in<a href="#defined-in-48" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Recovery.ts#L79" target="_blank" rel="noopener noreferrer">packages/client/src/Recovery.ts:79</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="getlegalofficer">getLegalOfficer<a href="#getlegalofficer" class="hash-link" aria-label="Direct link to getLegalOfficer" title="Direct link to getLegalOfficer">​</a></h3>
+<p>▸ <strong>getLegalOfficer</strong>(<code>sharedState</code>, <code>account</code>): <a href="/logion-api/docs/reference/classes/client.LegalOfficerClass"><code>LegalOfficerClass</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-17">Parameters<a href="#parameters-17" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>sharedState</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.SharedState"><code>SharedState</code></a></td></tr><tr><td style="text-align:left"><code>account</code></td><td style="text-align:left"><code>ValidAccountId</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-17">Returns<a href="#returns-17" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><a href="/logion-api/docs/reference/classes/client.LegalOfficerClass"><code>LegalOfficerClass</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-49">Defined in<a href="#defined-in-49" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/SharedClient.ts#L38" target="_blank" rel="noopener noreferrer">packages/client/src/SharedClient.ts:38</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="gettokensrecord">getTokensRecord<a href="#gettokensrecord" class="hash-link" aria-label="Direct link to getTokensRecord" title="Direct link to getTokensRecord">​</a></h3>
+<p>▸ <strong>getTokensRecord</strong>(<code>parameters</code>): <code>Promise</code>&lt;<a href="/logion-api/docs/reference/classes/client.TokensRecord"><code>TokensRecord</code></a> | <code>undefined</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-18">Parameters<a href="#parameters-18" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>parameters</code></td><td style="text-align:left"><code>Object</code></td></tr><tr><td style="text-align:left"><code>parameters.locClient</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/classes/client.LocClient"><code>LocClient</code></a></td></tr><tr><td style="text-align:left"><code>parameters.locId</code></td><td style="text-align:left"><code>UUID</code></td></tr><tr><td style="text-align:left"><code>parameters.recordId</code></td><td style="text-align:left"><code>Hash</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-18">Returns<a href="#returns-18" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>Promise</code>&lt;<a href="/logion-api/docs/reference/classes/client.TokensRecord"><code>TokensRecord</code></a> | <code>undefined</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-50">Defined in<a href="#defined-in-50" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Loc.ts#L2186" target="_blank" rel="noopener noreferrer">packages/client/src/Loc.ts:2186</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="gettokensrecords">getTokensRecords<a href="#gettokensrecords" class="hash-link" aria-label="Direct link to getTokensRecords" title="Direct link to getTokensRecords">​</a></h3>
+<p>▸ <strong>getTokensRecords</strong>(<code>parameters</code>): <code>Promise</code>&lt;<a href="/logion-api/docs/reference/classes/client.TokensRecord"><code>TokensRecord</code></a>[]&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-19">Parameters<a href="#parameters-19" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>parameters</code></td><td style="text-align:left">{ <code>locClient</code>: <a href="/logion-api/docs/reference/classes/client.LocClient"><code>LocClient</code></a>  } &amp; <a href="/logion-api/docs/reference/interfaces/client.GetTokensRecordsRequest"><code>GetTokensRecordsRequest</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-19">Returns<a href="#returns-19" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>Promise</code>&lt;<a href="/logion-api/docs/reference/classes/client.TokensRecord"><code>TokensRecord</code></a>[]&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-51">Defined in<a href="#defined-in-51" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Loc.ts#L2203" target="_blank" rel="noopener noreferrer">packages/client/src/Loc.ts:2203</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="hashattributes">hashAttributes<a href="#hashattributes" class="hash-link" aria-label="Direct link to hashAttributes" title="Direct link to hashAttributes">​</a></h3>
+<p>▸ <strong>hashAttributes</strong>(<code>attributes</code>): <code>string</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-20">Parameters<a href="#parameters-20" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>attributes</code></td><td style="text-align:left"><code>string</code>[]</td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-20">Returns<a href="#returns-20" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>string</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-52">Defined in<a href="#defined-in-52" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Signer.ts#L212" target="_blank" rel="noopener noreferrer">packages/client/src/Signer.ts:212</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="initmultisourcehttpclientstate">initMultiSourceHttpClientState<a href="#initmultisourcehttpclientstate" class="hash-link" aria-label="Direct link to initMultiSourceHttpClientState" title="Direct link to initMultiSourceHttpClientState">​</a></h3>
+<p>▸ <strong>initMultiSourceHttpClientState</strong>(<code>networkState</code>, <code>legalOfficers?</code>): <a href="/logion-api/docs/reference/interfaces/client.MultiSourceHttpClientState"><code>MultiSourceHttpClientState</code></a>&lt;<a href="/logion-api/docs/reference/interfaces/client.LegalOfficerEndpoint"><code>LegalOfficerEndpoint</code></a>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-21">Parameters<a href="#parameters-21" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>networkState</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/classes/client.NetworkState"><code>NetworkState</code></a>&lt;<a href="/logion-api/docs/reference/interfaces/client.LegalOfficerEndpoint"><code>LegalOfficerEndpoint</code></a>&gt;</td></tr><tr><td style="text-align:left"><code>legalOfficers?</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.LegalOfficer"><code>LegalOfficer</code></a>[]</td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-21">Returns<a href="#returns-21" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><a href="/logion-api/docs/reference/interfaces/client.MultiSourceHttpClientState"><code>MultiSourceHttpClientState</code></a>&lt;<a href="/logion-api/docs/reference/interfaces/client.LegalOfficerEndpoint"><code>LegalOfficerEndpoint</code></a>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-53">Defined in<a href="#defined-in-53" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Http.ts#L79" target="_blank" rel="noopener noreferrer">packages/client/src/Http.ts:79</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="isercnft">isErcNft<a href="#isercnft" class="hash-link" aria-label="Direct link to isErcNft" title="Direct link to isErcNft">​</a></h3>
+<p>▸ <strong>isErcNft</strong>(<code>type</code>): <code>boolean</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-22">Parameters<a href="#parameters-22" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>type</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/modules/client#tokentype"><code>TokenType</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-22">Returns<a href="#returns-22" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>boolean</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-54">Defined in<a href="#defined-in-54" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Token.ts#L142" target="_blank" rel="noopener noreferrer">packages/client/src/Token.ts:142</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="ismultiversxesdtid">isMultiversxESDTId<a href="#ismultiversxesdtid" class="hash-link" aria-label="Direct link to isMultiversxESDTId" title="Direct link to isMultiversxESDTId">​</a></h3>
+<p>▸ <strong>isMultiversxESDTId</strong>(<code>tokenId</code>): <code>boolean</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-23">Parameters<a href="#parameters-23" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>tokenId</code></td><td style="text-align:left"><code>string</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-23">Returns<a href="#returns-23" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>boolean</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-55">Defined in<a href="#defined-in-55" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Token.ts#L187" target="_blank" rel="noopener noreferrer">packages/client/src/Token.ts:187</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="issingularkusamaid">isSingularKusamaId<a href="#issingularkusamaid" class="hash-link" aria-label="Direct link to isSingularKusamaId" title="Direct link to isSingularKusamaId">​</a></h3>
+<p>▸ <strong>isSingularKusamaId</strong>(<code>tokenId</code>): <code>boolean</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-24">Parameters<a href="#parameters-24" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>tokenId</code></td><td style="text-align:left"><code>string</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-24">Returns<a href="#returns-24" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>boolean</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-56">Defined in<a href="#defined-in-56" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Token.ts#L183" target="_blank" rel="noopener noreferrer">packages/client/src/Token.ts:183</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="istokencompatiblewith">isTokenCompatibleWith<a href="#istokencompatiblewith" class="hash-link" aria-label="Direct link to isTokenCompatibleWith" title="Direct link to isTokenCompatibleWith">​</a></h3>
+<p>▸ <strong>isTokenCompatibleWith</strong>(<code>type</code>, <code>networkType</code>): <code>boolean</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-25">Parameters<a href="#parameters-25" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>type</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/modules/client#tokentype"><code>TokenType</code></a></td></tr><tr><td style="text-align:left"><code>networkType</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/modules/client#networktype"><code>NetworkType</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-25">Returns<a href="#returns-25" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>boolean</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-57">Defined in<a href="#defined-in-57" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Token.ts#L60" target="_blank" rel="noopener noreferrer">packages/client/src/Token.ts:60</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="istokentype">isTokenType<a href="#istokentype" class="hash-link" aria-label="Direct link to isTokenType" title="Direct link to isTokenType">​</a></h3>
+<p>▸ <strong>isTokenType</strong>(<code>type</code>): type is TokenType</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-26">Parameters<a href="#parameters-26" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>type</code></td><td style="text-align:left"><code>string</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-26">Returns<a href="#returns-26" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p>type is TokenType</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-58">Defined in<a href="#defined-in-58" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Token.ts#L35" target="_blank" rel="noopener noreferrer">packages/client/src/Token.ts:35</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="isvalidmime">isValidMime<a href="#isvalidmime" class="hash-link" aria-label="Direct link to isValidMime" title="Direct link to isValidMime">​</a></h3>
+<p>▸ <strong>isValidMime</strong>(<code>mimeType</code>): <code>boolean</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-27">Parameters<a href="#parameters-27" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>mimeType</code></td><td style="text-align:left"><code>string</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-27">Returns<a href="#returns-27" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>boolean</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-59">Defined in<a href="#defined-in-59" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Mime.ts#L31" target="_blank" rel="noopener noreferrer">packages/client/src/Mime.ts:31</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="requestsort">requestSort<a href="#requestsort" class="hash-link" aria-label="Direct link to requestSort" title="Direct link to requestSort">​</a></h3>
+<p>▸ <strong>requestSort</strong>(<code>a</code>, <code>b</code>): <code>number</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-28">Parameters<a href="#parameters-28" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>a</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.VaultTransferRequest"><code>VaultTransferRequest</code></a></td></tr><tr><td style="text-align:left"><code>b</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.VaultTransferRequest"><code>VaultTransferRequest</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-28">Returns<a href="#returns-28" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>number</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-60">Defined in<a href="#defined-in-60" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/VaultClient.ts#L223" target="_blank" rel="noopener noreferrer">packages/client/src/VaultClient.ts:223</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="requiredefined">requireDefined<a href="#requiredefined" class="hash-link" aria-label="Direct link to requireDefined" title="Direct link to requireDefined">​</a></h3>
+<p>▸ <strong>requireDefined</strong>&lt;<code>T</code>&gt;(<code>value</code>, <code>errorSupplier?</code>): <code>T</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="type-parameters-4">Type parameters<a href="#type-parameters-4" class="hash-link" aria-label="Direct link to Type parameters" title="Direct link to Type parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th></tr></thead><tbody><tr><td style="text-align:left"><code>T</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-29">Parameters<a href="#parameters-29" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>value</code></td><td style="text-align:left"><code>undefined</code> | <code>T</code></td></tr><tr><td style="text-align:left"><code>errorSupplier?</code></td><td style="text-align:left">() =&gt; <code>Error</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-29">Returns<a href="#returns-29" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>T</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-61">Defined in<a href="#defined-in-61" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/assertions.ts#L1" target="_blank" rel="noopener noreferrer">packages/client/src/assertions.ts:1</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="toblockchainsubmission">toBlockchainSubmission<a href="#toblockchainsubmission" class="hash-link" aria-label="Direct link to toBlockchainSubmission" title="Direct link to toBlockchainSubmission">​</a></h3>
+<p>▸ <strong>toBlockchainSubmission</strong>&lt;<code>T</code>&gt;(<code>params</code>): <a href="/logion-api/docs/reference/interfaces/client.BlockchainSubmission"><code>BlockchainSubmission</code></a>&lt;<code>T</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="type-parameters-5">Type parameters<a href="#type-parameters-5" class="hash-link" aria-label="Direct link to Type parameters" title="Direct link to Type parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th></tr></thead><tbody><tr><td style="text-align:left"><code>T</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-30">Parameters<a href="#parameters-30" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>params</code></td><td style="text-align:left"><code>T</code> &amp; <a href="/logion-api/docs/reference/interfaces/client.BlockchainSubmissionParams"><code>BlockchainSubmissionParams</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-30">Returns<a href="#returns-30" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><a href="/logion-api/docs/reference/interfaces/client.BlockchainSubmission"><code>BlockchainSubmission</code></a>&lt;<code>T</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-62">Defined in<a href="#defined-in-62" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/LocClient.ts#L209" target="_blank" rel="noopener noreferrer">packages/client/src/LocClient.ts:209</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="tofeesclass">toFeesClass<a href="#tofeesclass" class="hash-link" aria-label="Direct link to toFeesClass" title="Direct link to toFeesClass">​</a></h3>
+<p>▸ <strong>toFeesClass</strong>(<code>fees</code>): <code>FeesClass</code> | <code>undefined</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-31">Parameters<a href="#parameters-31" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>fees</code></td><td style="text-align:left"><code>undefined</code> | <a href="/logion-api/docs/reference/interfaces/client.Fees"><code>Fees</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-31">Returns<a href="#returns-31" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>FeesClass</code> | <code>undefined</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-63">Defined in<a href="#defined-in-63" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Fees.ts#L25" target="_blank" rel="noopener noreferrer">packages/client/src/Fees.ts:25</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="toisostring">toIsoString<a href="#toisostring" class="hash-link" aria-label="Direct link to toIsoString" title="Direct link to toIsoString">​</a></h3>
+<p>▸ <strong>toIsoString</strong>(<code>moment</code>): <code>string</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-32">Parameters<a href="#parameters-32" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>moment</code></td><td style="text-align:left"><code>DateTime</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-32">Returns<a href="#returns-32" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>string</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-64">Defined in<a href="#defined-in-64" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/DateTimeUtil.ts#L3" target="_blank" rel="noopener noreferrer">packages/client/src/DateTimeUtil.ts:3</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="totransaction">toTransaction<a href="#totransaction" class="hash-link" aria-label="Direct link to toTransaction" title="Direct link to toTransaction">​</a></h3>
+<p>▸ <strong>toTransaction</strong>(<code>transaction</code>, <code>account</code>): <a href="/logion-api/docs/reference/interfaces/client.Transaction"><code>Transaction</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-33">Parameters<a href="#parameters-33" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>transaction</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.BackendTransaction"><code>BackendTransaction</code></a></td></tr><tr><td style="text-align:left"><code>account</code></td><td style="text-align:left"><code>ValidAccountId</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-33">Returns<a href="#returns-33" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><a href="/logion-api/docs/reference/interfaces/client.Transaction"><code>Transaction</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-65">Defined in<a href="#defined-in-65" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Balance.ts#L47" target="_blank" rel="noopener noreferrer">packages/client/src/Balance.ts:47</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="validateerctoken">validateErcToken<a href="#validateerctoken" class="hash-link" aria-label="Direct link to validateErcToken" title="Direct link to validateErcToken">​</a></h3>
+<p>▸ <strong>validateErcToken</strong>(<code>itemToken</code>): <code>Object</code></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-34">Parameters<a href="#parameters-34" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>itemToken</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.ItemTokenWithRestrictedType"><code>ItemTokenWithRestrictedType</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-34">Returns<a href="#returns-34" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>Object</code></p>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>idObject?</code></td><td style="text-align:left"><code>any</code></td></tr><tr><td style="text-align:left"><code>result</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.TokenValidationResult"><code>TokenValidationResult</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-66">Defined in<a href="#defined-in-66" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Token.ts#L146" target="_blank" rel="noopener noreferrer">packages/client/src/Token.ts:146</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="validatepsp34tokenid">validatePsp34TokenId<a href="#validatepsp34tokenid" class="hash-link" aria-label="Direct link to validatePsp34TokenId" title="Direct link to validatePsp34TokenId">​</a></h3>
+<p>▸ <strong>validatePsp34TokenId</strong>(<code>tokenId</code>): <a href="/logion-api/docs/reference/interfaces/client.TokenValidationResult"><code>TokenValidationResult</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-35">Parameters<a href="#parameters-35" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>tokenId</code></td><td style="text-align:left"><code>string</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-35">Returns<a href="#returns-35" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><a href="/logion-api/docs/reference/interfaces/client.TokenValidationResult"><code>TokenValidationResult</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-67">Defined in<a href="#defined-in-67" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Token.ts#L191" target="_blank" rel="noopener noreferrer">packages/client/src/Token.ts:191</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="validatetoken">validateToken<a href="#validatetoken" class="hash-link" aria-label="Direct link to validateToken" title="Direct link to validateToken">​</a></h3>
+<p>▸ <strong>validateToken</strong>(<code>api</code>, <code>itemToken</code>): <a href="/logion-api/docs/reference/interfaces/client.TokenValidationResult"><code>TokenValidationResult</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-36">Parameters<a href="#parameters-36" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>api</code></td><td style="text-align:left"><code>LogionNodeApiClass</code></td></tr><tr><td style="text-align:left"><code>itemToken</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.ItemTokenWithRestrictedType"><code>ItemTokenWithRestrictedType</code></a></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-36">Returns<a href="#returns-36" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><a href="/logion-api/docs/reference/interfaces/client.TokenValidationResult"><code>TokenValidationResult</code></a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-68">Defined in<a href="#defined-in-68" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Token.ts#L81" target="_blank" rel="noopener noreferrer">packages/client/src/Token.ts:81</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="waitfor">waitFor<a href="#waitfor" class="hash-link" aria-label="Direct link to waitFor" title="Direct link to waitFor">​</a></h3>
+<p>▸ <strong>waitFor</strong>&lt;<code>T</code>&gt;(<code>params</code>): <code>Promise</code>&lt;<code>T</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="type-parameters-6">Type parameters<a href="#type-parameters-6" class="hash-link" aria-label="Direct link to Type parameters" title="Direct link to Type parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th></tr></thead><tbody><tr><td style="text-align:left"><code>T</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-37">Parameters<a href="#parameters-37" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>params</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.WaitForParameters"><code>WaitForParameters</code></a>&lt;<code>T</code>&gt;</td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-37">Returns<a href="#returns-37" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><code>Promise</code>&lt;<code>T</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-69">Defined in<a href="#defined-in-69" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/Polling.ts#L19" target="_blank" rel="noopener noreferrer">packages/client/src/Polling.ts:19</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="withadditional">withAdditional<a href="#withadditional" class="hash-link" aria-label="Direct link to withAdditional" title="Direct link to withAdditional">​</a></h3>
+<p>▸ <strong>withAdditional</strong>&lt;<code>T</code>, <code>P</code>&gt;(<code>additionalPayload</code>, <code>params</code>): <a href="/logion-api/docs/reference/interfaces/client.BlockchainSubmission"><code>BlockchainSubmission</code></a>&lt;<code>T</code> &amp; <code>P</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="type-parameters-7">Type parameters<a href="#type-parameters-7" class="hash-link" aria-label="Direct link to Type parameters" title="Direct link to Type parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th></tr></thead><tbody><tr><td style="text-align:left"><code>T</code></td></tr><tr><td style="text-align:left"><code>P</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-38">Parameters<a href="#parameters-38" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>additionalPayload</code></td><td style="text-align:left"><code>P</code></td></tr><tr><td style="text-align:left"><code>params</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.BlockchainSubmission"><code>BlockchainSubmission</code></a>&lt;<code>T</code>&gt;</td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-38">Returns<a href="#returns-38" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><a href="/logion-api/docs/reference/interfaces/client.BlockchainSubmission"><code>BlockchainSubmission</code></a>&lt;<code>T</code> &amp; <code>P</code>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-70">Defined in<a href="#defined-in-70" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/LocClient.ts#L197" target="_blank" rel="noopener noreferrer">packages/client/src/LocClient.ts:197</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="withlocid">withLocId<a href="#withlocid" class="hash-link" aria-label="Direct link to withLocId" title="Direct link to withLocId">​</a></h3>
+<p>▸ <strong>withLocId</strong>&lt;<code>T</code>&gt;(<code>locId</code>, <code>params</code>): <a href="/logion-api/docs/reference/interfaces/client.BlockchainSubmission"><code>BlockchainSubmission</code></a>&lt;<code>T</code> &amp; <a href="/logion-api/docs/reference/interfaces/client.FetchParameters"><code>FetchParameters</code></a>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="type-parameters-8">Type parameters<a href="#type-parameters-8" class="hash-link" aria-label="Direct link to Type parameters" title="Direct link to Type parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th></tr></thead><tbody><tr><td style="text-align:left"><code>T</code></td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-39">Parameters<a href="#parameters-39" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th></tr></thead><tbody><tr><td style="text-align:left"><code>locId</code></td><td style="text-align:left"><code>UUID</code></td></tr><tr><td style="text-align:left"><code>params</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.BlockchainSubmission"><code>BlockchainSubmission</code></a>&lt;<code>T</code>&gt;</td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-39">Returns<a href="#returns-39" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><a href="/logion-api/docs/reference/interfaces/client.BlockchainSubmission"><code>BlockchainSubmission</code></a>&lt;<code>T</code> &amp; <a href="/logion-api/docs/reference/interfaces/client.FetchParameters"><code>FetchParameters</code></a>&gt;</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-71">Defined in<a href="#defined-in-71" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/LocClient.ts#L193" target="_blank" rel="noopener noreferrer">packages/client/src/LocClient.ts:193</a></p>
+<h2 class="anchor anchorWithStickyNavbar_JmGV" id="termsandconditions-1">TermsAndConditions<a href="#termsandconditions-1" class="hash-link" aria-label="Direct link to TermsAndConditions" title="Direct link to TermsAndConditions">​</a></h2>
+<p>• <code>Abstract</code> <strong>AbstractTermsAndConditionsElement</strong>&lt;<code>P</code>&gt;: <code>Object</code></p>
+<p>Provides a re-usable base implementation of <a href="/logion-api/docs/reference/interfaces/client.TermsAndConditionsElement">TermsAndConditionsElement</a>.</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="type-parameters-9">Type parameters<a href="#type-parameters-9" class="hash-link" aria-label="Direct link to Type parameters" title="Direct link to Type parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Description</th></tr></thead><tbody><tr><td style="text-align:left"><code>P</code></td><td style="text-align:left">Type of Terms&amp;Conditions parameters.</td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-72">Defined in<a href="#defined-in-72" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/TermsAndConditions.ts#L36" target="_blank" rel="noopener noreferrer">packages/client/src/license/TermsAndConditions.ts:36</a></p>
+<p>• <strong>CreativeCommons</strong>: <code>Object</code></p>
+<p>Provides Terms and Conditions under
+the <a href="https://creativecommons.org/about/cclicenses/" target="_blank" rel="noopener noreferrer">Creative Commons Attribution License 4.0</a></p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-73">Defined in<a href="#defined-in-73" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/CreativeCommons.ts#L13" target="_blank" rel="noopener noreferrer">packages/client/src/license/CreativeCommons.ts:13</a></p>
+<p>• <strong>LogionClassification</strong>: <code>Object</code></p>
+<p>Provides a Logion Classification.</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-74">Defined in<a href="#defined-in-74" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/LogionClassification.ts#L267" target="_blank" rel="noopener noreferrer">packages/client/src/license/LogionClassification.ts:267</a></p>
+<p>• <strong>SpecificLicense</strong>: <code>Object</code></p>
+<p>A Terms and Conditions element defining a specific license,
+where details are stored &quot;as is&quot;.</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-75">Defined in<a href="#defined-in-75" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/SpecificLicense.ts#L9" target="_blank" rel="noopener noreferrer">packages/client/src/license/SpecificLicense.ts:9</a></p>
+<p>• <strong>LogionClassificationParameters</strong>: <code>Object</code></p>
+<p>Defines the parameters of a Logion Classification.</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-76">Defined in<a href="#defined-in-76" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/LogionClassification.ts#L246" target="_blank" rel="noopener noreferrer">packages/client/src/license/LogionClassification.ts:246</a></p>
+<p>• <strong>TermsAndConditionsElement</strong>: <code>Object</code></p>
+<p>Common contract to all Terms and Conditions elements.</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-77">Defined in<a href="#defined-in-77" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/TermsAndConditions.ts#L15" target="_blank" rel="noopener noreferrer">packages/client/src/license/TermsAndConditions.ts:15</a></p>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="logiontransferredright">LogionTransferredRight<a href="#logiontransferredright" class="hash-link" aria-label="Direct link to LogionTransferredRight" title="Direct link to LogionTransferredRight">​</a></h3>
+<p>Ƭ <strong>LogionTransferredRight</strong>: { <code>code</code>: <a href="/logion-api/docs/reference/modules/client#logiontransferredrightcode"><code>LogionTransferredRightCode</code></a>  } &amp; <a href="/logion-api/docs/reference/modules/client#logiontransferredrightdescription"><code>LogionTransferredRightDescription</code></a></p>
+<p>A transferred right code associated with description in one language.</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-78">Defined in<a href="#defined-in-78" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/LogionClassification.ts#L43" target="_blank" rel="noopener noreferrer">packages/client/src/license/LogionClassification.ts:43</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="logiontransferredrightcode">LogionTransferredRightCode<a href="#logiontransferredrightcode" class="hash-link" aria-label="Direct link to LogionTransferredRightCode" title="Direct link to LogionTransferredRightCode">​</a></h3>
+<p>Ƭ <strong>LogionTransferredRightCode</strong>: <code>&quot;PER-PRIV&quot;</code> | <code>&quot;PER-PUB&quot;</code> | <code>&quot;COM-NOMOD&quot;</code> | <code>&quot;COM-MOD&quot;</code> | <code>&quot;EX&quot;</code> | <code>&quot;NOEX&quot;</code> | <code>&quot;WW&quot;</code> | <code>&quot;REG&quot;</code> | <code>&quot;NOTIME&quot;</code> | <code>&quot;TIME&quot;</code></p>
+<p>List of available code to describe transferred rights.</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-79">Defined in<a href="#defined-in-79" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/LogionClassification.ts#L12" target="_blank" rel="noopener noreferrer">packages/client/src/license/LogionClassification.ts:12</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="logiontransferredrightdescription">LogionTransferredRightDescription<a href="#logiontransferredrightdescription" class="hash-link" aria-label="Direct link to LogionTransferredRightDescription" title="Direct link to LogionTransferredRightDescription">​</a></h3>
+<p>Ƭ <strong>LogionTransferredRightDescription</strong>: <code>Object</code></p>
+<p>Describes a transferred right.</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="type-declaration-3">Type declaration<a href="#type-declaration-3" class="hash-link" aria-label="Direct link to Type declaration" title="Direct link to Type declaration">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th><th style="text-align:left">Description</th></tr></thead><tbody><tr><td style="text-align:left"><code>description</code></td><td style="text-align:left"><code>string</code></td><td style="text-align:left">Long description</td></tr><tr><td style="text-align:left"><code>shortDescription</code></td><td style="text-align:left"><code>string</code></td><td style="text-align:left">Short description</td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-80">Defined in<a href="#defined-in-80" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/LogionClassification.ts#L28" target="_blank" rel="noopener noreferrer">packages/client/src/license/LogionClassification.ts:28</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="termsandconditionselementtype">TermsAndConditionsElementType<a href="#termsandconditionselementtype" class="hash-link" aria-label="Direct link to TermsAndConditionsElementType" title="Direct link to TermsAndConditionsElementType">​</a></h3>
+<p>Ƭ <strong>TermsAndConditionsElementType</strong>: typeof <a href="/logion-api/docs/reference/modules/client#terms_and_conditions_types"><code>TERMS_AND_CONDITIONS_TYPES</code></a>[<code>number</code>]</p>
+<p>Defines available Terms&amp;Conditions types.</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-81">Defined in<a href="#defined-in-81" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/TermsAndConditions.ts#L9" target="_blank" rel="noopener noreferrer">packages/client/src/license/TermsAndConditions.ts:9</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="logionlicenseitems">logionLicenseItems<a href="#logionlicenseitems" class="hash-link" aria-label="Direct link to logionLicenseItems" title="Direct link to logionLicenseItems">​</a></h3>
+<p>• <code>Const</code> <strong>logionLicenseItems</strong>: <code>Record</code>&lt;<a href="/logion-api/docs/reference/modules/client#logiontransferredrightcode"><code>LogionTransferredRightCode</code></a>, <code>Record</code>&lt;<a href="/logion-api/docs/reference/modules/client#language"><code>Language</code></a>, <a href="/logion-api/docs/reference/modules/client#logiontransferredrightdescription"><code>LogionTransferredRightDescription</code></a>&gt;&gt;</p>
+<p>The dictionary of available transferred rights, with description in both <code>fr</code> and <code>en</code>.</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-82">Defined in<a href="#defined-in-82" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/LogionClassification.ts#L49" target="_blank" rel="noopener noreferrer">packages/client/src/license/LogionClassification.ts:49</a></p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_JmGV" id="newtermsandconditions">newTermsAndConditions<a href="#newtermsandconditions" class="hash-link" aria-label="Direct link to newTermsAndConditions" title="Direct link to newTermsAndConditions">​</a></h3>
+<p>▸ <strong>newTermsAndConditions</strong>(<code>onchainTCs</code>, <code>offchainTCs</code>): <a href="/logion-api/docs/reference/classes/client.MergedTermsAndConditionsElement"><code>MergedTermsAndConditionsElement</code></a>[]</p>
+<p>Creates a new Terms and Conditions, based on given type.</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="parameters-40">Parameters<a href="#parameters-40" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters">​</a></h4>
+<table><thead><tr><th style="text-align:left">Name</th><th style="text-align:left">Type</th><th style="text-align:left">Description</th></tr></thead><tbody><tr><td style="text-align:left"><code>onchainTCs</code></td><td style="text-align:left"><code>TermsAndConditionsElement</code>[]</td><td style="text-align:left">the Terms and Conditions elements, as stored on the chain.</td></tr><tr><td style="text-align:left"><code>offchainTCs</code></td><td style="text-align:left"><a href="/logion-api/docs/reference/interfaces/client.OffchainTermsAndConditionsElement"><code>OffchainTermsAndConditionsElement</code></a>[]</td><td style="text-align:left">the Terms and Conditions elements, as stored on the off-chain backend.</td></tr></tbody></table>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="returns-40">Returns<a href="#returns-40" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h4>
+<p><a href="/logion-api/docs/reference/classes/client.MergedTermsAndConditionsElement"><code>MergedTermsAndConditionsElement</code></a>[]</p>
+<p>an array of terms and conditions element</p>
+<h4 class="anchor anchorWithStickyNavbar_JmGV" id="defined-in-83">Defined in<a href="#defined-in-83" class="hash-link" aria-label="Direct link to Defined in" title="Direct link to Defined in">​</a></h4>
+<p><a href="https://github.com/logion-network/logion-api/blob/562c387/packages/client/src/license/Factory.ts#L46" target="_blank" rel="noopener noreferrer">packages/client/src/license/Factory.ts:46</a></p></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="theme-doc-footer-edit-meta-row row"><div class="col"><a href="https://github.com/logion-network/logion-api/tree/main/website/docs/reference/modules/client.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_bHB7" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>Edit this page</a></div><div class="col lastUpdated_pbO5"></div></div></footer></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/logion-api/docs/reference/interfaces/node_api.VoidInfo"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">node_api.VoidInfo</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/logion-api/docs/reference/modules/client_browser"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">client_browser</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_XG6w thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#table-of-contents" class="table-of-contents__link toc-highlight">Table of contents</a><ul><li><a href="#enumerations" class="table-of-contents__link toc-highlight">Enumerations</a></li><li><a href="#classes" class="table-of-contents__link toc-highlight">Classes</a></li><li><a href="#interfaces" class="table-of-contents__link toc-highlight">Interfaces</a></li><li><a href="#type-aliases" class="table-of-contents__link toc-highlight">Type Aliases</a></li><li><a href="#variables" class="table-of-contents__link toc-highlight">Variables</a></li><li><a href="#functions" class="table-of-contents__link toc-highlight">Functions</a></li><li><a href="#termsandconditions" class="table-of-contents__link toc-highlight">TermsAndConditions</a></li></ul></li><li><a href="#type-aliases-1" class="table-of-contents__link toc-highlight">Type Aliases</a><ul><li><a href="#anylocstate" class="table-of-contents__link toc-highlight">AnyLocState</a></li><li><a href="#creativecommonscode" class="table-of-contents__link toc-highlight">CreativeCommonsCode</a></li><li><a href="#environmentstring" class="table-of-contents__link toc-highlight">EnvironmentString</a></li><li><a href="#fullsigner" class="table-of-contents__link toc-highlight">FullSigner</a></li><li><a href="#idenfysessionstatus" class="table-of-contents__link toc-highlight">IdenfySessionStatus</a></li><li><a href="#itemstatus" class="table-of-contents__link toc-highlight">ItemStatus</a></li><li><a href="#language" class="table-of-contents__link toc-highlight">Language</a></li><li><a href="#locrequeststatus" class="table-of-contents__link toc-highlight">LocRequestStatus</a></li><li><a href="#multiresponse" class="table-of-contents__link toc-highlight">MultiResponse</a></li><li><a href="#networktype" class="table-of-contents__link toc-highlight">NetworkType</a></li><li><a href="#offchainlocstate" class="table-of-contents__link toc-highlight">OffchainLocState</a></li><li><a href="#onchainlocstate" class="table-of-contents__link toc-highlight">OnchainLocState</a></li><li><a href="#protectionrequeststatus" class="table-of-contents__link toc-highlight">ProtectionRequestStatus</a></li><li><a href="#protectionstate" class="table-of-contents__link toc-highlight">ProtectionState</a></li><li><a href="#query" class="table-of-contents__link toc-highlight">Query</a></li><li><a href="#reviewresult" class="table-of-contents__link toc-highlight">ReviewResult</a></li><li><a href="#reviewablerequest" class="table-of-contents__link toc-highlight">ReviewableRequest</a></li><li><a href="#signandsendfunction" class="table-of-contents__link toc-highlight">SignAndSendFunction</a></li><li><a href="#signcallback" class="table-of-contents__link toc-highlight">SignCallback</a></li><li><a href="#signaturetype" class="table-of-contents__link toc-highlight">SignatureType</a></li><li><a href="#tokenidtype" class="table-of-contents__link toc-highlight">TokenIdType</a></li><li><a href="#tokentype" class="table-of-contents__link toc-highlight">TokenType</a></li><li><a href="#transactiontype" class="table-of-contents__link toc-highlight">TransactionType</a></li><li><a href="#transferdirection" class="table-of-contents__link toc-highlight">TransferDirection</a></li><li><a href="#vaultstatecreationparameters" class="table-of-contents__link toc-highlight">VaultStateCreationParameters</a></li><li><a href="#vaulttransferrequeststatus" class="table-of-contents__link toc-highlight">VaultTransferRequestStatus</a></li><li><a href="#verifiedissuerwithselect" class="table-of-contents__link toc-highlight">VerifiedIssuerWithSelect</a></li><li><a href="#voteresult" class="table-of-contents__link toc-highlight">VoteResult</a></li><li><a href="#votestatus" class="table-of-contents__link toc-highlight">VoteStatus</a></li></ul></li><li><a href="#variables-1" class="table-of-contents__link toc-highlight">Variables</a><ul><li><a href="#corecomponentfactoryinstance" class="table-of-contents__link toc-highlight">CoreComponentFactoryInstance</a></li><li><a href="#default_polling_parameters" class="table-of-contents__link toc-highlight">DEFAULT_POLLING_PARAMETERS</a></li><li><a href="#empty_loc_issuers" class="table-of-contents__link toc-highlight">EMPTY_LOC_ISSUERS</a></li><li><a href="#iso_datetime_pattern" class="table-of-contents__link toc-highlight">ISO_DATETIME_PATTERN</a></li><li><a href="#terms_and_conditions_types" class="table-of-contents__link toc-highlight">TERMS_AND_CONDITIONS_TYPES</a></li><li><a href="#values" class="table-of-contents__link toc-highlight">values</a></li></ul></li><li><a href="#functions-1" class="table-of-contents__link toc-highlight">Functions</a><ul><li><a href="#aggregatearrays" class="table-of-contents__link toc-highlight">aggregateArrays</a></li><li><a href="#allup" class="table-of-contents__link toc-highlight">allUp</a></li><li><a href="#authenticatedcurrentaccount" class="table-of-contents__link toc-highlight">authenticatedCurrentAccount</a></li><li><a href="#buildcomponentfactory" class="table-of-contents__link toc-highlight">buildComponentFactory</a></li><li><a href="#checkcertifiedcopy" class="table-of-contents__link toc-highlight">checkCertifiedCopy</a></li><li><a href="#createlogionclientconfig" class="table-of-contents__link toc-highlight">createLogionClientConfig</a></li><li><a href="#downloadfile" class="table-of-contents__link toc-highlight">downloadFile</a></li><li><a href="#fromisostring" class="table-of-contents__link toc-highlight">fromIsoString</a></li><li><a href="#generateethereumtokenitemid" class="table-of-contents__link toc-highlight">generateEthereumTokenItemId</a></li><li><a href="#generatepsp34tokenitemid" class="table-of-contents__link toc-highlight">generatePSP34TokenItemId</a></li><li><a href="#getbalancestate" class="table-of-contents__link toc-highlight">getBalanceState</a></li><li><a href="#getcollectionitem" class="table-of-contents__link toc-highlight">getCollectionItem</a></li><li><a href="#getdefinedcurrentaccount" class="table-of-contents__link toc-highlight">getDefinedCurrentAccount</a></li><li><a href="#getinitialstate" class="table-of-contents__link toc-highlight">getInitialState</a></li><li><a href="#getlegalofficer" class="table-of-contents__link toc-highlight">getLegalOfficer</a></li><li><a href="#gettokensrecord" class="table-of-contents__link toc-highlight">getTokensRecord</a></li><li><a href="#gettokensrecords" class="table-of-contents__link toc-highlight">getTokensRecords</a></li><li><a href="#hashattributes" class="table-of-contents__link toc-highlight">hashAttributes</a></li><li><a href="#initmultisourcehttpclientstate" class="table-of-contents__link toc-highlight">initMultiSourceHttpClientState</a></li><li><a href="#isercnft" class="table-of-contents__link toc-highlight">isErcNft</a></li><li><a href="#ismultiversxesdtid" class="table-of-contents__link toc-highlight">isMultiversxESDTId</a></li><li><a href="#issingularkusamaid" class="table-of-contents__link toc-highlight">isSingularKusamaId</a></li><li><a href="#istokencompatiblewith" class="table-of-contents__link toc-highlight">isTokenCompatibleWith</a></li><li><a href="#istokentype" class="table-of-contents__link toc-highlight">isTokenType</a></li><li><a href="#isvalidmime" class="table-of-contents__link toc-highlight">isValidMime</a></li><li><a href="#requestsort" class="table-of-contents__link toc-highlight">requestSort</a></li><li><a href="#requiredefined" class="table-of-contents__link toc-highlight">requireDefined</a></li><li><a href="#toblockchainsubmission" class="table-of-contents__link toc-highlight">toBlockchainSubmission</a></li><li><a href="#tofeesclass" class="table-of-contents__link toc-highlight">toFeesClass</a></li><li><a href="#toisostring" class="table-of-contents__link toc-highlight">toIsoString</a></li><li><a href="#totransaction" class="table-of-contents__link toc-highlight">toTransaction</a></li><li><a href="#validateerctoken" class="table-of-contents__link toc-highlight">validateErcToken</a></li><li><a href="#validatepsp34tokenid" class="table-of-contents__link toc-highlight">validatePsp34TokenId</a></li><li><a href="#validatetoken" class="table-of-contents__link toc-highlight">validateToken</a></li><li><a href="#waitfor" class="table-of-contents__link toc-highlight">waitFor</a></li><li><a href="#withadditional" class="table-of-contents__link toc-highlight">withAdditional</a></li><li><a href="#withlocid" class="table-of-contents__link toc-highlight">withLocId</a></li></ul></li><li><a href="#termsandconditions-1" class="table-of-contents__link toc-highlight">TermsAndConditions</a><ul><li><a href="#logiontransferredright" class="table-of-contents__link toc-highlight">LogionTransferredRight</a></li><li><a href="#logiontransferredrightcode" class="table-of-contents__link toc-highlight">LogionTransferredRightCode</a></li><li><a href="#logiontransferredrightdescription" class="table-of-contents__link toc-highlight">LogionTransferredRightDescription</a></li><li><a href="#termsandconditionselementtype" class="table-of-contents__link toc-highlight">TermsAndConditionsElementType</a></li><li><a href="#logionlicenseitems" class="table-of-contents__link toc-highlight">logionLicenseItems</a></li><li><a href="#newtermsandconditions" class="table-of-contents__link toc-highlight">newTermsAndConditions</a></li></ul></li></ul></div></div></div></div></main></div></div></div><footer class="footer"><div class="container container-fluid"><div class="row footer__links"><div class="col footer__col"><div class="footer__title">Docs</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/logion-api/docs/intro">Introduction</a></li><li class="footer__item"><a class="footer__link-item" href="/logion-api/docs/category/extension">Extension</a></li><li class="footer__item"><a class="footer__link-item" href="/logion-api/docs/category/client">Client</a></li></ul></div><div class="col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://discord.gg/FvnxrtCYr6" target="_blank" rel="noopener noreferrer" class="footer__link-item">Discord<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPrP"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li><li class="footer__item"><a href="https://twitter.com/logion_network" target="_blank" rel="noopener noreferrer" class="footer__link-item">Twitter<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPrP"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li><li class="footer__item"><a href="https://www.linkedin.com/company/logion-network/" target="_blank" rel="noopener noreferrer" class="footer__link-item">LinkedIn<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPrP"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li></ul></div><div class="col footer__col"><div class="footer__title">More</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://logion.network/" target="_blank" rel="noopener noreferrer" class="footer__link-item">Website<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPrP"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li><li class="footer__item"><a href="https://github.com/logion-network/" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPrP"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2024 Logion AISBL. Built with Docusaurus.</div></div></div></footer></div>
+</body>
+</html>
