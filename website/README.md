@@ -36,6 +36,9 @@ Using SSH:
 $ USE_SSH=true yarn deploy
 ```
 
+> If you experience issues with commit signing, you may have to temporarily choose another global GIT user email i.e.
+> run `git config --global user.email $ANOTHER_ADDRESS`.
+
 Not using SSH:
 
 ```
