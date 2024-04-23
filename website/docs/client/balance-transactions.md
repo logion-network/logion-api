@@ -53,11 +53,13 @@ You can transfer any amount (must be less than or equal to the balance, taking t
 to another account:
 
 ```typescript
-import { PrefixedNumber, KILO } from "@logion/node-api";
+import { Lgnt, ValidAccountId } from "@logion/node-api";
+
+const destination = ValidAccountId.polkadot("vQx5kESPn8dWyX4KxMCKqUyCaWUwtui1isX6PVNcZh2Ghjitr"); // Alice
 
 balanceState =  balanceState.transfer({
+    amount: Lgnt.from(42n), // 42 LGNTs
+    destination,
     signer,
-    amount: new PrefixedNumber("2", KILO),
-    destination: ALICE.address
 });
 ```

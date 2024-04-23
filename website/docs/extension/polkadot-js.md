@@ -2,9 +2,9 @@
 sidebar_position: 1
 ---
 
-# polkadot\{.js\}
+# Polkadot
 
-![polkadot\{.js\} extension](/img/polkadot.png)
+![Polkadot extension](/img/polkadot.png)
 
 This project provides some utility classes enabling the use of the
 [Polkadot JS extension](https://github.com/polkadot-js/extension#readme)
@@ -17,13 +17,14 @@ Start signing content using the extension.
 
 ```typescript
 import { getAccounts, ExtensionSigner } from '@logion/extension';
+import { ValidAccountId } from "@logion/node-api";
 
 const signer = new ExtensionSigner();
 const injectedAccounts = await getAccounts(
     "Your app name",
     [ "polkadot-js", "subwallet-js" ], // A list of extensions
 );
-const addresses = injectedAccounts.map(account => account.address);
+const addresses = injectedAccounts.map(account => ValidAccountId.polkadot(account.address));
 const authenticated = await client.authenticate(addresses, signer);
 
 // Pass `signer` as an argument when needed
