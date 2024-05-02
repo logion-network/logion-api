@@ -612,15 +612,21 @@ export abstract class LocClient {
         const { locId } = parameters;
         const onchainItems = await this.nodeApi.queries.getCollectionItems(locId);
 
+        const onchainItemsMap: Record<string, CollectionItem> = {};
+        for(const item of onchainItems) {
+            onchainItemsMap[item.id.toHex()] = item;
+        }
+
         try {
+            const result: UploadableCollectionItem[] = [];
             const offchainItems = await this.getOffchainItems({ locId });
-
-            const offchainItemsMap: Record<string, OffchainCollectionItem> = {};
-            for(const item of offchainItems) {
-                offchainItemsMap[item.itemId] = item;
+            for(const offchainItem of offchainItems) {
+                const onchainItem = onchainItemsMap[offchainItem.itemId];
+                if (onchainItem) {
+                    result.push(this.mergeItems(onchainItem, offchainItem))
+                }
             }
-
-            return onchainItems.map(item => this.mergeItems(item, offchainItemsMap[item.id.toHex()]));
+            return result;
         } catch(e) {
             throw newBackendError(e);
         }
