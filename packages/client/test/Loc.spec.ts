@@ -90,6 +90,19 @@ describe("LocsState", () => {
         expect(locs.legalOfficersWithValidIdentityLoc[0].account).toEqual(BOB.account);
     })
 
+    it("checks that user has non-void identity", async() => {
+        const sharedState = await buildSharedState();
+        const locs = await LocsState.getInitialLocsState(sharedState, client.object());
+
+        expect(locs.hasNonVoidIdentityLoc(ALICE)).toBeFalse();
+        expect(locs.hasNonVoidIdentityLoc(BOB)).toBeTrue();
+        expect(locs.hasNonVoidIdentityLoc(CHARLIE)).toBeFalse();
+
+        expect(locs.legalOfficersWithNonVoidIdentityLoc.length).toEqual(1);
+        expect(locs.legalOfficersWithNonVoidIdentityLoc[0]).toBeInstanceOf(LegalOfficerClass);
+        expect(locs.legalOfficersWithNonVoidIdentityLoc[0].account).toEqual(BOB.account);
+    })
+
     it("detects that user is not a verified issuer", async() => {
         const sharedState = await buildSharedState();
         const locs = await LocsState.getInitialLocsState(sharedState, client.object());
