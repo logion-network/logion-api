@@ -27,9 +27,11 @@ export async function providesVault(state: State) {
 
     // Transfer back from vault
     vaultState = await vaultState.createVaultTransferRequest({
-        legalOfficer: alice,
-        amount: Lgnt.from(1n),
-        destination: requesterAccount,
+        payload: {
+            legalOfficer: alice,
+            amount: Lgnt.from(1n),
+            destination: requesterAccount,
+        },
         signer
     });
     const pendingRequest = vaultState.pendingVaultTransferRequests[0];

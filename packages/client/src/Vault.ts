@@ -1,18 +1,13 @@
-import {
-    CoinBalance,
-    Vault,
-    Lgnt,
-    ValidAccountId,
-} from "@logion/node-api";
+import { CoinBalance, Vault, Lgnt, ValidAccountId, Fees as FeesClass } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
-
 import { authenticatedCurrentAccount, getDefinedCurrentAccount, SharedState } from "./SharedClient.js";
-import { SignCallback, Signer } from "./Signer.js";
+import { BlockchainSubmission } from "./Signer.js";
 import { LegalOfficer } from "./Types.js";
 import { requestSort, VaultClient, VaultTransferRequest } from "./VaultClient.js";
 import { TransactionClient } from "./TransactionClient.js";
 import { State } from "./State.js";
 import { toTransaction, Transaction } from "./Balance.js";
+import { requireDefined } from "./assertions.js";
 
 export interface VaultSharedState extends SharedState {
     client: VaultClient,
@@ -33,6 +28,17 @@ export type VaultStateCreationParameters = SharedState & {
     isRecovery: boolean,
     recoveredAccount?: ValidAccountId,
 };
+
+export interface RequestVaultTransferParams {
+    legalOfficer: LegalOfficer,
+    amount: Lgnt,
+    destination: ValidAccountId,
+}
+
+export interface UpdateVaultTransferParams {
+    legalOfficer: LegalOfficer,
+    request: VaultTransferRequest,
+}
 
 export class VaultState extends State {
 
@@ -129,34 +135,17 @@ export class VaultState extends State {
             .sort(requestSort);
     }
 
-    async createVaultTransferRequest(params: {
-        legalOfficer: LegalOfficer,
-        amount: Lgnt,
-        destination: ValidAccountId,
-        signer: Signer,
-        callback?: SignCallback,
-    }): Promise<VaultState> {
+    async createVaultTransferRequest(params: BlockchainSubmission<RequestVaultTransferParams>): Promise<VaultState> {
         return this.discardOnSuccess<VaultState>(current => current._createVaultTransferRequest(params));
     }
 
-    private async _createVaultTransferRequest(params: {
-        legalOfficer: LegalOfficer,
-        amount: Lgnt,
-        destination: ValidAccountId,
-        signer: Signer,
-        callback?: SignCallback,
-    }): Promise<VaultState> {
-        const { amount, destination, signer, callback, legalOfficer } = params;
+    private async _createVaultTransferRequest(params: BlockchainSubmission<RequestVaultTransferParams>): Promise<VaultState> {
+        const { signer, callback, payload } = params;
+        const { amount, destination, legalOfficer } = payload;
 
-        const currentAccount = getDefinedCurrentAccount(this.sharedState);
-        const signerId = currentAccount;
+        const signerId = getDefinedCurrentAccount(this.sharedState);
 
-        let submittable: SubmittableExtrinsic;
-        if(this.sharedState.isRecovery) {
-            submittable = await this.recoveryTransferSubmittable({ amount, destination });
-        } else {
-            submittable = await this.regularTransferSubmittable({ amount, destination });
-        }
+        const submittable = await this.createVaultTransferRequestSubmittable(payload);
 
         const successfulSubmission = await signer.signAndSend({
             signerId,
@@ -188,10 +177,22 @@ export class VaultState extends State {
         });
     }
 
-    private async recoveryTransferSubmittable(params: {
-        destination: ValidAccountId,
-        amount: Lgnt,
-    }): Promise<SubmittableExtrinsic> {
+    async estimateFeesCreateVaultTransferRequest(params: RequestVaultTransferParams): Promise<FeesClass> {
+        return await this.sharedState.nodeApi.fees.estimateWithoutStorage({
+            origin: requireDefined(this.sharedState.currentAccount),
+            submittable: await this.createVaultTransferRequestSubmittable(params),
+        });
+    }
+
+    private async createVaultTransferRequestSubmittable(params: RequestVaultTransferParams): Promise<SubmittableExtrinsic> {
+        if(this.sharedState.isRecovery) {
+            return await this.recoveryTransferSubmittable(params);
+        } else {
+            return await this.regularTransferSubmittable(params);
+        }
+    }
+
+    private async recoveryTransferSubmittable(params: RequestVaultTransferParams): Promise<SubmittableExtrinsic> {
         const { destination, amount } = params;
         const transfer = await this.sharedState.vault.tx.transferFromVault({
             amount,
@@ -203,10 +204,7 @@ export class VaultState extends State {
         );
     }
 
-    private regularTransferSubmittable(params: {
-        destination: ValidAccountId,
-        amount: Lgnt,
-    }): Promise<SubmittableExtrinsic> {
+    private regularTransferSubmittable(params: RequestVaultTransferParams): Promise<SubmittableExtrinsic> {
         const { destination, amount } = params;
         return this.sharedState.vault.tx.transferFromVault({
             amount,
@@ -214,45 +212,16 @@ export class VaultState extends State {
         });
     }
 
-    async cancelVaultTransferRequest(
-        legalOfficer: LegalOfficer,
-        request: VaultTransferRequest,
-        signer: Signer,
-        callback?: SignCallback,
-    ): Promise<VaultState> {
-        return this.discardOnSuccess<VaultState>(current => current._cancelVaultTransferRequest(legalOfficer, request, signer, callback));
+    async cancelVaultTransferRequest(params: BlockchainSubmission<UpdateVaultTransferParams>): Promise<VaultState> {
+        return this.discardOnSuccess<VaultState>(current => current._cancelVaultTransferRequest(params));
     }
 
-    private async _cancelVaultTransferRequest(
-        legalOfficer: LegalOfficer,
-        request: VaultTransferRequest,
-        signer: Signer,
-        callback?: SignCallback,
-    ): Promise<VaultState> {
+    private async _cancelVaultTransferRequest(params: BlockchainSubmission<UpdateVaultTransferParams>): Promise<VaultState> {
+        const { signer, callback, payload } = params;
+        const { legalOfficer, request } = payload;
         const signerId = getDefinedCurrentAccount(this.sharedState);
-        const amount = Lgnt.fromCanonical(BigInt(request.amount));
 
-        let submittable: SubmittableExtrinsic;
-        if(this.sharedState.isRecovery) {
-            const call = this.sharedState.vault.tx.cancelVaultTransfer({
-                destination: ValidAccountId.polkadot(request.destination),
-                amount,
-                block: BigInt(request.block),
-                index: request.index,
-            });
-            submittable = this.sharedState.nodeApi.polkadot.tx.recovery.asRecovered(
-                request.origin,
-                call
-            );
-        } else {
-            submittable = this.sharedState.vault.tx.cancelVaultTransfer({
-                destination: ValidAccountId.polkadot(request.destination),
-                amount,
-                block: BigInt(request.block),
-                index: request.index,
-            });
-        }
-
+        const submittable = this.cancelVaultTransferRequestSubmittable(payload);
         await signer.signAndSend({
             signerId,
             submittable,
@@ -286,17 +255,43 @@ export class VaultState extends State {
         });
     }
 
-    async resubmitVaultTransferRequest(
-        legalOfficer: LegalOfficer,
-        request: VaultTransferRequest,
-    ): Promise<VaultState> {
-        return this.discardOnSuccess<VaultState>(current => current._resubmitVaultTransferRequest(legalOfficer, request));
+    async estimateFeesCancelVaultTransferRequest(params: UpdateVaultTransferParams): Promise<FeesClass> {
+        return await this.sharedState.nodeApi.fees.estimateWithoutStorage({
+            origin: requireDefined(this.sharedState.currentAccount),
+            submittable: this.cancelVaultTransferRequestSubmittable(params),
+        });
     }
 
-    private async _resubmitVaultTransferRequest(
-        legalOfficer: LegalOfficer,
-        request: VaultTransferRequest,
-    ): Promise<VaultState> {
+    private cancelVaultTransferRequestSubmittable(params: UpdateVaultTransferParams): SubmittableExtrinsic {
+        const { request } = params;
+        const amount = Lgnt.fromCanonical(BigInt(request.amount));
+        if(this.sharedState.isRecovery) {
+            const call = this.sharedState.vault.tx.cancelVaultTransfer({
+                destination: ValidAccountId.polkadot(request.destination),
+                amount,
+                block: BigInt(request.block),
+                index: request.index,
+            });
+            return  this.sharedState.nodeApi.polkadot.tx.recovery.asRecovered(
+                request.origin,
+                call
+            );
+        } else {
+            return  this.sharedState.vault.tx.cancelVaultTransfer({
+                destination: ValidAccountId.polkadot(request.destination),
+                amount,
+                block: BigInt(request.block),
+                index: request.index,
+            });
+        }
+    }
+
+    async resubmitVaultTransferRequest(params: UpdateVaultTransferParams): Promise<VaultState> {
+        return this.discardOnSuccess<VaultState>(current => current._resubmitVaultTransferRequest(params));
+    }
+
+    private async _resubmitVaultTransferRequest(params: UpdateVaultTransferParams): Promise<VaultState> {
+        const { request, legalOfficer } = params;
         await this.sharedState.client.resubmitVaultTransferRequest(legalOfficer, request);
 
         const resubmittedRequest: VaultTransferRequest = {

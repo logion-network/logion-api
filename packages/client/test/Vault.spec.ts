@@ -1,4 +1,4 @@
-import { Lgnt, Numbers, ValidAccountId, Vault } from '@logion/node-api';
+import { Lgnt, ValidAccountId, Vault } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces/payment';
 import type { Header, BlockNumber } from '@polkadot/types/interfaces/runtime';
@@ -51,7 +51,7 @@ describe("Vault", () => {
         requesterPostalAddress: {} as PostalAddress,
         status: "PENDING"
     };
-    
+
     it("creates regular transfer", async () => {
         const currentAccount = REQUESTER;
         const tokens = buildTokens(currentAccount);
@@ -113,9 +113,11 @@ describe("Vault", () => {
         });
 
         const nextState = await state.createVaultTransferRequest({
-            legalOfficer: ALICE,
-            amount,
-            destination,
+            payload: {
+                legalOfficer: ALICE,
+                amount,
+                destination,
+            },
             signer: signer.object()
         });
 
@@ -190,9 +192,11 @@ describe("Vault", () => {
         });
 
         const nextState = await state.createVaultTransferRequest({
-            legalOfficer: ALICE,
-            amount,
-            destination,
+            payload: {
+                legalOfficer: ALICE,
+                amount,
+                destination,
+            },
             signer: signer.object()
         });
 
@@ -255,7 +259,13 @@ describe("Vault", () => {
             vault: vault.object(),
         });
 
-        const nextState = await state.cancelVaultTransferRequest(ALICE, requestToCancel, signer.object());
+        const nextState = await state.cancelVaultTransferRequest({
+            payload: {
+                legalOfficer: ALICE,
+                request: requestToCancel,
+            },
+            signer: signer.object(),
+        });
 
         expect(nextState.pendingVaultTransferRequests.length).toBe(0);
         expect(nextState.cancelledVaultTransferRequests.length).toBe(1);
@@ -321,7 +331,13 @@ describe("Vault", () => {
             vault: vault.object(),
         });
 
-        const nextState = await state.cancelVaultTransferRequest(ALICE, requestToCancel, signer.object());
+        const nextState = await state.cancelVaultTransferRequest({
+            payload: {
+                legalOfficer: ALICE,
+                request: requestToCancel,
+            },
+            signer: signer.object(),
+        });
 
         expect(nextState.pendingVaultTransferRequests.length).toBe(0);
         expect(nextState.cancelledVaultTransferRequests.length).toBe(1);
