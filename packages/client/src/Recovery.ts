@@ -2,6 +2,7 @@ import {
     TypesRecoveryConfig,
     UUID,
     ValidAccountId,
+    Fees as FeesClass,
 } from "@logion/node-api";
 import {
     FetchAllResult,
@@ -20,6 +21,8 @@ import { VaultState } from "./Vault.js";
 import { PollingParameters, waitFor } from "./Polling.js";
 import { State } from "./State.js";
 import { BlockchainSubmission, BlockchainSubmissionParams } from "./Signer.js";
+import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
+import { requireDefined } from "./assertions.js";
 
 export type ProtectionState =
     NoProtection
@@ -193,16 +196,13 @@ export class NoProtection extends State {
     }
 
     private async _activateProtection(params: BlockchainSubmission<ProtectionParams>): Promise<ActiveProtection> {
-        const { signer, callback } = params
-        const sortedLegalOfficers = [ params.payload.legalOfficer1.account.address, params.payload.legalOfficer2.account.address ].sort();
+        const { signer, callback, payload } = params
+        const { submittable, sortedLegalOfficers }  = this.activateProtectionSubmittable(payload);
         await signer.signAndSend({
             signerId: getDefinedCurrentAccount(this.sharedState),
-            submittable: this.sharedState.nodeApi.polkadot.tx.verifiedRecovery.createRecovery(
-                sortedLegalOfficers,
-            ),
+            submittable,
             callback
         });
-
         const newSharedState: RecoverySharedState = {
             ...this.sharedState,
             selectedLegalOfficers: [
@@ -218,8 +218,24 @@ export class NoProtection extends State {
                 legalOfficers: sortedLegalOfficers.map(address => ValidAccountId.polkadot(address)),
             }
         };
-
         return new ActiveProtection(newSharedState);
+    }
+
+    async estimateFeesActivateProtection(params: ProtectionParams): Promise<FeesClass> {
+        const { submittable } = this.activateProtectionSubmittable(params);
+        return await this.sharedState.nodeApi.fees.estimateWithoutStorage({
+            origin: requireDefined(this.sharedState.currentAccount),
+            submittable,
+        });
+    }
+
+    private activateProtectionSubmittable(params: ProtectionParams): { submittable: SubmittableExtrinsic, sortedLegalOfficers: string[] } {
+        const { legalOfficer1, legalOfficer2 } = params
+        const sortedLegalOfficers = [ legalOfficer1.account.address, legalOfficer2.account.address ].sort();
+        const submittable = this.sharedState.nodeApi.polkadot.tx.verifiedRecovery.createRecovery(
+            sortedLegalOfficers,
+        );
+        return { submittable, sortedLegalOfficers }
     }
 
     async requestRecovery(params: BlockchainSubmission<RecoveryParams>): Promise<PendingProtection> {
@@ -237,7 +253,7 @@ export class NoProtection extends State {
             ) {
                 await params.signer.signAndSend({
                     signerId: currentAccount,
-                    submittable: this.sharedState.nodeApi.polkadot.tx.recovery.initiateRecovery(payload.recoveredAccount.address),
+                    submittable: this.requestRecoverySubmittable(params.payload),
                     callback: params.callback,
                 });
             } else {
@@ -284,6 +300,19 @@ export class NoProtection extends State {
             ],
             selectedLegalOfficers: [ params.legalOfficer1, params.legalOfficer2 ],
         });
+    }
+
+    async estimateFeesRequestRecovery(params: RecoveryParams): Promise<FeesClass> {
+        const submittable = this.requestRecoverySubmittable(params);
+        return await this.sharedState.nodeApi.fees.estimateWithoutStorage({
+            origin: requireDefined(this.sharedState.currentAccount),
+            submittable,
+        });
+    }
+
+    private requestRecoverySubmittable(params: RecoveryParams): SubmittableExtrinsic {
+        const { recoveredAccount } = params;
+        return this.sharedState.nodeApi.polkadot.tx.recovery.initiateRecovery(recoveredAccount.address);
     }
 
     get protectionParameters(): ProtectionParameters {
@@ -565,12 +594,10 @@ export class AcceptedProtection extends State implements WithProtectionParameter
 
     private async _activate(params: BlockchainSubmissionParams): Promise<PendingRecovery> {
         const { signer, callback } = params
-        const sortedLegalOfficers = this.sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.account.address).sort();
+        const { submittable, sortedLegalOfficers } = this.activateSubmittable();
         await signer.signAndSend({
             signerId: getDefinedCurrentAccount(this.sharedState),
-            submittable: this.sharedState.nodeApi.polkadot.tx.verifiedRecovery.createRecovery(
-                sortedLegalOfficers,
-            ),
+            submittable,
             callback
         });
         const newSharedState = {
@@ -581,6 +608,22 @@ export class AcceptedProtection extends State implements WithProtectionParameter
         };
 
         return new PendingRecovery(newSharedState);
+    }
+
+    async estimateFeesActivate(): Promise<FeesClass> {
+        const { submittable } = this.activateSubmittable();
+        return await this.sharedState.nodeApi.fees.estimateWithoutStorage({
+            origin: requireDefined(this.sharedState.currentAccount),
+            submittable,
+        });
+    }
+
+    private activateSubmittable(): { submittable: SubmittableExtrinsic, sortedLegalOfficers: string[] }  {
+        const sortedLegalOfficers = this.sharedState.selectedLegalOfficers.map(legalOfficer => legalOfficer.account.address).sort();
+        const submittable = this.sharedState.nodeApi.polkadot.tx.verifiedRecovery.createRecovery(
+            sortedLegalOfficers,
+        );
+        return { submittable, sortedLegalOfficers }
     }
 
     get protectionParameters(): ProtectionParameters {
@@ -689,13 +732,26 @@ export class PendingRecovery extends State implements WithProtectionParameters, 
         const addressToRecover = this.protectionParameters.recoveredAccount;
         await signer.signAndSend({
             signerId: getDefinedCurrentAccount(this.sharedState),
-            submittable: this.sharedState.nodeApi.polkadot.tx.recovery.claimRecovery(addressToRecover?.address || ""),
+            submittable: this.claimRecoverySubmittable(),
             callback
         });
         return new ClaimedRecovery({
             ...this.sharedState,
             recoveredAccount: addressToRecover
         });
+    }
+
+    async estimateFeesClaimRecovery(): Promise<FeesClass> {
+        const submittable = this.claimRecoverySubmittable();
+        return await this.sharedState.nodeApi.fees.estimateWithoutStorage({
+            origin: requireDefined(this.sharedState.currentAccount),
+            submittable,
+        });
+    }
+
+    private claimRecoverySubmittable(): SubmittableExtrinsic {
+        const addressToRecover = this.protectionParameters.recoveredAccount;
+        return this.sharedState.nodeApi.polkadot.tx.recovery.claimRecovery(addressToRecover?.address || "");
     }
 
     get protectionParameters(): ProtectionParameters {
