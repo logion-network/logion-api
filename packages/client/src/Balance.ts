@@ -1,18 +1,14 @@
-import {
-    CoinBalance,
-    Lgnt,
-    ValidAccountId,
-} from "@logion/node-api";
+import { CoinBalance, Lgnt, ValidAccountId, Fees as FeesClass, } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import { BackendTransaction, TransactionClient, TransactionError, TransactionType } from "./TransactionClient.js";
 import { SharedState } from "./SharedClient.js";
 import { State } from "./State.js";
-import { BlockchainSubmissionParams } from "./Signer.js";
+import { BlockchainSubmission } from "./Signer.js";
 import { requireDefined } from "./assertions.js";
 import { Fees } from "./Fees.js";
 
-export interface TransferParam extends BlockchainSubmissionParams {
+export interface TransferParam {
     destination: ValidAccountId;
     amount: Lgnt;
 }
@@ -87,7 +83,7 @@ function newTransactionClient(currentAccount: ValidAccountId, sharedState: Share
     })
 }
 
-export interface TransferAllParam extends BlockchainSubmissionParams {
+export interface TransferAllParam {
     destination: string;
     keepAlive: boolean;
 }
@@ -109,25 +105,17 @@ export class BalanceState extends State {
         return this.sharedState.balances;
     }
 
-    async transfer(params: TransferParam): Promise<BalanceState> {
+    async transfer(params: BlockchainSubmission<TransferParam>): Promise<BalanceState> {
         return this.discardOnSuccess<BalanceState>(current => current._transfer(params));
     }
 
-    private async _transfer(params: TransferParam): Promise<BalanceState> {
-        const { signer, destination, amount, callback } = params;
+    private async _transfer(params: BlockchainSubmission<TransferParam>): Promise<BalanceState> {
+        const { signer, callback, payload } = params;
+        const canonicalAmount = payload.amount.canonical;
 
-        const canonicalAmount = amount.canonical;
-
-        let submittable: SubmittableExtrinsic;
+        const submittable = this.transferSubmittable(payload);
         if(this.sharedState.isRecovery) {
             const recoveredAccount = requireDefined(this.sharedState.recoveredAccount);
-            submittable = this.sharedState.nodeApi.polkadot.tx.recovery.asRecovered(
-                recoveredAccount.address,
-                this.sharedState.nodeApi.polkadot.tx.balances.transferKeepAlive(
-                    destination.address,
-                    canonicalAmount,
-                ),
-            );
             await this.ensureFundsForFees(submittable);
             const recoveredAccountData = await this.sharedState.nodeApi.queries.getAccountData(recoveredAccount);
             const transferable = BigInt(recoveredAccountData.available);
@@ -135,10 +123,6 @@ export class BalanceState extends State {
                 throw new Error("Insufficient balance");
             }
         } else {
-            submittable = this.sharedState.nodeApi.polkadot.tx.balances.transferKeepAlive(
-                destination.address,
-                canonicalAmount,
-            );
             const fees = await this.ensureFundsForFees(submittable);
             const available = Lgnt.fromCanonicalPrefixedNumber(this.balances[0].available).canonical;
             const transferable = available - fees;
@@ -154,6 +138,35 @@ export class BalanceState extends State {
         })
 
         return this._refresh();
+    }
+
+    async estimateFeesTransfer(params: TransferParam): Promise<FeesClass> {
+        const submittable = this.transferSubmittable(params);
+        return await this.sharedState.nodeApi.fees.estimateWithoutStorage({
+            origin: requireDefined(this.sharedState.currentAccount),
+            submittable,
+        });
+    }
+
+    private transferSubmittable(params: TransferParam): SubmittableExtrinsic {
+        const { destination, amount } = params;
+
+        const canonicalAmount = amount.canonical;
+        if (this.sharedState.isRecovery) {
+            const recoveredAccount = requireDefined(this.sharedState.recoveredAccount);
+            return this.sharedState.nodeApi.polkadot.tx.recovery.asRecovered(
+                recoveredAccount.address,
+                this.sharedState.nodeApi.polkadot.tx.balances.transferKeepAlive(
+                    destination.address,
+                    canonicalAmount,
+                ),
+            );
+        } else {
+            return this.sharedState.nodeApi.polkadot.tx.balances.transferKeepAlive(
+                destination.address,
+                canonicalAmount,
+            );
+        }
     }
 
     private async ensureFundsForFees(submittable: SubmittableExtrinsic): Promise<bigint> {
@@ -176,16 +189,33 @@ export class BalanceState extends State {
         return this.discardOnSuccess<BalanceState>(current => current._refresh());
     }
 
-    async transferAll(params: TransferAllParam): Promise<BalanceState> {
+    async transferAll(params: BlockchainSubmission<TransferAllParam>): Promise<BalanceState> {
         return this.discardOnSuccess<BalanceState>(current => current._transferAll(params));
     }
 
-    private async _transferAll(params: TransferAllParam): Promise<BalanceState> {
-        const { signer, destination, callback, keepAlive } = params;
+    private async _transferAll(params: BlockchainSubmission<TransferAllParam>): Promise<BalanceState> {
+        const { signer, callback, payload } = params;
+        const submittable = this.transferAllSubmittable(payload);
+        await signer.signAndSend({
+            signerId: requireDefined(this.sharedState.currentAccount),
+            submittable,
+            callback,
+        });
+        return this._refresh();
+    }
 
-        let submittable: SubmittableExtrinsic;
+    async estimateFeesTransferAll(params: TransferAllParam): Promise<FeesClass> {
+        const submittable = this.transferAllSubmittable(params);
+        return await this.sharedState.nodeApi.fees.estimateWithoutStorage({
+            origin: requireDefined(this.sharedState.currentAccount),
+            submittable,
+        });
+    }
+
+    private transferAllSubmittable(params: TransferAllParam): SubmittableExtrinsic {
+        const { destination, keepAlive } = params;
         if(this.sharedState.isRecovery) {
-            submittable = this.sharedState.nodeApi.polkadot.tx.recovery.asRecovered(
+            return this.sharedState.nodeApi.polkadot.tx.recovery.asRecovered(
                 this.sharedState.recoveredAccount?.address || "",
                 this.sharedState.nodeApi.polkadot.tx.balances.transferAll(
                     destination,
@@ -193,18 +223,11 @@ export class BalanceState extends State {
                 ),
             );
         } else {
-            submittable = this.sharedState.nodeApi.polkadot.tx.balances.transferAll(
+            return  this.sharedState.nodeApi.polkadot.tx.balances.transferAll(
                 destination,
                 keepAlive,
             );
         }
 
-        await signer.signAndSend({
-            signerId: requireDefined(this.sharedState.currentAccount),
-            submittable,
-            callback,
-        });
-
-        return this._refresh();
     }
 }

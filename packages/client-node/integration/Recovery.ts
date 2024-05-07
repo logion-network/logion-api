@@ -157,9 +157,11 @@ export async function recoverLostVault(state: State) {
     const newVault = await claimed.vaultState();
     let recoveredVault = await claimed.recoveredVaultState();
     recoveredVault = await recoveredVault.createVaultTransferRequest({
-        legalOfficer: alice,
-        amount: Lgnt.fromCanonicalPrefixedNumber(recoveredVault.balances[0].available),
-        destination: newVault.vaultAccount,
+        payload: {
+            legalOfficer: alice,
+            amount: Lgnt.fromCanonicalPrefixedNumber(recoveredVault.balances[0].available),
+            destination: newVault.vaultAccount,
+        },
         signer,
     });
     const pendingRequest = recoveredVault.pendingVaultTransferRequests[0];
@@ -185,8 +187,10 @@ export async function recoverLostAccount(state: State) {
     const recoveredBalance = await claimed.recoveredBalanceState();
     await recoveredBalance.transferAll({
         signer,
-        destination: NEW_ADDRESS,
-        keepAlive: false,
+        payload: {
+            destination: NEW_ADDRESS,
+            keepAlive: false,
+        }
     });
 }
 

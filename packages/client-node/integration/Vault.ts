@@ -17,17 +17,21 @@ export async function providesVault(state: State) {
     let balanceState = await userClient.balanceState();
     balanceState = await balanceState.transfer({
         signer,
-        destination: vaultAccount,
-        amount: Lgnt.from(5n),
+        payload: {
+            destination: vaultAccount,
+            amount: Lgnt.from(5n),
+        }
     });
     vaultState = await vaultState.refresh();
     checkCoinBalance(vaultState.balances[0], "5.00");
 
     // Transfer back from vault
     vaultState = await vaultState.createVaultTransferRequest({
-        legalOfficer: alice,
-        amount: Lgnt.from(1n),
-        destination: requesterAccount,
+        payload: {
+            legalOfficer: alice,
+            amount: Lgnt.from(1n),
+            destination: requesterAccount,
+        },
         signer
     });
     const pendingRequest = vaultState.pendingVaultTransferRequests[0];

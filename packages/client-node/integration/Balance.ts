@@ -14,8 +14,10 @@ export async function transfers(state: State) {
     expect(aliceState.transactions.length).toBe(0);
     aliceState = await aliceState.transfer({
         signer,
-        amount: Lgnt.from(5000n),
-        destination: requesterAccount,
+        payload: {
+            amount: Lgnt.from(5000n),
+            destination: requesterAccount,
+        },
     });
     checkBalanceDelta(aliceState, "-4.99k", aliceSnapshot);
     aliceState = await waitFor({
@@ -42,8 +44,10 @@ export async function transfers(state: State) {
     checkBalance(userState, "5.00k");
     userState = await userState.transfer({
         signer,
-        amount: Lgnt.from(2000n),
-        destination: alice.account,
+        payload: {
+            amount: Lgnt.from(2000n),
+            destination: alice.account,
+        }
     });
     checkBalance(userState, "2.99k");
 
@@ -94,8 +98,10 @@ export async function transferAndCannotPayFees(state: State) {
 
     await expectAsync(balanceState.transfer({
         signer,
-        amount: Lgnt.from(1n),
-        destination: alice.account,
+        payload: {
+            amount: Lgnt.from(1n),
+            destination: alice.account,
+        }
     })).toBeRejectedWithError("Not enough funds available to pay fees");
 }
 
@@ -108,7 +114,9 @@ export async function transferWithInsufficientFunds(state: State) {
 
     await expectAsync(aliceState.transfer({
         signer,
-        amount: Lgnt.fromCanonicalPrefixedNumber(aliceState.balances[0].available).add(Lgnt.from(1)),
-        destination: requesterAccount,
+        payload: {
+            amount: Lgnt.fromCanonicalPrefixedNumber(aliceState.balances[0].available).add(Lgnt.from(1)),
+            destination: requesterAccount,
+        }
     })).toBeRejectedWithError("Insufficient balance");
 }
