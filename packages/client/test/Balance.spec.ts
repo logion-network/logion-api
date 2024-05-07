@@ -1,4 +1,4 @@
-import { Numbers, CoinBalance, Currency, Queries, Fees, Lgnt, ValidAccountId } from "@logion/node-api";
+import { Numbers, CoinBalance, Queries, Fees, Lgnt, ValidAccountId } from "@logion/node-api";
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { DateTime } from "luxon";
@@ -176,8 +176,10 @@ describe("Balance", () => {
 
         await balanceState.transfer({
             signer: signer.object(),
-            amount,
-            destination: REQUESTER_ADDRESS,
+            payload: {
+                amount,
+                destination: REQUESTER_ADDRESS,
+            }
         });
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
@@ -257,8 +259,10 @@ describe("Balance", () => {
 
         await balanceState.transfer({
             signer: signer.object(),
-            amount,
-            destination: REQUESTER_ADDRESS,
+            payload: {
+                amount,
+                destination: REQUESTER_ADDRESS,
+            }
         });
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
@@ -329,8 +333,10 @@ describe("Balance", () => {
 
         await expectAsync(balanceState.transfer({
             signer: signer.object(),
-            amount,
-            destination: REQUESTER_ADDRESS,
+            payload: {
+                amount,
+                destination: REQUESTER_ADDRESS,
+            }
         })).toBeRejectedWithError("Insufficient balance");
     })
 })
@@ -351,8 +357,8 @@ function setupFetchTransactions(axiosFactory: Mock<AxiosFactory>, transactions: 
 
 const COIN_BALANCE: CoinBalance = {
     coin: Queries.getCoin("lgnt"),
-    total: Currency.nLgnt(100n),
-    available: Currency.nLgnt(100n),
-    reserved: Currency.nLgnt(0n),
+    total: Lgnt.from(100n).toPrefixedNumber(),
+    available: Lgnt.from(100n).toPrefixedNumber(),
+    reserved: Lgnt.from(0n).toPrefixedNumber(),
     level: 100,
 };

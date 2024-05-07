@@ -17,8 +17,10 @@ export async function providesVault(state: State) {
     let balanceState = await userClient.balanceState();
     balanceState = await balanceState.transfer({
         signer,
-        destination: vaultAccount,
-        amount: Lgnt.from(5n),
+        payload: {
+            destination: vaultAccount,
+            amount: Lgnt.from(5n),
+        }
     });
     vaultState = await vaultState.refresh();
     checkCoinBalance(vaultState.balances[0], "5.00");

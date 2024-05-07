@@ -185,8 +185,10 @@ export async function recoverLostAccount(state: State) {
     const recoveredBalance = await claimed.recoveredBalanceState();
     await recoveredBalance.transferAll({
         signer,
-        destination: NEW_ADDRESS,
-        keepAlive: false,
+        payload: {
+            destination: NEW_ADDRESS,
+            keepAlive: false,
+        }
     });
 }
 
