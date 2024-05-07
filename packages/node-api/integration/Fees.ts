@@ -33,10 +33,10 @@ export async function ensureEnoughFunds() {
     const accountData = await api.queries.getAccountData(aliceAccountId);
     const existentialDeposit = api.polkadot.consts.balances.existentialDeposit.toBigInt();
 
-    await expectAsync(testEnsureEnoughFunds(accountData.available)).toBeRejectedWithError("Not enough funds");
-    await expectAsync(testEnsureEnoughFunds(accountData.available + 1000n)).toBeRejectedWithError("Not enough funds");
-    await expectAsync(testEnsureEnoughFunds(accountData.available - existentialDeposit)).toBeResolved();
-    await expectAsync(testEnsureEnoughFunds(accountData.available - (10n * existentialDeposit))).toBeResolved();
+    await expectAsync(testEnsureEnoughFunds(accountData.available.canonical)).toBeRejectedWithError("Not enough funds");
+    await expectAsync(testEnsureEnoughFunds(accountData.available.canonical + 1000n)).toBeRejectedWithError("Not enough funds");
+    await expectAsync(testEnsureEnoughFunds(accountData.available.canonical - existentialDeposit)).toBeResolved();
+    await expectAsync(testEnsureEnoughFunds(accountData.available.canonical - (10n * existentialDeposit))).toBeResolved();
 }
 
 async function testEnsureEnoughFunds(fees: bigint) {
