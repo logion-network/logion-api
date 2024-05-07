@@ -1,7 +1,5 @@
 import { ApiPromise } from "@polkadot/api";
 import { Adapters } from "./Adapters.js";
-import * as Currency from "./Currency.js";
-import * as Numbers from "./numbers.js";
 import {
     AccountType,
     AnyAccountId,
@@ -17,21 +15,6 @@ import {
 } from "./Types.js";
 import { UUID } from "./UUID.js";
 import { Hash } from "./Hash.js";
-
-export interface Coin {
-    id: string,
-    symbol: string,
-}
-
-export interface CoinBalance {
-    coin: Coin,
-    available: Numbers.PrefixedNumber,
-    reserved: Numbers.PrefixedNumber,
-    total: Numbers.PrefixedNumber,
-    level: number,
-}
-
-export const ARTIFICIAL_MAX_BALANCE = Currency.Lgnt.fromCanonical(100n).toCanonicalPrefixedNumber();
 
 export class Queries {
 
@@ -66,69 +49,6 @@ export class Queries {
     async getAccountData(accountId: ValidAccountId): Promise<TypesAccountData> {
         const accountInfo = await this.api.query.system.account(accountId.address);
         return this.adapters.fromFrameSystemAccountInfo(accountInfo);
-    }
-
-    async getCoinBalances(accountId: ValidAccountId): Promise<CoinBalance[]> {
-        const accountInfo = await this.api.query.system.account(accountId.address);
-        const data = this.adapters.fromFrameSystemAccountInfo(accountInfo);
-
-        const logAvailable = Currency.Lgnt.fromCanonical(BigInt(data.available)).toCanonicalPrefixedNumber().optimizeScale(3);
-        const logReserved = Currency.Lgnt.fromCanonical(BigInt(data.reserved)).toCanonicalPrefixedNumber().optimizeScale(3);
-        const logTotal = Currency.Lgnt.fromCanonical(BigInt(data.total)).toCanonicalPrefixedNumber().optimizeScale(3);
-        const logLevel = logTotal.scientificNumber.divideBy(ARTIFICIAL_MAX_BALANCE.convertTo(logTotal.prefix).scientificNumber).toNumber();
-
-        return [
-            Queries.buildCoinBalance({
-                coinId: 'lgnt',
-                available: logAvailable,
-                reserved: logReserved,
-                total: logTotal,
-                level: logLevel,
-            }),
-            Queries.DOT_BALANCE
-        ];
-    }
-
-    static readonly DOT_BALANCE = Queries.buildCoinBalance({
-        coinId: 'dot',
-        available: new Numbers.PrefixedNumber("0", Numbers.NONE),
-        reserved: new Numbers.PrefixedNumber("0", Numbers.NONE),
-        total: new Numbers.PrefixedNumber("0", Numbers.NONE),
-        level: 1
-    });
-
-    private static buildCoinBalance(args: {
-        coinId: string,
-        available: Numbers.PrefixedNumber,
-        reserved: Numbers.PrefixedNumber,
-        total: Numbers.PrefixedNumber,
-        level: number,
-    }): CoinBalance {
-        const { coinId, total, reserved, available, level } = args;
-        const coin = Queries.getCoin(coinId);
-        return {
-            coin,
-            available,
-            reserved,
-            total,
-            level,
-        }
-    }
-
-    static getCoin(coinId: string): Coin {
-        if(coinId === 'dot') {
-            return {
-                id: 'dot',
-                symbol: 'DOT',
-            };
-        } else if(coinId === "lgnt") {
-            return {
-                id: 'lgnt',
-                symbol: Currency.SYMBOL,
-            };
-        } else {
-            throw new Error(`Unsupported coin ${coinId}`);
-        }
     }
 
     async getLegalOfficerCase(locId: UUID): Promise<LegalOfficerCase | undefined> {

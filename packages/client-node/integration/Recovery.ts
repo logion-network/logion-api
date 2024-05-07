@@ -159,7 +159,7 @@ export async function recoverLostVault(state: State) {
     recoveredVault = await recoveredVault.createVaultTransferRequest({
         payload: {
             legalOfficer: alice,
-            amount: Lgnt.fromCanonicalPrefixedNumber(recoveredVault.balances[0].available),
+            amount: recoveredVault.balance.available,
             destination: newVault.vaultAccount,
         },
         signer,

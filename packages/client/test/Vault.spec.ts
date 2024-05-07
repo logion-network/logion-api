@@ -1,4 +1,4 @@
-import { Lgnt, ValidAccountId, Vault } from '@logion/node-api';
+import { Lgnt, TypesAccountData, ValidAccountId, Vault } from '@logion/node-api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces/payment';
 import type { Header, BlockNumber } from '@polkadot/types/interfaces/runtime';
@@ -107,7 +107,7 @@ describe("Vault", () => {
             acceptedVaultTransferRequests,
             selectedLegalOfficers: [ ALICE, BOB ],
             isRecovery: false,
-            balances: [],
+            balance: ZERO_BALANCE,
             transactions: [],
             vault: vault.object(),
         });
@@ -186,7 +186,7 @@ describe("Vault", () => {
             selectedLegalOfficers: [ ALICE, BOB ],
             isRecovery: true,
             recoveredAccount: REQUESTER,
-            balances: [],
+            balance: ZERO_BALANCE,
             transactions: [],
             vault: vault.object(),
         });
@@ -254,7 +254,7 @@ describe("Vault", () => {
             acceptedVaultTransferRequests,
             selectedLegalOfficers: [ ALICE, BOB ],
             isRecovery: false,
-            balances: [],
+            balance: ZERO_BALANCE,
             transactions: [],
             vault: vault.object(),
         });
@@ -326,7 +326,7 @@ describe("Vault", () => {
             selectedLegalOfficers: [ ALICE, BOB ],
             isRecovery: true,
             recoveredAccount: REQUESTER,
-            balances: [],
+            balance: ZERO_BALANCE,
             transactions: [],
             vault: vault.object(),
         });
@@ -344,6 +344,12 @@ describe("Vault", () => {
         expect(nextState.cancelledVaultTransferRequests[0].status).toBe("CANCELLED");
     });
 });
+
+const ZERO_BALANCE: TypesAccountData = {
+    available: Lgnt.zero(),
+    reserved: Lgnt.zero(),
+    total: Lgnt.zero(),
+};
 
 function buildTokens(currentAccount: ValidAccountId): AccountTokens {
     const token = "some-token";

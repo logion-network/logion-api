@@ -1,4 +1,4 @@
-import { Numbers, CoinBalance, Lgnt } from "@logion/node-api";
+import { Numbers, Lgnt, TypesAccountData } from "@logion/node-api";
 import { BalanceState, waitFor } from "@logion/client";
 
 import { State } from "./Utils.js";
@@ -57,37 +57,35 @@ export async function transfers(state: State) {
 }
 
 export function checkBalance(balanceState: BalanceState, expectedValue: string) {
-    const balance = balanceState.balances[0];
+    const balance = balanceState.balance;
     checkCoinBalance(balance, expectedValue);
 }
 
-export function takeSnapshot(balanceState: BalanceState): CoinBalance {
-    return balanceState.balances[0];
+export function takeSnapshot(balanceState: BalanceState): TypesAccountData {
+    return balanceState.balance;
 }
 
-export function checkBalanceDelta(current: BalanceState, expectedDelta: string, previous: CoinBalance) {
+export function checkBalanceDelta(current: BalanceState, expectedDelta: string, previous: TypesAccountData) {
     checkCoinBalanceDelta(takeSnapshot(current), expectedDelta, previous);
 }
 
-export function checkCoinBalanceDelta(current: CoinBalance, expectedDelta: string, previous: CoinBalance) {
-    expect(current.coin).toEqual(previous.coin);
-    const delta: CoinBalance = {
-        coin: current.coin,
-        available: current.available.subtract(previous.available),
-        reserved: current.reserved.subtract(previous.reserved),
-        total: current.total.subtract(previous.total),
-        level: current.level - previous.level,
+export function checkCoinBalanceDelta(current: TypesAccountData, expectedDelta: string, previous: TypesAccountData) {
+    const delta: TypesAccountData = {
+        available: current.available.substract(previous.available),
+        reserved: current.reserved.substract(previous.reserved),
+        total: current.total.substract(previous.total),
     }
     checkCoinBalance(delta, expectedDelta);
 }
 
-export function checkCoinBalance(balance: CoinBalance, expectedValue: string) {
+export function checkCoinBalance(balance: TypesAccountData, expectedValue: string) {
     const formatted = formatBalance(balance);
     expect(expectedValue).toEqual(formatted)
 }
 
-export function formatBalance(balance: CoinBalance): string {
-    return `${balance.total.coefficient.toInteger()}.${balance.total.coefficient.toFixedPrecisionDecimals(2)}${balance.total.prefix.symbol}`;
+export function formatBalance(balance: TypesAccountData): string {
+    const total = balance.total.toPrefixedNumber().optimizeScale(3);
+    return `${total.coefficient.toInteger()}.${total.coefficient.toFixedPrecisionDecimals(2)}${total.prefix.symbol}`;
 }
 
 export async function transferAndCannotPayFees(state: State) {
@@ -115,7 +113,7 @@ export async function transferWithInsufficientFunds(state: State) {
     await expectAsync(aliceState.transfer({
         signer,
         payload: {
-            amount: Lgnt.fromCanonicalPrefixedNumber(aliceState.balances[0].available).add(Lgnt.from(1)),
+            amount: aliceState.balance.available.add(Lgnt.from(1)),
             destination: requesterAccount,
         }
     })).toBeRejectedWithError("Insufficient balance");

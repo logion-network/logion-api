@@ -1,4 +1,4 @@
-import { Numbers, CoinBalance, Queries, Fees, Lgnt, ValidAccountId } from "@logion/node-api";
+import { Fees, Lgnt, ValidAccountId, TypesAccountData } from "@logion/node-api";
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { DateTime } from "luxon";
@@ -27,15 +27,14 @@ describe("Balance", () => {
 
             directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
-            nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS))
-                .returns(Promise.resolve([ COIN_BALANCE ]));
+            nodeApi.setup(instance => instance.queries.getAccountData(REQUESTER_ADDRESS))
+                .returns(Promise.resolve(BALANCE));
         })
         const client = (await LogionClient.create(config)).withCurrentAccount(REQUESTER_ADDRESS)
 
         const balanceState = await client.balanceState();
 
-        expect(balanceState.balances.length).toBe(1);
-        expect(balanceState.balances[0]).toEqual(COIN_BALANCE);
+        expect(balanceState.balance).toEqual(BALANCE);
     })
 
     it("gets transactions", async () => {
@@ -84,8 +83,8 @@ describe("Balance", () => {
                 axiosFactory: axiosFactory.object(),
             }) ]));
 
-            nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS))
-                .returns(Promise.resolve([ COIN_BALANCE ]));
+            nodeApi.setup(instance => instance.queries.getAccountData(REQUESTER_ADDRESS))
+                .returns(Promise.resolve(BALANCE));
         })
         const client = (await LogionClient.create(config)).withCurrentAccount(REQUESTER_ADDRESS)
 
@@ -124,18 +123,11 @@ describe("Balance", () => {
         );
         const amount = Lgnt.fromCanonical(200n);
         const transfer = new Mock<SubmittableExtrinsic>();
-        const balances: CoinBalance[] = [
-            {
-                coin: {
-                    id: "lgnt",
-                    symbol: "LGNT",
-                },
-                available: new Numbers.PrefixedNumber("300", Numbers.ATTO),
-                total: new Numbers.PrefixedNumber("300", Numbers.ATTO),
-                reserved: new Numbers.PrefixedNumber("0", Numbers.ATTO),
-                level: 1,
-            }
-        ];
+        const balance: TypesAccountData = {
+            available: Lgnt.fromCanonical(300n),
+            total: Lgnt.fromCanonical(300n),
+            reserved: Lgnt.fromCanonical(0n),
+        };
         const sharedState = await buildTestAuthenticatedSharedSate(
             testConfigFactory => {
                 const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
@@ -145,8 +137,8 @@ describe("Balance", () => {
 
                 directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
-                nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS))
-                    .returns(Promise.resolve([ COIN_BALANCE ]));
+                nodeApi.setup(instance => instance.queries.getAccountData(REQUESTER_ADDRESS))
+                    .returns(Promise.resolve(BALANCE));
 
                 nodeApi.setup(instance => instance.polkadot.tx.balances.transferKeepAlive(REQUESTER_ADDRESS.address, "200"))
                     .returns(transfer.object());
@@ -163,7 +155,7 @@ describe("Balance", () => {
 
         const balanceState = new BalanceState({
             ...sharedState,
-            balances,
+            balance,
             transactions: [],
             isRecovery: false,
         });
@@ -200,18 +192,11 @@ describe("Balance", () => {
         const asRecovered = new Mock<SubmittableExtrinsic>();
         const amount = Lgnt.fromCanonical(200n);
         const transfer = new Mock<SubmittableExtrinsic>();
-        const balances: CoinBalance[] = [
-            {
-                coin: {
-                    id: "lgnt",
-                    symbol: "LGNT",
-                },
-                available: new Numbers.PrefixedNumber("100", Numbers.ATTO),
-                total: new Numbers.PrefixedNumber("100", Numbers.ATTO),
-                reserved: new Numbers.PrefixedNumber("0", Numbers.ATTO),
-                level: 1,
-            }
-        ];
+        const balance: TypesAccountData = {
+            available: Lgnt.fromCanonical(100n),
+            total: Lgnt.fromCanonical(100n),
+            reserved: Lgnt.fromCanonical(0n),
+        };
         const sharedState = await buildTestAuthenticatedSharedSate(
             testConfigFactory => {
                 const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
@@ -221,8 +206,8 @@ describe("Balance", () => {
 
                 directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
-                nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS))
-                    .returns(Promise.resolve([ COIN_BALANCE ]));
+                nodeApi.setup(instance => instance.queries.getAccountData(REQUESTER_ADDRESS))
+                    .returns(Promise.resolve(BALANCE));
 
                 nodeApi.setup(instance => instance.polkadot.tx.balances.transferKeepAlive(REQUESTER_ADDRESS.address, "200"))
                     .returns(transfer.object());
@@ -234,7 +219,11 @@ describe("Balance", () => {
                     .returns(asRecovered.object());
 
                 nodeApi.setup(instance => instance.queries.getAccountData(recoveredAddress))
-                    .returnsAsync({ available: 200n, reserved: 0n, total: 200n });
+                    .returnsAsync({
+                        available: Lgnt.fromCanonical(200n),
+                        reserved: Lgnt.fromCanonical(0n),
+                        total: Lgnt.fromCanonical(200n),
+                    });
 
                 setupFetchTransactions(axiosFactory, [], recoveredAddress.address);
             },
@@ -245,7 +234,7 @@ describe("Balance", () => {
 
         const balanceState = new BalanceState({
             ...sharedState,
-            balances,
+            balance,
             transactions: [],
             isRecovery: true,
             recoveredAccount: recoveredAddress,
@@ -281,18 +270,11 @@ describe("Balance", () => {
         );
         const amount = Lgnt.fromCanonical(200n);
         const transfer = new Mock<SubmittableExtrinsic>();
-        const balances: CoinBalance[] = [
-            {
-                coin: {
-                    id: "lgnt",
-                    symbol: "LGNT",
-                },
-                available: new Numbers.PrefixedNumber("200", Numbers.ATTO),
-                total: new Numbers.PrefixedNumber("200", Numbers.ATTO),
-                reserved: new Numbers.PrefixedNumber("0", Numbers.ATTO),
-                level: 1,
-            }
-        ];
+        const balance: TypesAccountData = {
+            available: Lgnt.fromCanonical(200n),
+            total: Lgnt.fromCanonical(200n),
+            reserved: Lgnt.fromCanonical(0n),
+        };
         const sharedState = await buildTestAuthenticatedSharedSate(
             testConfigFactory => {
                 const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
@@ -302,8 +284,8 @@ describe("Balance", () => {
 
                 directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
-                nodeApi.setup(instance => instance.queries.getCoinBalances(REQUESTER_ADDRESS))
-                    .returns(Promise.resolve([ COIN_BALANCE ]));
+                nodeApi.setup(instance => instance.queries.getAccountData(REQUESTER_ADDRESS))
+                    .returns(Promise.resolve(BALANCE));
 
                 nodeApi.setup(instance => instance.polkadot.tx.balances.transferKeepAlive(REQUESTER_ADDRESS.address, "200"))
                     .returns(transfer.object());
@@ -320,7 +302,7 @@ describe("Balance", () => {
 
         const balanceState = new BalanceState({
             ...sharedState,
-            balances,
+            balance,
             transactions: [],
             isRecovery: false,
         });
@@ -355,10 +337,8 @@ function setupFetchTransactions(axiosFactory: Mock<AxiosFactory>, transactions: 
         .returns(axios.object());
 }
 
-const COIN_BALANCE: CoinBalance = {
-    coin: Queries.getCoin("lgnt"),
-    total: Lgnt.from(100n).toPrefixedNumber(),
-    available: Lgnt.from(100n).toPrefixedNumber(),
-    reserved: Lgnt.from(0n).toPrefixedNumber(),
-    level: 100,
+const BALANCE: TypesAccountData = {
+    total: Lgnt.from(100n),
+    available: Lgnt.from(100n),
+    reserved: Lgnt.from(0n),
 };

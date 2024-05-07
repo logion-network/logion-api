@@ -23,7 +23,7 @@ export async function providesVault(state: State) {
         }
     });
     vaultState = await vaultState.refresh();
-    checkCoinBalance(vaultState.balances[0], "5.00");
+    checkCoinBalance(vaultState.balance, "5.00");
 
     // Transfer back from vault
     vaultState = await vaultState.createVaultTransferRequest({
@@ -43,7 +43,7 @@ export async function providesVault(state: State) {
     vaultState = await vaultState.refresh();
     balanceState = await balanceState.refresh();
 
-    checkCoinBalance(vaultState.balances[0], "4.00");
+    checkCoinBalance(vaultState.balance, "4.00");
 }
 
 export async function aliceAcceptsTransfer(state: State, request: VaultTransferRequest, activeProtection: WithProtectionParameters) {
