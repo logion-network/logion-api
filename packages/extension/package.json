@@ -1,6 +1,6 @@
 {
   "name": "@logion/extension",
-  "version": "0.8.0",
+  "version": "0.8.1-1",
   "description": "logion SDK for Polkadot JS extension",
   "main": "dist/index.js",
   "packageManager": "yarn@3.2.0",
@@ -22,8 +22,8 @@
   "author": "Logion Team",
   "license": "Apache-2.0",
   "dependencies": {
-    "@logion/extension-compat-metamask": "^0.46.9",
-    "@polkadot/extension-dapp": "^0.46.9"
+    "@polkadot/extension-compat-metamask": "^0.47.3",
+    "@polkadot/extension-dapp": "^0.47.3"
   },
   "peerDependencies": {
     "@logion/client-browser": "0.x"

@@ -1,5 +1,5 @@
 import { web3Enable, web3EnablePromise, web3Accounts } from '@polkadot/extension-dapp';
-import initMetaMask from "@logion/extension-compat-metamask/bundle";
+import initMetaMask from "@polkadot/extension-compat-metamask/bundle";
 import { InjectedAccountWithMeta, InjectedExtension } from '@polkadot/extension-inject/types';
 
 export async function isExtensionAvailable(appName: string): Promise<boolean> {
