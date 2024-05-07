@@ -215,6 +215,17 @@ export class LocsState extends State {
         return this.sharedState.legalOfficers.filter(lo => this.hasValidIdentityLoc(lo));
     }
 
+    hasNonVoidIdentityLoc(legalOfficer: LegalOfficer): boolean {
+        return LocsState.filter(this._locs, 'Identity', loc =>
+            loc.data().ownerAccountId.equals(legalOfficer.account)
+            && loc.data().voidInfo === undefined
+        ).length > 0;
+    }
+
+    get legalOfficersWithNonVoidIdentityLoc(): LegalOfficerClass[] {
+        return this.sharedState.legalOfficers.filter(lo => this.hasNonVoidIdentityLoc(lo));
+    }
+
     private static withPredicate<T extends LocRequestState>(locs: Record<string, LocRequestState>, predicate: (l: LocRequestState) => boolean): Record<LocType, T[]> {
         return {
             'Transaction': LocsState.filter(locs, 'Transaction', predicate),
