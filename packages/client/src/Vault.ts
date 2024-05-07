@@ -1,4 +1,4 @@
-import { CoinBalance, Vault, Lgnt, ValidAccountId, Fees as FeesClass } from "@logion/node-api";
+import { Vault, Lgnt, ValidAccountId, Fees as FeesClass, TypesAccountData } from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { authenticatedCurrentAccount, getDefinedCurrentAccount, SharedState } from "./SharedClient.js";
 import { BlockchainSubmission } from "./Signer.js";
@@ -18,7 +18,7 @@ export interface VaultSharedState extends SharedState {
     selectedLegalOfficers: LegalOfficer[],
     isRecovery: boolean,
     recoveredAccount?: ValidAccountId,
-    balances: CoinBalance[],
+    balance: TypesAccountData;
     transactions: Transaction[],
     vault: Vault,
 }
@@ -58,13 +58,13 @@ export class VaultState extends State {
         const vaultAccount = vault.account;
         const transactionClient = VaultState.newTransactionClient(vaultAccount, sharedState);
         const transactions = await transactionClient.fetchTransactions();
-        const balances = await sharedState.nodeApi.queries.getCoinBalances(vaultAccount);
+        const balance = await sharedState.nodeApi.queries.getAccountData(vaultAccount);
 
         return new VaultState({
             ...sharedState,
             ...result,
             transactions: transactions.map(transaction => toTransaction(transaction, vaultAccount)),
-            balances,
+            balance,
             client,
             vault,
         });
@@ -321,12 +321,12 @@ export class VaultState extends State {
         const result = await this.sharedState.client.fetchAll(this.sharedState.legalOfficers);
         const transactionClient = VaultState.newTransactionClient(this.vaultAccount, this.sharedState);
         const transactions = await transactionClient.fetchTransactions();
-        const balances = await this.sharedState.nodeApi.queries.getCoinBalances(this.vaultAccount);
+        const balance = await this.sharedState.nodeApi.queries.getAccountData(this.vaultAccount);
         return new VaultState({
             ...this.sharedState,
             ...result,
             transactions: transactions.map(transaction => toTransaction(transaction, this.vaultAccount)),
-            balances,
+            balance,
         });
     }
 
@@ -338,7 +338,7 @@ export class VaultState extends State {
         return this.sharedState.transactions;
     }
 
-    get balances(): CoinBalance[] {
-        return this.sharedState.balances;
+    get balance(): TypesAccountData {
+        return this.sharedState.balance;
     }
 }

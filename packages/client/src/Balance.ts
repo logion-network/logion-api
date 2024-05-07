@@ -1,4 +1,9 @@
-import { CoinBalance, Lgnt, ValidAccountId, Fees as FeesClass, } from "@logion/node-api";
+import {
+    Lgnt,
+    TypesAccountData,
+    ValidAccountId,
+    Fees as FeesClass,
+} from "@logion/node-api";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import { BackendTransaction, TransactionClient, TransactionError, TransactionType } from "./TransactionClient.js";
@@ -14,7 +19,7 @@ export interface TransferParam {
 }
 
 export interface BalanceSharedState extends SharedState {
-    readonly balances: CoinBalance[];
+    readonly balance: TypesAccountData;
     readonly transactions: Transaction[];
     readonly isRecovery: boolean;
     readonly recoveredAccount?: ValidAccountId;
@@ -67,11 +72,11 @@ export async function getBalanceState(sharedState: SharedState & { isRecovery: b
     }
     const client = newTransactionClient(targetAccount, sharedState);
     const transactions = await client.fetchTransactions();
-    const balances = await sharedState.nodeApi.queries.getCoinBalances(targetAccount);
+    const balance = await sharedState.nodeApi.queries.getAccountData(targetAccount);
     return new BalanceState({
         ...sharedState,
         transactions: transactions.map(transaction => toTransaction(transaction, targetAccount)),
-        balances,
+        balance,
     });
 }
 
@@ -101,8 +106,8 @@ export class BalanceState extends State {
         return this.sharedState.transactions;
     }
 
-    get balances(): CoinBalance[] {
-        return this.sharedState.balances;
+    get balance(): TypesAccountData {
+        return this.sharedState.balance;
     }
 
     async transfer(params: BlockchainSubmission<TransferParam>): Promise<BalanceState> {
@@ -118,13 +123,13 @@ export class BalanceState extends State {
             const recoveredAccount = requireDefined(this.sharedState.recoveredAccount);
             await this.ensureFundsForFees(submittable);
             const recoveredAccountData = await this.sharedState.nodeApi.queries.getAccountData(recoveredAccount);
-            const transferable = BigInt(recoveredAccountData.available);
+            const transferable = recoveredAccountData.available.canonical;
             if(transferable < canonicalAmount) {
                 throw new Error("Insufficient balance");
             }
         } else {
             const fees = await this.ensureFundsForFees(submittable);
-            const available = Lgnt.fromCanonicalPrefixedNumber(this.balances[0].available).canonical;
+            const available = this.balance.available.canonical;
             const transferable = available - fees;
             if(transferable < canonicalAmount) {
                 throw new Error("Insufficient balance");
@@ -174,7 +179,7 @@ export class BalanceState extends State {
             origin: requireDefined(this.sharedState.currentAccount),
             submittable,
         });
-        const available = Lgnt.fromCanonicalPrefixedNumber(this.balances[0].available).canonical;
+        const available = this.balance.available.canonical;
         if(available < fees.totalFee.canonical) {
             throw new Error("Not enough funds available to pay fees");
         }

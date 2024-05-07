@@ -8,9 +8,9 @@ import { encodeAddress, addressEq, base58Decode, checkAddressChecksum } from "@p
 import { bech32 } from "bech32";
 
 export interface TypesAccountData {
-    available: bigint,
-    reserved: bigint,
-    total: bigint,
+    available: Lgnt;
+    reserved: Lgnt;
+    total: Lgnt;
 }
 
 export interface LocItemParams {
