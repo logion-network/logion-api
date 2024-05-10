@@ -6,7 +6,7 @@ import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
 import { LogionClient } from "../src/LogionClient.js";
 import { ApprovedVote, BackendVote, PendingVote, RejectedVote, Vote, Votes } from "../src/Votes.js";
-import { ALICE, BOB, CHARLIE, doBuildValidPolkadotAccountId, mockSigner } from "./Utils.js";
+import { ALICE, BOB, CHARLIE, mockSigner } from "./Utils.js";
 import { LegalOfficerClass } from "../src/Types.js";
 
 describe("Votes", () => {
@@ -115,7 +115,9 @@ describe("Votes", () => {
                 submittable: submittable.object(),
             });
             const updatedVote = await pendingVote.castVote({
-                result: "Yes",
+                payload : {
+                    result: "Yes"
+                },
                 signer: signer.object(),
             });
 

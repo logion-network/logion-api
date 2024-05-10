@@ -69,9 +69,13 @@ interface SubmissionState {
     block?: string;
 }
 
-export interface BlockchainSubmissionParams {
+interface BlockchainSubmissionParams {
     signer: Signer;
     callback?: SignCallback;
+}
+
+export interface OptionalBlockchainSubmission<T> extends Partial<BlockchainSubmissionParams> {
+    payload: T;
 }
 
 export interface BlockchainSubmission<T> extends BlockchainSubmissionParams {
@@ -80,6 +84,9 @@ export interface BlockchainSubmission<T> extends BlockchainSubmissionParams {
 
 export interface BlockchainBatchSubmission<T> extends BlockchainSubmissionParams {
     payload: T[];
+}
+
+export interface BasicBlockchainSubmission extends BlockchainSubmissionParams {
 }
 
 export abstract class BaseSigner implements FullSigner {

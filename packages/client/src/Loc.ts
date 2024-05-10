@@ -31,9 +31,7 @@ import {
     AddTokensRecordParams,
     GetTokensRecordsRequest,
     ReviewFileParams,
-    AckFileParams,
     ReviewMetadataParams,
-    AckMetadataParams,
     AddLinkParams,
     VoidParams,
     VerifiedIssuer,
@@ -41,13 +39,9 @@ import {
     ItemStatus,
     RefFileParams,
     RefMetadataParams,
-    EstimateFeesPublishFileParams,
-    EstimateFeesPublishMetadataParams,
-    EstimateFeesPublishLinkParams,
     OpenCollectionLocParams,
     OpenPolkadotLocParams,
     RefLinkParams,
-    AckLinkParams,
     ReviewLinkParams,
     ItemsParams,
     ItemLifecycle as BackendItemLifecycle,
@@ -55,11 +49,13 @@ import {
     SetInvitedContributorSelectionParams,
     withLocId,
     withAdditional,
-    toBlockchainSubmission,
     CollectionParams,
     BackendCollectionParams,
+    PublishFileParams,
+    PublishMetadataParams,
+    PublishLinkParams,
 } from "./LocClient.js";
-import { BlockchainSubmission, BlockchainSubmissionParams, BlockchainBatchSubmission } from "./Signer.js";
+import { BlockchainSubmission, BlockchainBatchSubmission, BasicBlockchainSubmission } from "./Signer.js";
 import { SharedState, getLegalOfficer } from "./SharedClient.js";
 import { LegalOfficer, UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
 import { CollectionItem as CollectionItemClass } from "./CollectionItem.js";
@@ -383,36 +379,27 @@ export class LocsState extends State {
             undefined
     }
 
-    async openTransactionLoc(params: CreateLocParams & ItemsParams & BlockchainSubmissionParams): Promise<OpenLoc> {
-        return this.openLoc(toBlockchainSubmission({
-            ...params,
-            locType: "Transaction"
-        }));
+    async openTransactionLoc(params: BlockchainSubmission<CreateLocParams & ItemsParams>): Promise<OpenLoc> {
+        return this.openLoc(withAdditional({ locType: "Transaction" as LocType }, params));
     }
 
-    async openCollectionLoc(params: CreateCollectionLocParams & ItemsParams & BlockchainSubmissionParams): Promise<OpenLoc> {
-        const { lastBlockSubmission, maxSize } = params.collectionParams;
+    async openCollectionLoc(params: BlockchainSubmission<CreateCollectionLocParams & ItemsParams>): Promise<OpenLoc> {
+        const { lastBlockSubmission, maxSize } = params.payload.collectionParams;
         if (lastBlockSubmission === undefined) {
             requireDefined(maxSize, () => Error("Missing Collection upper bound."));
         }
-        return this.openLoc(toBlockchainSubmission({
-            ...params,
-            locType: "Collection"
-        }));
+        return this.openLoc(withAdditional({ locType: "Collection" as LocType }, params));
     }
 
-    async openIdentityLoc(params: CreateIdentityLocParams & ItemsParams & BlockchainSubmissionParams): Promise<OpenLoc> {
-        const { userIdentity, userPostalAddress } = params;
+    async openIdentityLoc(params: BlockchainSubmission<CreateIdentityLocParams & ItemsParams>): Promise<OpenLoc> {
+        const { userIdentity, userPostalAddress } = params.payload;
         if (userIdentity === undefined) {
             throw new Error("User Identity is mandatory for an Identity LOC")
         }
         if (userPostalAddress === undefined) {
             throw new Error("User Postal Address is mandatory for an Identity LOC")
         }
-        return this.openLoc(toBlockchainSubmission({
-            ...params,
-            locType: "Identity"
-        }));
+        return this.openLoc(withAdditional({ locType: "Identity" as LocType }, params));
     }
 
     private async openLoc(params: BlockchainSubmission<CreateAnyLocParams & ItemsParams>): Promise<OpenLoc> {
@@ -630,21 +617,22 @@ export class LegalOfficerLocsStateCommands {
 
     private locsState: LocsState;
 
-    async createLoc(params: OpenLocParams & BlockchainSubmissionParams): Promise<OpenLoc> {
-        const { locType, description, userIdentity, userPostalAddress, company, template, signer, callback } = params;
+    async createLoc(params: BlockchainSubmission<OpenLocParams>): Promise<OpenLoc> {
+        const { payload, signer, callback } = params;
+        const { locType, description, userIdentity, userPostalAddress, company, template, requesterLocId } = payload;
         const legalOfficer = this.sharedState.legalOfficers.find(legalOfficer => legalOfficer.account.equals(this.sharedState.currentAccount));
         if(!legalOfficer) {
             throw new Error("Current user is not a Legal Officer");
         }
         const client = LocMultiClient.newLocMultiClient(this.sharedState).newLocClient(legalOfficer);
 
-        if(locType === "Transaction" && !params.requesterLocId) {
+        if(locType === "Transaction" && !requesterLocId) {
             throw new Error("Cannot create Logion Transaction LOC without a requester");
         }
 
         const request = await client.createLocRequest({
             ownerAddress: legalOfficer.account.address,
-            requesterIdentityLoc: params.requesterLocId ? params.requesterLocId.toString() : undefined,
+            requesterIdentityLoc: requesterLocId ? requesterLocId.toString() : undefined,
             description,
             locType,
             userIdentity,
@@ -660,10 +648,12 @@ export class LegalOfficerLocsStateCommands {
 
         const locId = new UUID(request.id);
         if (request.locType === "Transaction") {
-            if(params.requesterLocId) {
+            if(requesterLocId) {
                 await client.openLogionTransactionLoc({
-                    locId,
-                    requesterLocId: params.requesterLocId,
+                    payload: {
+                        locId,
+                        requesterLocId: requesterLocId,
+                    },
                     signer,
                     callback,
                 });
@@ -672,7 +662,9 @@ export class LegalOfficerLocsStateCommands {
             }
         } else if (request.locType === "Identity") {
             await client.openLogionIdentityLoc({
-                locId,
+                payload: {
+                    locId
+                },
                 signer,
                 callback,
             });
@@ -1405,24 +1397,30 @@ implements LegalOfficeReviewCommands {
         return await this.request.refresh() as RejectedRequest;
     }
 
-    async accept(args?: BlockchainSubmissionParams): Promise<AcceptedRequest | OpenLoc> {
+    async accept(args?: BasicBlockchainSubmission): Promise<AcceptedRequest | OpenLoc> {
         const requesterAccountId = this.request.data().requesterAccountId;
         const requesterLoc = this.request.data().requesterLocId;
         const sponsorshipId = this.request.data().sponsorshipId;
         const locType = this.request.data().locType;
         if(locType === "Transaction") {
             await this.client.acceptTransactionLoc({
-                locId: this.locId,
-                requesterAccountId,
-                requesterLoc,
-                ...args,
+                signer: args?.signer,
+                callback: args?.callback,
+                payload: {
+                    locId: this.locId,
+                    requesterAccountId,
+                    requesterLoc,
+                }
             });
         } else if(locType === "Identity") {
             await this.client.acceptIdentityLoc({
-                locId: this.locId,
-                requesterAccountId,
-                sponsorshipId,
-                ...args,
+                signer: args?.signer,
+                callback: args?.callback,
+                payload: {
+                    locId: this.locId,
+                    requesterAccountId,
+                    sponsorshipId,
+                }
             });
         } else {
             if(!requesterAccountId) {
@@ -1497,23 +1495,14 @@ export class AcceptedRequest extends ReviewedRequest {
         return newLocsState.findById(this.locId) as AcceptedRequest;
     }
 
-    async open(parameters: BlockchainSubmissionParams & AutoPublish): Promise<OpenLoc> {
-        const { autoPublish } = parameters;
+    async open(parameters: BlockchainSubmission<AutoPublish>): Promise<OpenLoc> {
+        const { autoPublish } = parameters.payload;
         if (this.request.locType === "Transaction") {
-            await this.locSharedState.client.openTransactionLoc(toBlockchainSubmission({
-                ...this.checkOpenParams(autoPublish),
-                ...parameters,
-            }));
+            await this.locSharedState.client.openTransactionLoc(withAdditional(this.checkOpenParams(autoPublish), parameters));
         } else if (this.request.locType === "Identity") {
-            await this.locSharedState.client.openIdentityLoc(toBlockchainSubmission({
-                ...this.checkOpenParams(autoPublish),
-                ...parameters,
-            }));
+            await this.locSharedState.client.openIdentityLoc(withAdditional(this.checkOpenParams(autoPublish), parameters));
         } else {
-            await this.locSharedState.client.openCollectionLoc(toBlockchainSubmission({
-                ...this.checkOpenCollectionParams(autoPublish),
-                ...parameters,
-            }));
+            await this.locSharedState.client.openCollectionLoc(withAdditional(this.checkOpenCollectionParams(autoPublish), parameters));
         }
         return await this.refresh() as OpenLoc
     }
@@ -1642,15 +1631,11 @@ export class OpenLoc extends EditableRequest {
         return this._withLocs(locsState, OpenLoc);
     }
 
-    async publishFile(parameters: { hash: Hash } & BlockchainSubmissionParams): Promise<OpenLoc> {
+    async publishFile(parameters: BlockchainSubmission<{ hash: Hash }>): Promise<OpenLoc> {
         this.ensureCanPublish();
         const client = this.locSharedState.client;
-        const file = this.findFile(parameters.hash, "REVIEW_ACCEPTED");
-        await client.publishFile({
-            ...file,
-            signer: parameters.signer,
-            callback: parameters.callback,
-        });
+        const file = this.findFile(parameters.payload.hash, "REVIEW_ACCEPTED");
+        await client.publishFile(withAdditional(file, parameters));
         return await this.refresh() as OpenLoc;
     }
 
@@ -1663,7 +1648,7 @@ export class OpenLoc extends EditableRequest {
         }
     }
 
-    private findFile(hash: Hash, status: ItemStatus): EstimateFeesPublishFileParams {
+    private findFile(hash: Hash, status: ItemStatus): PublishFileParams {
         const file = this.request.files.find(file => file.hash === hash.toHex() && file.status === status);
         if(!file) {
             throw new Error(`File ${ hash.toHex() } with status ${ status } was not found`);
@@ -1685,16 +1670,12 @@ export class OpenLoc extends EditableRequest {
         return client.estimateFeesPublishFile(file);
     }
 
-    async acknowledgeFile(parameters: AckFileParams): Promise<OpenLoc> {
+    async acknowledgeFile(parameters: BlockchainSubmission<RefFileParams>): Promise<OpenLoc> {
+        const { hash } = parameters.payload;
         this.ensureCanAcknowledge();
         const client = this.locSharedState.client;
-        this.findFile(parameters.hash, "PUBLISHED");
-        await client.acknowledgeFile({
-            locId: this.locId,
-            hash: parameters.hash,
-            signer: parameters.signer,
-            callback: parameters.callback,
-        });
+        this.findFile(hash, "PUBLISHED");
+        await client.acknowledgeFile(withLocId(this.locId, parameters));
         return await this.refresh() as OpenLoc;
     }
 
@@ -1712,19 +1693,19 @@ export class OpenLoc extends EditableRequest {
         });
     }
 
-    async publishMetadata(parameters: { nameHash: Hash } & BlockchainSubmissionParams): Promise<OpenLoc> {
+    async publishMetadata(parameters: BlockchainSubmission<RefMetadataParams>): Promise<OpenLoc> {
         this.ensureCanPublish();
         const client = this.locSharedState.client;
-        const metadata = this.findMetadata(parameters.nameHash, "REVIEW_ACCEPTED");
+        const metadata = this.findMetadata(parameters.payload.nameHash, "REVIEW_ACCEPTED");
         await client.publishMetadata({
-            ...metadata,
+            payload: metadata,
             signer: parameters.signer,
             callback: parameters.callback,
         });
         return await this.refresh() as OpenLoc;
     }
 
-    private findMetadata(nameHash: Hash, status: ItemStatus): EstimateFeesPublishMetadataParams {
+    private findMetadata(nameHash: Hash, status: ItemStatus): PublishMetadataParams {
         const metadata = this.request.metadata.find(metadata => metadata.nameHash === nameHash.toHex() && metadata.status === status);
         if (!metadata) {
             throw new Error(`Metadata ${ nameHash.toHex() } with status ${ status } not found`);
@@ -1745,16 +1726,12 @@ export class OpenLoc extends EditableRequest {
         return client.estimateFeesPublishMetadata(metadata);
     }
 
-    async acknowledgeMetadata(parameters: AckMetadataParams): Promise<OpenLoc> {
+    async acknowledgeMetadata(parameters: BlockchainSubmission<RefMetadataParams>): Promise<OpenLoc> {
+        const { nameHash } = parameters.payload
         this.ensureCanAcknowledge();
         const client = this.locSharedState.client;
-        this.findMetadata(parameters.nameHash, "PUBLISHED");
-        await client.acknowledgeMetadata({
-            locId: this.locId,
-            nameHash: parameters.nameHash,
-            signer: parameters.signer,
-            callback: parameters.callback,
-        });
+        this.findMetadata(nameHash, "PUBLISHED");
+        await client.acknowledgeMetadata(withLocId(this.locId, parameters));
         return await this.refresh() as OpenLoc;
     }
 
@@ -1766,19 +1743,15 @@ export class OpenLoc extends EditableRequest {
         });
     }
 
-    async publishLink(parameters: { target: UUID } & BlockchainSubmissionParams): Promise<OpenLoc> {
+    async publishLink(parameters: BlockchainSubmission<{ target: UUID }>): Promise<OpenLoc> {
         this.ensureCanPublish();
         const client = this.locSharedState.client;
-        const link = this.findLink(parameters.target, "REVIEW_ACCEPTED");
-        await client.publishLink({
-            ...link,
-            signer: parameters.signer,
-            callback: parameters.callback,
-        });
+        const link = this.findLink(parameters.payload.target, "REVIEW_ACCEPTED");
+        await client.publishLink(withAdditional(link, parameters));
         return await this.refresh() as OpenLoc;
     }
 
-    private findLink(target: UUID, status: ItemStatus): EstimateFeesPublishLinkParams {
+    private findLink(target: UUID, status: ItemStatus): PublishLinkParams {
         const link = this.request.links.find(link => link.target === target.toString() && link.status === status);
         if(!link) {
             throw new Error(`Link with target ${ target } was not found`);
@@ -1799,16 +1772,12 @@ export class OpenLoc extends EditableRequest {
         return client.estimateFeesPublishLink(link);
     }
 
-    async acknowledgeLink(parameters: AckLinkParams): Promise<OpenLoc> {
+    async acknowledgeLink(parameters: BlockchainSubmission<RefLinkParams>): Promise<OpenLoc> {
+        const { target } = parameters.payload;
         this.ensureCanAcknowledge();
         const client = this.locSharedState.client;
-        this.findLink(parameters.target, "PUBLISHED");
-        await client.acknowledgeLink({
-            locId: this.locId,
-            target: parameters.target,
-            signer: parameters.signer,
-            callback: parameters.callback,
-        });
+        this.findLink(target, "PUBLISHED");
+        await client.acknowledgeLink(withLocId(this.locId, parameters));
         return await this.refresh() as OpenLoc;
     }
 
@@ -1862,17 +1831,13 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
 
     private restrictedDeliveryCommands: LegalOfficerRestrictedDeliveryCommands;
 
-    async acknowledgeFile(parameters: AckFileParams): Promise<OpenLoc> {
-        const file = this.request.data().files.find(file => file.hash.equalTo(parameters.hash) && file.status === "PUBLISHED");
+    async acknowledgeFile(parameters: BlockchainSubmission<RefFileParams>): Promise<OpenLoc> {
+        const { hash } = parameters.payload;
+        const file = this.request.data().files.find(file => file.hash.equalTo(hash) && file.status === "PUBLISHED");
         if(!file) {
             throw new Error("File was not found or was not published yet");
         }
-        await this.client.acknowledgeFile({
-            locId: this.locId,
-            hash: parameters.hash,
-            signer: parameters.signer,
-            callback: parameters.callback,
-        });
+        await this.client.acknowledgeFile(withLocId(this.locId, parameters));
         return await this.request.refresh() as OpenLoc;
     }
 
@@ -1880,17 +1845,13 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
         return await this.client.estimateFeesAcknowledgeFile({ locId: this.locId, ...parameters });
     }
 
-    async acknowledgeMetadata(parameters: AckMetadataParams): Promise<OpenLoc> {
-        const metadata = this.request.data().metadata.find(metadata => metadata.name.hash.equalTo(parameters.nameHash) && metadata.status === "PUBLISHED");
+    async acknowledgeMetadata(parameters: BlockchainSubmission<RefMetadataParams>): Promise<OpenLoc> {
+        const { nameHash } = parameters.payload;
+        const metadata = this.request.data().metadata.find(metadata => metadata.name.hash.equalTo(nameHash) && metadata.status === "PUBLISHED");
         if(!metadata) {
             throw new Error("Data was not found or was not published yet");
         }
-        await this.client.acknowledgeMetadata({
-            locId: this.locId,
-            nameHash: parameters.nameHash,
-            signer: parameters.signer,
-            callback: parameters.callback,
-        });
+        await this.client.acknowledgeMetadata(withLocId(this.locId, parameters));
         return await this.request.refresh() as OpenLoc;
     }
 
@@ -1898,17 +1859,13 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
         return this.client.estimateFeesAcknowledgeMetadata({ locId: this.locId, ...parameters })
     }
 
-    async acknowledgeLink(parameters: AckLinkParams): Promise<OpenLoc> {
-        const link = this.request.data().links.find(link => link.target.equalTo(parameters.target) && link.status === "PUBLISHED");
+    async acknowledgeLink(parameters: BlockchainSubmission<RefLinkParams>): Promise<OpenLoc> {
+        const { target } = parameters.payload;
+        const link = this.request.data().links.find(link => link.target.equalTo(target) && link.status === "PUBLISHED");
         if(!link) {
             throw new Error("Data was not found or was not published yet");
         }
-        await this.client.acknowledgeLink({
-            locId: this.locId,
-            target: parameters.target,
-            signer: parameters.signer,
-            callback: parameters.callback,
-        });
+        await this.client.acknowledgeLink(withLocId(this.locId, parameters));
         return await this.request.refresh() as OpenLoc;
     }
 
@@ -1916,17 +1873,14 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
         return this.client.estimateFeesAcknowledgeLink({ locId: this.locId, ...parameters })
     }
 
-    async close(parameters: CloseLocParams): Promise<ClosedLoc | ClosedCollectionLoc> {
-        this.ensureCanClose(parameters.autoAck);
+    async close(parameters: BlockchainSubmission<{ autoAck: boolean }>): Promise<ClosedLoc | ClosedCollectionLoc> {
+        this.ensureCanClose(parameters.payload.autoAck);
 
         const seal = this.request.data().seal;
-        await this.client.close({
-            ...parameters,
+        await this.client.close(withAdditional({
             locId: this.locId,
             seal,
-            autoAck: parameters.autoAck,
-        });
-
+        }, parameters));
         const state = await this.request.refresh();
         if(state.data().locType === "Collection") {
             return state as ClosedCollectionLoc;
@@ -1981,7 +1935,7 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
         return this.isNoItem(item => !this.isAcknowledgedOnChain(item));
     }
 
-    async voidLoc(params: VoidParams): Promise<VoidedLoc | VoidedCollectionLoc> {
+    async voidLoc(params: BlockchainSubmission<VoidParams>): Promise<VoidedLoc | VoidedCollectionLoc> {
         return this.legalOfficerNonVoidedCommands.voidLoc(params);
     }
 
@@ -1989,11 +1943,11 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
         return this.legalOfficerLocWithSelectableIssuersCommands.getVerifiedIssuers();
     }
 
-    async selectIssuer(params: SelectUnselectIssuerParams): Promise<OpenLoc> {
+    async selectIssuer(params: BlockchainSubmission<SelectUnselectIssuerParams>): Promise<OpenLoc> {
         return this.legalOfficerLocWithSelectableIssuersCommands.selectIssuer(params);
     }
 
-    async unselectIssuer(params: SelectUnselectIssuerParams): Promise<OpenLoc> {
+    async unselectIssuer(params: BlockchainSubmission<SelectUnselectIssuerParams>): Promise<OpenLoc> {
         return this.legalOfficerLocWithSelectableIssuersCommands.unselectIssuer(params);
     }
 
@@ -2014,29 +1968,22 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
     }
 }
 
-export interface CloseLocParams extends BlockchainSubmissionParams {
-    autoAck: boolean;
-}
-
 export interface LegalOfficerNonVoidedCommands {
-    voidLoc(params: VoidParams): Promise<VoidedLoc | VoidedCollectionLoc>;
+    voidLoc(params: BlockchainSubmission<VoidParams>): Promise<VoidedLoc | VoidedCollectionLoc>;
 }
 
 export class LegalOfficerNonVoidedCommandsImpl extends LegalOfficerCommands implements LegalOfficerNonVoidedCommands {
 
-    async voidLoc(params: VoidParams): Promise<VoidedLoc | VoidedCollectionLoc> {
-        await this.client.voidLoc({
-            ...params,
-            locId: this.locId,
-        });
+    async voidLoc(params: BlockchainSubmission<VoidParams>): Promise<VoidedLoc | VoidedCollectionLoc> {
+        await this.client.voidLoc(withLocId(this.locId, params));
         return await this.request.refresh() as (VoidedLoc | VoidedCollectionLoc);
     }
 }
 
 export interface LegalOfficerLocWithSelectableIssuersCommands<T extends LocRequestState> {
     getVerifiedIssuers(): Promise<VerifiedIssuerWithSelect[]>;
-    selectIssuer(params: SelectUnselectIssuerParams): Promise<T>;
-    unselectIssuer(params: SelectUnselectIssuerParams): Promise<T>;
+    selectIssuer(params: BlockchainSubmission<SelectUnselectIssuerParams>): Promise<T>;
+    unselectIssuer(params: BlockchainSubmission<SelectUnselectIssuerParams>): Promise<T>;
 }
 
 export class LegalOfficerLocWithSelectableIssuersCommandsImpl<T extends LocRequestState>
@@ -2073,32 +2020,23 @@ implements LegalOfficerLocWithSelectableIssuersCommands<T> {
             .sort((issuer1, issuer2) => issuer1.lastName.localeCompare(issuer2.lastName));
     }
 
-    async selectIssuer(params: SelectUnselectIssuerParams): Promise<T> {
-        return this.setIssuerSelection({
-            ...params,
-            selected: true,
-        });
+    async selectIssuer(params: BlockchainSubmission<SelectUnselectIssuerParams>): Promise<T> {
+        return this.setIssuerSelection(withAdditional({ selected: true }, params));
     }
 
-    private async setIssuerSelection(params: { issuer: ValidAccountId, selected: boolean } & BlockchainSubmissionParams): Promise<T> {
-        await this.client.setIssuerSelection({
-            ...params,
-            locId: this.request.data().id,
-        });
+    private async setIssuerSelection(params: BlockchainSubmission<{ issuer: ValidAccountId, selected: boolean }>): Promise<T> {
+        await this.client.setIssuerSelection(withLocId(this.request.data().id, params));
         return await this.request.refresh() as T;
     }
 
-    async unselectIssuer(params: SelectUnselectIssuerParams): Promise<T> {
-        return this.setIssuerSelection({
-            ...params,
-            selected: false,
-        });
+    async unselectIssuer(params: BlockchainSubmission<SelectUnselectIssuerParams>): Promise<T> {
+        return this.setIssuerSelection(withAdditional({ selected: false }, params));
     }
 }
 
 export type VerifiedIssuerWithSelect = VerifiedIssuer & { selected: boolean };
 
-export interface SelectUnselectIssuerParams extends BlockchainSubmissionParams {
+export interface SelectUnselectIssuerParams {
     issuer: ValidAccountId;
 }
 
@@ -2127,7 +2065,7 @@ export class ClosedLoc extends LocRequestState {
 
 export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommandsImpl {
 
-    async nominateIssuer(params: BlockchainSubmissionParams): Promise<ClosedLoc> {
+    async nominateIssuer(params: BasicBlockchainSubmission): Promise<ClosedLoc> {
         const data = this.request.data();
         if(data.locType !== "Identity") {
             throw new Error("Not an Identity LOC");
@@ -2139,14 +2077,16 @@ export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommands
 
         await this.client.nominateIssuer({
             ...params,
-            locId: data.id,
-            requester: data.requesterAccountId.address,
+            payload: {
+                locId: data.id,
+                requester: data.requesterAccountId.address,
+            }
         });
 
         return await this.request.refresh() as ClosedLoc;
     }
 
-    async dismissIssuer(params: BlockchainSubmissionParams): Promise<ClosedLoc> {
+    async dismissIssuer(params: BasicBlockchainSubmission): Promise<ClosedLoc> {
         const data = this.request.data();
         if(data.locType !== "Identity") {
             throw new Error("Not an Identity LOC");
@@ -2158,13 +2098,15 @@ export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommands
 
         await this.client.dismissIssuer({
             ...params,
-            requester: data.requesterAccountId.address,
+            payload: {
+                requester: data.requesterAccountId.address,
+            }
         });
 
         return await this.request.refresh() as ClosedLoc;
     }
 
-    async requestVote(params: BlockchainSubmissionParams): Promise<string> {
+    async requestVote(params: BasicBlockchainSubmission): Promise<string> {
         const data = this.request.data();
         if(data.locType !== "Identity") {
             throw new Error("Not an Identity LOC");
@@ -2172,7 +2114,9 @@ export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommands
 
         return this.client.requestVote({
             ...params,
-            locId: data.id,
+            payload: {
+                locId: data.id,
+            }
         });
     }
 }
@@ -2451,11 +2395,11 @@ implements LegalOfficerLocWithSelectableIssuersCommands<ClosedCollectionLoc>, Le
         return this.legalOfficerLocWithSelectableIssuersCommands.getVerifiedIssuers();
     }
 
-    async selectIssuer(params: SelectUnselectIssuerParams): Promise<ClosedCollectionLoc> {
+    async selectIssuer(params: BlockchainSubmission<SelectUnselectIssuerParams>): Promise<ClosedCollectionLoc> {
         return this.legalOfficerLocWithSelectableIssuersCommands.selectIssuer(params);
     }
 
-    async unselectIssuer(params: SelectUnselectIssuerParams): Promise<ClosedCollectionLoc> {
+    async unselectIssuer(params: BlockchainSubmission<SelectUnselectIssuerParams>): Promise<ClosedCollectionLoc> {
         return this.legalOfficerLocWithSelectableIssuersCommands.unselectIssuer(params);
     }
 

@@ -31,25 +31,27 @@ export async function openIdentityLoc(state: State): Promise<UUID> {
 
     const items = provideItems("identity", []);
     const openLoc = await locsState.openIdentityLoc({
-        description: "Direct Identity",
-        legalOfficerAccountId: alice.account,
-        template: "a-template",
-        legalFee: Lgnt.fromCanonical(15n),
-        files: items.files,
-        metadata: items.metadata,
-        links: items.links,
-        userIdentity: {
-            email: "john.doe@invalid.domain",
-            firstName: "John",
-            lastName: "Doe",
-            phoneNumber: "+1234",
-        },
-        userPostalAddress: {
-            line1: "Peace Street",
-            line2: "2nd floor",
-            postalCode: "10000",
-            city: "MyCity",
-            country: "Wonderland"
+        payload: {
+            description: "Direct Identity",
+            legalOfficerAccountId: alice.account,
+            template: "a-template",
+            legalFee: Lgnt.fromCanonical(15n),
+            files: items.files,
+            metadata: items.metadata,
+            links: items.links,
+            userIdentity: {
+                email: "john.doe@invalid.domain",
+                firstName: "John",
+                lastName: "Doe",
+                phoneNumber: "+1234",
+            },
+            userPostalAddress: {
+                line1: "Peace Street",
+                line2: "2nd floor",
+                postalCode: "10000",
+                city: "MyCity",
+                country: "Wonderland"
+            },
         },
         signer
     });
@@ -61,7 +63,7 @@ export async function openIdentityLoc(state: State): Promise<UUID> {
         producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : aliceOpenLoc.refresh() as Promise<OpenLoc>,
         predicate: state => state.legalOfficer.canClose(true),
     });
-    await aliceOpenLoc.legalOfficer.close({ signer, autoAck: true });
+    await aliceOpenLoc.legalOfficer.close({ signer, payload: { autoAck: true }});
 
     return openLoc.locId;
 }
@@ -72,13 +74,15 @@ export async function openTransactionLoc(state: State, linkedLoc: UUID): Promise
     let locsState = await client.locsState();
     const items = provideItems("transaction", [ linkedLoc ]);
     const openLoc = await locsState.openTransactionLoc({
-        description: "Direct Transaction",
-        legalOfficerAccountId: alice.account,
-        template: "a-template",
-        legalFee: Lgnt.fromCanonical(15n),
-        files: items.files,
-        metadata: items.metadata,
-        links: items.links,
+        payload: {
+            description: "Direct Transaction",
+            legalOfficerAccountId: alice.account,
+            template: "a-template",
+            legalFee: Lgnt.fromCanonical(15n),
+            files: items.files,
+            metadata: items.metadata,
+            links: items.links,
+        },
         signer,
     });
     checkData(openLoc.data(), items);
@@ -101,20 +105,22 @@ export async function openCollectionLoc(state: State, linkedLoc1: UUID, linkedLo
     let locsState = await client.locsState();
     const items = provideItems("collection", [ linkedLoc1, linkedLoc2 ]);
     const openLoc = await locsState.openCollectionLoc({
-        description: "Direct Collection",
-        legalOfficerAccountId: alice.account,
-        template: "a-template",
-        legalFee: Lgnt.fromCanonical(15n),
-        files: items.files,
-        metadata: items.metadata,
-        links: items.links,
-        collectionParams: {
-            canUpload: false,
-            maxSize: 200,
+        payload: {
+            description: "Direct Collection",
+            legalOfficerAccountId: alice.account,
+            template: "a-template",
+            legalFee: Lgnt.fromCanonical(15n),
+            files: items.files,
+            metadata: items.metadata,
+            links: items.links,
+            collectionParams: {
+                canUpload: false,
+                maxSize: 200,
+            },
+            valueFee: Lgnt.fromCanonical(13000n),
+            collectionItemFee: Lgnt.fromCanonical(7000n),
+            tokensRecordFee: Lgnt.fromCanonical(6000n),
         },
-        valueFee: Lgnt.fromCanonical(13000n),
-        collectionItemFee: Lgnt.fromCanonical(7000n),
-        tokensRecordFee: Lgnt.fromCanonical(6000n),
         signer
     });
     checkCollectionData(openLoc.data(), items);

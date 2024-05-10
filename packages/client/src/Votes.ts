@@ -1,7 +1,7 @@
 import { UUID } from "@logion/node-api";
 import { LogionClient } from "./LogionClient.js";
 import { State } from "./State.js";
-import { BlockchainSubmissionParams } from "./Signer.js";
+import { BlockchainSubmission } from "./Signer";
 
 export class Votes extends State {
 
@@ -165,12 +165,13 @@ export abstract class Vote extends State {
 
 export class PendingVote extends Vote {
 
-    async castVote(params: { result: VoteResult } & BlockchainSubmissionParams): Promise<PendingVote> {
+    async castVote(params: BlockchainSubmission<{ result: VoteResult }>): Promise<PendingVote> {
+        const { result } = params.payload;
         const current = this.getCurrentStateOrThrow() as PendingVote;
         const api = current._votes.client.logionApi;
         const submittable = api.polkadot.tx.vote.vote(
             current._data.voteId,
-            params.result === "Yes",
+            result === "Yes",
         );
         await params.signer.signAndSend({
             signerId: this._votes.client.authenticatedCurrentAccount,
@@ -179,7 +180,7 @@ export class PendingVote extends Vote {
         });
         const ballots = {
             ...current._data.ballots,
-            [current.currentAddress()]: params.result,
+            [current.currentAddress()]: result,
         };
         const newData = {
             ...current._data,

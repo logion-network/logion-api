@@ -41,14 +41,14 @@ export async function verifiedIssuer(state: State) {
     const aliceAccepted = await alicePending.legalOfficer.accept();
 
     const acceptedIdentityLoc = await pendingRequest.refresh() as AcceptedRequest;
-    await acceptedIdentityLoc.open({ signer, autoPublish: false });
+    await acceptedIdentityLoc.open({ signer, payload: { autoPublish: false }});
 
     let aliceOpen = await aliceAccepted.refresh() as OpenLoc;
     aliceOpen = await waitFor<OpenLoc>({
         producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : aliceOpen.refresh() as Promise<OpenLoc>,
         predicate: state => state.legalOfficer.canClose(false),
     });
-    let aliceClosed = await aliceOpen.legalOfficer.close({ signer, autoAck: false }) as ClosedLoc;
+    let aliceClosed = await aliceOpen.legalOfficer.close({ signer, payload: { autoAck: false }}) as ClosedLoc;
     aliceClosed = await aliceClosed.legalOfficer.nominateIssuer({ signer });
 
     await initAccountBalance(state, newAccount);
@@ -66,11 +66,11 @@ export async function verifiedIssuer(state: State) {
     const aliceAcceptedTransaction = await alicePendingTransaction.legalOfficer.accept() as AcceptedRequest;
 
     let acceptedLoc = await pendingLocRequest.refresh() as AcceptedRequest;
-    let openLoc = await acceptedLoc.open({ signer, autoPublish: false });
+    let openLoc = await acceptedLoc.open({ signer, payload: { autoPublish: false }});
 
     let aliceOpenTransaction = await aliceAcceptedTransaction.refresh() as OpenLoc;
     aliceOpenTransaction = await aliceOpenTransaction.legalOfficer.selectIssuer({
-        issuer: issuerAccount,
+        payload: { issuer: issuerAccount },
         signer,
     });
     openLoc = await openLoc.refresh() as OpenLoc;
@@ -110,19 +110,19 @@ export async function verifiedIssuer(state: State) {
         decision: "ACCEPT",
     }) as OpenLoc;
     openLoc = await openLoc.refresh() as OpenLoc;
-    openLoc = await openLoc.publishMetadata({ nameHash: dataNameHash, signer });
+    openLoc = await openLoc.publishMetadata({ payload: { nameHash: dataNameHash }, signer });
     expect(openLoc.data().metadata[0].status).toBe("PUBLISHED");
     openIssuerLoc = await openIssuerLoc.refresh() as OpenLoc;
-    openIssuerLoc = await openIssuerLoc.acknowledgeMetadata({ nameHash: dataNameHash, signer });
+    openIssuerLoc = await openIssuerLoc.acknowledgeMetadata({ payload: { nameHash: dataNameHash }, signer });
     aliceOpenTransaction = await aliceOpenTransaction.refresh() as OpenLoc;
     expect(aliceOpenTransaction.data().metadata[0].status).toBe("PUBLISHED");
-    aliceOpenTransaction = await aliceOpenTransaction.acknowledgeMetadata({ nameHash: dataNameHash, signer });
+    aliceOpenTransaction = await aliceOpenTransaction.acknowledgeMetadata({ payload: { nameHash: dataNameHash }, signer });
     expect(aliceOpenTransaction.data().metadata[0].status).toBe("ACKNOWLEDGED");
 
     // Issuer unselection
     aliceOpenTransaction = await aliceOpenTransaction.refresh() as OpenLoc;
     aliceOpenTransaction = await aliceOpenTransaction.legalOfficer.unselectIssuer({
-        issuer: issuerAccount,
+        payload: { issuer: issuerAccount },
         signer
     });
 

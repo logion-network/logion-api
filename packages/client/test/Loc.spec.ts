@@ -239,7 +239,9 @@ describe("OpenLoc", () => {
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await openLoc.publishLink({
-            target: EXISTING_LINK_TARGET,
+            payload: {
+                target: EXISTING_LINK_TARGET,
+            },
             signer: signer.object(),
         });
 
@@ -256,7 +258,9 @@ describe("OpenLoc", () => {
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await openLoc.legalOfficer.voidLoc({
-            reason: "Because",
+            payload: {
+                reason: "Because",
+            },
             signer: signer.object(),
         });
 
@@ -270,9 +274,11 @@ describe("OpenLoc", () => {
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await openLoc.legalOfficer.voidLoc({
-            reason: "Because",
+            payload: {
+                reason: "Because",
+                replacer: new UUID(),
+            },
             signer: signer.object(),
-            replacer: new UUID(),
         });
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
@@ -290,7 +296,9 @@ async function testClose(autoAck: boolean) {
 
     await openLoc.legalOfficer.close({
         signer: signer.object(),
-        autoAck,
+        payload: {
+            autoAck,
+        }
     });
 
     signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
@@ -331,7 +339,9 @@ describe("ClosedLoc", () => {
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await openLoc.legalOfficer.voidLoc({
-            reason: "Because",
+            payload: {
+                reason: "Because"
+            },
             signer: signer.object(),
         });
 
@@ -345,9 +355,11 @@ describe("ClosedLoc", () => {
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await openLoc.legalOfficer.voidLoc({
-            reason: "Because",
+            payload: {
+                reason: "Because",
+                replacer: new UUID(),
+            },
             signer: signer.object(),
-            replacer: new UUID(),
         });
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
@@ -583,7 +595,9 @@ describe("ClosedCollectionLoc", () => {
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await openLoc.legalOfficer.voidLoc({
-            reason: "Because",
+            payload: {
+                reason: "Because",
+            },
             signer: signer.object(),
         });
 
@@ -597,9 +611,11 @@ describe("ClosedCollectionLoc", () => {
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
         await openLoc.legalOfficer.voidLoc({
-            reason: "Because",
+            payload: {
+                reason: "Because",
+                replacer: new UUID(),
+            },
             signer: signer.object(),
-            replacer: new UUID(),
         });
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
@@ -1312,7 +1328,9 @@ async function testSelectIssuer(state: OpenLoc | ClosedCollectionLoc) {
     signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
     await state.legalOfficer.selectIssuer({
-        issuer: ISSUER,
+        payload: {
+            issuer: ISSUER
+        },
         signer: signer.object(),
     });
 
@@ -1325,7 +1343,9 @@ async function testUnselectIssuer(state: OpenLoc | ClosedCollectionLoc) {
     signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 
     await state.legalOfficer.unselectIssuer({
-        issuer: ISSUER,
+        payload: {
+            issuer: ISSUER
+        },
         signer: signer.object(),
     });
 

@@ -49,14 +49,14 @@ export async function invitedContributors(state: State) {
     const aliceAccepted = await alicePending.legalOfficer.accept();
 
     const acceptedIdentityLoc = await pendingRequest.refresh() as AcceptedRequest;
-    await acceptedIdentityLoc.open({ signer, autoPublish: false });
+    await acceptedIdentityLoc.open({ signer, payload: { autoPublish: false }});
 
     let aliceOpen = await aliceAccepted.refresh() as OpenLoc;
     aliceOpen = await waitFor<OpenLoc>({
         producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : aliceOpen.refresh() as Promise<OpenLoc>,
         predicate: state => state.legalOfficer.canClose(false),
     });
-    await aliceOpen.legalOfficer.close({ signer, autoAck: false }) as ClosedLoc;
+    await aliceOpen.legalOfficer.close({ signer, payload: { autoAck: false }}) as ClosedLoc;
 
     const requesterClient = state.client.withCurrentAccount(newAccount);
     let userLocsState = await requesterClient.locsState();
@@ -82,7 +82,7 @@ export async function invitedContributors(state: State) {
     let acceptedLoc = await pendingLocRequest.refresh() as AcceptedRequest;
     let openLoc = await acceptedLoc.open({
         signer,
-        autoPublish: false,
+        payload: { autoPublish: false },
     });
 
     let locWithInvitedContributor = await openLoc.setInvitedContributor({
@@ -98,7 +98,7 @@ export async function invitedContributors(state: State) {
     expect(locWithInvitedContributor.data().invitedContributors[0].type).toBe("Polkadot");
 
     const aliceOpenLoc = await alicePendingCollection.refresh() as OpenLoc;
-    await aliceOpenLoc.legalOfficer.close({ signer, autoAck: false });
+    await aliceOpenLoc.legalOfficer.close({ signer, payload: { autoAck: false }});
 
     // Contribute tokens records with dedicated API
     const api = invitedContributorClient.invitedContributor;
