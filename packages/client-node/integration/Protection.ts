@@ -93,7 +93,7 @@ async function createsIdentityLoc(state: State, account: ValidAccountId, legalOf
 
     // User Opens
     const acceptedIdentityLoc = await pendingRequest.refresh() as AcceptedRequest;
-    await acceptedIdentityLoc.open({ signer, autoPublish: false });
+    await acceptedIdentityLoc.open({ signer, payload: { autoPublish: false }});
 
     // LLO Closes
     let lloOpen = await lloAccepted.refresh() as OpenLoc;
@@ -101,5 +101,5 @@ async function createsIdentityLoc(state: State, account: ValidAccountId, legalOf
         producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : lloOpen.refresh() as Promise<OpenLoc>,
         predicate: state => state.legalOfficer.canClose(false),
     });
-    return await lloOpen.legalOfficer.close({ signer, autoAck: false }) as ClosedLoc;
+    return await lloOpen.legalOfficer.close({ signer, payload: { autoAck: false }}) as ClosedLoc;
 }

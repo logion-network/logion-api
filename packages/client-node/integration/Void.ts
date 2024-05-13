@@ -8,7 +8,7 @@ export async function voidTransactionLoc(state: State) {
     const closedLoc = locsState.closedLocs['Transaction'][0];
 
     const voidLoc = await closedLoc.legalOfficer.voidLoc({
-        reason: "Because.",
+        payload: { reason: "Because." },
         signer
     });
 

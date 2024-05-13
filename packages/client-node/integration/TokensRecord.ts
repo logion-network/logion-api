@@ -34,11 +34,11 @@ export async function tokensRecords(state: State) {
     let aliceAcceptedLoc = await alicePendingRequest.legalOfficer.accept();
 
     let acceptedLoc = await collectionLoc.refresh() as AcceptedRequest;
-    await acceptedLoc.open({ signer, autoPublish: false });
+    await acceptedLoc.open({ signer, payload: { autoPublish: false }});
     let aliceOpenLoc = await aliceAcceptedLoc.refresh() as OpenLoc;
 
-    aliceOpenLoc = await aliceOpenLoc.legalOfficer.selectIssuer({ issuer: issuerAccount, signer });
-    await aliceOpenLoc.legalOfficer.close({ signer, autoAck: false });
+    aliceOpenLoc = await aliceOpenLoc.legalOfficer.selectIssuer({ payload: { issuer: issuerAccount }, signer });
+    await aliceOpenLoc.legalOfficer.close({ signer, payload: { autoAck: false }});
 
     await initAccountBalance(state, issuerAccount);
 

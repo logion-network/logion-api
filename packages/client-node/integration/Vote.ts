@@ -16,19 +16,19 @@ export async function votingProcess(state: State) {
     });
 
     let pendingVote = votes.votes[0] as PendingVote;
-    pendingVote = await pendingVote.castVote({ result: "Yes", signer });
+    pendingVote = await pendingVote.castVote({ payload: { result: "Yes" }, signer });
 
     const bobClient = client.withCurrentAccount(bob.account);
     const bobVotes = await bobClient.voter.getVotes();
     let bobPendingVote = bobVotes.votes[0] as PendingVote;
     const bobLoc = bobClient.voter.findLocById(bobPendingVote.data.locId);
     expect(bobLoc).toBeDefined();
-    bobPendingVote = await bobPendingVote.castVote({ result: "No", signer });
+    bobPendingVote = await bobPendingVote.castVote({ payload: { result: "No" }, signer });
 
     const charlieClient = client.withCurrentAccount(charlie.account);
     const charlieVotes = await charlieClient.voter.getVotes();
     let charliePendingVote = charlieVotes.votes[0] as PendingVote;
-    await charliePendingVote.castVote({ result: "No", signer });
+    await charliePendingVote.castVote({ payload: { result: "No" }, signer });
 
     await waitFor<Votes>({
         predicate: votes => votes.votes.length === 1 && votes.votes[0].data.status === "REJECTED",

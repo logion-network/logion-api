@@ -20,7 +20,7 @@ import { BalanceState, getBalanceState } from "./Balance.js";
 import { VaultState } from "./Vault.js";
 import { PollingParameters, waitFor } from "./Polling.js";
 import { State } from "./State.js";
-import { BlockchainSubmission, BlockchainSubmissionParams } from "./Signer.js";
+import { BlockchainSubmission, BasicBlockchainSubmission } from "./Signer.js";
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { requireDefined } from "./assertions.js";
 
@@ -588,11 +588,11 @@ export class AcceptedProtection extends State implements WithProtectionParameter
 
     private readonly sharedState: RecoverySharedState;
 
-    async activate(params: BlockchainSubmissionParams): Promise<PendingRecovery> {
+    async activate(params: BasicBlockchainSubmission): Promise<PendingRecovery> {
         return this.discardOnSuccess<AcceptedProtection, PendingRecovery>(current => current._activate(params));
     }
 
-    private async _activate(params: BlockchainSubmissionParams): Promise<PendingRecovery> {
+    private async _activate(params: BasicBlockchainSubmission): Promise<PendingRecovery> {
         const { signer, callback } = params
         const { submittable, sortedLegalOfficers } = this.activateSubmittable();
         await signer.signAndSend({
@@ -723,11 +723,11 @@ export class PendingRecovery extends State implements WithProtectionParameters, 
 
     private readonly sharedState: RecoverySharedState;
 
-    async claimRecovery(params: BlockchainSubmissionParams): Promise<ClaimedRecovery> {
+    async claimRecovery(params: BasicBlockchainSubmission): Promise<ClaimedRecovery> {
         return this.discardOnSuccess<PendingRecovery, ClaimedRecovery>(current => current._claimRecovery(params));
     }
 
-    private async _claimRecovery(params: BlockchainSubmissionParams): Promise<ClaimedRecovery> {
+    private async _claimRecovery(params: BasicBlockchainSubmission): Promise<ClaimedRecovery> {
         const { signer, callback } = params;
         const addressToRecover = this.protectionParameters.recoveredAccount;
         await signer.signAndSend({
