@@ -54,6 +54,7 @@ import {
     PublishFileParams,
     PublishMetadataParams,
     PublishLinkParams,
+    Secret,
 } from "./LocClient.js";
 import { BlockchainSubmission, BlockchainBatchSubmission, BasicBlockchainSubmission } from "./Signer.js";
 import { SharedState, getLegalOfficer } from "./SharedClient.js";
@@ -755,7 +756,7 @@ export type AnyLocState = OffchainLocState | OnchainLocState;
 
 export type OffchainLocState = DraftRequest | PendingRequest | RejectedRequest | AcceptedRequest;
 
-export type OnchainLocState = OpenLoc | ClosedLoc | ClosedCollectionLoc | VoidedLoc | VoidedCollectionLoc;
+export type OnchainLocState = OpenLoc | ClosedLoc | ClosedIdentityLoc | ClosedCollectionLoc | VoidedLoc | VoidedCollectionLoc;
 
 export abstract class LocRequestState extends State {
 
@@ -765,6 +766,7 @@ export abstract class LocRequestState extends State {
     protected readonly locIssuers: LocVerifiedIssuers;
     protected readonly invitedContributors: ValidAccountId[];
     readonly owner: LegalOfficerClass;
+    protected _secrets: Record<string, Secret> = {}; // TODO for stubbing only, move secrets to LocRequest.
 
     constructor(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers, invitedContributors: ValidAccountId[]) {
         super();
@@ -774,7 +776,8 @@ export abstract class LocRequestState extends State {
         this.locIssuers = locIssuers;
         this.invitedContributors = invitedContributors;
 
-        const owner = locSharedState.allLegalOfficers.find(officer => officer.account.address === request.ownerAddress);
+        const ownerAccount = ValidAccountId.polkadot(request.ownerAddress);
+        const owner = locSharedState.allLegalOfficers.find(officer => officer.account.equals(ownerAccount));
         if(!owner) {
             throw new Error("LOC owner is not a registered legal officer");
         }
@@ -815,6 +818,8 @@ export abstract class LocRequestState extends State {
         } else if (legalOfficerCase.closed) {
             if (legalOfficerCase.locType === 'Collection') {
                 return new ClosedCollectionLoc(locSharedState, request, legalOfficerCase, locIssuers, invitedContributors);
+            } else if (legalOfficerCase.locType === 'Identity') {
+                return new ClosedIdentityLoc(locSharedState, request, legalOfficerCase, locIssuers, invitedContributors);
             } else {
                 return new ClosedLoc(locSharedState, request, legalOfficerCase, locIssuers, invitedContributors);
             }
@@ -2061,6 +2066,30 @@ export class ClosedLoc extends LocRequestState {
             request: this,
         });
     }
+}
+
+export class ClosedIdentityLoc extends ClosedLoc {
+
+    get secrets(): Secret[] {
+        return Object.values(this._secrets);
+    }
+
+    addSecret(secret: Secret) {
+        this._secrets[secret.name] = secret;
+    }
+
+    removeSecret(name: string) {
+        delete this._secrets[name];
+    }
+
+    override async refresh(): Promise<ClosedIdentityLoc | VoidedLoc> {
+        return await super.refresh() as ClosedIdentityLoc | VoidedLoc;
+    }
+
+    override withLocs(locsState: LocsState): ClosedIdentityLoc {
+        return this._withLocs(locsState, ClosedIdentityLoc);
+    }
+
 }
 
 export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommandsImpl {

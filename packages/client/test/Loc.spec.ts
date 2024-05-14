@@ -9,6 +9,7 @@ import {
     HashOrContent,
     LegalOfficer,
     ClosedCollectionLoc,
+    ClosedIdentityLoc,
     ClosedLoc,
     LocData,
     LocRequestState,
@@ -368,6 +369,7 @@ describe("ClosedLoc", () => {
 
     it("can nominate issuer", async () => {
         const closedLoc = await getClosedIdentityLoc();
+        expect(closedLoc).toBeInstanceOf(ClosedIdentityLoc)
         const signer = new Mock<Signer>();
         signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
 

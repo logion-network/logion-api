@@ -315,6 +315,11 @@ export interface CheckTokensRecordDeliveryRequest {
     hash: Hash;
 }
 
+export interface Secret {
+    name: string;
+    value: string;
+}
+
 export class LocMultiClient {
 
     static newLocMultiClient(sharedState: SharedState): LocMultiClient {
