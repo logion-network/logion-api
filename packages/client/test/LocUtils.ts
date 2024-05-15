@@ -55,16 +55,16 @@ export function buildLocAndRequest(ownerAddress: ValidAccountId, status: LocRequ
     }
 }
 
-export function buildLocRequest(ownerAddress: ValidAccountId, status: LocRequestStatus, locType: LocType, voided?: boolean, requester: ValidAccountId = REQUESTER): LocRequest {
+export function buildLocRequest(ownerAccount: ValidAccountId, status: LocRequestStatus, locType: LocType, voided?: boolean, requester: ValidAccountId = REQUESTER): LocRequest {
     return {
         id: new UUID().toString(),
         createdOn: DateTime.now().toISO(),
-        description: `Some ${status} ${locType} LOC owned by ${ownerAddress}`,
+        description: `Some ${status} ${locType} LOC owned by ${ownerAccount.address}`,
         files: [ EXISTING_FILE ],
         links: [ EXISTING_LINK ],
         metadata: [],
         requesterAddress: requester,
-        ownerAddress: ownerAddress.address,
+        ownerAddress: ownerAccount.address,
         status,
         locType,
         voidInfo: voided ? { reason: "Some voiding reason.", voidedOn: DateTime.now().toISO() } : undefined,
@@ -74,11 +74,14 @@ export function buildLocRequest(ownerAddress: ValidAccountId, status: LocRequest
             legalFee: "0",
             collectionItemFee: "0",
             tokensRecordFee: "0",
-        }
+        },
+        secrets: locType === "Identity" && status === "CLOSED" ? [{ name: EXISTING_SECRET_NAME, value: EXISTING_SECRET_VALUE }] : [],
     };
 }
 
 export const ISSUER = ValidAccountId.polkadot("5FniDvPw22DMW1TLee9N8zBjzwKXaKB2DcvZZCQU5tjmv1kb");
+export const EXISTING_SECRET_NAME = "Exisint secret";
+export const EXISTING_SECRET_VALUE = "Some encrypted value";
 
 export function buildLoc(ownerAddress: ValidAccountId, status: LocRequestStatus, locType: LocType, voidInfo?: VoidInfo, requester: ValidAccountId = REQUESTER): LegalOfficerCase {
     return {

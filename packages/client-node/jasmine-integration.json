@@ -7,10 +7,5 @@
     "../typescript.js"
   ],
   "stopSpecOnExpectationFailure": false,
-  "reporters": [
-    {
-      "name": "jasmine-spec-reporter#SpecReporter"
-    }
-  ],
   "random": false
 }

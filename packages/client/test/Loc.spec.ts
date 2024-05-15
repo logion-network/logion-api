@@ -40,6 +40,8 @@ import {
     MergedFile,
     MergedLink,
     HashString,
+    AddSecretParams,
+    Secret,
 } from "../src/index.js";
 import {
     ALICE,
@@ -71,6 +73,8 @@ import {
     mockGetLegalOfficerCase,
     EXISTING_LINK_TARGET,
     ITEM_DESCRIPTION_2,
+    EXISTING_SECRET_NAME,
+    EXISTING_SECRET_VALUE,
 } from "./LocUtils.js";
 
 describe("LocsState", () => {
@@ -366,33 +370,6 @@ describe("ClosedLoc", () => {
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
         nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.makeVoidAndReplace(It.IsAny(), It.IsAny()), Times.Once());
     });
-
-    it("can nominate issuer", async () => {
-        const closedLoc = await getClosedIdentityLoc();
-        expect(closedLoc).toBeInstanceOf(ClosedIdentityLoc)
-        const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
-
-        await closedLoc.legalOfficer.nominateIssuer({
-            signer: signer.object(),
-        });
-
-        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
-        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.nominateIssuer(It.IsAny(), It.IsAny()), Times.Once());
-    });
-
-    it("can dismiss issuer", async () => {
-        const closedLoc = await getClosedIdentityLoc();
-        const signer = new Mock<Signer>();
-        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
-
-        await closedLoc.legalOfficer.dismissIssuer({
-            signer: signer.object(),
-        });
-
-        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
-        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.dismissIssuer(It.IsAny()), Times.Once());
-    });
 });
 
 describe("ClosedCollectionLoc", () => {
@@ -627,6 +604,76 @@ describe("ClosedCollectionLoc", () => {
     it("selects issuer", async () => testSelectIssuer(await getClosedCollectionLoc()));
     it("unselects issuer", async () => testUnselectIssuer(await getClosedCollectionLoc()));
 });
+
+describe("ClosedIdentityLoc", () => {
+
+    it("can nominate issuer", async () => {
+        const closedLoc = await getClosedIdentityLoc();
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+        await closedLoc.legalOfficer.nominateIssuer({
+            signer: signer.object(),
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.nominateIssuer(It.IsAny(), It.IsAny()), Times.Once());
+    });
+
+    it("can dismiss issuer", async () => {
+        const closedLoc = await getClosedIdentityLoc();
+        const signer = new Mock<Signer>();
+        signer.setup(instance => instance.signAndSend(It.Is<SignParameters>(params => params.signerId.equals(REQUESTER)))).returnsAsync(SUCCESSFUL_SUBMISSION);
+
+        await closedLoc.legalOfficer.dismissIssuer({
+            signer: signer.object(),
+        });
+
+        signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.dismissIssuer(It.IsAny()), Times.Once());
+    });
+
+    it("has secrets", async () => {
+        const closedLoc = await getClosedIdentityLoc();
+
+        const secrets = closedLoc.data().secrets;
+
+        expect(secrets.length).toBe(1);
+        expect(secrets[0].name).toBe(EXISTING_SECRET_NAME);
+        expect(secrets[0].value).toBe(EXISTING_SECRET_VALUE);
+    });
+
+    it("can add secret", async () => {
+        const closedLoc = await getClosedIdentityLoc();
+
+        const newState = await closedLoc.addSecret({
+            name: SECRET_NAME,
+            value: SECRET_VALUE,
+        });
+        expect(newState).toBeInstanceOf(ClosedIdentityLoc);
+
+        bobAxiosMock.verify(instance => instance.post(
+            `/api/loc-request/${ closedLoc.locId.toString() }/secrets`,
+            It.Is<AddSecretParams & FetchParameters>((params: any) => params.name === SECRET_NAME && params.value === SECRET_VALUE)),
+            Times.Once(),
+        );
+    });
+
+    it("can remove secret", async () => {
+        const closedLoc = await getClosedIdentityLoc();
+
+        const newState = await closedLoc.removeSecret(SECRET_NAME);
+        expect(newState).toBeInstanceOf(ClosedIdentityLoc);
+
+        bobAxiosMock.verify(instance => instance.delete(
+            `/api/loc-request/${ closedLoc.locId.toString() }/secrets/${ encodeURIComponent(SECRET_NAME) }`),
+            Times.Once(),
+        );
+    });
+});
+
+const SECRET_NAME = "Secret name";
+const SECRET_VALUE = "Secret value";
 
 describe("VoidedLoc", () => {
 
@@ -1049,6 +1096,8 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
             bobAxiosMock.setup(instance => instance.get(`/api/collection/${ BOB_VOID_COLLECTION_LOC.request.id }/items/${ EXISTING_ITEM_ID.toHex() }`)).returnsAsync({
                 data: OFFCHAIN_COLLECTION_ITEM
             } as AxiosResponse);
+            bobAxiosMock.setup(instance => instance.post(`/api/loc-request/${ BOB_CLOSED_IDENTITY_LOC.request.id }/secrets`, It.Is<Secret>(body => body.name === SECRET_NAME && body.value === SECRET_VALUE))).returnsAsync({} as AxiosResponse);
+            bobAxiosMock.setup(instance => instance.delete(`/api/loc-request/${ BOB_CLOSED_IDENTITY_LOC.request.id }/secrets/${ SECRET_NAME }`)).returnsAsync({} as AxiosResponse);
             axiosFactoryMock.setup(instance => instance.buildAxiosInstance(BOB.node, token))
                 .returns(bobAxiosMock.object());
 
@@ -1226,7 +1275,7 @@ async function getClosedCollectionLoc() {
 async function getClosedIdentityLoc() {
     const sharedState = await buildSharedState();
     const locs = await LocsState.getInitialLocsState(sharedState, client.object());
-    return locs.closedLocs.Identity[0] as ClosedLoc;
+    return locs.closedLocs.Identity[0] as ClosedIdentityLoc;
 }
 
 async function getVoidedTransactionLoc() {
