@@ -1,4 +1,4 @@
-import { ClosedLoc, PendingVote, Votes, waitFor } from "@logion/client";
+import { ClosedIdentityLoc, ClosedLoc, PendingVote, Votes, waitFor } from "@logion/client";
 import { State } from "./Utils.js";
 
 export async function votingProcess(state: State) {
@@ -6,7 +6,7 @@ export async function votingProcess(state: State) {
 
     const aliceClient = client.withCurrentAccount(alice.account);
     const closedIdentityLocs = await aliceClient.locsState({ spec: { ownerAddress: alice.account.address, locTypes: ["Identity"], statuses: ["CLOSED"] } });
-    const votableLoc = closedIdentityLocs.closedLocs["Identity"].find(loc => loc.data().requesterAccountId !== undefined && loc.data().requesterAccountId?.type === "Polkadot") as ClosedLoc;
+    const votableLoc = closedIdentityLocs.closedLocs["Identity"].find(loc => loc.data().requesterAccountId !== undefined && loc.data().requesterAccountId?.type === "Polkadot") as ClosedIdentityLoc;
 
     await votableLoc.legalOfficer.requestVote({ signer });
 

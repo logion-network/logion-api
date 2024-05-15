@@ -157,6 +157,7 @@ export interface LocRequest {
     sponsorshipId?: string;
     fees?: BackendLocFees;
     collectionParams?: BackendCollectionParams;
+    secrets: Secret[];
 }
 
 export interface IdenfyVerificationSession {
@@ -2416,6 +2417,24 @@ export class AuthenticatedLocClient extends LocClient {
             throw newBackendError(e);
         }
     }
+
+    async addSecret(parameters: AddSecretParams & FetchParameters): Promise<void> {
+        try {
+            const { secret, locId } = parameters;
+            await this.backend().post(`/api/loc-request/${ locId.toString() }/secrets`, secret);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
+
+    async removeSecret(parameters: RefSecretParams & FetchParameters): Promise<void> {
+        try {
+            const { name, locId } = parameters;
+            await this.backend().delete(`/api/loc-request/${ locId.toString() }/secrets/${ encodeURIComponent(name) }`);
+        } catch(e) {
+            throw newBackendError(e);
+        }
+    }
 }
 
 export interface ReviewParams {
@@ -2519,4 +2538,12 @@ export interface AcceptIdentityLocParams {
 
 export interface AutoPublish {
     autoPublish: boolean;
+}
+
+export interface AddSecretParams {
+    secret: Secret;
+}
+
+export interface RefSecretParams {
+    name: string;
 }

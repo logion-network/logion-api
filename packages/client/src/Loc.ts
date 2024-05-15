@@ -100,6 +100,7 @@ export interface LocData extends LocVerifiedIssuers {
     sponsorshipId?: UUID;
     fees: LocFees;
     invitedContributors: ValidAccountId[];
+    secrets: Secret[];
 }
 
 interface ItemLifecycle {
@@ -174,7 +175,7 @@ export class LocsState extends State {
         return LocsState.withPredicate(this._locs, loc => loc instanceof OpenLoc);
     }
 
-    get closedLocs(): Record<LocType, (ClosedLoc | ClosedCollectionLoc)[]> {
+    get closedLocs(): Record<LocType, (ClosedLoc | ClosedCollectionLoc | ClosedIdentityLoc)[]> {
         return LocsState.withPredicate(this._locs, loc => loc instanceof ClosedLoc || loc instanceof ClosedCollectionLoc);
     }
 
@@ -766,7 +767,6 @@ export abstract class LocRequestState extends State {
     protected readonly locIssuers: LocVerifiedIssuers;
     protected readonly invitedContributors: ValidAccountId[];
     readonly owner: LegalOfficerClass;
-    protected _secrets: Record<string, Secret> = {}; // TODO for stubbing only, move secrets to LocRequest.
 
     constructor(locSharedState: LocSharedState, request: LocRequest, legalOfficerCase: LegalOfficerCase | undefined, locIssuers: LocVerifiedIssuers, invitedContributors: ValidAccountId[]) {
         super();
@@ -972,7 +972,8 @@ export abstract class LocRequestState extends State {
                 lastBlockSubmission: loc.collectionLastBlockSubmission,
                 maxSize: loc.collectionMaxSize,
                 canUpload: loc.collectionCanUpload,
-            }
+            },
+            secrets: request.secrets,
         };
 
         if(data.voidInfo && request.voidInfo) {
@@ -1878,7 +1879,7 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
         return this.client.estimateFeesAcknowledgeLink({ locId: this.locId, ...parameters })
     }
 
-    async close(parameters: BlockchainSubmission<{ autoAck: boolean }>): Promise<ClosedLoc | ClosedCollectionLoc> {
+    async close(parameters: BlockchainSubmission<{ autoAck: boolean }>): Promise<ClosedLoc | ClosedCollectionLoc | ClosedIdentityLoc> {
         this.ensureCanClose(parameters.payload.autoAck);
 
         const seal = this.request.data().seal;
@@ -1889,6 +1890,8 @@ implements LegalOfficeReviewCommands, LegalOfficerNonVoidedCommands, LegalOffice
         const state = await this.request.refresh();
         if(state.data().locType === "Collection") {
             return state as ClosedCollectionLoc;
+        } else if(state.data().locType === "Identity") {
+            return state as ClosedIdentityLoc;
         } else {
             return state as ClosedLoc;
         }
@@ -2059,8 +2062,8 @@ export class ClosedLoc extends LocRequestState {
         return this._withLocs(locsState, ClosedLoc);
     }
 
-    get legalOfficer(): LegalOfficerClosedLocCommands {
-        return new LegalOfficerClosedLocCommands({
+    get legalOfficer(): LegalOfficerNonVoidedCommandsImpl {
+        return new LegalOfficerNonVoidedCommandsImpl({
             locId: this.locId,
             client: this.locSharedState.client,
             request: this,
@@ -2070,16 +2073,20 @@ export class ClosedLoc extends LocRequestState {
 
 export class ClosedIdentityLoc extends ClosedLoc {
 
-    get secrets(): Secret[] {
-        return Object.values(this._secrets);
+    async addSecret(secret: Secret): Promise<ClosedIdentityLoc> {
+        this.locSharedState.client.addSecret({
+            locId: this.locId,
+            secret,
+        });
+        return await this.refresh() as ClosedIdentityLoc;
     }
 
-    addSecret(secret: Secret) {
-        this._secrets[secret.name] = secret;
-    }
-
-    removeSecret(name: string) {
-        delete this._secrets[name];
+    async removeSecret(name: string): Promise<ClosedIdentityLoc> {
+        this.locSharedState.client.removeSecret({
+            locId: this.locId,
+            name,
+        });
+        return await this.refresh() as ClosedIdentityLoc;
     }
 
     override async refresh(): Promise<ClosedIdentityLoc | VoidedLoc> {
@@ -2090,15 +2097,19 @@ export class ClosedIdentityLoc extends ClosedLoc {
         return this._withLocs(locsState, ClosedIdentityLoc);
     }
 
+    get legalOfficer(): LegalOfficerClosedIdentityLocCommands {
+        return new LegalOfficerClosedIdentityLocCommands({
+            locId: this.locId,
+            client: this.locSharedState.client,
+            request: this,
+        });
+    }
 }
 
-export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommandsImpl {
+export class LegalOfficerClosedIdentityLocCommands extends LegalOfficerNonVoidedCommandsImpl {
 
-    async nominateIssuer(params: BasicBlockchainSubmission): Promise<ClosedLoc> {
+    async nominateIssuer(params: BasicBlockchainSubmission): Promise<ClosedIdentityLoc> {
         const data = this.request.data();
-        if(data.locType !== "Identity") {
-            throw new Error("Not an Identity LOC");
-        }
 
         if(!data.requesterAccountId || data.requesterAccountId.type !== "Polkadot") {
             throw new Error("Identity LOC has no Polkadot requester");
@@ -2112,14 +2123,11 @@ export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommands
             }
         });
 
-        return await this.request.refresh() as ClosedLoc;
+        return await this.request.refresh() as ClosedIdentityLoc;
     }
 
-    async dismissIssuer(params: BasicBlockchainSubmission): Promise<ClosedLoc> {
+    async dismissIssuer(params: BasicBlockchainSubmission): Promise<ClosedIdentityLoc> {
         const data = this.request.data();
-        if(data.locType !== "Identity") {
-            throw new Error("Not an Identity LOC");
-        }
 
         if(!data.requesterAccountId || data.requesterAccountId.type !== "Polkadot") {
             throw new Error("Identity LOC has no Polkadot requester");
@@ -2132,14 +2140,11 @@ export class LegalOfficerClosedLocCommands extends LegalOfficerNonVoidedCommands
             }
         });
 
-        return await this.request.refresh() as ClosedLoc;
+        return await this.request.refresh() as ClosedIdentityLoc;
     }
 
     async requestVote(params: BasicBlockchainSubmission): Promise<string> {
         const data = this.request.data();
-        if(data.locType !== "Identity") {
-            throw new Error("Not an Identity LOC");
-        }
 
         return this.client.requestVote({
             ...params,

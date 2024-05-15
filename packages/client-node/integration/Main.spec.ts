@@ -20,6 +20,7 @@ import { voidTransactionLoc } from "./Void.js";
 import { votingProcess } from "./Vote.js";
 import { openIdentityLoc, openTransactionLoc, openCollectionLoc } from "./DirectLocOpen.js";
 import { invitedContributors } from "./InvitedContributors.js";
+import { recoverableSecrets } from "./Secrets.js";
 
 describe("Logion SDK", () => {
 
@@ -58,6 +59,10 @@ describe("Logion SDK", () => {
     it("enables protection", async () => {
         const identityLocs = await requestValidIdentity(state, state.requesterAccount);
         await enablesProtection(state, identityLocs);
+    });
+
+    it("enables recoverable secrets", async () => {
+        await recoverableSecrets(state);
     });
 
     it("provides vault", async () => {

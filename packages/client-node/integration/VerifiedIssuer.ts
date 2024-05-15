@@ -3,7 +3,8 @@ import {
     ClosedLoc,
     HashOrContent,
     AcceptedRequest,
-    PendingRequest, OpenLoc, MimeType, waitFor
+    PendingRequest, OpenLoc, MimeType, waitFor,
+    ClosedIdentityLoc
 } from "@logion/client";
 import { State, initAccountBalance } from "./Utils.js";
 import { NodeFile } from "../src/index.js";
@@ -48,7 +49,7 @@ export async function verifiedIssuer(state: State) {
         producer: prev => prev ? prev.refresh() as Promise<OpenLoc> : aliceOpen.refresh() as Promise<OpenLoc>,
         predicate: state => state.legalOfficer.canClose(false),
     });
-    let aliceClosed = await aliceOpen.legalOfficer.close({ signer, payload: { autoAck: false }}) as ClosedLoc;
+    let aliceClosed = await aliceOpen.legalOfficer.close({ signer, payload: { autoAck: false }}) as ClosedIdentityLoc;
     aliceClosed = await aliceClosed.legalOfficer.nominateIssuer({ signer });
 
     await initAccountBalance(state, newAccount);
