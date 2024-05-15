@@ -2074,7 +2074,7 @@ export class ClosedLoc extends LocRequestState {
 export class ClosedIdentityLoc extends ClosedLoc {
 
     async addSecret(secret: Secret): Promise<ClosedIdentityLoc> {
-        this.locSharedState.client.addSecret({
+        await this.locSharedState.client.addSecret({
             locId: this.locId,
             secret,
         });
@@ -2082,7 +2082,7 @@ export class ClosedIdentityLoc extends ClosedLoc {
     }
 
     async removeSecret(name: string): Promise<ClosedIdentityLoc> {
-        this.locSharedState.client.removeSecret({
+        await this.locSharedState.client.removeSecret({
             locId: this.locId,
             name,
         });
