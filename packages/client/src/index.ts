@@ -2,7 +2,7 @@
  * Exposes tools enabling interaction with a Logion network.
  * An instance of {@link LogionClient} must be created.
  * Most features of the client require authentication.
- * 
+ *
  * @module
  */
 import { ISubmittableResult } from '@polkadot/types/types';
@@ -33,6 +33,8 @@ export * from './Polling.js';
 export * from './Public.js';
 export * from './Recovery.js';
 export { LegalOfficerDecision, LoRecoveryClient, ProtectionRequest, ProtectionRequestStatus, UpdateParameters, UserActionParameters, CreateProtectionRequest } from './RecoveryClient.js';
+export * from './SecretRecovery.js';
+export * from './SecretRecoveryClient.js';
 export * from './SharedClient.js';
 export * from './Signer.js';
 export * from './State.js';

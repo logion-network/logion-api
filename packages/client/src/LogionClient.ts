@@ -20,11 +20,12 @@ import { VoterApi } from "./Voter.js";
 import { SponsorshipState, SponsorshipApi } from "./Sponsorship.js";
 import { requireDefined } from "./assertions.js";
 import { InvitedContributorApi } from "./InvitedContributor.js";
+import { SecretRecoveryApi } from "./SecretRecovery.js";
 
 /**
  * An instance of LogionClient is connected to a Logion network and
  * interacts with all its components (including the blockchain).
- * 
+ *
  * It features:
  * - Access to LGNT balance, transactions and transfer
  * - LOC management
@@ -35,7 +36,7 @@ export class LogionClient {
 
     /**
      * Instantiates a connected client.
-     * 
+     *
      * @param config Parameters of a connection to the Logion network.
      * @returns A connected client.
      */
@@ -71,6 +72,7 @@ export class LogionClient {
         this._public = new PublicApi({ sharedState });
         this._voter = new VoterApi({ sharedState, logionClient: this });
         this._invitedContributor = new InvitedContributorApi({ sharedState, logionClient: this })
+        this._secretRecovery = new SecretRecoveryApi({ sharedState });
     }
 
     private sharedState: SharedState;
@@ -80,6 +82,8 @@ export class LogionClient {
     private _voter: VoterApi;
 
     private readonly _invitedContributor: InvitedContributorApi;
+
+    private readonly _secretRecovery: SecretRecoveryApi;
 
     /**
      * The configuration of this client.
@@ -143,7 +147,7 @@ export class LogionClient {
 
     /**
      * Overrides current tokens.
-     * 
+     *
      * @param tokens The new tokens.
      * @returns A copy of this client, but using the new tokens.
      */
@@ -165,7 +169,7 @@ export class LogionClient {
 
     /**
      * Postpones the expiration of valid (see {@link isTokenValid}) JWT tokens.
-     * 
+     *
      * @param now Current time, used to check if tokens are still valid or not.
      * @param threshold If at least one token's expiration falls between now and (now + threshold), then tokens are refreshed. Otherwise, they are not.
      * @returns An authenticated client using refreshed tokens or this if no refresh occured.
@@ -206,7 +210,7 @@ export class LogionClient {
 
     /**
      * Sets current account.
-     * 
+     *
      * @param currentAccount The account to use as current.
      * @returns A client instance with provided current account.
      */
@@ -295,11 +299,11 @@ export class LogionClient {
      * a JWT token for each address. A valid JWT token is sent back by a Logion node
      * if the client was able to sign a random challenge, hence proving that provided
      * signer is indeed able to sign using provided addresses.
-     * 
+     *
      * Note that the signer may be able to sign for more addresses than the once provided.
      * A call to this method will merge the retrieved tokens with the ones already available.
      * Older tokens are replaced.
-     * 
+     *
      * @param accounts The addresses for which an authentication token must be retrieved.
      * @param signer The signer that will sign the challenge.
      * @returns An instance of client with retrived JWT tokens.
@@ -503,9 +507,14 @@ export class LogionClient {
         return this._invitedContributor;
     }
 
+    get secretRecovery(): SecretRecoveryApi {
+        this.ensureConnected();
+        return this._secretRecovery;
+    }
+
     /**
      * Disconnects the client from the Logion blockchain.
-     * @returns 
+     * @returns
      */
     async disconnect() {
         if(this.sharedState.nodeApi.polkadot.isConnected) {
