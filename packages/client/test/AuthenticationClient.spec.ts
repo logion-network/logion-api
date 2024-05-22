@@ -16,7 +16,6 @@ import {
     ALICE,
     buildAliceTokens,
     buildSimpleNodeApi,
-    buildValidPolkadotAccountId,
     DIRECTORY_ENDPOINT
 } from "./Utils.js";
 import { ValidAccountId } from "@logion/node-api";
@@ -78,7 +77,7 @@ async function testAuthentication(legalOfficers: LegalOfficer[], expectedEndpoin
             .returns(axiosInstance.object());
     }
 
-    const addresses = [ buildValidPolkadotAccountId("5GWqG9UVMx4o9fHHx6K4JT8kcw9UnKNozLtHRg7g4aojMf1i")! ];
+    const addresses = [ ValidAccountId.polkadot("5GWqG9UVMx4o9fHHx6K4JT8kcw9UnKNozLtHRg7g4aojMf1i")! ];
     const sessionId = "session-id";
     setupSignIn(axiosInstance, addresses, sessionId);
 
@@ -159,9 +158,9 @@ describe("AccountTokens", () => {
 
     const now = DateTime.now();
 
-    const ADDRESS_WITH_VALID_TOKEN = buildValidPolkadotAccountId("5FhQTfi1CxGAeNmbZj5bRLhnBpydKnMuMnk1wZQAqUUQ3kwE")!;
+    const ADDRESS_WITH_VALID_TOKEN = ValidAccountId.polkadot("5FhQTfi1CxGAeNmbZj5bRLhnBpydKnMuMnk1wZQAqUUQ3kwE")!;
 
-    const ADDRESS_WITH_EXPIRED_TOKEN = buildValidPolkadotAccountId("5FS47HBMnYYav1qGz4m5suiAF8zCuMreDPoKuYCxCyzMDtRv")!;
+    const ADDRESS_WITH_EXPIRED_TOKEN = ValidAccountId.polkadot("5FS47HBMnYYav1qGz4m5suiAF8zCuMreDPoKuYCxCyzMDtRv")!;
 
     const addresses = [
         ADDRESS_WITH_VALID_TOKEN,
@@ -179,7 +178,7 @@ describe("AccountTokens", () => {
         }
     };
 
-    const OTHER_ADDRESS = buildValidPolkadotAccountId("5FxbV4wTw4PRjKWHQrjwb43ZZUqjPWWZ3RXRb1NdWsi7T4Xn")!;
+    const OTHER_ADDRESS = ValidAccountId.polkadot("5FxbV4wTw4PRjKWHQrjwb43ZZUqjPWWZ3RXRb1NdWsi7T4Xn")!;
 
     const otherTokensRecord: Record<string, Token> = {
         [OTHER_ADDRESS.toKey()]: {

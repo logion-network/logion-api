@@ -13,7 +13,6 @@ import {
     ALICE,
     buildSimpleNodeApi,
     buildTestAuthenticatedSharedSate,
-    buildValidPolkadotAccountId,
     ItIsUuid,
     LEGAL_OFFICERS,
     LOGION_CLIENT_CONFIG,
