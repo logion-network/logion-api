@@ -11,7 +11,6 @@ import {
     BOB,
     buildTestAuthenticatedSharedSate,
     SUCCESSFUL_SUBMISSION,
-    buildValidPolkadotAccountId,
     buildSimpleNodeApi
 } from "./Utils.js";
 import { AccountTokens, LogionClient, Transaction, AxiosFactory, BalanceState, Signer, LegalOfficerClass, BackendTransaction } from "../src/index.js";
@@ -323,7 +322,7 @@ describe("Balance", () => {
     })
 })
 
-const REQUESTER_ADDRESS = buildValidPolkadotAccountId("5ERRWWYABvYjyUG2oLCNifkmcCQT44ijPpQNxtwZZFj86Jjd")!;
+const REQUESTER_ADDRESS = ValidAccountId.polkadot("5ERRWWYABvYjyUG2oLCNifkmcCQT44ijPpQNxtwZZFj86Jjd")!;
 
 function setupFetchTransactions(axiosFactory: Mock<AxiosFactory>, transactions: BackendTransaction[], address: string) {
     const axios = new Mock<AxiosInstance>();

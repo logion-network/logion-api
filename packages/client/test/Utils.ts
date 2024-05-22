@@ -222,18 +222,6 @@ export function mockCodecWithToBigInt<T extends Codec & { toBigInt: () => bigint
     }) as T;
 }
 
-export function doBuildValidPolkadotAccountId(address: string): ValidAccountId {
-    const accountId = buildValidAccountId(address, "Polkadot");
-    if(!accountId) {
-        throw new Error();
-    }
-    return accountId;
-}
-
-export function buildValidPolkadotAccountId(address: string | undefined): ValidAccountId | undefined {
-    return buildValidAccountId(address, "Polkadot");
-}
-
 export function buildValidAccountId(address: string | undefined, type: AccountType): ValidAccountId | undefined {
     if(address) {
         return new AnyAccountId(address, type).toValidAccountId();

@@ -52,7 +52,6 @@ import {
     REQUESTER,
     SUCCESSFUL_SUBMISSION,
     buildSimpleNodeApi,
-    buildValidPolkadotAccountId,
     ItIsUuid,
     mockCodecWithToString,
     MOCK_FILE,
@@ -1293,7 +1292,7 @@ async function getVoidedCollectionLoc() {
 function expectDataToMatch(data: LocData, request: LocRequest) {
     expect(data.id.toString()).toBe(request.id.toString());
     expect(data.ownerAccountId.address).toBe(request.ownerAddress);
-    expect(data.requesterAccountId).toEqual(buildValidPolkadotAccountId(request.requesterAddress?.address));
+    expect(data.requesterAccountId?.equals(request.requesterAddress)).toBeTrue();
     expect(data.requesterLocId?.toString()).toBe(request.requesterIdentityLoc ? request.requesterIdentityLoc : undefined);
     expect(data.description).toBe(request.description);
     expect(data.locType).toBe(request.locType);

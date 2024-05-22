@@ -28,7 +28,6 @@ import {
     REQUESTER,
     RECOVERED_ADDRESS,
     buildSimpleNodeApi,
-    buildValidPolkadotAccountId,
     REQUESTER_ID_LOC_ALICE,
     REQUESTER_ID_LOC_BOB,
 } from './Utils.js';
