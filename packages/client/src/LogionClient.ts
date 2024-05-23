@@ -21,6 +21,7 @@ import { SponsorshipState, SponsorshipApi } from "./Sponsorship.js";
 import { requireDefined } from "./assertions.js";
 import { InvitedContributorApi } from "./InvitedContributor.js";
 import { SecretRecoveryApi } from "./SecretRecovery.js";
+import { RecoveryReviewApi } from "./RecoveryReview.js";
 
 /**
  * An instance of LogionClient is connected to a Logion network and
@@ -84,6 +85,8 @@ export class LogionClient {
     private readonly _invitedContributor: InvitedContributorApi;
 
     private readonly _secretRecovery: SecretRecoveryApi;
+
+    private _recoveryReviewApi: RecoveryReviewApi | undefined;
 
     /**
      * The configuration of this client.
@@ -507,9 +510,25 @@ export class LogionClient {
         return this._invitedContributor;
     }
 
+    /**
+     * Secret Recovery tools (for regular user)
+     * @returns An instance of {@link SecretRecoveryApi}
+     */
     get secretRecovery(): SecretRecoveryApi {
         this.ensureConnected();
         return this._secretRecovery;
+    }
+
+    /**
+     * Recovery review tools (for legal officer)
+     * @returns An instance of {@link RecoveryReviewApi}
+     */
+    get recoveryReview(): RecoveryReviewApi {
+        if (this._recoveryReviewApi === undefined) {
+            this.ensureConnected();
+            this._recoveryReviewApi = new RecoveryReviewApi({ sharedState: this.sharedState });
+        }
+        return this._recoveryReviewApi;
     }
 
     /**
