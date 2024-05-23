@@ -9,10 +9,10 @@ import {
     LegalOfficerDecision,
     ProtectionRequest,
     ProtectionRequestStatus,
-    RecoveryClient,
+    AccountRecoveryClient,
     LoRecoveryClient,
     UpdateParameters
-} from "./RecoveryClient.js";
+} from "./AccountRecoveryClient.js";
 
 import { authenticatedCurrentAccount, getDefinedCurrentAccount, getLegalOfficer, SharedState } from "./SharedClient.js";
 import { LegalOfficerClass, LegalOfficer, PostalAddress, UserIdentity } from "./Types.js";
@@ -320,9 +320,9 @@ export class NoProtection extends State {
     }
 }
 
-function newRecoveryClient(sharedState: SharedState): RecoveryClient {
+function newRecoveryClient(sharedState: SharedState): AccountRecoveryClient {
     const { currentAccount, token } = authenticatedCurrentAccount(sharedState);
-    return new RecoveryClient({
+    return new AccountRecoveryClient({
         currentAccount,
         axiosFactory: sharedState.axiosFactory,
         networkState: sharedState.networkState,

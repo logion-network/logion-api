@@ -7,8 +7,8 @@ import { BalanceState, getBalanceState } from "./Balance.js";
 import { ComponentFactory, buildComponentFactory } from "./ComponentFactory.js";
 import { DirectoryClient } from "./DirectoryClient.js";
 import { initMultiSourceHttpClientState, MultiSourceHttpClient, Token } from "./Http.js";
-import { getInitialState, ProtectionState } from "./Recovery.js";
-import { RecoveryClient } from "./RecoveryClient.js";
+import { getInitialState, ProtectionState } from "./AccountRecovery.js";
+import { AccountRecoveryClient } from "./AccountRecoveryClient.js";
 import { authenticatedCurrentAccount, LegalOfficerEndpoint, LogionClientConfig, SharedState } from "./SharedClient.js";
 import { RawSigner } from "./Signer.js";
 import { LegalOfficer, LegalOfficerClass } from "./Types.js";
@@ -274,7 +274,7 @@ export class LogionClient {
     async protectionState(): Promise<ProtectionState> {
         this.ensureConnected();
         const { currentAccount, token } = authenticatedCurrentAccount(this.sharedState);
-        const recoveryClient = new RecoveryClient({
+        const recoveryClient = new AccountRecoveryClient({
             axiosFactory: this.sharedState.axiosFactory,
             currentAccount,
             networkState: this.sharedState.networkState,

@@ -3,7 +3,7 @@ import { DateTime } from 'luxon';
 import { It, Mock } from 'moq.ts';
 import { AxiosInstance, AxiosResponse } from 'axios';
 
-import { CreateProtectionRequest, FetchAllResult, ProtectionRequest } from '../src/RecoveryClient.js';
+import { CreateProtectionRequest, FetchAllResult, ProtectionRequest } from '../src/AccountRecoveryClient';
 import {
     SharedState,
     AcceptedProtection,
