@@ -1,6 +1,7 @@
 import { UserIdentity, PostalAddress, LegalOfficerClass } from "./Types.js";
 import { ProtectionRequestStatus } from "./AccountRecoveryClient.js";
 import { AxiosInstance } from "axios";
+import { newBackendError } from "./Error.js";
 
 export type RecoveryRequestType = "ACCOUNT" | "SECRET";
 
@@ -54,42 +55,62 @@ export class RecoveryReviewClient {
     }
 
     async fetchRecoveryRequests(): Promise<BackendRecoveryRequest[]> {
-        const response = await this.backend().put(`/api/recovery-requests`);
-        return response.data;
+        try {
+            const response = await this.backend().put(`/api/recovery-requests`);
+            return response.data;
+        } catch (e) {
+            throw newBackendError(e);
+        }
     }
 
     async fetchRecoveryInfo(params: RecoveryBackendParameters): Promise<RecoveryInfo> {
         const { type, id } = params;
         if (type === "ACCOUNT") {
-            const response = await this.backend().put(`/api/protection-request/${ id }/recovery-info`);
-            return response.data;
+            try {
+                const response = await this.backend().put(`/api/protection-request/${ id }/recovery-info`);
+                return response.data;
+            } catch (e) {
+                throw newBackendError(e);
+            }
         } else if (type === "SECRET") {
-            const response = await this.backend().put(`/api/secret-recovery/${ id }/recovery-info`);
-            return response.data;
+            try {
+                const response = await this.backend().put(`/api/secret-recovery/${ id }/recovery-info`);
+                return response.data;
+            } catch (e) {
+                throw newBackendError(e);
+            }
         } else {
             throw new Error(`Unsupported recovery type ${ type }`);
         }
     }
 
     async acceptRecoveryRequest(params: RecoveryBackendParameters): Promise<void> {
-        const { type, id } = params;
-        if (type === "ACCOUNT") {
-            await this.backend().post(`/api/protection-request/${ id }/accept`);
-        } else {
-            await this.backend().post(`/api/secret-recovery/${ id }/accept`);
+        try {
+            const { type, id } = params;
+            if (type === "ACCOUNT") {
+                await this.backend().post(`/api/protection-request/${ id }/accept`);
+            } else {
+                await this.backend().post(`/api/secret-recovery/${ id }/accept`);
+            }
+        } catch (e) {
+            throw newBackendError(e);
         }
     }
 
     async rejectRecoveryRequest(params: RejectRecoveryBackendParameters): Promise<void> {
-        const { type, id, rejectReason } = params;
-        if (type === "ACCOUNT") {
-            await this.backend().post(`/api/protection-request/${ id }/reject`, {
-                rejectReason,
-            });
-        } else {
-            await this.backend().post(`/api/secret-recovery/${ id }/reject`, {
-                rejectReason,
-            });
+        try {
+            const { type, id, rejectReason } = params;
+            if (type === "ACCOUNT") {
+                await this.backend().post(`/api/protection-request/${ id }/reject`, {
+                    rejectReason,
+                });
+            } else {
+                await this.backend().post(`/api/secret-recovery/${ id }/reject`, {
+                    rejectReason,
+                });
+            }
+        } catch (e) {
+            throw newBackendError(e);
         }
     }
 

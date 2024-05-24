@@ -1,7 +1,8 @@
 import {
     BackendRecoveryRequest,
     RecoveryReviewClient,
-    RecoveryInfo, RejectRecoveryParameters
+    RecoveryInfo,
+    RejectRecoveryParameters
 } from "./RecoveryReviewClient.js";
 import { SharedState } from "./SharedClient.js";
 import { requireDefined } from "./assertions.js";
@@ -17,7 +18,7 @@ export abstract class RecoveryRequest {
     protected readonly client: RecoveryReviewClient;
 }
 
-export class NonPendingRecoveryRequest extends RecoveryRequest {
+export class ReviewedRecoveryRequest extends RecoveryRequest {
 }
 
 export class PendingRecoveryRequest extends RecoveryRequest {
@@ -39,6 +40,23 @@ export class PendingRecoveryRequest extends RecoveryRequest {
     }
 }
 
+export class RecoveryRequests {
+
+    readonly requests: RecoveryRequest[];
+
+    constructor(recoveryRequests: RecoveryRequest[]) {
+        this.requests = recoveryRequests;
+    }
+
+    get pendingRequests(): PendingRecoveryRequest[] {
+        return this.requests.filter(request => request instanceof PendingRecoveryRequest) as PendingRecoveryRequest[];
+    }
+
+    get reviewedRequests(): ReviewedRecoveryRequest[] {
+        return this.requests.filter(request => request instanceof ReviewedRecoveryRequest);
+    }
+}
+
 export class RecoveryReviewApi {
 
     private readonly client: RecoveryReviewClient;
@@ -52,15 +70,16 @@ export class RecoveryReviewApi {
         this.client = new RecoveryReviewClient(legalOfficer);
     }
 
-    async fetchPendingRecoveryRequests(): Promise<PendingRecoveryRequest[]> {
+    async fetchRecoveryRequests(): Promise<RecoveryRequests> {
         const requests = await this.client.fetchRecoveryRequests();
-        return requests.filter(request => request.status === "PENDING")
-            .map(request => new PendingRecoveryRequest(request, this.client));
+        return new RecoveryRequests(requests.map(request => this.toRecoveryRequest(request)));
     }
 
-    async fetchRecoveryRequestsHistory(): Promise<NonPendingRecoveryRequest[]> {
-        const requests = await this.client.fetchRecoveryRequests();
-        return requests.filter(request => request.status !== "PENDING")
-            .map(request => new NonPendingRecoveryRequest(request, this.client));
+    private toRecoveryRequest(request: BackendRecoveryRequest): RecoveryRequest {
+        if (request.status === "PENDING") {
+            return new PendingRecoveryRequest(request, this.client);
+        } else {
+            return new ReviewedRecoveryRequest(request, this.client);
+        }
     }
 }

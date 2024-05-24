@@ -18,48 +18,48 @@ describe("RecoveryReview", () => {
     })
 
     it("fetches pending requests", async () => {
-        const pendingRequests = await recoveryReview.fetchPendingRecoveryRequests();
+        const pendingRequests = (await recoveryReview.fetchRecoveryRequests()).pendingRequests;
         expect(pendingRequests.length).toBe(2);
         expect(pendingRequests[0].data).toEqual(recoveryRequests[0]);
         expect(pendingRequests[1].data).toEqual(recoveryRequests[1]);
     })
 
     it("fetches history", async () => {
-        const recoveryRequestsHistory = await recoveryReview.fetchRecoveryRequestsHistory();
+        const recoveryRequestsHistory = (await recoveryReview.fetchRecoveryRequests()).reviewedRequests;
         expect(recoveryRequestsHistory.length).toBe(2);
         expect(recoveryRequestsHistory[0].data).toEqual(recoveryRequests[2]);
         expect(recoveryRequestsHistory[1].data).toEqual(recoveryRequests[3]);
     })
 
     it("fetches pending account recovery info", async () => {
-        const pendingRequests = await recoveryReview.fetchPendingRecoveryRequests();
+        const pendingRequests = (await recoveryReview.fetchRecoveryRequests()).pendingRequests;
         const recoveryInfo = await pendingRequests[0].fetchRecoveryInfo();
         expect(recoveryInfo).toEqual(accountRecovery);
     })
 
     it("fetches pending secret recovery info", async () => {
-        const pendingRequests = await recoveryReview.fetchPendingRecoveryRequests();
+        const pendingRequests = (await recoveryReview.fetchRecoveryRequests()).pendingRequests;
         const recoveryInfo = await pendingRequests[1].fetchRecoveryInfo();
         expect(recoveryInfo).toEqual(secretRecovery);
     })
 
     it("accepts pending account recovery request", async () => {
-        const pendingRequests = await recoveryReview.fetchPendingRecoveryRequests();
+        const pendingRequests = (await recoveryReview.fetchRecoveryRequests()).pendingRequests;
         await pendingRequests[0].accept();
     })
 
     it("accepts pending secret recovery request", async () => {
-        const pendingRequests = await recoveryReview.fetchPendingRecoveryRequests();
+        const pendingRequests = (await recoveryReview.fetchRecoveryRequests()).pendingRequests;
         await pendingRequests[1].accept();
     })
 
     it("rejects pending account recovery request", async () => {
-        const pendingRequests = await recoveryReview.fetchPendingRecoveryRequests();
+        const pendingRequests = (await recoveryReview.fetchRecoveryRequests()).pendingRequests;
         await pendingRequests[0].reject({ rejectReason: "Because" });
     })
 
     it("rejects pending secret recovery request", async () => {
-        const pendingRequests = await recoveryReview.fetchPendingRecoveryRequests();
+        const pendingRequests = (await recoveryReview.fetchRecoveryRequests()).pendingRequests;
         await pendingRequests[1].reject({ rejectReason: "Because" });
     })
 })
