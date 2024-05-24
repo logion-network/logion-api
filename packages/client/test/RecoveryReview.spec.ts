@@ -153,9 +153,9 @@ const secretRecovery: RecoveryInfo = {
 }
 
 function setupBackend(axios: Mock<AxiosInstance>) {
-    const fetchResponse = new Mock<AxiosResponse<BackendRecoveryRequest[]>>();
+    const fetchResponse = new Mock<AxiosResponse<{ requests:BackendRecoveryRequest[]}>>();
     fetchResponse.setup(instance => instance.data)
-        .returns(recoveryRequests);
+        .returns({ requests: recoveryRequests });
     axios.setup(instance => instance.put("/api/recovery-requests"))
         .returns(Promise.resolve(fetchResponse.object()));
 

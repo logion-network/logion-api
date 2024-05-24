@@ -57,7 +57,7 @@ export class RecoveryReviewClient {
     async fetchRecoveryRequests(): Promise<BackendRecoveryRequest[]> {
         try {
             const response = await this.backend().put(`/api/recovery-requests`);
-            return response.data;
+            return response.data.requests;
         } catch (e) {
             throw newBackendError(e);
         }

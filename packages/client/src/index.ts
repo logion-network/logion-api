@@ -33,6 +33,8 @@ export * from './NetworkState.js';
 export * from './PSP34.js';
 export * from './Polling.js';
 export * from './Public.js';
+export * from './RecoveryReview.js';
+export * from './RecoveryReviewClient.js';
 export * from './SecretRecovery.js';
 export * from './SecretRecoveryClient.js';
 export * from './SharedClient.js';
