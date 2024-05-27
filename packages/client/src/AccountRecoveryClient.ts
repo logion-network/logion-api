@@ -70,7 +70,7 @@ export interface UpdateParameters {
     otherLegalOfficer: LegalOfficer
 }
 
-export class RecoveryClient {
+export class AccountRecoveryClient {
 
     constructor(params: {
         networkState: NetworkState<LegalOfficerEndpoint>,

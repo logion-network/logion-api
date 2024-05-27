@@ -7,8 +7,8 @@ import { BalanceState, getBalanceState } from "./Balance.js";
 import { ComponentFactory, buildComponentFactory } from "./ComponentFactory.js";
 import { DirectoryClient } from "./DirectoryClient.js";
 import { initMultiSourceHttpClientState, MultiSourceHttpClient, Token } from "./Http.js";
-import { getInitialState, ProtectionState } from "./Recovery.js";
-import { RecoveryClient } from "./RecoveryClient.js";
+import { getInitialState, ProtectionState } from "./AccountRecovery.js";
+import { AccountRecoveryClient } from "./AccountRecoveryClient.js";
 import { authenticatedCurrentAccount, LegalOfficerEndpoint, LogionClientConfig, SharedState } from "./SharedClient.js";
 import { RawSigner } from "./Signer.js";
 import { LegalOfficer, LegalOfficerClass } from "./Types.js";
@@ -21,6 +21,7 @@ import { SponsorshipState, SponsorshipApi } from "./Sponsorship.js";
 import { requireDefined } from "./assertions.js";
 import { InvitedContributorApi } from "./InvitedContributor.js";
 import { SecretRecoveryApi } from "./SecretRecovery.js";
+import { RecoveryReviewApi } from "./RecoveryReview.js";
 
 /**
  * An instance of LogionClient is connected to a Logion network and
@@ -84,6 +85,8 @@ export class LogionClient {
     private readonly _invitedContributor: InvitedContributorApi;
 
     private readonly _secretRecovery: SecretRecoveryApi;
+
+    private _recoveryReviewApi: RecoveryReviewApi | undefined;
 
     /**
      * The configuration of this client.
@@ -274,7 +277,7 @@ export class LogionClient {
     async protectionState(): Promise<ProtectionState> {
         this.ensureConnected();
         const { currentAccount, token } = authenticatedCurrentAccount(this.sharedState);
-        const recoveryClient = new RecoveryClient({
+        const recoveryClient = new AccountRecoveryClient({
             axiosFactory: this.sharedState.axiosFactory,
             currentAccount,
             networkState: this.sharedState.networkState,
@@ -507,9 +510,25 @@ export class LogionClient {
         return this._invitedContributor;
     }
 
+    /**
+     * Secret Recovery tools (for regular user)
+     * @returns An instance of {@link SecretRecoveryApi}
+     */
     get secretRecovery(): SecretRecoveryApi {
         this.ensureConnected();
         return this._secretRecovery;
+    }
+
+    /**
+     * Recovery review tools (for legal officer)
+     * @returns An instance of {@link RecoveryReviewApi}
+     */
+    get recoveryReview(): RecoveryReviewApi {
+        if (this._recoveryReviewApi === undefined) {
+            this.ensureConnected();
+            this._recoveryReviewApi = new RecoveryReviewApi({ sharedState: this.sharedState });
+        }
+        return this._recoveryReviewApi;
     }
 
     /**
