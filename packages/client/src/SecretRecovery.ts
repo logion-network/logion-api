@@ -1,5 +1,5 @@
 import { SharedState } from "./SharedClient.js";
-import { CreateSecretRecoveryRequest, SecretRecoveryClient } from "./SecretRecoveryClient.js";
+import { CreateSecretRecoveryRequest, DownloadSecretRequest, SecretRecoveryClient } from "./SecretRecoveryClient.js";
 
 export class SecretRecoveryApi {
 
@@ -9,7 +9,11 @@ export class SecretRecoveryApi {
 
     private readonly client: SecretRecoveryClient;
 
-    async createSecretRecoveryRequest(params: CreateSecretRecoveryRequest): Promise<void> {
-        await this.client.createSecretRecoveryRequest(params);
+    async createSecretRecoveryRequest(params: CreateSecretRecoveryRequest): Promise<string> {
+        return this.client.createSecretRecoveryRequest(params);
+    }
+
+    async downloadSecret(params: DownloadSecretRequest): Promise<string> {
+        return await this.client.downloadSecret(params);
     }
 }

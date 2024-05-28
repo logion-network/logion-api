@@ -13,10 +13,12 @@ export async function recoverableSecrets(state: State) {
     await addSecrets(requesterIdentityLoc);
 
     await createRecoveryRequest(state, requesterIdentityLoc.locId, secretToKeep.name);
-    await createRecoveryRequest(state, requesterIdentityLoc.locId, secretToKeep2.name);
+    const requestId = await createRecoveryRequest(state, requesterIdentityLoc.locId, secretToKeep2.name);
 
     await legalOfficerReject(state, requesterIdentityLoc.owner.account);
     await legalOfficerAccept(state, requesterIdentityLoc.owner.account);
+
+    await downloadSecret(state, requestId, requesterIdentityLoc.locId);
 }
 
 async function chooseOneIdentityLoc(state: State): Promise<ClosedIdentityLoc> {
@@ -44,11 +46,11 @@ async function addSecrets(closedIdentityLoc: ClosedIdentityLoc): Promise<void> {
     expect(data.secrets).toContain(secretToKeep2);
 }
 
-async function createRecoveryRequest(state: State, requesterIdentityLocId: UUID, secretName: string) {
+async function createRecoveryRequest(state: State, requesterIdentityLocId: UUID, secretName: string): Promise<string> {
     const request: CreateSecretRecoveryRequest = {
         requesterIdentityLocId,
         secretName,
-        challenge: "my-personal-challenge",
+        challenge: CHALLENGE,
         userIdentity: {
             email: "john.doe@invalid.domain",
             firstName: "John",
@@ -63,8 +65,10 @@ async function createRecoveryRequest(state: State, requesterIdentityLocId: UUID,
             country: "Country",
         }
     }
-    await state.client.secretRecovery.createSecretRecoveryRequest(request);
+    return state.client.secretRecovery.createSecretRecoveryRequest(request);
 }
+
+const CHALLENGE = "my-personal-challenge";
 
 async function legalOfficerReject(state: State, legalOfficer: ValidAccountId) {
     const recoveryReview = state.client.withCurrentAccount(legalOfficer).recoveryReview;
@@ -91,4 +95,13 @@ async function legalOfficerAccept(state: State, legalOfficer: ValidAccountId) {
     const accepted = recoveryRequests.reviewedRequests.find(request => request.data.id === toReview.data.id);
     expect(accepted?.data.status).toEqual("ACCEPTED");
 
+}
+
+async function downloadSecret(state: State, requestId: string, locId: UUID) {
+    const secretValue = await state.client.secretRecovery.downloadSecret({
+        requestId,
+        requesterIdentityLocId: locId,
+        challenge: CHALLENGE,
+    });
+    expect(secretValue).toBe(secretToKeep2.value);
 }
