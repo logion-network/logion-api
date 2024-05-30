@@ -303,6 +303,7 @@ export interface AddTokensRecordParams {
     recordId: Hash,
     description: string,
     files: HashOrContent[],
+    chargeSubmitter?: boolean,
 }
 
 export interface GetTokensRecordDeliveriesRequest {
@@ -1399,6 +1400,7 @@ export class AuthenticatedLocClient extends LocClient {
             description,
             locId,
             files,
+            chargeSubmitter,
         } = parameters;
 
         const chainItemFiles: TypesTokensRecordFile[] = [];
@@ -1419,6 +1421,7 @@ export class AuthenticatedLocClient extends LocClient {
             this.nodeApi.adapters.toH256(recordId),
             this.nodeApi.adapters.toH256(Hash.of(description)),
             this.nodeApi.adapters.newTokensRecordFileVec(chainItemFiles),
+            chargeSubmitter || false,
         );
     }
 

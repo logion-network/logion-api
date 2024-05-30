@@ -3072,6 +3072,7 @@ declare module '@polkadot/types/lookup' {
       readonly recordId: H256;
       readonly description: H256;
       readonly files: Vec<PalletLogionLocTokensRecordFile>;
+      readonly chargeSubmitter: bool;
     } & Struct;
     readonly isCreateOtherIdentityLoc: boolean;
     readonly asCreateOtherIdentityLoc: {

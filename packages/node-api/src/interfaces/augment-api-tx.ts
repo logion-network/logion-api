@@ -203,7 +203,7 @@ declare module '@polkadot/api-base/types/submittable' {
       /**
        * See [`Pallet::add_tokens_record`].
        **/
-      addTokensRecord: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, recordId: H256 | string | Uint8Array, description: H256 | string | Uint8Array, files: Vec<PalletLogionLocTokensRecordFile> | (PalletLogionLocTokensRecordFile | { name?: any; contentType?: any; size_?: any; hash_?: any } | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, H256, Vec<PalletLogionLocTokensRecordFile>]>;
+      addTokensRecord: AugmentedSubmittable<(collectionLocId: Compact<u128> | AnyNumber | Uint8Array, recordId: H256 | string | Uint8Array, description: H256 | string | Uint8Array, files: Vec<PalletLogionLocTokensRecordFile> | (PalletLogionLocTokensRecordFile | { name?: any; contentType?: any; size_?: any; hash_?: any } | string | Uint8Array)[], chargeSubmitter: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>, [Compact<u128>, H256, H256, Vec<PalletLogionLocTokensRecordFile>, bool]>;
       /**
        * See [`Pallet::close`].
        **/

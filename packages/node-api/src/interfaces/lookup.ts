@@ -2846,6 +2846,7 @@ export default {
         recordId: 'H256',
         description: 'H256',
         files: 'Vec<PalletLogionLocTokensRecordFile>',
+        chargeSubmitter: 'bool',
       },
       create_other_identity_loc: {
         locId: 'Compact<u128>',
