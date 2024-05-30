@@ -135,6 +135,7 @@ export async function verifiedIssuers() {
                 hash: recordFileHash,
             }
         ]),
+        false,
     ));
 
     const record = Adapters.toTokensRecord((await api.polkadot.query.logionLoc.tokensRecordsMap(collectionLocId.toDecimalString(), recordId)).unwrap());

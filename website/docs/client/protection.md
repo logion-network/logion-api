@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 7
 description: How to protect/recover a Polkadot account, and access the vault.
 ---
 

@@ -525,7 +525,7 @@ describe("ClosedCollectionLoc", () => {
         });
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
-        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addTokensRecord(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addTokensRecord(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), false), Times.Once());
     });
 
     it("uploads tokens record file", async () => {
@@ -564,7 +564,7 @@ describe("ClosedCollectionLoc", () => {
         });
 
         signer.verify(instance => instance.signAndSend(It.IsAny()), Times.Once());
-        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addTokensRecord(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Exactly(2));
+        nodeApiMock.verify(instance => instance.polkadot.tx.logionLoc.addTokensRecord(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), false), Times.Exactly(2));
     });
 
     it("can be voided", async () => {
@@ -1188,6 +1188,7 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
                 It.Is<Hash>(itemId => itemId.toHex() !== ITEM_ID.toHex()),
                 ITEM_DESCRIPTION,
                 It.IsAny(),
+                false,
             )).returns(addTokensRecordExtrinsic.object());
 
             nodeApiMock.setup(instance => instance.polkadot.query.logionLoc.invitedContributorsByLocMap.entries(It.IsAny())).returns(Promise.resolve([]))
