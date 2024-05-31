@@ -8,6 +8,7 @@ import {
     MimeType,
     waitFor,
     InvitedContributorLoc,
+    BalanceState,
 } from "@logion/client";
 import {
     State,
@@ -113,6 +114,7 @@ export async function invitedContributors(state: State) {
             files: [
                 HashOrContent.fromContent(new NodeFile("integration/test.txt", "report.txt", MimeType.from("text/plain"))),
             ],
+            chargeSubmitter: true,
         },
         signer: state.signer,
     });
@@ -127,4 +129,13 @@ export async function invitedContributors(state: State) {
     expect(records[0].id).toEqual(recordId);
     expect(records[0].description.validValue()).toBe(recordDescription);
     expect(records[0].files.length).toBe(1);
+
+    let invitedContributorBalanceState = await invitedContributorClient.balanceState();
+    await waitFor<BalanceState>({
+        producer: async state => state ? await state.refresh() : invitedContributorBalanceState,
+        predicate: state => state.transactions.length > 0
+            && state.transactions[0].pallet === "logionLoc"
+            && state.transactions[0].method === "addTokensRecord"
+            && BigInt(state.transactions[0].fees.storage || "0") > 0,
+    });
 }
