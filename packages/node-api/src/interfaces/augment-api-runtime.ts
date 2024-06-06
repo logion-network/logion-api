@@ -17,7 +17,7 @@ import type { Extrinsic } from '@polkadot/types/interfaces/extrinsics';
 import type { GenesisBuildErr } from '@polkadot/types/interfaces/genesisBuilder';
 import type { OpaqueMetadata } from '@polkadot/types/interfaces/metadata';
 import type { FeeDetails, RuntimeDispatchInfo } from '@polkadot/types/interfaces/payment';
-import type { AccountId, Balance, Block, Call, Header, Index, KeyTypeId, SlotDuration, Weight } from '@polkadot/types/interfaces/runtime';
+import type { AccountId, Balance, Block, Call, ExtrinsicInclusionMode, Header, Index, KeyTypeId, SlotDuration, Weight } from '@polkadot/types/interfaces/runtime';
 import type { RuntimeVersion } from '@polkadot/types/interfaces/state';
 import type { ApplyExtrinsicResult } from '@polkadot/types/interfaces/system';
 import type { TransactionSource, TransactionValidity } from '@polkadot/types/interfaces/txqueue';
@@ -88,7 +88,7 @@ declare module '@polkadot/api-base/types/calls' {
        **/
       [key: string]: DecoratedCallBase<ApiType>;
     };
-    /** 0xdf6acb689907609b/4 */
+    /** 0xdf6acb689907609b/5 */
     core: {
       /**
        * Execute the given block.
@@ -97,7 +97,7 @@ declare module '@polkadot/api-base/types/calls' {
       /**
        * Initialize a block with the given header.
        **/
-      initializeBlock: AugmentedCall<ApiType, (header: Header | { parentHash?: any; number?: any; stateRoot?: any; extrinsicsRoot?: any; digest?: any } | string | Uint8Array) => Observable<Null>>;
+      initializeBlock: AugmentedCall<ApiType, (header: Header | { parentHash?: any; number?: any; stateRoot?: any; extrinsicsRoot?: any; digest?: any } | string | Uint8Array) => Observable<ExtrinsicInclusionMode>>;
       /**
        * Returns the version of the runtime.
        **/

@@ -80,7 +80,7 @@ export function checkCoinBalanceDelta(current: TypesAccountData, expectedDelta: 
 
 export function checkCoinBalance(balance: TypesAccountData, expectedValue: string) {
     const formatted = formatBalance(balance);
-    expect(expectedValue).toEqual(formatted)
+    expect(formatted).toEqual(expectedValue)
 }
 
 export function formatBalance(balance: TypesAccountData): string {
