@@ -22,7 +22,7 @@ export const EXPECTED_SPEC_NAME = "logion";
 
 export const EXPECTED_SOLO_VERSION = 164n;
 
-export const EXPECTED_PARA_VERSION = 3000n;
+export const EXPECTED_PARA_VERSION = 4000n;
 
 /**
  * A Logion chain client. An instance of this class provides
