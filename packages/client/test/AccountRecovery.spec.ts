@@ -3,16 +3,16 @@ import { DateTime } from 'luxon';
 import { It, Mock } from 'moq.ts';
 import { AxiosInstance, AxiosResponse } from 'axios';
 
-import { CreateProtectionRequest, FetchAllResult, ProtectionRequest } from '../src/AccountRecoveryClient';
+import { CreateProtectionRequest, FetchAllResult, AccountRecoveryRequest } from '../src/AccountRecoveryClient';
 import {
     SharedState,
-    AcceptedProtection,
+    AcceptedRecovery,
     ActiveProtection,
     ClaimedRecovery,
     getInitialState,
     NoProtection,
-    PendingProtection,
     PendingRecovery,
+    ActiveRecovery,
     LegalOfficer,
     PostalAddress,
     UserIdentity,
@@ -80,21 +80,6 @@ describe("Recovery's getInitialState", () => {
         await testGetInitialState(data, ClaimedRecovery);
     });
 
-    it("builds an initial accepted protection", async () => {
-        const data: FetchAllResult = {
-            pendingProtectionRequests: [],
-            acceptedProtectionRequests: [
-                buildAcceptedAliceRequest(),
-                buildAcceptedBobRequest()
-            ],
-            rejectedProtectionRequests: [],
-            cancelledProtectionRequests: [],
-            recoveryConfig: undefined,
-            recoveredAccount: undefined,
-        };
-        await testGetInitialState(data, AcceptedProtection);
-    });
-
     it("builds an initial pending protection if both requests pending", async () => {
         const data: FetchAllResult = {
             pendingProtectionRequests: [
@@ -107,7 +92,7 @@ describe("Recovery's getInitialState", () => {
             recoveryConfig: undefined,
             recoveredAccount: undefined,
         };
-        await testGetInitialState(data, PendingProtection);
+        await testGetInitialState(data, PendingRecovery);
     });
 
     it("builds an initial pending protection if one request pending", async () => {
@@ -123,7 +108,7 @@ describe("Recovery's getInitialState", () => {
             recoveryConfig: undefined,
             recoveredAccount: undefined,
         };
-        await testGetInitialState(data, PendingProtection);
+        await testGetInitialState(data, PendingRecovery);
     });
 
     it("builds an initial pending recovery", async () => {
@@ -138,7 +123,7 @@ describe("Recovery's getInitialState", () => {
             recoveryConfig: undefined,
             recoveredAccount: undefined,
         };
-        await testGetInitialState(data, AcceptedProtection);
+        await testGetInitialState(data, AcceptedRecovery);
     });
 
     it("builds an initial claimed recovery", async () => {
@@ -229,50 +214,10 @@ function buildPartialBobRequest(): PartialProtectionRequest {
     };
 }
 
-function buildAcceptedAliceRequest(): ProtectionRequest {
+function buildAcceptedAliceRecoveryRequest(): AccountRecoveryRequest {
     return {
         ...buildPartialAliceRequest(),
         status: 'ACCEPTED',
-        isRecovery: false,
-        addressToRecover: null,
-        decision: {
-            decisionOn: DateTime.now().minus({minutes: 1}).toISO(),
-            rejectReason: null,
-        },
-    };
-}
-
-function buildRejectedAliceRequest(): ProtectionRequest {
-    return {
-        ...buildPartialAliceRequest(),
-        status: 'ACCEPTED',
-        isRecovery: false,
-        addressToRecover: null,
-        decision: {
-            decisionOn: DateTime.now().minus({minutes: 1}).toISO(),
-            rejectReason: null,
-        },
-    };
-}
-
-function buildAcceptedBobRequest(): ProtectionRequest {
-    return {
-        ...buildPartialBobRequest(),
-        status: 'ACCEPTED',
-        isRecovery: false,
-        addressToRecover: null,
-        decision: {
-            decisionOn: DateTime.now().minus({minutes: 1}).toISO(),
-            rejectReason: null,
-        },
-    };
-}
-
-function buildAcceptedAliceRecoveryRequest(): ProtectionRequest {
-    return {
-        ...buildPartialAliceRequest(),
-        status: 'ACCEPTED',
-        isRecovery: true,
         addressToRecover: RECOVERED_ADDRESS.address,
         decision: {
             decisionOn: DateTime.now().minus({minutes: 1}).toISO(),
@@ -281,11 +226,10 @@ function buildAcceptedAliceRecoveryRequest(): ProtectionRequest {
     };
 }
 
-function buildAcceptedBobRecoveryRequest(): ProtectionRequest {
+function buildAcceptedBobRecoveryRequest(): AccountRecoveryRequest {
     return {
         ...buildPartialBobRequest(),
         status: 'ACCEPTED',
-        isRecovery: true,
         addressToRecover: RECOVERED_ADDRESS.address,
         decision: {
             decisionOn: DateTime.now().minus({minutes: 1}).toISO(),
@@ -294,37 +238,10 @@ function buildAcceptedBobRecoveryRequest(): ProtectionRequest {
     };
 }
 
-function buildPendingAliceRequest(): ProtectionRequest {
+function buildPendingAliceRecoveryRequest(): AccountRecoveryRequest {
     return {
         ...buildPartialAliceRequest(),
         status: 'PENDING',
-        isRecovery: false,
-        addressToRecover: null,
-        decision: {
-            decisionOn: DateTime.now().minus({minutes: 1}).toISO(),
-            rejectReason: null,
-        },
-    };
-}
-
-function buildPendingBobRequest(): ProtectionRequest {
-    return {
-        ...buildPartialBobRequest(),
-        status: 'PENDING',
-        isRecovery: false,
-        addressToRecover: null,
-        decision: {
-            decisionOn: DateTime.now().minus({minutes: 1}).toISO(),
-            rejectReason: null,
-        },
-    };
-}
-
-function buildPendingAliceRecoveryRequest(): ProtectionRequest {
-    return {
-        ...buildPartialAliceRequest(),
-        status: 'PENDING',
-        isRecovery: true,
         addressToRecover: RECOVERED_ADDRESS.address,
         decision: {
             decisionOn: DateTime.now().minus({minutes: 1}).toISO(),
@@ -333,11 +250,10 @@ function buildPendingAliceRecoveryRequest(): ProtectionRequest {
     };
 }
 
-function buildPendingBobRecoveryRequest(): ProtectionRequest {
+function buildPendingBobRecoveryRequest(): AccountRecoveryRequest {
     return {
         ...buildPartialBobRequest(),
         status: 'PENDING',
-        isRecovery: true,
         addressToRecover: RECOVERED_ADDRESS.address,
         decision: {
             decisionOn: DateTime.now().minus({minutes: 1}).toISO(),
@@ -474,7 +390,7 @@ describe("NoProtection", () => {
             signer: signer.object(),
         });
 
-        expect(nextState).toBeInstanceOf(PendingProtection);
+        expect(nextState).toBeInstanceOf(PendingRecovery);
         expect(nextState.protectionParameters.isActive).toBe(false);
         expect(nextState.protectionParameters.isClaimed).toBe(false);
         expect(nextState.protectionParameters.isRecovery).toBe(true);
@@ -487,13 +403,12 @@ function setupCreateProtectionRequest(
     legalOfficer: LegalOfficer,
     otherLegalOfficer: LegalOfficer,
     token: string,
-    addressToRecover: string | null,
+    addressToRecover: string,
 ) {
     const axios = new Mock<AxiosInstance>();
-    const request: ProtectionRequest = {
+    const request: AccountRecoveryRequest = {
         ...partialProtectionRequest,
         status: 'PENDING',
-        isRecovery: addressToRecover !== null,
         addressToRecover: addressToRecover,
         decision: {
             decisionOn: null,
@@ -502,19 +417,19 @@ function setupCreateProtectionRequest(
     }
     const response = new Mock<AxiosResponse<any>>();
     response.setup(instance => instance.data).returns(request);
-    axios.setup(instance => instance.post("/api/protection-request", It.Is<CreateProtectionRequest>(body =>
+    axios.setup(instance => instance.post("/api/account-recovery", It.Is<CreateProtectionRequest>(body =>
         body.otherLegalOfficerAddress === otherLegalOfficer.account.address
-        && ((body.isRecovery && addressToRecover !== null) || (!body.isRecovery && addressToRecover === null))
+        && addressToRecover !== null
     ))).returns(Promise.resolve(response.object()));
     axiosFactory.setup(instance => instance.buildAxiosInstance(legalOfficer.node, token))
         .returns(axios.object());
 }
 
-describe("PendingProtection", () => {
+describe("PendingRecovery", () => {
 
     it("refreshes and remains pending", async () => {
-        const aliceRequest: ProtectionRequest = buildPendingAliceRequest();
-        const bobRequest: ProtectionRequest = buildPendingBobRequest();
+        const aliceRequest: AccountRecoveryRequest = buildPendingAliceRecoveryRequest();
+        const bobRequest: AccountRecoveryRequest = buildPendingBobRecoveryRequest();
         const currentAccount = REQUESTER;
         const token = "some-token";
         const tokens = new AccountTokens(
@@ -551,7 +466,7 @@ describe("PendingProtection", () => {
             tokens,
         );
 
-        const state = new PendingProtection({
+        const state = new PendingRecovery({
             ...sharedState,
             selectedLegalOfficers: sharedState.legalOfficerClasses,
             legalOfficers: sharedState.legalOfficerClasses,
@@ -564,15 +479,15 @@ describe("PendingProtection", () => {
 
         const nextState = await state.refresh();
 
-        expect(nextState).toBeInstanceOf(PendingProtection);
+        expect(nextState).toBeInstanceOf(PendingRecovery);
         expect(nextState.protectionParameters.isActive).toBe(false);
         expect(nextState.protectionParameters.isClaimed).toBe(false);
-        expect(nextState.protectionParameters.isRecovery).toBe(false);
+        expect(nextState.protectionParameters.isRecovery).toBe(true);
     });
 
     it("refreshes and becomes accepted", async () => {
-        const aliceRequest: ProtectionRequest = buildAcceptedAliceRequest();
-        const bobRequest: ProtectionRequest = buildAcceptedBobRequest();
+        const aliceRequest: AccountRecoveryRequest = buildAcceptedAliceRecoveryRequest();
+        const bobRequest: AccountRecoveryRequest = buildAcceptedBobRecoveryRequest();
         const currentAccount = REQUESTER;
         const token = "some-token";
         const tokens = new AccountTokens(
@@ -604,7 +519,7 @@ describe("PendingProtection", () => {
             tokens,
         );
 
-        const state = new PendingProtection({
+        const state = new PendingRecovery({
             ...sharedState,
             selectedLegalOfficers: sharedState.legalOfficerClasses,
             legalOfficers: sharedState.legalOfficerClasses,
@@ -617,10 +532,10 @@ describe("PendingProtection", () => {
 
         const nextState = await state.refresh();
 
-        expect(nextState).toBeInstanceOf(AcceptedProtection);
+        expect(nextState).toBeInstanceOf(AcceptedRecovery);
         expect(nextState.protectionParameters.isActive).toBe(false);
         expect(nextState.protectionParameters.isClaimed).toBe(false);
-        expect(nextState.protectionParameters.isRecovery).toBe(false);
+        expect(nextState.protectionParameters.isRecovery).toBe(true);
     });
 });
 
@@ -641,9 +556,9 @@ function setupAliceBobAxios(factory: TestConfigFactory, token: string): ({
 
 function setupFetchProtectionRequests(
     axios: Mock<AxiosInstance>,
-    pending: ProtectionRequest[],
-    accepted: ProtectionRequest[],
-    rejected: ProtectionRequest[],
+    pending: AccountRecoveryRequest[],
+    accepted: AccountRecoveryRequest[],
+    rejected: AccountRecoveryRequest[],
 ) {
     axios.setup(instance => instance.put).returns(<T = any, R = AxiosResponse<T, any>>(): Promise<R> => {
         const response = new Mock<AxiosResponse<T, any>>();
@@ -658,8 +573,8 @@ function setupFetchProtectionRequests(
 describe("AcceptedProtection", () => {
 
     it("activates recovery", async () => {
-        const aliceRequest: ProtectionRequest = buildAcceptedAliceRecoveryRequest();
-        const bobRequest: ProtectionRequest = buildAcceptedBobRecoveryRequest();
+        const aliceRequest: AccountRecoveryRequest = buildAcceptedAliceRecoveryRequest();
+        const bobRequest: AccountRecoveryRequest = buildAcceptedBobRecoveryRequest();
         const currentAccount = REQUESTER;
         const token = "some-token";
         const tokens = new AccountTokens(
@@ -696,7 +611,7 @@ describe("AcceptedProtection", () => {
             legalOfficers,
             tokens,
         );
-        const state = new AcceptedProtection({
+        const state = new AcceptedRecovery({
             ...sharedState,
             selectedLegalOfficers: sharedState.legalOfficerClasses,
             legalOfficers: sharedState.legalOfficerClasses,
@@ -714,7 +629,7 @@ describe("AcceptedProtection", () => {
 
         const nextState = await state.activate({ signer: signer.object() });
 
-        expect(nextState).toBeInstanceOf(PendingRecovery);
+        expect(nextState).toBeInstanceOf(ActiveRecovery);
         expect(nextState.protectionParameters.isActive).toBe(true);
         expect(nextState.protectionParameters.isClaimed).toBe(false);
         expect(nextState.protectionParameters.isRecovery).toBe(true);
@@ -724,9 +639,9 @@ describe("AcceptedProtection", () => {
 describe("PendingRecovery", () => {
 
     it("claims", async () => {
-        const aliceRequest: ProtectionRequest = buildAcceptedAliceRecoveryRequest();
+        const aliceRequest: AccountRecoveryRequest = buildAcceptedAliceRecoveryRequest();
         aliceRequest.status = "ACTIVATED";
-        const bobRequest: ProtectionRequest = buildAcceptedBobRecoveryRequest();
+        const bobRequest: AccountRecoveryRequest = buildAcceptedBobRecoveryRequest();
         bobRequest.status = "ACTIVATED";
         const currentAccount = REQUESTER;
         const token = "some-token";
@@ -768,7 +683,7 @@ describe("PendingRecovery", () => {
             legalOfficers,
             tokens,
         );
-        const state = new PendingRecovery({
+        const state = new ActiveRecovery({
             ...sharedState,
             selectedLegalOfficers: sharedState.legalOfficerClasses,
             legalOfficers: sharedState.legalOfficerClasses,

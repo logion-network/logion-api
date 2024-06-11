@@ -2,7 +2,7 @@ import { setupInitialState, State, tearDown } from "./Utils.js";
 import { enablesProtection, requestValidIdentity } from "./Protection.js";
 import { transferAndCannotPayFees, transfers, transferWithInsufficientFunds } from "./Balance.js";
 import { providesVault } from "./Vault.js";
-import { recoverLostAccount, recoverLostVault, requestRecoveryAndCancel, requestRecoveryWithResubmit } from "./Recovery.js";
+import { recoverLostAccount, recoverLostVault, requestRecoveryAndCancel, requestRecoveryAndProceed } from "./Recovery.js";
 import {
     requestTransactionLoc,
     collectionLoc,
@@ -72,7 +72,7 @@ describe("Logion SDK", () => {
     it("enables recovery", async () => {
         const identityLocs = await requestValidIdentity(state, state.newAccount);
         await requestRecoveryAndCancel(state, identityLocs);
-        await requestRecoveryWithResubmit(state, identityLocs);
+        await requestRecoveryAndProceed(state, identityLocs);
     });
 
     it("recovers a lost vault", async () => {

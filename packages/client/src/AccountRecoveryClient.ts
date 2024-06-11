@@ -22,7 +22,7 @@ export type ProtectionRequestStatus =
     | 'REJECTED_CANCELLED'
     | 'ACCEPTED_CANCELLED';
 
-export interface ProtectionRequest {
+export interface AccountRecoveryRequest {
     id: string,
     requesterAddress: string,
     requesterIdentityLoc: string,
@@ -30,44 +30,35 @@ export interface ProtectionRequest {
     userIdentity: UserIdentity,
     userPostalAddress: PostalAddress,
     createdOn: string,
-    isRecovery: boolean,
-    addressToRecover: string | null,
+    addressToRecover: string,
     status: ProtectionRequestStatus,
     legalOfficerAddress: string,
     otherLegalOfficerAddress: string,
 }
 
-export type ProtectionRequestKind = 'RECOVERY' | 'PROTECTION_ONLY' | 'ANY';
-
 export interface FetchProtectionRequestSpecification {
     requesterAddress?: string,
-    kind: ProtectionRequestKind,
     statuses?: ProtectionRequestStatus[],
 }
 
 export interface CreateProtectionRequest {
     requesterIdentityLoc: string,
-    isRecovery: boolean,
     addressToRecover: string,
     legalOfficerAddress: string,
     otherLegalOfficerAddress: string,
 }
 
 export interface FetchAllResult {
-    pendingProtectionRequests: ProtectionRequest[];
-    acceptedProtectionRequests: ProtectionRequest[];
-    rejectedProtectionRequests: ProtectionRequest[];
-    cancelledProtectionRequests: ProtectionRequest[];
+    pendingProtectionRequests: AccountRecoveryRequest[];
+    acceptedProtectionRequests: AccountRecoveryRequest[];
+    rejectedProtectionRequests: AccountRecoveryRequest[];
+    cancelledProtectionRequests: AccountRecoveryRequest[];
     recoveryConfig: TypesRecoveryConfig | undefined;
     recoveredAccount: ValidAccountId | undefined;
 }
 
 export interface UserActionParameters {
     id: string,
-}
-
-export interface UpdateParameters {
-    otherLegalOfficer: LegalOfficer
 }
 
 export class AccountRecoveryClient {
@@ -104,10 +95,9 @@ export class AccountRecoveryClient {
             this.axiosFactory,
             this.token
         );
-        const allRequests = aggregateArrays(await multiClient.fetch(axios => this.fetchProtectionRequests(axios, {
+        const allRequests = aggregateArrays(await multiClient.fetch(axios => this.fetchAccountRecoveryRequests(axios, {
             requesterAddress: this.currentAccount.address,
             statuses: [ "PENDING", "ACCEPTED", "ACTIVATED", "REJECTED", "CANCELLED", "REJECTED_CANCELLED", "ACCEPTED_CANCELLED" ],
-            kind: "ANY",
         })));
 
         const pendingProtectionRequests = this.filterByStatuses(allRequests, [ "PENDING" ]);
@@ -136,23 +126,23 @@ export class AccountRecoveryClient {
         };
     }
 
-    private async fetchProtectionRequests(
+    private async fetchAccountRecoveryRequests(
         axios: AxiosInstance,
         specification: FetchProtectionRequestSpecification
-    ): Promise<ProtectionRequest[]> {
+    ): Promise<AccountRecoveryRequest[]> {
         try {
-            const response = await axios.put("/api/protection-request", specification);
+            const response = await axios.put("/api/account-recovery", specification);
             return response.data.requests;
         } catch(e) {
             throw newBackendError(e);
         }
     }
 
-    private filterByStatuses(requests: ProtectionRequest[], statuses: ProtectionRequestStatus[]): ProtectionRequest[] {
+    private filterByStatuses(requests: AccountRecoveryRequest[], statuses: ProtectionRequestStatus[]): AccountRecoveryRequest[] {
         return requests.filter(request => statuses.includes(request.status));
     }
 
-    async fetchAccepted(legalOfficers: LegalOfficer[]): Promise<ProtectionRequest[]> {
+    async fetchAccepted(legalOfficers: LegalOfficer[]): Promise<AccountRecoveryRequest[]> {
         const initialState = {
             nodesUp: legalOfficers.map(legalOfficer => ({
                 url: legalOfficer.node,
@@ -165,10 +155,9 @@ export class AccountRecoveryClient {
             this.axiosFactory,
             this.token
         );
-        const result = await multiClient.fetch(axios => this.fetchProtectionRequests(axios, {
+        const result = await multiClient.fetch(axios => this.fetchAccountRecoveryRequests(axios, {
             requesterAddress: this.currentAccount.address,
             statuses: [ "ACCEPTED", "ACTIVATED" ],
-            kind: "ANY",
         }));
         return aggregateArrays(result);
     }
@@ -190,9 +179,9 @@ export class LoRecoveryClient {
     private readonly token: string;
     private readonly legalOfficer: LegalOfficer;
 
-    async createProtectionRequest(request: CreateProtectionRequest): Promise<ProtectionRequest> {
+    async createRecoveryRequest(request: CreateProtectionRequest): Promise<AccountRecoveryRequest> {
         try {
-            const response = await this.backend().post("/api/protection-request", request);
+            const response = await this.backend().post("/api/account-recovery", request);
             return response.data;
         } catch(e) {
             throw newBackendError(e);
@@ -203,30 +192,10 @@ export class LoRecoveryClient {
         return this.axiosFactory.buildAxiosInstance(this.legalOfficer.node, this.token);
     }
 
-    async resubmit(params: UserActionParameters): Promise<void> {
-        const { id } = params;
-        try {
-            return this.backend().post(`/api/protection-request/${ id }/resubmit`)
-        } catch(e) {
-            throw newBackendError(e);
-        }
-    }
-
     async cancel(params: UserActionParameters): Promise<void> {
         const { id } = params;
         try {
-            return this.backend().post(`/api/protection-request/${ id }/cancel`)
-        } catch(e) {
-            throw newBackendError(e);
-        }
-    }
-
-    async update(params: UserActionParameters & UpdateParameters): Promise<void> {
-        const { id, otherLegalOfficer } = params;
-        try {
-            return this.backend().put(`/api/protection-request/${ id }/update`, {
-                otherLegalOfficerAddress: otherLegalOfficer.account.address
-            })
+            return this.backend().post(`/api/account-recovery/${ id }/cancel`)
         } catch(e) {
             throw newBackendError(e);
         }

@@ -161,7 +161,7 @@ function setupBackend(axios: Mock<AxiosInstance>) {
 
     const accountRecoveryResponse = new Mock<AxiosResponse<RecoveryInfo>>();
     accountRecoveryResponse.setup(instance => instance.data).returns(accountRecovery);
-    axios.setup(instance => instance.put(`/api/protection-request/${ recoveryRequests[0].id }/recovery-info`))
+    axios.setup(instance => instance.put(`/api/account-recovery/${ recoveryRequests[0].id }/recovery-info`))
         .returns(Promise.resolve(accountRecoveryResponse.object()))
 
     const secretRecoveryResponse = new Mock<AxiosResponse<RecoveryInfo>>();
@@ -170,13 +170,12 @@ function setupBackend(axios: Mock<AxiosInstance>) {
         .returns(Promise.resolve(secretRecoveryResponse.object()))
 
     const response = new Mock<AxiosResponse<void>>();
-    axios.setup(instance => instance.post(`/api/protection-request/${ recoveryRequests[0].id }/accept`))
+    axios.setup(instance => instance.post(`/api/account-recovery/${ recoveryRequests[0].id }/accept`))
         .returns(Promise.resolve(response.object()))
     axios.setup(instance => instance.post(`/api/secret-recovery/${ recoveryRequests[1].id }/accept`))
         .returns(Promise.resolve(response.object()))
-    axios.setup(instance => instance.post(`/api/protection-request/${ recoveryRequests[0].id }/reject`, { rejectReason: "Because" }))
+    axios.setup(instance => instance.post(`/api/account-recovery/${ recoveryRequests[0].id }/reject`, { rejectReason: "Because" }))
         .returns(Promise.resolve(response.object()))
     axios.setup(instance => instance.post(`/api/secret-recovery/${ recoveryRequests[1].id }/reject`, { rejectReason: "Because" }))
         .returns(Promise.resolve(response.object()))
 }
-
