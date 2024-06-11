@@ -12,7 +12,7 @@ export {
 
 export * from './assertions.js';
 export * from './AccountRecovery.js';
-export { LegalOfficerDecision, LoRecoveryClient, ProtectionRequest, ProtectionRequestStatus, UpdateParameters, UserActionParameters, CreateProtectionRequest } from './AccountRecoveryClient.js';
+export { LegalOfficerDecision, LoRecoveryClient, AccountRecoveryRequest as ProtectionRequest, ProtectionRequestStatus, UserActionParameters, CreateProtectionRequest } from './AccountRecoveryClient.js';
 export * from './AuthenticationClient.js';
 export * from './AxiosFactory.js';
 export * from './Balance.js';

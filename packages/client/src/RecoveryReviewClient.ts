@@ -67,7 +67,7 @@ export class RecoveryReviewClient {
         const { type, id } = params;
         if (type === "ACCOUNT") {
             try {
-                const response = await this.backend().put(`/api/protection-request/${ id }/recovery-info`);
+                const response = await this.backend().put(`/api/account-recovery/${ id }/recovery-info`);
                 return response.data;
             } catch (e) {
                 throw newBackendError(e);
@@ -88,7 +88,7 @@ export class RecoveryReviewClient {
         try {
             const { type, id } = params;
             if (type === "ACCOUNT") {
-                await this.backend().post(`/api/protection-request/${ id }/accept`);
+                await this.backend().post(`/api/account-recovery/${ id }/accept`);
             } else {
                 await this.backend().post(`/api/secret-recovery/${ id }/accept`);
             }
@@ -101,7 +101,7 @@ export class RecoveryReviewClient {
         try {
             const { type, id, rejectReason } = params;
             if (type === "ACCOUNT") {
-                await this.backend().post(`/api/protection-request/${ id }/reject`, {
+                await this.backend().post(`/api/account-recovery/${ id }/reject`, {
                     rejectReason,
                 });
             } else {
