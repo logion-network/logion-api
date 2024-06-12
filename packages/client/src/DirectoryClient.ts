@@ -96,10 +96,18 @@ export class DirectoryClient {
 
     private getHost(address: string, data: Record<string, PalletLoAuthorityListLegalOfficerData>): PalletLoAuthorityListLegalOfficerData {
         const hostOrGuest = data[address];
+        if(!hostOrGuest) {
+            throw new Error(`No data for address ${ address }`);
+        }
         if(hostOrGuest.isHost) {
             return hostOrGuest;
         } else {
-            return data[hostOrGuest.asGuest.toString()];
+            const hostAddress = hostOrGuest.asGuest.hostId.toString();
+            const host = data[hostAddress];
+            if(!host) {
+                throw new Error(`No host with address ${ hostAddress }`);
+            }
+            return host;
         }
     }
 
