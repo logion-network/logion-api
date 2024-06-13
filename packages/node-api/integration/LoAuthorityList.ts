@@ -3,18 +3,24 @@ import { setup, signAndSend } from "./Util.js";
 
 export async function addGuestLegalOfficer() {
     const { alice, api } = await setup();
-    const dave = api.adapters.getValidPolkadotAccountId("5DAAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFy").address;
+    const dave = api.adapters.getValidPolkadotAccountId("5DAAnrj7VHTznn2AWBemMuyBwZWs6FNFjdyVXUeYum3PTXFy");
 
-    const extrinsic = api.polkadot.tx.loAuthorityList.addLegalOfficer(dave, {
+    const extrinsic = api.polkadot.tx.loAuthorityList.addLegalOfficer(dave.address, {
         Guest: alice.address,
     });
     const sudoExtrinsic = api.polkadot.tx.sudo.sudo(extrinsic);
     const result = await signAndSend(alice, sudoExtrinsic);
+
     expect(result.dispatchError).not.toBeDefined();
-    const entry = await api.polkadot.query.loAuthorityList.legalOfficerSet(dave);
+    const entry = await api.polkadot.query.loAuthorityList.legalOfficerSet(dave.address);
     expect(entry.isSome).toBe(true);
     const host = entry.unwrap().asGuest;
     expect(host.hostId.toString()).toBe(alice.address);
+
+    const legalOfficerData = await api.queries.getLegalOfficerData(dave);
+    expect(legalOfficerData.isHost).toBe(false);
+    expect(legalOfficerData.hostData).toBeDefined();
+    expect(legalOfficerData.hostAccount).toEqual(ValidAccountId.polkadot(alice.address));
 }
 
 export async function updateHostLegalOfficer() {
