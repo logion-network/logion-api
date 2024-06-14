@@ -157,7 +157,7 @@ export class Queries {
                     guests: await this.getGuestsOf(accountId),
                 };
             } else {
-                const hostAddress = someLegalOfficerData.asGuest.toString();
+                const hostAddress = someLegalOfficerData.asGuest.hostId.toString();
                 const hostLegalOfficerData = await this.api.query.loAuthorityList.legalOfficerSet(hostAddress);
                 const hostData = this.adapters.toHostData(hostLegalOfficerData.unwrap());
                 onchainSettings = {

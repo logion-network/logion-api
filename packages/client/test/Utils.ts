@@ -1,8 +1,9 @@
 import { DateTime } from "luxon";
 import { ApiPromise } from "@polkadot/api";
+import type { StorageKey } from '@polkadot/types';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { Option, Vec, bool } from "@polkadot/types-codec";
-import type { Codec } from '@polkadot/types-codec/types';
+import type { Codec, AnyTuple } from '@polkadot/types-codec/types';
 
 import {
     AccountTokens,
@@ -285,3 +286,25 @@ export class MockFile extends File {
 }
 
 export const MOCK_FILE = new MockFile();
+
+export function mockStorageKey<T extends AnyTuple = AnyTuple>(args: T): StorageKey<T> {
+    const key = new Mock<StorageKey<T>>();
+    key.setup(instance => instance.args).returns(args);
+    return key.object();
+}
+
+export const EMPTY_POSTAL_ADDRESS: LegalOfficerPostalAddress = {
+    city: "",
+    company: "",
+    country: "",
+    line1: "",
+    line2: "",
+    postalCode: "",
+};
+
+export const EMPTY_USER_IDENTITY: UserIdentity = {
+    email: "",
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+};
