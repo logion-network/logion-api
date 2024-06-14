@@ -12,7 +12,6 @@ import { UUID } from "@logion/node-api";
 
 export interface LogionClientConfig {
     rpcEndpoints: string[];
-    directoryEndpoint: string;
     buildFileUploader: () => FileUploader;
     creativeCommonsLoc?: UUID;
     logionClassificationLoc?: UUID;

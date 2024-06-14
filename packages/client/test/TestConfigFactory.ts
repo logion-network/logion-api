@@ -42,26 +42,25 @@ export class TestConfigFactory {
         return nodeApi;
     }
 
-    setupDirectoryClientMock(config: LogionClientConfig): Mock<DirectoryClient> {
+    setupDirectoryClientMock(): Mock<DirectoryClient> {
         const directoryClient = new Mock<DirectoryClient>();
-        this._componentFactory.setup(instance => instance.buildDirectoryClient(It.IsAny(), config.directoryEndpoint, It.IsAny()))
+        this._componentFactory.setup(instance => instance.buildDirectoryClient(It.IsAny(), It.IsAny()))
             .returns(directoryClient.object());
         return directoryClient;
     }
 
-    setupAuthenticatedDirectoryClientMock(config: LogionClientConfig, token: string): Mock<DirectoryClient> {
+    setupAuthenticatedDirectoryClientMock(token: string): Mock<DirectoryClient> {
         const directoryClient = new Mock<DirectoryClient>();
-        this._componentFactory.setup(instance => instance.buildDirectoryClient(It.IsAny(), config.directoryEndpoint, It.IsAny(), token))
+        this._componentFactory.setup(instance => instance.buildDirectoryClient(It.IsAny(), It.IsAny(), token))
             .returns(directoryClient.object());
         return directoryClient;
     }
 
-    setupAuthenticationClientMock(config: LogionClientConfig, legalOfficers: LegalOfficer[]): Mock<AuthenticationClient> {
+    setupAuthenticationClientMock(legalOfficers: LegalOfficer[]): Mock<AuthenticationClient> {
         const authenticationClient = new Mock<AuthenticationClient>();
         this._componentFactory.setup(instance => instance.buildAuthenticationClient(
             It.IsAny(),
-            config.directoryEndpoint,
-            It.Is<LegalOfficerClass[]>(value => legalOfficers.map(lo => lo.account).every(item => value.map(lo => lo.account.address).includes(item.address))), It.IsAny()
+            It.Is<LegalOfficerClass[]>(value => legalOfficers.map(lo => lo.account).every(item => value.map(lo => lo.account.address).includes(item.address)))
         )).returns(authenticationClient.object());
         return authenticationClient;
     }

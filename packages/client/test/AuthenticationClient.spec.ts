@@ -16,15 +16,10 @@ import {
     ALICE,
     buildAliceTokens,
     buildSimpleNodeApi,
-    DIRECTORY_ENDPOINT
 } from "./Utils.js";
 import { ValidAccountId } from "@logion/node-api";
 
 describe("AuthenticationClient", () => {
-
-    it("authenticates with directory if no legal officer", async () => {
-        await testAuthentication([], DIRECTORY_ENDPOINT);
-    });
 
     it("authenticates with first legal officer if given", async () => {
         const legalOfficers = [ ALICE ];
@@ -56,7 +51,7 @@ describe("AuthenticationClient", () => {
             body.tokens[alice.toKey()] === token
         ))).returns(Promise.resolve(refreshResponse.object()));
 
-        const client = new AuthenticationClient(api, DIRECTORY_ENDPOINT, legalOfficers, axiosFactory.object());
+        const client = new AuthenticationClient(api, legalOfficers);
 
         const refreshedTokens = await client.refresh(tokens);
 
@@ -82,10 +77,10 @@ async function testAuthentication(legalOfficers: LegalOfficer[], expectedEndpoin
     setupSignIn(axiosInstance, addresses, sessionId);
 
     const api = buildSimpleNodeApi();
-    const client = new AuthenticationClient(api, DIRECTORY_ENDPOINT, legalOfficers.map(legalOfficer => new LegalOfficerClass({
+    const client = new AuthenticationClient(api, legalOfficers.map(legalOfficer => new LegalOfficerClass({
         legalOfficer,
         axiosFactory: axiosFactory.object(),
-    })), axiosFactory.object());
+    })));
     const signer = new Mock<RawSigner>();
     const signature = "signature";
     const signatures = [ signature ];

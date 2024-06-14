@@ -36,7 +36,6 @@ export function buildSigner(seeds: string []): FullSigner {
 }
 
 export const TEST_LOGION_CLIENT_CONFIG: LogionClientConfig = {
-    directoryEndpoint: "http://localhost:8090",
     rpcEndpoints: [ 'ws://localhost:9944' ],
     buildFileUploader: () => new NodeAxiosFileUploader(),
 };
@@ -170,20 +169,20 @@ async function updateLegalOfficers(params: { api: ApiPromise, aliceAccount: Vali
             }
         ),
     });
+    await Promise.all([llo1, llo2]);
+
+    const extrinsic = api.tx.loAuthorityList.updateLegalOfficer(
+        charlieAccount.address,
+        {
+            Guest: aliceAccount.address
+        }
+    );
+    const sudoExtrinsic = api.tx.sudo.sudo(extrinsic);
     const llo3 = signer.signAndSend({
-        signerId: charlieAccount,
-        submittable: api.tx.loAuthorityList.updateLegalOfficer(
-            charlieAccount.address,
-            {
-                Host: {
-                    nodeId: "0x002408011220876a7b4984f98006dc8d666e28b60de307309835d775e7755cc770328cdacf2e",
-                    baseUrl: "http://localhost:8082",
-                    region: "Europe",
-                }
-            }
-        ),
+        signerId: aliceAccount,
+        submittable: sudoExtrinsic,
     });
-    await Promise.all([llo1, llo2, llo3]);
+    await llo3;
 }
 
 export async function updateConfig(config: Partial<LogionClientConfig>): Promise<State> {

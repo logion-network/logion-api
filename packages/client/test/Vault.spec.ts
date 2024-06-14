@@ -80,7 +80,7 @@ describe("Vault", () => {
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
                 factory.setupDefaultNetworkState();
-                factory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+                factory.setupDirectoryClientMock();
                 factory.setupAxiosFactoryMock();
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
@@ -156,7 +156,7 @@ describe("Vault", () => {
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
                 factory.setupDefaultNetworkState();
-                factory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+                factory.setupDirectoryClientMock();
                 factory.setupAxiosFactoryMock();
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
@@ -233,7 +233,7 @@ describe("Vault", () => {
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
                 factory.setupDefaultNetworkState();
-                factory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+                factory.setupDirectoryClientMock();
                 factory.setupAxiosFactoryMock();
                 factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
             },
@@ -302,7 +302,7 @@ describe("Vault", () => {
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
                 factory.setupDefaultNetworkState();
-                factory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+                factory.setupDirectoryClientMock();
                 factory.setupAxiosFactoryMock();
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);

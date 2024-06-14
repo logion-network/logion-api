@@ -64,8 +64,6 @@ export const CHARLIE: LegalOfficer = {
 
 export const LEGAL_OFFICERS = [ ALICE, BOB, CHARLIE ];
 
-export const DIRECTORY_ENDPOINT = "https://directory.logion.network";
-
 export function buildAliceTokens(api: LogionNodeApiClass, expirationDateTime: DateTime): AccountTokens {
     return new AccountTokens(api, {
         [`Polkadot:${ALICE.account.address}`]: {
@@ -93,7 +91,6 @@ export const LOGION_CLASSIFICATION_LOC_ID = new UUID();
 
 export const LOGION_CLIENT_CONFIG: LogionClientConfig = {
     rpcEndpoints: [ "wss://rpc.logion.network" ],
-    directoryEndpoint: DIRECTORY_ENDPOINT,
     buildFileUploader: () => new Mock<FileUploader>().object(),
     creativeCommonsLoc: CREATIVE_COMMONS_LOC_ID,
     logionClassificationLoc: LOGION_CLASSIFICATION_LOC_ID,
@@ -117,7 +114,7 @@ export async function buildAuthenticatedSharedStateUsingTestConfig(
 ): Promise<SharedStateWithLegalOfficerClasses> {
     const componentFactory = (config as any).__componentFactory;
     const axiosFactory = componentFactory.buildAxiosFactory();
-    const directoryClient = componentFactory.buildDirectoryClient(config.directoryEndpoint, axiosFactory);
+    const directoryClient = componentFactory.buildDirectoryClient(axiosFactory);
     const nodesUp: LegalOfficerEndpoint[] = legalOfficers.map(legalOfficer => ({ url: legalOfficer.node, legalOfficer: legalOfficer.account.address }));
     const networkState = componentFactory.buildNetworkState(nodesUp, []);
     const nodeApi = await componentFactory.buildNodeApi(config.rpcEndpoints);

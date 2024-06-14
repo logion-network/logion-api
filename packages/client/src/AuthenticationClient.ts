@@ -1,7 +1,6 @@
 import { LogionNodeApiClass, ValidAccountId } from "@logion/node-api";
 import { AxiosInstance } from "axios";
 import { DateTime } from "luxon";
-import { AxiosFactory } from "./AxiosFactory";
 import { fromIsoString, toIsoString } from "./DateTimeUtil.js";
 
 import { Token } from "./Http";
@@ -18,31 +17,17 @@ type AuthenticationResponse = Record<string, { value: string, expiredOn: string 
 
 export class AuthenticationClient {
 
-    constructor(api: LogionNodeApiClass, directoryEndpoint: string, legalOfficers: LegalOfficerClass[], axiosFactory: AxiosFactory) {
+    constructor(api: LogionNodeApiClass, legalOfficers: LegalOfficerClass[]) {
         this.api = api;
-        this.directoryEndpoint = directoryEndpoint;
         this.legalOfficers = legalOfficers;
-        this.axiosFactory = axiosFactory;
     }
 
     private api: LogionNodeApiClass;
 
-    private directoryEndpoint: string;
-
     private legalOfficers: LegalOfficerClass[];
 
-    private axiosFactory: AxiosFactory;
-
     async authenticate(addresses: ValidAccountId[], signer: RawSigner): Promise<AccountTokens> {
-        return this.doWithDirectoryOrFirstAvailableNode(axios => this.authenticateWithAxios(axios, addresses, signer));
-    }
-
-    private doWithDirectoryOrFirstAvailableNode<T>(axiosConsumer: (axios: AxiosInstance) => Promise<T>): Promise<T> {
-        if(this.legalOfficers.length === 0) {
-            return axiosConsumer(this.axiosFactory.buildAxiosInstance(this.directoryEndpoint));
-        } else {
-            return this.doWithFirstAvailableNode(axiosConsumer);
-        }
+        return this.doWithFirstAvailableNode(axios => this.authenticateWithAxios(axios, addresses, signer));
     }
 
     private doWithFirstAvailableNode<T>(axiosConsumer: (axios: AxiosInstance) => Promise<T>): Promise<T> {
@@ -115,7 +100,7 @@ export class AuthenticationClient {
             }
         }
 
-        const authenticateResponse = await this.doWithDirectoryOrFirstAvailableNode(axios =>
+        const authenticateResponse = await this.doWithFirstAvailableNode(axios =>
             axios.put(`/api/auth/refresh`, {
                 tokens
             })

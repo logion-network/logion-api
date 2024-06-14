@@ -22,7 +22,7 @@ describe("Balance", () => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
             testConfigFactory.setupDefaultNetworkState();
             const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-            const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+            const directoryClient = testConfigFactory.setupDirectoryClientMock();
 
             directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
@@ -73,7 +73,7 @@ describe("Balance", () => {
             const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
             testConfigFactory.setupDefaultNetworkState();
             const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-            const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+            const directoryClient = testConfigFactory.setupDirectoryClientMock();
 
             setupFetchTransactions(axiosFactory, transactions, REQUESTER_ADDRESS.address)
 
@@ -132,7 +132,7 @@ describe("Balance", () => {
                 const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
                 testConfigFactory.setupDefaultNetworkState();
                 const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+                const directoryClient = testConfigFactory.setupDirectoryClientMock();
 
                 directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
@@ -201,7 +201,7 @@ describe("Balance", () => {
                 const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
                 testConfigFactory.setupDefaultNetworkState();
                 const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+                const directoryClient = testConfigFactory.setupDirectoryClientMock();
 
                 directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
@@ -279,7 +279,7 @@ describe("Balance", () => {
                 const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
                 testConfigFactory.setupDefaultNetworkState();
                 const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+                const directoryClient = testConfigFactory.setupDirectoryClientMock();
 
                 directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 

@@ -6,6 +6,8 @@ import { PalletLoAuthorityListLegalOfficerData } from "@polkadot/types/lookup";
 import { AxiosInstance } from "axios";
 import { AxiosFactory } from "./AxiosFactory.js";
 import { LegalOfficer, LegalOfficerClass, LegalOfficerPostalAddress, UserIdentity } from "./Types.js";
+import { MultiSourceHttpClient, aggregateArrays, Endpoint, MultiSourceHttpClientState } from "./Http.js";
+import { newBackendError } from "./Error.js";
 
 export interface DirectoryLegalOfficer {
     userIdentity: UserIdentity;
@@ -14,38 +16,53 @@ export interface DirectoryLegalOfficer {
     additionalDetails: string;
 }
 
+export interface CreateOrUpdateLegalOfficer {
+    node: string;
+    userIdentity: UserIdentity;
+    postalAddress: LegalOfficerPostalAddress;
+    additionalDetails: string;
+}
+
 export class DirectoryClient {
 
-    constructor(api: LogionNodeApiClass, directoryEndpoint: string, axiosFactory: AxiosFactory, token?: string) {
+    constructor(api: LogionNodeApiClass, axiosFactory: AxiosFactory, token?: string) {
         this.authenticated = token !== undefined;
         this.axiosFactory = axiosFactory;
         this.token = token;
         this.api = api;
-
-        this.axios = axiosFactory.buildAxiosInstance(directoryEndpoint, token);
     }
 
-    private authenticated: boolean;
+    private readonly authenticated: boolean;
 
-    private axiosFactory: AxiosFactory;
+    private readonly axiosFactory: AxiosFactory;
 
-    private token: string | undefined;
-
-    private axios: AxiosInstance;
+    private readonly token: string | undefined;
 
     private api: LogionNodeApiClass;
 
     async getLegalOfficers(): Promise<LegalOfficerClass[]> {
-        const offchain = (await this.axios.get("/api/legal-officer")
-            .then(response => response.data.legalOfficers)) as DirectoryLegalOfficer[];
-        const offchainMap = this.toOffchainMap(offchain);
         const onchain = await this.api.polkadot.query.loAuthorityList.legalOfficerSet.entries();
         const onchainMap = this.toOnchainMap(onchain);
+        const httpClient = new MultiSourceHttpClient<Endpoint>(
+            this.getInitialState(onchainMap),
+            this.axiosFactory,
+        );
+        const multiResponse = await httpClient.fetch(async axios => this.getLegalOfficersFromNode(axios, onchainMap));
+        return aggregateArrays<LegalOfficerClass>(multiResponse);
+    }
+
+    async getLegalOfficersFromNode(
+        axios: AxiosInstance,
+        onchainMap: Record<string, PalletLoAuthorityListLegalOfficerData>
+    ): Promise<LegalOfficerClass[]> {
+        const offchain = (await axios.get("/api/legal-officer")
+            .then(response => response.data.legalOfficers)) as DirectoryLegalOfficer[];
+        const offchainMap = this.toOffchainMap(offchain);
         const legalOfficers = [];
-        for(const address in onchainMap) {
+        for(const address in offchainMap) {
             const offchainData = offchainMap[address];
-            if(offchainData) {
-                const hostData = this.getHostData(address, onchainMap);
+            const hostData = this.getHostData(address, onchainMap);
+            if(hostData) {
                 const legalOfficer: LegalOfficer = {
                     ...offchainData,
                     name: `${offchainData.userIdentity.firstName} ${offchainData.userIdentity.lastName}`,
@@ -55,7 +72,6 @@ export class DirectoryClient {
                 legalOfficers.push(new LegalOfficerClass({
                     legalOfficer,
                     axiosFactory: this.axiosFactory,
-                    token: this.token,
                 }));
             }
         }
@@ -111,10 +127,27 @@ export class DirectoryClient {
         }
     }
 
-    async createOrUpdate(legalOfficer: LegalOfficer) {
+    private getInitialState(onchainMap: Record<string, PalletLoAuthorityListLegalOfficerData>): MultiSourceHttpClientState<Endpoint> {
+        const nodes = new Set<string>();
+        for(const address in onchainMap) {
+            const hostData = this.getHostData(address, onchainMap);
+            nodes.add(hostData.node);
+        }
+        return {
+            nodesUp: Array.from(nodes).map(node => ({ url: node })),
+            nodesDown: [],
+        };
+    }
+
+    async createOrUpdate(legalOfficer: CreateOrUpdateLegalOfficer) {
         if(!this.authenticated) {
             throw new Error("Authentication is required");
         }
-        await this.axios.put('/api/legal-officer', legalOfficer);
+        try {
+            const backend = this.axiosFactory.buildAxiosInstance(legalOfficer.node, this.token);
+            await backend.put('/api/legal-officer', legalOfficer);
+        } catch(e) {
+            throw newBackendError(e);
+        }
     }
 }

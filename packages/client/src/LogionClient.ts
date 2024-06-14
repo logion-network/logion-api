@@ -47,8 +47,7 @@ export class LogionClient {
         const nodeApi = await componentFactory.buildNodeApi(config.rpcEndpoints);
         const directoryClient = componentFactory.buildDirectoryClient(
             nodeApi,
-            config.directoryEndpoint,
-            axiosFactory
+            axiosFactory,
         );
         const allLegalOfficers = await directoryClient.getLegalOfficers();
         const legalOfficers = allLegalOfficers.filter(legalOfficer => legalOfficer.node);
@@ -193,9 +192,7 @@ export class LogionClient {
         }
         const client = this.sharedState.componentFactory.buildAuthenticationClient(
             this.sharedState.nodeApi,
-            this.sharedState.config.directoryEndpoint,
             this.sharedState.legalOfficers,
-            this.sharedState.axiosFactory
         );
         const tokens = await client.refresh(this.sharedState.tokens);
         return this.useTokens(tokens);
@@ -223,14 +220,12 @@ export class LogionClient {
         if(currentAccount !== undefined) {
             directoryClient = this.sharedState.componentFactory.buildDirectoryClient(
                 this.sharedState.nodeApi,
-                this.sharedState.config.directoryEndpoint,
                 this.sharedState.axiosFactory,
                 this.sharedState.tokens.get(currentAccount)?.value,
             );
         } else {
             directoryClient = this.sharedState.componentFactory.buildDirectoryClient(
                 this.sharedState.nodeApi,
-                this.sharedState.config.directoryEndpoint,
                 this.sharedState.axiosFactory,
             );
         }
@@ -251,7 +246,6 @@ export class LogionClient {
         this.ensureConnected();
         const directoryClient = this.sharedState.componentFactory.buildDirectoryClient(
             this.sharedState.nodeApi,
-            this.sharedState.config.directoryEndpoint,
             this.sharedState.axiosFactory
         );
         return new LogionClient({
@@ -315,9 +309,7 @@ export class LogionClient {
         this.ensureConnected();
         const client = this.sharedState.componentFactory.buildAuthenticationClient(
             this.sharedState.nodeApi,
-            this.sharedState.config.directoryEndpoint,
             this.sharedState.legalOfficers,
-            this.sharedState.axiosFactory
         );
         const newTokens = await client.authenticate(accounts, signer);
         const tokens = this.tokens.merge(newTokens);
