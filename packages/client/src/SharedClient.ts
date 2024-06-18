@@ -4,7 +4,7 @@ import { AccountTokens } from "./AuthenticationClient.js";
 import { AxiosFactory } from "./AxiosFactory.js";
 import { findOrThrow } from "./Collections.js";
 import { ComponentFactory, FileUploader } from "./ComponentFactory.js";
-import { DirectoryClient } from "./DirectoryClient.js";
+import { LegalOfficerClient } from "./LegalOfficerClient.js";
 import { Endpoint, Token } from "./Http.js";
 import { NetworkState } from "./NetworkState.js";
 import { LegalOfficerClass } from "./Types.js";
@@ -12,7 +12,6 @@ import { UUID } from "@logion/node-api";
 
 export interface LogionClientConfig {
     rpcEndpoints: string[];
-    directoryEndpoint: string;
     buildFileUploader: () => FileUploader;
     creativeCommonsLoc?: UUID;
     logionClassificationLoc?: UUID;
@@ -26,7 +25,7 @@ export interface SharedState {
     config: LogionClientConfig;
     componentFactory: ComponentFactory;
     axiosFactory: AxiosFactory;
-    directoryClient: DirectoryClient;
+    legalOfficerClient: LegalOfficerClient;
     networkState: NetworkState<LegalOfficerEndpoint>;
     nodeApi: LogionNodeApiClass;
     legalOfficers: LegalOfficerClass[];

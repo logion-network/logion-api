@@ -72,8 +72,8 @@ function setupConfig(axios: Mock<AxiosInstance>): LogionClientConfig {
             .returns(axios.object());
         setupBackend(axios);
         testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-        const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
-        directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([
+        const legalOfficerClient = testConfigFactory.setupLegalOfficerClientMock();
+        legalOfficerClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([
             new LegalOfficerClass({
                 legalOfficer: ALICE,
                 axiosFactory: axiosFactory.object(),

@@ -22,9 +22,9 @@ describe("Balance", () => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
             testConfigFactory.setupDefaultNetworkState();
             const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-            const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+            const legalOfficerClient = testConfigFactory.setupLegalOfficerClientMock();
 
-            directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
+            legalOfficerClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
             nodeApi.setup(instance => instance.queries.getAccountData(REQUESTER_ADDRESS))
                 .returns(Promise.resolve(BALANCE));
@@ -73,11 +73,11 @@ describe("Balance", () => {
             const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
             testConfigFactory.setupDefaultNetworkState();
             const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-            const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+            const legalOfficerClient = testConfigFactory.setupLegalOfficerClientMock();
 
             setupFetchTransactions(axiosFactory, transactions, REQUESTER_ADDRESS.address)
 
-            directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([ new LegalOfficerClass({
+            legalOfficerClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([ new LegalOfficerClass({
                 legalOfficer: ALICE,
                 axiosFactory: axiosFactory.object(),
             }) ]));
@@ -132,9 +132,9 @@ describe("Balance", () => {
                 const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
                 testConfigFactory.setupDefaultNetworkState();
                 const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+                const legalOfficerClient = testConfigFactory.setupLegalOfficerClientMock();
 
-                directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
+                legalOfficerClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
                 nodeApi.setup(instance => instance.queries.getAccountData(REQUESTER_ADDRESS))
                     .returns(Promise.resolve(BALANCE));
@@ -201,9 +201,9 @@ describe("Balance", () => {
                 const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
                 testConfigFactory.setupDefaultNetworkState();
                 const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+                const legalOfficerClient = testConfigFactory.setupLegalOfficerClientMock();
 
-                directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
+                legalOfficerClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
                 nodeApi.setup(instance => instance.queries.getAccountData(REQUESTER_ADDRESS))
                     .returns(Promise.resolve(BALANCE));
@@ -279,9 +279,9 @@ describe("Balance", () => {
                 const axiosFactory = testConfigFactory.setupAxiosFactoryMock();
                 testConfigFactory.setupDefaultNetworkState();
                 const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-                const directoryClient = testConfigFactory.setupDirectoryClientMock(LOGION_CLIENT_CONFIG);
+                const legalOfficerClient = testConfigFactory.setupLegalOfficerClientMock();
 
-                directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
+                legalOfficerClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([]));
 
                 nodeApi.setup(instance => instance.queries.getAccountData(REQUESTER_ADDRESS))
                     .returns(Promise.resolve(BALANCE));

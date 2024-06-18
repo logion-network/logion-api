@@ -5,7 +5,7 @@ import {
     AuthenticationClient,
     AxiosFactory,
     ComponentFactory,
-    DirectoryClient,
+    LegalOfficerClient,
     LogionClientConfig,
     LegalOfficer,
     LegalOfficerClass,
@@ -42,26 +42,25 @@ export class TestConfigFactory {
         return nodeApi;
     }
 
-    setupDirectoryClientMock(config: LogionClientConfig): Mock<DirectoryClient> {
-        const directoryClient = new Mock<DirectoryClient>();
-        this._componentFactory.setup(instance => instance.buildDirectoryClient(It.IsAny(), config.directoryEndpoint, It.IsAny()))
-            .returns(directoryClient.object());
-        return directoryClient;
+    setupLegalOfficerClientMock(): Mock<LegalOfficerClient> {
+        const legalOfficerClient = new Mock<LegalOfficerClient>();
+        this._componentFactory.setup(instance => instance.buildLegalOfficerClient(It.IsAny(), It.IsAny()))
+            .returns(legalOfficerClient.object());
+        return legalOfficerClient;
     }
 
-    setupAuthenticatedDirectoryClientMock(config: LogionClientConfig, token: string): Mock<DirectoryClient> {
-        const directoryClient = new Mock<DirectoryClient>();
-        this._componentFactory.setup(instance => instance.buildDirectoryClient(It.IsAny(), config.directoryEndpoint, It.IsAny(), token))
-            .returns(directoryClient.object());
-        return directoryClient;
+    setupAuthenticatedLegalOfficerClientMock(token: string): Mock<LegalOfficerClient> {
+        const legalOfficerClient = new Mock<LegalOfficerClient>();
+        this._componentFactory.setup(instance => instance.buildLegalOfficerClient(It.IsAny(), It.IsAny(), token))
+            .returns(legalOfficerClient.object());
+        return legalOfficerClient;
     }
 
-    setupAuthenticationClientMock(config: LogionClientConfig, legalOfficers: LegalOfficer[]): Mock<AuthenticationClient> {
+    setupAuthenticationClientMock(legalOfficers: LegalOfficer[]): Mock<AuthenticationClient> {
         const authenticationClient = new Mock<AuthenticationClient>();
         this._componentFactory.setup(instance => instance.buildAuthenticationClient(
             It.IsAny(),
-            config.directoryEndpoint,
-            It.Is<LegalOfficerClass[]>(value => legalOfficers.map(lo => lo.account).every(item => value.map(lo => lo.account.address).includes(item.address))), It.IsAny()
+            It.Is<LegalOfficerClass[]>(value => legalOfficers.map(lo => lo.account).every(item => value.map(lo => lo.account.address).includes(item.address)))
         )).returns(authenticationClient.object());
         return authenticationClient;
     }

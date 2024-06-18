@@ -1002,7 +1002,7 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
         (factory: TestConfigFactory) => {
             factory.setupDefaultNetworkState();
             factory.setupFileUploaderMock();
-            factory.setupAuthenticatedDirectoryClientMock(LOGION_CLIENT_CONFIG, token);
+            factory.setupAuthenticatedLegalOfficerClientMock(token);
 
             const axiosFactoryMock = factory.setupAxiosFactoryMock();
             uploaderMock = factory.setupFileUploaderMock();
