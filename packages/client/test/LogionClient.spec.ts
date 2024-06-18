@@ -29,8 +29,8 @@ describe("LogionClient", () => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
             testConfigFactory.setupDefaultNetworkState();
             testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-            const directoryClient = testConfigFactory.setupDirectoryClientMock();
-            directoryClient.setup(instance => instance.getLegalOfficers())
+            const legalOfficerClient = testConfigFactory.setupLegalOfficerClientMock();
+            legalOfficerClient.setup(instance => instance.getLegalOfficers())
                 .returns(Promise.resolve(testConfigFactory.buildLegalOfficerClasses(clientLegalOfficers)));
         });
         const client = await LogionClient.create(config);
@@ -49,10 +49,10 @@ describe("LogionClient", () => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
             testConfigFactory.setupDefaultNetworkState();
             api = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-            const directoryClient = testConfigFactory.setupDirectoryClientMock();
-            directoryClient.setup(instance => instance.getLegalOfficers())
+            const legalOfficerClient = testConfigFactory.setupLegalOfficerClientMock();
+            legalOfficerClient.setup(instance => instance.getLegalOfficers())
                 .returns(Promise.resolve(testConfigFactory.buildLegalOfficerClasses(clientLegalOfficers)));
-            testConfigFactory.setupAuthenticatedDirectoryClientMock(token);
+            testConfigFactory.setupAuthenticatedLegalOfficerClientMock(token);
         });
         const client = await LogionClient.create(config);
 
@@ -74,16 +74,16 @@ describe("LogionClient", () => {
             testConfigFactory.setupDefaultNetworkState();
             testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
 
-            const directoryClient = testConfigFactory.setupDirectoryClientMock();
+            const legalOfficerClient = testConfigFactory.setupLegalOfficerClientMock();
             const legalOfficerClasses = testConfigFactory.buildLegalOfficerClasses(clientLegalOfficers);
-            directoryClient.setup(instance => instance.getLegalOfficers())
+            legalOfficerClient.setup(instance => instance.getLegalOfficers())
                 .returns(Promise.resolve(legalOfficerClasses));
 
             const authenticationClient = testConfigFactory.setupAuthenticationClientMock(clientLegalOfficers);
             authenticationClient.setup(instance => instance.authenticate(addresses, signer.object()))
                 .returns(Promise.resolve(tokens));
 
-            testConfigFactory.setupAuthenticatedDirectoryClientMock(token);
+            testConfigFactory.setupAuthenticatedLegalOfficerClientMock(token);
         });
         const client = await LogionClient.create(config);
 
@@ -103,7 +103,7 @@ describe("LogionClient", () => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
             testConfigFactory.setupDefaultNetworkState();
             testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-            testConfigFactory.setupAuthenticatedDirectoryClientMock(tokens.get(alice)!.value);
+            testConfigFactory.setupAuthenticatedLegalOfficerClientMock(tokens.get(alice)!.value);
             authenticationClient = testConfigFactory.setupAuthenticationClientMock(legalOfficers);
             authenticationClient.setup(instance => instance.refresh(tokens)).returns(Promise.resolve(tokens));
         }, alice, legalOfficers, tokens);
@@ -123,7 +123,7 @@ describe("LogionClient", () => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
             testConfigFactory.setupDefaultNetworkState();
             testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-            testConfigFactory.setupAuthenticatedDirectoryClientMock(tokens.get(alice)!.value);
+            testConfigFactory.setupAuthenticatedLegalOfficerClientMock(tokens.get(alice)!.value);
             authenticationClient = testConfigFactory.setupAuthenticationClientMock(legalOfficers);
             authenticationClient.setup(instance => instance.refresh(tokens)).returns(Promise.resolve(tokens));
         }, alice, legalOfficers, tokens);
@@ -143,9 +143,9 @@ describe("LogionClient", () => {
         testConfigFactory.setupDefaultNetworkState();
         const api = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
         const alice = ALICE.account;
-        testConfigFactory.setupAuthenticatedDirectoryClientMock(tokens.get(alice)!.value);
+        testConfigFactory.setupAuthenticatedLegalOfficerClientMock(tokens.get(alice)!.value);
         const bob = BOB.account;
-        testConfigFactory.setupAuthenticatedDirectoryClientMock(tokens.get(bob)!.value);
+        testConfigFactory.setupAuthenticatedLegalOfficerClientMock(tokens.get(bob)!.value);
 
         const config = testConfigFactory.buildTestConfig(LOGION_CLIENT_CONFIG);
         const sharedState = await buildAuthenticatedSharedStateUsingTestConfig(config, alice, legalOfficers, tokens);
@@ -154,7 +154,7 @@ describe("LogionClient", () => {
         const bobClient = aliceClient.withCurrentAccount(bob);
 
         expect(bobClient.currentAccount).toBe(bob);
-        testConfigFactory.verifyComponentFactory(instance => instance.buildDirectoryClient(api.object(), It.IsAny(), tokens.get(bob)!.value));
+        testConfigFactory.verifyComponentFactory(instance => instance.buildLegalOfficerClient(api.object(), It.IsAny(), tokens.get(bob)!.value));
     });
 
     it("logs out", async () => {
@@ -166,7 +166,7 @@ describe("LogionClient", () => {
             testConfigFactory.setupDefaultAxiosInstanceFactory();
             testConfigFactory.setupDefaultNetworkState();
             testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-            testConfigFactory.setupAuthenticatedDirectoryClientMock(tokens.get(alice)!.value);
+            testConfigFactory.setupAuthenticatedLegalOfficerClientMock(tokens.get(alice)!.value);
             testConfigFactory.setupAuthenticationClientMock(legalOfficers);
         }, alice, legalOfficers, tokens);
         const authenticatedClient = new LogionClient({ ...sharedState });

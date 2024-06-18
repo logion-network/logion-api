@@ -5,7 +5,7 @@ import {
     AuthenticationClient,
     AxiosFactory,
     ComponentFactory,
-    DirectoryClient,
+    LegalOfficerClient,
     LogionClientConfig,
     LegalOfficer,
     LegalOfficerClass,
@@ -42,18 +42,18 @@ export class TestConfigFactory {
         return nodeApi;
     }
 
-    setupDirectoryClientMock(): Mock<DirectoryClient> {
-        const directoryClient = new Mock<DirectoryClient>();
-        this._componentFactory.setup(instance => instance.buildDirectoryClient(It.IsAny(), It.IsAny()))
-            .returns(directoryClient.object());
-        return directoryClient;
+    setupLegalOfficerClientMock(): Mock<LegalOfficerClient> {
+        const legalOfficerClient = new Mock<LegalOfficerClient>();
+        this._componentFactory.setup(instance => instance.buildLegalOfficerClient(It.IsAny(), It.IsAny()))
+            .returns(legalOfficerClient.object());
+        return legalOfficerClient;
     }
 
-    setupAuthenticatedDirectoryClientMock(token: string): Mock<DirectoryClient> {
-        const directoryClient = new Mock<DirectoryClient>();
-        this._componentFactory.setup(instance => instance.buildDirectoryClient(It.IsAny(), It.IsAny(), token))
-            .returns(directoryClient.object());
-        return directoryClient;
+    setupAuthenticatedLegalOfficerClientMock(token: string): Mock<LegalOfficerClient> {
+        const legalOfficerClient = new Mock<LegalOfficerClient>();
+        this._componentFactory.setup(instance => instance.buildLegalOfficerClient(It.IsAny(), It.IsAny(), token))
+            .returns(legalOfficerClient.object());
+        return legalOfficerClient;
     }
 
     setupAuthenticationClientMock(legalOfficers: LegalOfficer[]): Mock<AuthenticationClient> {

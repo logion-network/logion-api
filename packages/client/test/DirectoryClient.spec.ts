@@ -4,15 +4,15 @@ import { Mock } from "moq.ts";
 import { AccountId32 } from "@polkadot/types/interfaces/types.js";
 import type { Bytes } from '@polkadot/types-codec';
 import { PalletLoAuthorityListLegalOfficerData, PalletLoAuthorityListHostData, PalletLoAuthorityListGuestData, LogionRuntimeRegion } from "@polkadot/types/lookup";
-import { AxiosFactory, DirectoryClient, DirectoryLegalOfficer } from "../src/index.js";
+import { AxiosFactory, LegalOfficerClient } from "../src/index.js";
 import { EMPTY_POSTAL_ADDRESS, EMPTY_USER_IDENTITY, mockCodecWithToString, mockCodecWithToUtf8, mockOption, mockStorageKey } from "./Utils.js";
 
-describe("DirectoryClient", () => {
+describe("LegalOfficerClient", () => {
 
     it("handles guest LLOs", async () => {
         const api = mockApi();
         const axiosFactory = mockAxiosFactory();
-        const client = new DirectoryClient(api, axiosFactory);
+        const client = new LegalOfficerClient(api, axiosFactory);
 
         const legalOfficers = await client.getLegalOfficers();
 
@@ -72,7 +72,7 @@ function mockAxiosFactory(): AxiosFactory {
 function mockAxios(addresses: string[]): AxiosInstance {
     const axios = new Mock<AxiosInstance>();
     const response = new Mock<AxiosResponse>();
-    const legalOfficers: DirectoryLegalOfficer[] = addresses.map(address => (        {
+    const legalOfficers = addresses.map(address => (        {
             address,
             additionalDetails: "",
             postalAddress: EMPTY_POSTAL_ADDRESS,

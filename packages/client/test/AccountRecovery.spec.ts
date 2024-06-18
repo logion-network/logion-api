@@ -168,7 +168,7 @@ async function buildSharedState(): Promise<SharedState> {
         (factory: TestConfigFactory) => {
             factory.setupDefaultAxiosInstanceFactory();
             factory.setupDefaultNetworkState();
-            factory.setupAuthenticatedDirectoryClientMock(token);
+            factory.setupAuthenticatedLegalOfficerClientMock(token);
             factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
         },
         currentAccount,
@@ -284,7 +284,7 @@ describe("NoProtection", () => {
                 setupFetchProtectionRequests(bobAxios, [], [], []);
 
                 factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(token);
+                factory.setupAuthenticatedLegalOfficerClientMock(token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.queries.getRecoveryConfig(currentAccount))
@@ -339,7 +339,7 @@ describe("NoProtection", () => {
         const sharedState = await buildTestAuthenticatedSharedSate(
             (factory: TestConfigFactory) => {
                 factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(token);
+                factory.setupAuthenticatedLegalOfficerClientMock(token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.queries.getActiveRecovery(RECOVERED_ADDRESS, currentAccount))
@@ -453,7 +453,7 @@ describe("PendingRecovery", () => {
                 setupFetchProtectionRequests(bobAxios, [ bobRequest ], [], []);
 
                 factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(token);
+                factory.setupAuthenticatedLegalOfficerClientMock(token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.queries.getRecoveryConfig(currentAccount))
@@ -506,7 +506,7 @@ describe("PendingRecovery", () => {
                 setupFetchProtectionRequests(bobAxios, [], [ bobRequest ], []);
 
                 factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(token);
+                factory.setupAuthenticatedLegalOfficerClientMock(token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.queries.getRecoveryConfig(currentAccount))
@@ -594,7 +594,7 @@ describe("AcceptedProtection", () => {
                 setupFetchProtectionRequests(bobAxios, [], [ bobRequest ], []);
 
                 factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(token);
+                factory.setupAuthenticatedLegalOfficerClientMock(token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 nodeApi.setup(instance => instance.queries.getRecoveryConfig(currentAccount))
@@ -662,7 +662,7 @@ describe("PendingRecovery", () => {
                 setupFetchProtectionRequests(bobAxios, [], [ bobRequest ], []);
 
                 factory.setupDefaultNetworkState();
-                factory.setupAuthenticatedDirectoryClientMock(token);
+                factory.setupAuthenticatedLegalOfficerClientMock(token);
 
                 const nodeApi = factory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
                 const recoveryConfig = {

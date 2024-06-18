@@ -43,8 +43,8 @@ export async function updateLegalOfficer(state: State) {
         additionalDetails: "Some new details",
     } as LegalOfficer;
     const aliceClient = client.withCurrentAccount(alice.account);
-    await aliceClient.directoryClient.createOrUpdate(updatedAlice);
-    const legalOfficers = await client.directoryClient.getLegalOfficers();
+    await aliceClient.legalOfficerClient.createOrUpdate(updatedAlice);
+    const legalOfficers = await client.legalOfficerClient.getLegalOfficers();
     const legalOfficer = legalOfficers.find(legalOfficer => legalOfficer.account.equals(alice.account))
     expect(legalOfficer?.userIdentity).toEqual(updatedAlice.userIdentity);
     expect(legalOfficer?.postalAddress).toEqual(updatedAlice.postalAddress);

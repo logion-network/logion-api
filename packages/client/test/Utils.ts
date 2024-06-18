@@ -114,7 +114,7 @@ export async function buildAuthenticatedSharedStateUsingTestConfig(
 ): Promise<SharedStateWithLegalOfficerClasses> {
     const componentFactory = (config as any).__componentFactory;
     const axiosFactory = componentFactory.buildAxiosFactory();
-    const directoryClient = componentFactory.buildDirectoryClient(axiosFactory);
+    const legalOfficerClient = componentFactory.buildLegalOfficerClient(axiosFactory);
     const nodesUp: LegalOfficerEndpoint[] = legalOfficers.map(legalOfficer => ({ url: legalOfficer.node, legalOfficer: legalOfficer.account.address }));
     const networkState = componentFactory.buildNetworkState(nodesUp, []);
     const nodeApi = await componentFactory.buildNodeApi(config.rpcEndpoints);
@@ -127,7 +127,7 @@ export async function buildAuthenticatedSharedStateUsingTestConfig(
         config,
         componentFactory,
         axiosFactory,
-        directoryClient,
+        legalOfficerClient,
         networkState,
         nodeApi,
         currentAccount: currentAccount,

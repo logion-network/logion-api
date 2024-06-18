@@ -9,7 +9,7 @@ import { LegalOfficer, LegalOfficerClass, LegalOfficerPostalAddress, UserIdentit
 import { MultiSourceHttpClient, aggregateArrays, Endpoint, MultiSourceHttpClientState } from "./Http.js";
 import { newBackendError } from "./Error.js";
 
-export interface DirectoryLegalOfficer {
+interface BackendLegalOfficer {
     userIdentity: UserIdentity;
     postalAddress: LegalOfficerPostalAddress;
     address: string;
@@ -23,7 +23,7 @@ export interface CreateOrUpdateLegalOfficer {
     additionalDetails: string;
 }
 
-export class DirectoryClient {
+export class LegalOfficerClient {
 
     constructor(api: LogionNodeApiClass, axiosFactory: AxiosFactory, token?: string) {
         this.authenticated = token !== undefined;
@@ -56,7 +56,7 @@ export class DirectoryClient {
         onchainMap: Record<string, PalletLoAuthorityListLegalOfficerData>
     ): Promise<LegalOfficerClass[]> {
         const offchain = (await axios.get("/api/legal-officer")
-            .then(response => response.data.legalOfficers)) as DirectoryLegalOfficer[];
+            .then(response => response.data.legalOfficers)) as BackendLegalOfficer[];
         const offchainMap = this.toOffchainMap(offchain);
         const legalOfficers = [];
         for(const address in offchainMap) {
@@ -72,14 +72,15 @@ export class DirectoryClient {
                 legalOfficers.push(new LegalOfficerClass({
                     legalOfficer,
                     axiosFactory: this.axiosFactory,
+                    token: this.token,
                 }));
             }
         }
         return legalOfficers;
     }
 
-    private toOffchainMap(array: DirectoryLegalOfficer[]): Record<string, DirectoryLegalOfficer> {
-        const map: Record<string, DirectoryLegalOfficer> = {};
+    private toOffchainMap(array: BackendLegalOfficer[]): Record<string, BackendLegalOfficer> {
+        const map: Record<string, BackendLegalOfficer> = {};
         array.forEach(item => { map[item.address] = item; });
         return map;
     }

@@ -19,7 +19,7 @@ export * from './Balance.js';
 export * from './CollectionItem.js';
 export * from './ComponentFactory.js';
 export * from './DateTimeUtil.js';
-export * from './DirectoryClient.js';
+export * from './LegalOfficerClient.js';
 export * from './Environment.js';
 export * from './Ethereum.js';
 export * from './Hash.js';

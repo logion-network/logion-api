@@ -50,9 +50,9 @@ function configure() {
         axiosFactory.setup(instance => instance.buildAxiosInstance(It.IsAny<string>(), It.IsAny()))
             .returns(axios.object());
         const nodeApi = testConfigFactory.setupNodeApiMock(LOGION_CLIENT_CONFIG);
-        const directoryClient = testConfigFactory.setupDirectoryClientMock();
+        const legalOfficerClient = testConfigFactory.setupLegalOfficerClientMock();
 
-        directoryClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([
+        legalOfficerClient.setup(instance => instance.getLegalOfficers()).returns(Promise.resolve([
             new LegalOfficerClass({
                 legalOfficer: ALICE,
                 axiosFactory: axiosFactory.object(),

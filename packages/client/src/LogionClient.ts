@@ -5,7 +5,7 @@ import { LogionNodeApiClass, UUID, ValidAccountId } from "@logion/node-api";
 import { AccountTokens } from "./AuthenticationClient.js";
 import { BalanceState, getBalanceState } from "./Balance.js";
 import { ComponentFactory, buildComponentFactory } from "./ComponentFactory.js";
-import { DirectoryClient } from "./DirectoryClient.js";
+import { LegalOfficerClient } from "./LegalOfficerClient.js";
 import { initMultiSourceHttpClientState, MultiSourceHttpClient, Token } from "./Http.js";
 import { getInitialState, ProtectionState } from "./AccountRecovery.js";
 import { AccountRecoveryClient } from "./AccountRecoveryClient.js";
@@ -45,18 +45,18 @@ export class LogionClient {
         const componentFactory = getComponentFactory(config);
         const axiosFactory = componentFactory.buildAxiosFactory();
         const nodeApi = await componentFactory.buildNodeApi(config.rpcEndpoints);
-        const directoryClient = componentFactory.buildDirectoryClient(
+        const legalOfficerClient = componentFactory.buildLegalOfficerClient(
             nodeApi,
             axiosFactory,
         );
-        const allLegalOfficers = await directoryClient.getLegalOfficers();
+        const allLegalOfficers = await legalOfficerClient.getLegalOfficers();
         const legalOfficers = allLegalOfficers.filter(legalOfficer => legalOfficer.node);
         const nodesUp: LegalOfficerEndpoint[] = legalOfficers.map(legalOfficer => ({ url: legalOfficer.node, legalOfficer: legalOfficer.account.address }));
         const sharedState: SharedState = {
             config,
             componentFactory,
             axiosFactory,
-            directoryClient,
+            legalOfficerClient,
             nodeApi,
             legalOfficers,
             allLegalOfficers,
@@ -122,8 +122,8 @@ export class LogionClient {
     /**
      * An instance of Directory client.
      */
-    get directoryClient(): DirectoryClient {
-        return this.sharedState.directoryClient;
+    get legalOfficerClient(): LegalOfficerClient {
+        return this.sharedState.legalOfficerClient;
     }
 
     /**
@@ -216,15 +216,15 @@ export class LogionClient {
      */
     withCurrentAccount(currentAccount?: ValidAccountId): LogionClient {
         this.ensureConnected();
-        let directoryClient: DirectoryClient;
+        let legalOfficerClient: LegalOfficerClient;
         if(currentAccount !== undefined) {
-            directoryClient = this.sharedState.componentFactory.buildDirectoryClient(
+            legalOfficerClient = this.sharedState.componentFactory.buildLegalOfficerClient(
                 this.sharedState.nodeApi,
                 this.sharedState.axiosFactory,
                 this.sharedState.tokens.get(currentAccount)?.value,
             );
         } else {
-            directoryClient = this.sharedState.componentFactory.buildDirectoryClient(
+            legalOfficerClient = this.sharedState.componentFactory.buildLegalOfficerClient(
                 this.sharedState.nodeApi,
                 this.sharedState.axiosFactory,
             );
@@ -234,7 +234,7 @@ export class LogionClient {
         return new LogionClient({
             ...sharedState,
             currentAccount,
-            directoryClient,
+            legalOfficerClient,
         });
     }
 
@@ -244,7 +244,7 @@ export class LogionClient {
      */
     logout(): LogionClient {
         this.ensureConnected();
-        const directoryClient = this.sharedState.componentFactory.buildDirectoryClient(
+        const legalOfficerClient = this.sharedState.componentFactory.buildLegalOfficerClient(
             this.sharedState.nodeApi,
             this.sharedState.axiosFactory
         );
@@ -252,7 +252,7 @@ export class LogionClient {
             ...this.sharedState,
             tokens: new AccountTokens(this.sharedState.nodeApi, {}),
             currentAccount: undefined,
-            directoryClient,
+            legalOfficerClient,
         });
     }
 

@@ -61,7 +61,7 @@ async function buildSharedState(): Promise<SharedState> {
         (factory: TestConfigFactory) => {
             factory.setupDefaultNetworkState();
             factory.setupFileUploaderMock();
-            factory.setupAuthenticatedDirectoryClientMock(token);
+            factory.setupAuthenticatedLegalOfficerClientMock(token);
 
             const axiosFactoryMock = factory.setupAxiosFactoryMock();
 
