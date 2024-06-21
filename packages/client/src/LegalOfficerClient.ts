@@ -8,6 +8,7 @@ import { AxiosFactory } from "./AxiosFactory.js";
 import { LegalOfficer, LegalOfficerClass, LegalOfficerPostalAddress, UserIdentity } from "./Types.js";
 import { MultiSourceHttpClient, aggregateArrays, Endpoint, MultiSourceHttpClientState } from "./Http.js";
 import { newBackendError } from "./Error.js";
+import { requireDefined } from "./assertions.js";
 
 interface BackendLegalOfficer {
     userIdentity: UserIdentity;
@@ -17,7 +18,7 @@ interface BackendLegalOfficer {
 }
 
 export interface CreateOrUpdateLegalOfficer {
-    node: string;
+    account: ValidAccountId;
     userIdentity: UserIdentity;
     postalAddress: LegalOfficerPostalAddress;
     additionalDetails: string;
@@ -38,7 +39,7 @@ export class LegalOfficerClient {
 
     private readonly token: string | undefined;
 
-    private api: LogionNodeApiClass;
+    private readonly api: LogionNodeApiClass;
 
     async getLegalOfficers(): Promise<LegalOfficerClass[]> {
         const onchain = await this.api.polkadot.query.loAuthorityList.legalOfficerSet.entries();
@@ -144,9 +145,15 @@ export class LegalOfficerClient {
         if(!this.authenticated) {
             throw new Error("Authentication is required");
         }
+        const legalOfficerData = await this.api.queries.getLegalOfficerData(legalOfficer.account);
         try {
-            const backend = this.axiosFactory.buildAxiosInstance(legalOfficer.node, this.token);
-            await backend.put('/api/legal-officer', legalOfficer);
+            const endpoint = requireDefined(
+                legalOfficerData?.hostData?.baseUrl,
+                () => new Error(`Unable to find node of LLO ${ legalOfficer.account.address }`)
+            )
+            const backend = this.axiosFactory.buildAxiosInstance(endpoint, this.token);
+            const { userIdentity, postalAddress, additionalDetails } = legalOfficer;
+            await backend.put('/api/legal-officer', { userIdentity, postalAddress, additionalDetails });
         } catch(e) {
             throw newBackendError(e);
         }
