@@ -5,7 +5,6 @@ import { ISubmittableResult } from '@polkadot/types/types';
 import { ExtrinsicStatus } from '@polkadot/types/interfaces/author';
 import { Registry } from '@polkadot/types-codec/types';
 import { base64Encode } from '@polkadot/util-crypto';
-import { stringToHex } from '@polkadot/util';
 import { Hash } from 'fast-sha256';
 import { DateTime } from "luxon";
 import { toIsoString } from "./DateTimeUtil.js";
@@ -13,10 +12,8 @@ import { requireDefined } from "./assertions.js";
 
 export interface SignRawParameters {
     signerId: ValidAccountId;
-    resource: string;
-    operation: string;
     signedOn: DateTime;
-    attributes: string[];
+    sessionId: string;
 }
 
 export type SignatureType = "POLKADOT" | "ETHEREUM" | "CROSSMINT_ETHEREUM" | "MULTIVERSX";
@@ -107,13 +104,7 @@ export abstract class BaseSigner implements FullSigner {
     abstract signToHex(signerId: ValidAccountId, message: string): Promise<TypedSignature>;
 
     buildMessage(parameters: SignRawParameters): string {
-        return stringToHex(hashAttributes(this.buildAttributes(parameters)));
-    }
-
-    buildAttributes(parameters: SignRawParameters): string[] {
-        const signedOn = toIsoString(parameters.signedOn);
-        const attributes = [parameters.resource, parameters.operation, signedOn];
-        return attributes.concat(parameters.attributes);
+        return `logion-auth: ${ parameters.sessionId } on ${ toIsoString(parameters.signedOn) }`
     }
 
     async signAndSend(parameters: SignParameters): Promise<SuccessfulSubmission> {
