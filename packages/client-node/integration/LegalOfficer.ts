@@ -1,5 +1,5 @@
 import { State } from "./Utils.js";
-import { LegalOfficer } from "@logion/client/dist/Types.js";
+import { LegalOfficer, CreateOrUpdateLegalOfficer } from "@logion/client";
 export async function backendConfig(state: State) {
     const { client, requesterAccount, alice } = state;
 
@@ -23,8 +23,7 @@ export async function workload(state: State) {
 
 export async function updateLegalOfficer(state: State) {
     const { client, alice } = state;
-    const updatedAlice: LegalOfficer = {
-        node: alice.node,
+    const updatedAlice: CreateOrUpdateLegalOfficer = {
         userIdentity: {
             firstName: "Alice",
             lastName: "updated-last-name",

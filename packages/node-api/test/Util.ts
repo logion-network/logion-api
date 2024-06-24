@@ -1,5 +1,5 @@
 import type { Codec } from '@polkadot/types-codec/types';
-import { EXPECTED_PARA_VERSION, EXPECTED_SOLO_VERSION, EXPECTED_SPEC_NAME, SS58_PREFIX } from '../src/index.js';
+import { MIN_SUPPORTED_PARA_VERSION, SOLO_VERSION, LOGION_SPEC_NAME, SS58_PREFIX } from '../src/index.js';
 import { bool } from "@polkadot/types-codec";
 
 export function mockCodecWithToString<T extends Codec>(value: string): T {
@@ -26,10 +26,10 @@ export function mockBool(value: boolean): bool {
 export function mockSoloRuntimeVersion() {
     return {
         specName: {
-            toString: () => EXPECTED_SPEC_NAME,
+            toString: () => LOGION_SPEC_NAME,
         },
         specVersion: {
-            toBigInt: () => EXPECTED_SOLO_VERSION,
+            toBigInt: () => SOLO_VERSION,
         },
     };
 }
@@ -37,10 +37,10 @@ export function mockSoloRuntimeVersion() {
 export function mockParaRuntimeVersion() {
     return {
         specName: {
-            toString: () => EXPECTED_SPEC_NAME,
+            toString: () => LOGION_SPEC_NAME,
         },
         specVersion: {
-            toBigInt: () => EXPECTED_PARA_VERSION,
+            toBigInt: () => MIN_SUPPORTED_PARA_VERSION,
         },
     };
 }
@@ -51,7 +51,7 @@ export function mockRuntimeVersionUnexpectedSpecName() {
             toString: () => "not-logion",
         },
         specVersion: {
-            toBigInt: () => EXPECTED_PARA_VERSION,
+            toBigInt: () => MIN_SUPPORTED_PARA_VERSION,
         },
     };
 }
@@ -59,7 +59,7 @@ export function mockRuntimeVersionUnexpectedSpecName() {
 export function mockRuntimeVersionUnexpectedSpecVersion() {
     return {
         specName: {
-            toString: () => EXPECTED_SPEC_NAME,
+            toString: () => LOGION_SPEC_NAME,
         },
         specVersion: {
             toBigInt: () => 42n,
