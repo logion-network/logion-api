@@ -18,11 +18,13 @@ import { Lgnt } from "./Currency.js"
 
 export type ChainType = "Solo" | "Para";
 
-export const EXPECTED_SPEC_NAME = "logion";
+export const LOGION_SPEC_NAME = "logion";
 
-export const EXPECTED_SOLO_VERSION = 164n;
+export const SOLO_VERSION = 164n;
 
-export const EXPECTED_PARA_VERSION = 4000n;
+export const MIN_SUPPORTED_PARA_VERSION = 4000n; // Inclusive
+
+export const MAX_SUPPORTED_PARA_VERSION = 5000n; // Exclusive
 
 /**
  * A Logion chain client. An instance of this class provides
@@ -88,14 +90,14 @@ export class LogionNodeApiClass {
 
     private detectChainType(): ChainType {
         const chainSpecName = this.polkadot.runtimeVersion.specName.toString();
-        if(chainSpecName !== EXPECTED_SPEC_NAME) {
+        if(chainSpecName !== LOGION_SPEC_NAME) {
             throw new Error(`Unexpected chain '${chainSpecName}'`);
         }
 
         const chainSpecVersion = this.polkadot.runtimeVersion.specVersion.toBigInt();
-        if(chainSpecVersion === EXPECTED_SOLO_VERSION) {
+        if(chainSpecVersion === SOLO_VERSION) {
             return "Solo";
-        } else if(chainSpecVersion === EXPECTED_PARA_VERSION) {
+        } else if(chainSpecVersion >= MIN_SUPPORTED_PARA_VERSION && chainSpecVersion < MAX_SUPPORTED_PARA_VERSION) {
             return "Para";
         } else {
             throw new Error(`Unsupported runtime version '${chainSpecVersion}'`);
