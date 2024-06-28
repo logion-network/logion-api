@@ -2,6 +2,7 @@ import { TypesEvent, Adapters, ValidAccountId } from '@logion/node-api';
 import { Keyring } from '@polkadot/api';
 import type { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { ISubmittableResult } from '@polkadot/types/types';
+import { ExtrinsicStatus } from '@polkadot/types/interfaces/author';
 import { Registry } from '@polkadot/types-codec/types';
 import { base64Encode } from '@polkadot/util-crypto';
 import { stringToHex } from '@polkadot/util';
@@ -169,14 +170,27 @@ export abstract class BaseSigner implements FullSigner {
         signAndSendStrategy: SignAndSendStrategy;
     }) {
         if(params.next !== undefined) {
-            params.next(params.result);
+            try {
+                params.next(params.result);
+            } catch(e) {
+                console.error("Skipped callback failure: " + e);
+            }
         }
         if (params.result.status.isInBlock) {
             params.submissionState.block = params.result.status.asInBlock.toString();
         }
-        if (params.result.dispatchError || params.signAndSendStrategy.canUnsub(params.result)) {
+        if (this.isFinished(params.result.status) || params.signAndSendStrategy.canUnsub(params.result)) {
             params.unsub();
-            if(params.result.dispatchError) {
+
+            if(params.result.status.isFinalityTimeout) {
+                params.reject(new Error("Finality timed out"));
+            } else if(params.result.status.isUsurped) {
+                params.reject(new Error("Transaction has been replaced in the pool, by another transaction"));
+            } else if(params.result.status.isInvalid) {
+                params.reject(new Error("Transaction is no longer valid in the current state"));
+            } else if(params.result.status.isDropped) {
+                params.reject(new Error("Transaction has been dropped from the pool because of the limit"));
+            } else if(params.result.dispatchError) {
                 params.reject(new Error(Adapters.getErrorMessage(params.result.dispatchError)));
             } else {
                 params.resolve({
@@ -188,6 +202,15 @@ export abstract class BaseSigner implements FullSigner {
         }
     }
 
+    private isFinished(status: ExtrinsicStatus) {
+        // See https://github.com/paritytech/polkadot-sdk/blob/polkadot-v1.13.0/substrate/client/transaction-pool/api/src/lib.rs#L161
+        return status.isFinalized
+            || status.isFinalityTimeout
+            || status.isUsurped
+            || status.isInvalid
+            || status.isDropped
+        ;
+    }
 }
 
 export class KeyringSigner extends BaseSigner {
