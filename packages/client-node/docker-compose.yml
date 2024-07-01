@@ -24,7 +24,8 @@ services:
       - IPFS_HOST=/dns4/ipfs1/tcp/5001
       - IPFS_MIN_REPLICA=1
       - IPFS_MAX_REPLICA=2
-      - ENC_PASSWORD=test
+      - ENC_PASSWORD_5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY=test1
+      - ENC_PASSWORD_5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y=test2
     depends_on:
       - private-database1
       - ipfs-cluster1
@@ -79,7 +80,7 @@ services:
       - IPFS_HOST=/dns4/ipfs2/tcp/5001
       - IPFS_MIN_REPLICA=1
       - IPFS_MAX_REPLICA=2
-      - ENC_PASSWORD=test
+      - ENC_PASSWORD_5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty=test
     depends_on:
       - private-database2
       - ipfs-cluster2

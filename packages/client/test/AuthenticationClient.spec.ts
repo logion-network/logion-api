@@ -111,10 +111,8 @@ function setupSignIn(axiosInstance: Mock<AxiosInstance>, validAccountIds: ValidA
 function setupSignatures(signer: Mock<RawSigner>, addresses: ValidAccountId[], sessionId: string, signatures: string[]) {
     for(let i = 0; i < addresses.length; ++i) {
         signer.setup(instance => instance.signRaw(It.Is<SignRawParameters>(params =>
-            params.resource === "authentication"
-            && params.signerId === addresses[i]
-            && params.operation === "login"
-            && params.attributes[0] === sessionId
+            params.signerId === addresses[i]
+            && params.sessionId === sessionId
         ))).returns(Promise.resolve({ signature: signatures[i], type: "POLKADOT"}));
     }
 }
@@ -131,7 +129,7 @@ function setupAuthenticate(axiosInstance: Mock<AxiosInstance>, accounts: ValidAc
     authenticateResponse.setup(instance => instance.data).returns({
         tokens
     });
-    axiosInstance.setup(instance => instance.post(`/api/auth/${sessionId}/authenticate`, It.Is<any>(body =>
+    axiosInstance.setup(instance => instance.post(`/api/auth/${sessionId}/authenticate/v2`, It.Is<any>(body =>
         bodyIncludesSignatures(body, accounts, signatures)
     ))).returns(Promise.resolve(authenticateResponse.object()));
 }

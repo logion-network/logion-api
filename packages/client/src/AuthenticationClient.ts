@@ -47,17 +47,14 @@ export class AuthenticationClient {
         const addresses = validAccountIds.map(validAccountId => validAccountId.toKey());
         const signInResponse = await axios.post("/api/auth/sign-in", { addresses });
         const sessionId = signInResponse.data.sessionId;
-        const attributes = [ sessionId ];
 
         const signatures: Record<string, AuthenticationSignature> = {};
         for(const validAccountId of validAccountIds) {
             const signedOn = DateTime.now();
             const signature = await signer.signRaw({
                 signerId: validAccountId,
-                resource: 'authentication',
-                operation: 'login',
                 signedOn,
-                attributes,
+                sessionId,
             });
             signatures[validAccountId.toKey()] = {
                 signature: signature.signature,
@@ -66,7 +63,7 @@ export class AuthenticationClient {
             };
         }
 
-        const authenticateResponse = await axios.post(`/api/auth/${sessionId}/authenticate`, {
+        const authenticateResponse = await axios.post(`/api/auth/${sessionId}/authenticate/v2`, {
             signatures
         });
         const authenticatedAddresses: AuthenticationResponse = authenticateResponse.data.tokens;
