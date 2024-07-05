@@ -99,10 +99,12 @@ export class SponsorshipState {
     }
 
     async refresh(refreshFromChain = true): Promise<SponsorshipState> {
+        const { address, type } = getDefinedCurrentAccount(this.sharedState);
         const params: FetchAllLocsParams = {
             legalOfficers: [ this.legalOfficer ],
             spec: {
-                requesterAddress: getDefinedCurrentAccount(this.sharedState).address,
+                requesterAddress: address,
+                requesterAddressType: type,
                 sponsorshipId: this.id.toString(),
                 locTypes: [ "Identity" ],
                 ownerAddress: this.legalOfficer.account.address,

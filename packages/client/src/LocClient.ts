@@ -225,6 +225,7 @@ export interface AddCollectionItemParams {
 export interface FetchLocRequestSpecification {
     ownerAddress?: string;
     requesterAddress?: string,
+    requesterAddressType?: string,
     statuses: LocRequestStatus[],
     locTypes: LocType[],
     sponsorshipId?: string;
@@ -385,6 +386,7 @@ export class LocMultiClient {
 
         const defaultSpec: FetchLocRequestSpecification = {
             requesterAddress: this.currentAccount.address,
+            requesterAddressType: this.currentAccount.type,
             locTypes: [ "Transaction", "Collection", "Identity" ],
             statuses: [ "OPEN", "REVIEW_PENDING", "REVIEW_ACCEPTED", "REVIEW_REJECTED", "CLOSED", "DRAFT" ]
         };
