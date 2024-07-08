@@ -1015,7 +1015,10 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
                 ALICE_CLOSED_COLLECTION_LOC.request,
                 ALICE_REJECTED_TRANSACTION_LOC_REQUEST,
             ];
-            aliceAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === REQUESTER.address)))
+            aliceAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params =>
+                params.requesterAddress === REQUESTER.address &&
+                params.requesterAddressType === REQUESTER.type
+            )))
                 .returnsAsync({
                     data: {
                         requests: aliceRequests
@@ -1023,7 +1026,10 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
                 } as AxiosResponse);
 
             if(isVerifiedIssuer) {
-                aliceAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === ISSUER.address)))
+                aliceAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params =>
+                    params.requesterAddress === ISSUER.address &&
+                    params.requesterAddressType === ISSUER.type
+                )))
                     .returnsAsync({
                         data: {
                             requests: [ALICE_CLOSED_IDENTITY_LOC_WITH_VERIFIED_ISSUER.request]
@@ -1081,7 +1087,10 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
                 BOB_VOID_COLLECTION_LOC.request,
                 BOB_CLOSED_IDENTITY_LOC.request,
             ];
-            bobAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === REQUESTER.address)))
+            bobAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params =>
+                params.requesterAddress === REQUESTER.address &&
+                params.requesterAddressType === REQUESTER.type
+            )))
                 .returnsAsync({
                     data: {
                         requests: bobRequests
@@ -1105,7 +1114,10 @@ async function buildSharedState(isVerifiedIssuer: boolean = false): Promise<Shar
             const charlieRequests: LocRequest[] = [
                 CHARLIE_VOID_IDENTITY_LOC.request,
             ];
-            charlieAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params => params.requesterAddress === REQUESTER.address)))
+            charlieAxiosMock.setup(instance => instance.put("/api/loc-request", It.Is<FetchLocRequestSpecification>(params =>
+                params.requesterAddress === REQUESTER.address &&
+                params.requesterAddressType === REQUESTER.type
+            )))
                 .returnsAsync({
                     data: {
                         requests: charlieRequests
