@@ -2909,13 +2909,13 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^6.9.1
     "@typescript-eslint/parser": ^6.9.1
     eslint: ^8.20.0
-    expo-crypto: ^12.8.1
-    expo-file-system: ^16.0.7
+    expo-crypto: ^13.0.2
+    expo-file-system: ^17.0.1
     typescript: ^5.2.2
   peerDependencies:
     "@logion/client": 0.x
-    expo-crypto: 12.x
-    expo-file-system: 16.x
+    expo-crypto: 13.x
+    expo-file-system: 17.x
   languageName: unknown
   linkType: soft
 
@@ -7832,23 +7832,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-crypto@npm:^12.8.1":
-  version: 12.8.1
-  resolution: "expo-crypto@npm:12.8.1"
+"expo-crypto@npm:^13.0.2":
+  version: 13.0.2
+  resolution: "expo-crypto@npm:13.0.2"
   dependencies:
     base64-js: ^1.3.0
   peerDependencies:
     expo: "*"
-  checksum: ec3e8cfe65914b05e5ce0cc47180eaa2e6ecad70c9e07ce7ddd0c2fc583350fcdf76a6e746f8dec66267ba4f904817d7967dbd0bb8397758e97a0a49f67397b0
+  checksum: b6978dfc5d89abdbd3471c53ae31c8e4eace13870ff25f39288c4b615c030d587865d7043c7f8ad38b53ad713b3eef27523957abdabeec89cf151e3e23c92609
   languageName: node
   linkType: hard
 
-"expo-file-system@npm:^16.0.7":
-  version: 16.0.7
-  resolution: "expo-file-system@npm:16.0.7"
+"expo-file-system@npm:^17.0.1":
+  version: 17.0.1
+  resolution: "expo-file-system@npm:17.0.1"
   peerDependencies:
     expo: "*"
-  checksum: 4166bfd0c51d618be20fbb5e3734d75a85c27487f9eaf81240bbf597b3afaba5ef3647f8724f55e4fcb5bd1fbdd5ee9958336603039f6fb82ddcca07e6a37e38
+  checksum: e87f4b663dd01150ccc0c2eda52c221d0e6826ebaad4ff371498fb57c124ca73586868615d17031775671a58096a40a98e7dca189d46538aa3ade77ca2930e8b
   languageName: node
   linkType: hard
 
